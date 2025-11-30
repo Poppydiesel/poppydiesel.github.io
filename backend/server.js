@@ -1,13 +1,13 @@
-// Load environment variables from .env
+// Load environment variables from .env (on Render these come from env vars)
 require("dotenv").config();
 
 const express = require("express");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// Parse JSON request bodies (for later)
+// Parse JSON request bodies
 app.use(express.json());
 
 // --- Supabase setup ---
@@ -15,7 +15,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error("❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env");
+  console.error("❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in env");
   process.exit(1);
 }
 
@@ -23,10 +23,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Home check
 app.get("/", (req, res) => {
-  res.send("TradesAI + Supabase server is running ✅");
+  res.send("TradesAI + Supabase backend is running ✅");
 });
 
-// --- Get recent messages ---
+// Get recent messages
 app.get("/messages", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -47,7 +47,7 @@ app.get("/messages", async (req, res) => {
   }
 });
 
-// --- Add test message ---
+// Optional: quick test route to insert a message
 app.get("/add-test", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -68,6 +68,33 @@ app.get("/add-test", async (req, res) => {
   }
 });
 
+// 🔥 NEW: endpoint for Make.com to send messages into Supabase
+app.post("/message", async (req, res) => {
+  try {
+    const { from, text } = req.body || {};
+
+    if (!from || !text) {
+      return res.status(400).json({ ok: false, error: "Missing 'from' or 'text'" });
+    }
+
+    const { data, error } = await supabase
+      .from("messages")
+      .insert([{ from, text }])
+      .select();
+
+    if (error) {
+      console.error("Supabase insert error:", error);
+      return res.status(500).json({ ok: false, error: "Failed to save message" });
+    }
+
+    console.log("✅ Saved incoming message:", data);
+    res.json({ ok: true, saved: data });
+  } catch (e) {
+    console.error("Unexpected error:", e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 app.listen(PORT, () => {
-  console.log(`Server started on http://localhost:${PORT}`);
+  console.log(`Server started on port ${PORT}`);
 });
