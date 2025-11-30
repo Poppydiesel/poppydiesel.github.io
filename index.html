@@ -518,6 +518,21 @@
       margin-bottom: 0.35rem;
     }
 
+    /* Live backend demo block */
+    #messages {
+      margin-top: 0.6rem;
+      font-size: 0.85rem;
+      background: #f5f7ff;
+      border-radius: 0.7rem;
+      padding: 0.7rem 0.8rem;
+      border: 1px solid rgba(31, 78, 121, 0.12);
+      min-height: 1.4rem;
+    }
+
+    .message-item {
+      margin-bottom: 0.25rem;
+    }
+
     /* FAQ */
 
     .faq-grid {
@@ -662,7 +677,7 @@
             <p>
               TradesAI is your always-on office assistant for tradesmen and home
               service businesses. It replies instantly to enquiries, gathers job
-              details, sends quotes, books work and requests reviews — all automatically —
+              details, sends quotes, books work and requests reviews — all automatically — 
               so you can stay on the tools.
             </p>
             <div class="hero-actions">
@@ -786,7 +801,7 @@
             <div class="how-step">Step 1</div>
             <h3>Instant Replies</h3>
             <p>
-              As soon as a customer messages you, TradesAI replies in seconds —
+              As soon as a customer messages you, TradesAI replies in seconds — 
               even at night or when you’re on a job. It asks smart questions, checks
               postcode coverage and filters out time-wasters.
             </p>
@@ -941,6 +956,15 @@
           <p><strong>Customer:</strong> *(sends photo)*</p>
           <p><strong>TradesAI:</strong> “Based on similar jobs, a typical repair like this is usually between <strong>£90–£140</strong> depending on parts. We can be with you <strong>Thursday afternoon between 1–3pm</strong>. Would you like to book that slot?”</p>
         </div>
+
+        <!-- LIVE BACKEND DEMO -->
+        <div class="demo-card" style="margin-top:1.1rem;">
+          <div class="demo-label">Live • TradesAI backend (Supabase)</div>
+          <p style="margin-top:0;">
+            This is pulling live data from your TradesAI backend on Render.
+          </p>
+          <div id="messages">Loading latest message…</div>
+        </div>
       </div>
     </section>
 
@@ -1014,6 +1038,40 @@
 
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
+
+  async function loadMessages() {
+    const container = document.getElementById('messages');
+    if (!container) return;
+
+    try {
+      const res = await fetch('https://tradesai-backend.onrender.com/messages');
+      const data = await res.json();
+
+      container.innerHTML = '';
+
+      if (!data.ok) {
+        container.textContent = 'Error loading messages.';
+        return;
+      }
+
+      if (!data.messages || !data.messages.length) {
+        container.textContent = 'No messages yet.';
+        return;
+      }
+
+      // show latest message (first one)
+      const latest = data.messages[0];
+      const div = document.createElement('div');
+      div.className = 'message-item';
+      div.textContent = latest.from + ': ' + latest.text;
+      container.appendChild(div);
+    } catch (err) {
+      console.error(err);
+      container.textContent = 'Failed to reach TradesAI backend.';
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', loadMessages);
 </script>
 </body>
 </html>
