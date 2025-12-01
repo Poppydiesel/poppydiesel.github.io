@@ -500,6 +500,106 @@
       transform: translateY(-2px);
     }
 
+    /* SIGNUP SECTION */
+
+    #signup {
+      background: #e9f0f7;
+    }
+
+    .signup-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      gap: 2rem;
+      align-items: flex-start;
+    }
+
+    .signup-copy {
+      font-size: 0.95rem;
+    }
+
+    .signup-copy ul {
+      margin: 0.8rem 0 0;
+      padding-left: 1.1rem;
+      font-size: 0.9rem;
+    }
+
+    .signup-card {
+      background: var(--white);
+      border-radius: 1rem;
+      padding: 1.4rem 1.5rem;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+      font-size: 0.9rem;
+    }
+
+    .signup-card h3 {
+      margin: 0 0 0.6rem;
+      font-size: 1.1rem;
+      color: var(--primary-blue);
+    }
+
+    .signup-field {
+      margin-bottom: 0.85rem;
+    }
+
+    .signup-field label {
+      display: block;
+      font-size: 0.8rem;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+    }
+
+    .signup-field input,
+    .signup-field select {
+      width: 100%;
+      padding: 0.55rem 0.65rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(0,0,0,0.16);
+      font: inherit;
+    }
+
+    .signup-field input:focus,
+    .signup-field select:focus {
+      outline: 2px solid rgba(31, 78, 121, 0.4);
+      border-color: transparent;
+    }
+
+    .signup-agree {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45rem;
+      font-size: 0.8rem;
+      margin: 0.6rem 0 1rem;
+    }
+
+    .signup-agree input {
+      margin-top: 0.15rem;
+    }
+
+    .signup-note {
+      font-size: 0.78rem;
+      opacity: 0.75;
+      margin-top: 0.4rem;
+    }
+
+    .signup-submit {
+      width: 100%;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.75rem 1.2rem;
+      border-radius: 999px;
+      border: none;
+      background: var(--primary-blue);
+      color: var(--white);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .signup-submit:hover {
+      background: #163857;
+    }
+
     /* DEMO */
 
     .demo-card {
@@ -625,6 +725,10 @@
       .hero-card {
         margin-top: 0.7rem;
       }
+
+      .signup-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
 
     @media (max-width: 520px) {
@@ -658,6 +762,7 @@
           <a href="#who">Who it’s for</a>
           <a href="#how">How it works</a>
           <a href="#pricing">Pricing</a>
+          <a href="#signup">Sign up</a>
           <a href="#faq">FAQ</a>
           <a href="#demo" class="nav-cta">Book a free demo</a>
         </nav>
@@ -895,7 +1000,7 @@
               <li>Simple monthly performance report</li>
             </ul>
             <div class="plan-cta">
-              <a href="#demo" class="btn-outline">Start with Starter</a>
+              <a href="#signup" class="btn-outline">Start with Starter</a>
             </div>
           </div>
 
@@ -913,7 +1018,7 @@
               <li>Priority support</li>
             </ul>
             <div class="plan-cta">
-              <a href="#demo" class="btn-primary">Choose Pro</a>
+              <a href="#signup" class="btn-primary">Choose Pro</a>
             </div>
           </div>
 
@@ -931,8 +1036,113 @@
               <li>Unlimited automations</li>
             </ul>
             <div class="plan-cta">
-              <a href="#demo" class="btn-outline">Talk about Premium</a>
+              <a href="#signup" class="btn-outline">Talk about Premium</a>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIGNUP -->
+    <section id="signup">
+      <div class="inner">
+        <h2>Join TradesAI</h2>
+        <p class="section-lead">
+          Tell us a few details about your business and the plan you’re interested in.
+          We’ll set everything up with you and confirm payment separately — no card needed today.
+        </p>
+
+        <div class="signup-layout">
+          <div class="signup-copy">
+            <p>
+              Perfect if you’d like to get on the list, see a live setup for your trade,
+              and only switch on payments once you’re happy.
+            </p>
+            <ul>
+              <li>No long-term contract and no card details collected here.</li>
+              <li>We’ll contact you to confirm setup, pricing and start date.</li>
+              <li>You can change plan or cancel before anything goes live.</li>
+            </ul>
+          </div>
+
+          <div class="signup-card">
+            <h3>Tell us about your business</h3>
+            <form action="YOUR_MAKE_WEBHOOK_URL" method="POST">
+              <div class="signup-field">
+                <label for="contact_name">Contact name</label>
+                <input id="contact_name" name="contact_name" type="text" required>
+              </div>
+
+              <div class="signup-field">
+                <label for="business_name">Business name</label>
+                <input id="business_name" name="business_name" type="text" required>
+              </div>
+
+              <div class="signup-field">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" required>
+              </div>
+
+              <div class="signup-field">
+                <label for="whatsapp_number">Mobile / WhatsApp number</label>
+                <input id="whatsapp_number" name="whatsapp_number" type="tel" required>
+              </div>
+
+              <div class="signup-field">
+                <label for="trade_type">Trade type</label>
+                <select id="trade_type" name="trade_type" required>
+                  <option value="">Select your trade…</option>
+                  <option>Plumber</option>
+                  <option>Heating Engineer</option>
+                  <option>Gas Engineer</option>
+                  <option>Electrician</option>
+                  <option>Builder</option>
+                  <option>Handyman</option>
+                  <option>Landscaper / Gardener</option>
+                  <option>Cleaner / Carpet Cleaner</option>
+                  <option>Pest Control</option>
+                  <option>Other</option>
+                </select>
+              </div>
+
+              <div class="signup-field">
+                <label for="service_area">Main service area (town or postcode)</label>
+                <input id="service_area" name="service_area" type="text" required>
+              </div>
+
+              <div class="signup-field">
+                <label for="plan">Choose your plan</label>
+                <select id="plan" name="plan" required>
+                  <option value="">Select a plan…</option>
+                  <option value="starter-monthly">Starter – Monthly</option>
+                  <option value="starter-yearly">Starter – Yearly</option>
+                  <option value="pro-monthly">Pro – Monthly</option>
+                  <option value="pro-yearly">Pro – Yearly</option>
+                  <option value="premium-monthly">Premium – Monthly</option>
+                </select>
+              </div>
+
+              <div class="signup-field">
+                <label for="referrer">How did you hear about TradesAI? (optional)</label>
+                <input id="referrer" name="referrer" type="text">
+              </div>
+
+              <div class="signup-agree">
+                <input id="agree" name="agree" type="checkbox" required>
+                <label for="agree">
+                  I agree to the Terms &amp; Conditions and Privacy Policy.
+                </label>
+              </div>
+
+              <button type="submit" class="signup-submit">
+                Join TradesAI (no payment yet)
+              </button>
+
+              <div class="signup-note">
+                After you submit this form, we’ll review your details and get in touch
+                to confirm setup and payment options.
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -1013,11 +1223,11 @@
           Book a quick, no-pressure demo and we’ll show you exactly how TradesAI would
           work for your business, using examples from your trade and area.
         </p>
-        <a href="mailto:hello@tradesai.co.uk?subject=TradesAI%20Demo%20Request" class="btn-primary">
-          Email to Book Your Free Demo
+        <a href="#signup" class="btn-primary">
+          Join TradesAI &amp; Request a Demo
         </a>
         <p style="margin-top:0.7rem;font-size:0.85rem;opacity:0.75;">
-          Or replace this button with a Calendly / booking link when you’re ready.
+          Prefer email? You can still reach us at <a href="mailto:hello@tradesai.co.uk">hello@tradesai.co.uk</a>.
         </p>
       </div>
     </section>
@@ -1030,6 +1240,7 @@
       <div class="footer-links">
         <a href="#top">Back to top</a>
         <a href="#pricing">Pricing</a>
+        <a href="#signup">Sign up</a>
         <a href="#demo">Book demo</a>
       </div>
     </div>
