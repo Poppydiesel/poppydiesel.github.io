@@ -2,20 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro – Dashboard</title>
+  <title>TradeBotPro — Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
     :root {
-      --primary: #1f4e79;
-      --accent: #00a3ff;
-      --bg: #f5f7fa;
-      --card-bg: #ffffff;
-      --text: #1b1b1f;
-      --muted: #6b7280;
-      --border: #e5e7eb;
-      --danger: #b91c1c;
-      --success: #15803d;
+      --primary-blue: #1f4e79;
+      --accent-blue: #00a3ff;
+      --dark-text: #1b1b1f;
+      --light-bg: #f5f7fa;
+      --white: #ffffff;
+      --border: #d0d4dc;
     }
 
     * {
@@ -25,58 +22,52 @@
     body {
       margin: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      background: var(--light-bg);
+      color: var(--dark-text);
     }
 
     header {
-      background: var(--primary);
-      color: white;
+      background: var(--primary-blue);
+      color: var(--white);
       padding: 1rem 1.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.75rem;
     }
 
-    header .brand {
-      font-size: 1.2rem;
-      font-weight: 600;
+    header h1 {
+      margin: 0;
+      font-size: 1.25rem;
     }
 
-    header .tagline {
+    header .user-badge {
       font-size: 0.9rem;
       opacity: 0.9;
     }
 
     main {
       max-width: 1100px;
-      margin: 1.5rem auto 2rem;
-      padding: 0 1rem;
+      margin: 1.5rem auto;
+      padding: 0 1rem 2.5rem;
     }
 
     .status-bar {
       margin-bottom: 1rem;
       padding: 0.75rem 1rem;
-      border-radius: 0.75rem;
-      border: 1px solid var(--border);
-      background: #e0f2fe;
+      border-radius: 8px;
       font-size: 0.9rem;
-      display: flex;
-      justify-content: space-between;
-      gap: 0.75rem;
-      align-items: center;
-      flex-wrap: wrap;
     }
 
-    .status-bar span.label {
-      font-weight: 500;
+    .status-bar.info {
+      background: #e8f2ff;
+      border: 1px solid #c5d9ff;
+      color: #1f3b64;
     }
 
-    .status-bar span.value {
-      font-weight: 600;
-      color: var(--primary);
+    .status-bar.error {
+      background: #ffe8e8;
+      border: 1px solid #ffbcbc;
+      color: #7a1414;
     }
 
     .grid {
@@ -92,230 +83,148 @@
     }
 
     .card {
-      background: var(--card-bg);
-      border-radius: 0.75rem;
-      padding: 1rem 1.25rem 1.25rem;
+      background: var(--white);
+      border-radius: 10px;
       border: 1px solid var(--border);
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+      padding: 1rem 1.25rem 1.25rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
     }
 
     .card h2 {
       margin: 0 0 0.75rem;
       font-size: 1.1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.5rem;
     }
 
-    .card h2 span.badge {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      background: #e5e7eb;
-      padding: 0.15rem 0.5rem;
-      border-radius: 999px;
-      color: #374151;
+    .card p {
+      margin: 0.25rem 0;
+      font-size: 0.95rem;
     }
 
-    .card p.help {
-      margin: 0 0 0.75rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-
-    .field {
+    .field-group {
       margin-bottom: 0.75rem;
     }
 
-    .field label {
+    .field-group label {
       display: block;
       font-size: 0.85rem;
-      font-weight: 500;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.2rem;
+      color: #555b66;
     }
 
-    .field small {
-      display: block;
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 0.1rem;
-    }
-
-    input[type="text"],
-    input[type="number"],
-    select,
-    textarea {
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
       width: 100%;
       padding: 0.45rem 0.5rem;
-      border-radius: 0.5rem;
+      font-size: 0.95rem;
+      border-radius: 6px;
       border: 1px solid var(--border);
-      font-size: 0.9rem;
-      font-family: inherit;
     }
 
-    textarea {
-      resize: vertical;
-      min-height: 70px;
-    }
-
-    input[readonly] {
-      background: #f9fafb;
-      color: #6b7280;
-    }
-
-    .row {
+    .field-inline {
       display: flex;
-      gap: 0.75rem;
+      gap: 0.7rem;
     }
 
-    .row > .field {
+    .field-inline .field-group {
       flex: 1;
     }
 
-    @media (max-width: 600px) {
-      .row {
-        flex-direction: column;
-      }
+    .muted {
+      font-size: 0.85rem;
+      color: #6d7583;
     }
 
-    .btn-row {
+    .pill-row {
       display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-    }
-
-    button {
-      border-radius: 999px;
-      border: none;
-      padding: 0.45rem 0.9rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-      font-weight: 500;
-      font-family: inherit;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-outline {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: #374151;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
     }
 
     .pill {
-      display: inline-block;
-      padding: 0.15rem 0.55rem;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.55rem;
       border-radius: 999px;
-      font-size: 0.75rem;
       border: 1px solid var(--border);
-      color: var(--muted);
-      background: #f9fafb;
-      margin-top: 0.25rem;
+      background: #f8fafc;
     }
 
-    .message {
-      margin-top: 0.5rem;
-      font-size: 0.85rem;
+    button.primary {
+      background: var(--primary-blue);
+      color: var(--white);
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      font-size: 0.95rem;
+      cursor: pointer;
     }
 
-    .message.error {
-      color: var(--danger);
+    button.primary:disabled {
+      opacity: 0.6;
+      cursor: default;
     }
 
-    .message.success {
-      color: var(--success);
-    }
-
-    .alert {
+    .section-footer {
       margin-top: 0.75rem;
-      padding: 0.6rem 0.7rem;
-      font-size: 0.8rem;
-      border-radius: 0.5rem;
-      background: #fffbeb;
-      border: 1px solid #facc15;
-      color: #92400e;
-    }
-
-    footer {
-      max-width: 1100px;
-      margin: 0 auto 1.5rem;
-      padding: 0 1rem;
-      font-size: 0.8rem;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      gap: 0.75rem;
-      flex-wrap: wrap;
+      text-align: right;
+      font-size: 0.85rem;
+      color: #6d7583;
     }
   </style>
+
+  <!-- Supabase JS (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header>
-    <div>
-      <div class="brand">TradeBotPro</div>
-      <div class="tagline">Your 24/7 AI office assistant for trades & home services</div>
-    </div>
-    <div style="font-size:0.85rem; text-align:right;">
-      <div id="heading-trade">Loading trade…</div>
-      <div id="heading-area" style="opacity:0.9;"></div>
+    <h1>TradeBotPro — My Dashboard</h1>
+    <div class="user-badge" id="headerUser">
+      Loading user…
     </div>
   </header>
 
   <main>
-    <div class="status-bar">
-      <div>
-        <span class="label">Account status:</span>
-        <span class="value" id="account-status">Loading…</span>
-      </div>
-      <div style="font-size:0.8rem; color:var(--muted);">
-        PHASE 3 · Dashboard V1 · Call-out pricing & trade settings
-      </div>
+    <div id="statusArea" class="status-bar info">
+      Connecting to TradeBotPro…
     </div>
 
-    <div id="global-error" class="message error" style="margin-bottom:0.75rem; display:none;"></div>
-
     <div class="grid">
-      <!-- LEFT: Business & pricing -->
+      <!-- LEFT: Business profile & trade settings -->
       <section class="card">
-        <h2>
-          Business & Pricing
-          <span class="badge">Core settings</span>
-        </h2>
-        <p class="help">
-          This is what TradeBotPro will use when it’s talking to your customers, sending estimates and
-          answering “how much for a call-out?” questions.
+        <h2>Business profile</h2>
+        <p class="muted">
+          Check your details below. This is what TradeBotPro uses when talking to your customers.
         </p>
 
-        <div class="field">
-          <label for="business_name">Business name</label>
-          <input id="business_name" type="text" readonly />
-          <small>Comes from your signup form. We’ll let you edit this in a later version.</small>
+        <div class="field-group">
+          <label>Business name</label>
+          <input id="businessName" type="text" placeholder="Your trading name" disabled />
         </div>
 
-        <div class="row">
-          <div class="field">
-            <label for="trade_type">Main trade</label>
-            <select id="trade_type">
-              <option value="">Select your main trade</option>
+        <div class="field-group">
+          <label>Main contact name</label>
+          <input id="contactName" type="text" disabled />
+        </div>
 
-              <!-- Existing Supabase trade groups -->
-              <option value="Plumbers & Heating Engineers">Plumbers &amp; Heating Engineers</option>
-              <option value="Roofers & Guttering">Roofers &amp; Guttering</option>
-              <option value="Cleaners & Carpet Cleaners">Cleaners &amp; Carpet Cleaners</option>
+        <div class="field-inline">
+          <div class="field-group">
+            <label>Primary trade</label>
+            <select id="tradeType" disabled>
+              <!-- Core trades from Supabase -->
+              <option value="">Select your trade…</option>
+              <option value="Plumbers &amp; Heating Engineers">Plumbers &amp; Heating Engineers</option>
+              <option value="Roofers &amp; Guttering">Roofers &amp; Guttering</option>
+              <option value="Cleaners &amp; Carpet Cleaners">Cleaners &amp; Carpet Cleaners</option>
               <option value="Electricians">Electricians</option>
               <option value="Pest Control">Pest Control</option>
               <option value="Window Cleaners">Window Cleaners</option>
-              <option value="Landscapers & Gardeners">Landscapers &amp; Gardeners</option>
-              <option value="Home Repairs & Maintenance">Home Repairs &amp; Maintenance</option>
-              <option value="Builders & Handymen">Builders &amp; Handymen</option>
-              <option value="Painters & Decorators">Painters &amp; Decorators</option>
+              <option value="Landscapers &amp; Gardeners">Landscapers &amp; Gardeners</option>
+              <option value="Home Repairs &amp; Maintenance">Home Repairs &amp; Maintenance</option>
+              <option value="Builders &amp; Handymen">Builders &amp; Handymen</option>
+              <option value="Painters &amp; Decorators">Painters &amp; Decorators</option>
 
-              <!-- Extra trades you listed (for future expansion) -->
+              <!-- Extra expansion trades -->
               <option value="Gas Engineer">Gas Engineer</option>
               <option value="Drainage / Blockages">Drainage / Blockages</option>
               <option value="Boiler Specialist">Boiler Specialist</option>
@@ -324,294 +233,164 @@
               <option value="General Builder">General Builder</option>
               <option value="Locksmith">Locksmith</option>
             </select>
-            <small>
-              We store this in Supabase (<code>trade_type</code>). You can still do multiple services, this
-              is just your main category.
-            </small>
           </div>
 
-          <div class="field">
-            <label for="service_area">Service area</label>
-            <input id="service_area" type="text" readonly />
-            <small>e.g. “NW London within 10 miles of HA1”. Comes from your signup info.</small>
+          <div class="field-group">
+            <label>Service area (example)</label>
+            <input id="serviceArea" type="text" placeholder="e.g. SW London, HP14, M25 corridor" disabled />
           </div>
         </div>
 
-        <hr style="margin:0.9rem 0; border:none; border-top:1px solid var(--border);" />
-
-        <div class="row">
-          <div class="field">
-            <label for="callout_price">Standard call-out fee (£)</label>
-            <input id="callout_price" type="number" step="1" min="0" placeholder="e.g. 80" />
-            <small>Used when customers ask “How much is your call-out?”</small>
-          </div>
-          <div class="field">
-            <label for="hourly_rate">Hourly rate (£/hour)</label>
-            <input id="hourly_rate" type="number" step="1" min="0" placeholder="e.g. 60" />
-            <small>Used to estimate labour costs for jobs.</small>
-          </div>
+        <div class="field-group">
+          <label>Public “about you” blurb (future website)</label>
+          <textarea id="aboutText" rows="3" placeholder="Short description customers will see" disabled></textarea>
         </div>
 
-        <div class="row">
-          <div class="field">
-            <label for="emergency_callout_price">Emergency / out-of-hours call-out (£)</label>
-            <input id="emergency_callout_price" type="number" step="1" min="0" placeholder="e.g. 140" />
-            <small>TradeBotPro will use this for evenings/weekends if you allow it.</small>
-          </div>
-          <div class="field">
-            <label for="min_job_price">Minimum job price (£)</label>
-            <input id="min_job_price" type="number" step="1" min="0" placeholder="e.g. 80" />
-            <small>Stops the assistant quoting tiny jobs too cheap.</small>
-          </div>
+        <div class="section-footer">
+          V1: Read-only view from <code>tradebotpro_signups</code>. Editing & saving will come in Phase 4.
         </div>
-
-        <div class="btn-row">
-          <button type="button" class="btn-outline" id="btn-reset-pricing">Reset</button>
-          <button type="button" class="btn-primary" id="btn-save-settings">Save changes</button>
-        </div>
-
-        <div id="save-message" class="message" style="display:none;"></div>
       </section>
 
-      <!-- RIGHT: Contact + “Improve answers” -->
+      <!-- RIGHT: Pricing & assistant behaviour (static for now) -->
       <section class="card">
-        <h2>
-          Contact & AI behaviour
-          <span class="badge">V1</span>
-        </h2>
-        <p class="help">
-          TradeBotPro will only share these details with customers when it’s appropriate (for example, after
-          a booking is agreed).
+        <h2>Assistant & pricing (coming soon)</h2>
+        <p class="muted">
+          This is where you’ll control your call-out fees and how TradeBotPro answers customers.
         </p>
 
-        <div class="field">
-          <label for="contact_name">Your name</label>
-          <input id="contact_name" type="text" readonly />
+        <div class="field-group">
+          <label>Standard call-out fee (£)</label>
+          <input id="calloutFee" type="number" placeholder="e.g. 80" disabled />
         </div>
 
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" type="text" readonly />
+        <div class="field-inline">
+          <div class="field-group">
+            <label>Weekday hourly rate (£)</label>
+            <input id="weekdayRate" type="number" placeholder="e.g. 65" disabled />
+          </div>
+          <div class="field-group">
+            <label>Out-of-hours rate (£)</label>
+            <input id="oohRate" type="number" placeholder="e.g. 95" disabled />
+          </div>
         </div>
 
-        <div class="field">
-          <label for="phone">Phone number</label>
-          <input id="phone" type="text" readonly />
+        <div class="field-group">
+          <label>How “salesy” should the assistant be?</label>
+          <select id="tone" disabled>
+            <option value="calm">Calm & helpful</option>
+            <option value="balanced" selected>Balanced — helpful & proactive</option>
+            <option value="pushy">Very proactive</option>
+          </select>
         </div>
 
-        <div class="field">
-          <label for="whatsapp_number">WhatsApp number</label>
-          <input id="whatsapp_number" type="text" readonly />
+        <div class="field-group">
+          <label>Let customers help improve answers (future)</label>
+          <div class="pill-row">
+            <span class="pill">👍 “That was helpful”</span>
+            <span class="pill">👎 “Not quite right”</span>
+            <span class="pill">⭐ Save good replies</span>
+          </div>
+          <p class="muted" style="margin-top:0.4rem;">
+            In a later phase, we’ll let you see what customers liked and tweak how the assistant responds.
+          </p>
         </div>
 
-        <div class="alert">
-          In future phases this card will also control:
-          <div class="pill">What hours the assistant can book work</div>
-          <div class="pill">Which jobs to say “no” to</div>
-          <div class="pill">How aggressive you want it to chase payment</div>
-        </div>
-
-        <hr style="margin:0.9rem 0; border:none; border-top:1px solid var(--border);" />
-
-        <h2 style="margin-top:0.5rem;">
-          Improve answers
-          <span class="badge">Coming soon</span>
-        </h2>
-        <p class="help">
-          This is where you’ll be able to paste phrases your customers use, or corrections, so TradeBotPro
-          learns how <em>you</em> like to answer questions.
-        </p>
-
-        <div class="field">
-          <label for="suggestions">Notes for future versions</label>
-          <textarea id="suggestions" placeholder="E.g. &quot;Always offer a boiler service when we fix a leak&quot; or &quot;Never give exact prices for power-flushing, only a rough range&quot;"></textarea>
-          <small>For now this is just a scratchpad for you. We’ll wire it into the AI in a later phase.</small>
+        <div class="section-footer">
+          <button class="primary" disabled>Save changes (Phase 4)</button>
         </div>
       </section>
     </div>
   </main>
 
-  <footer>
-    <div>TradeBotPro · Internal test build · Phase 3 – Dashboard V1</div>
-    <div>Public map / mini-website for each user will come in a later phase.</div>
-  </footer>
+  <script>
+    // 1. Supabase setup (PUT YOUR KEYS HERE)
+    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";       // ← replace this
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";            // ← and this
 
-  <!-- Supabase & app logic -->
-  <script type="module">
-    import { createClient } from "https://esm.run/@supabase/supabase-js@2";
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // TODO: Replace these with your real values from Supabase Project Settings → API
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-
-    const supabase = createClient(createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const globalErrorEl = document.getElementById("global-error");
-    const statusEl = document.getElementById("account-status");
-
-    const businessNameEl = document.getElementById("business_name");
-    const tradeTypeEl = document.getElementById("trade_type");
-    const serviceAreaEl = document.getElementById("service_area");
-
-    const calloutEl = document.getElementById("callout_price");
-    const hourlyEl = document.getElementById("hourly_rate");
-    const emergencyCalloutEl = document.getElementById("emergency_callout_price");
-    const minJobEl = document.getElementById("min_job_price");
-
-    const contactNameEl = document.getElementById("contact_name");
-    const emailEl = document.getElementById("email");
-    const phoneEl = document.getElementById("phone");
-    const whatsappEl = document.getElementById("whatsapp_number");
-
-    const headingTradeEl = document.getElementById("heading-trade");
-    const headingAreaEl = document.getElementById("heading-area");
-
-    const saveBtn = document.getElementById("btn-save-settings");
-    const resetBtn = document.getElementById("btn-reset-pricing");
-    const saveMessageEl = document.getElementById("save-message");
-
-    let currentUserId = null;
-    let originalPricing = null;
-
-    function showGlobalError(message) {
-      globalErrorEl.textContent = message;
-      globalErrorEl.style.display = "block";
-    }
-
-    function clearGlobalError() {
-      globalErrorEl.textContent = "";
-      globalErrorEl.style.display = "none";
-    }
-
+    // 2. Helper: get user_id from URL query string
     function getUserIdFromUrl() {
       const params = new URLSearchParams(window.location.search);
       return params.get("user_id");
     }
 
-    function toNumberOrNull(value) {
-      if (value === null || value === undefined || value === "") return null;
-      const n = Number(value);
-      return Number.isNaN(n) ? null : n;
+    // 3. Update status bar
+    function setStatus(message, type = "info") {
+      const bar = document.getElementById("statusArea");
+      bar.textContent = message;
+      bar.className = "status-bar " + type;
     }
 
-    async function loadDashboard() {
-      clearGlobalError();
-      statusEl.textContent = "Loading from Supabase…";
+    // 4. Fill the dashboard from a signup row
+    function populateFromSignup(row) {
+      const headerUser = document.getElementById("headerUser");
+      const businessName = document.getElementById("businessName");
+      const contactName = document.getElementById("contactName");
+      const tradeType = document.getElementById("tradeType");
+      const serviceArea = document.getElementById("serviceArea");
+      const aboutText = document.getElementById("aboutText");
 
+      headerUser.textContent = row.business_name
+        ? row.business_name
+        : (row.contact_name || "Signed-up user");
+
+      businessName.value = row.business_name || "";
+      contactName.value = row.contact_name || "";
+
+      // If your signup table has a 'trade_type' column:
+      if (row.trade_type) {
+        tradeType.value = row.trade_type;
+      }
+
+      // Optional columns if you add them later
+      serviceArea.value = row.service_area || "";
+      aboutText.value = row.about_text || "";
+    }
+
+    // 5. Main loader
+    async function initDashboard() {
       const userId = getUserIdFromUrl();
+
       if (!userId) {
-        showGlobalError(
-          "No user_id was found in the link. Open this dashboard from your secure TradeBotPro signup link."
-        );
-        statusEl.textContent = "Link problem";
+        setStatus("No user_id in the URL. Please open the link from your signup email.", "error");
+        document.getElementById("headerUser").textContent = "No user ID found";
         return;
       }
 
-      currentUserId = userId;
+      setStatus("Loading your details from TradeBotPro…");
 
-      const { data, error } = await supabase
-        .from("signups")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      try {
+        const { data, error } = await supabaseClient
+          .from("tradebotpro_signups")
+          .select("*")
+          .eq("user_id", userId)
+          .single();
 
-      if (error) {
-        console.error(error);
-        showGlobalError("Could not load your details from Supabase. Check the console for more info.");
-        statusEl.textContent = "Error loading";
-        return;
+        if (error) {
+          console.error("Supabase error:", error);
+          setStatus("Could not load your details (Supabase error).", "error");
+          document.getElementById("headerUser").textContent = "Load failed";
+          return;
+        }
+
+        if (!data) {
+          setStatus("We couldn't find your signup record. Please contact support.", "error");
+          document.getElementById("headerUser").textContent = "Record not found";
+          return;
+        }
+
+        populateFromSignup(data);
+        setStatus("Loaded your TradeBotPro profile from tradebotpro_signups.");
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        setStatus("Unexpected error loading dashboard.", "error");
+        document.getElementById("headerUser").textContent = "Error";
       }
-
-      // Basic info – adjust these property names if your table columns are slightly different
-      businessNameEl.value = data.business_name || "";
-      tradeTypeEl.value = data.trade_type || "";
-      serviceAreaEl.value = data.service_area || data.service_area_description || "";
-
-      contactNameEl.value = data.contact_name || "";
-      emailEl.value = data.email || data.contact_email || "";
-      phoneEl.value = data.phone_number || data.phone || "";
-      whatsappEl.value = data.whatsapp_number || data.whatsapp || "";
-
-      // Pricing – assume these columns exist in signups (or will be added):
-      calloutEl.value = data.callout_price ?? "";
-      hourlyEl.value = data.hourly_rate ?? "";
-      emergencyCalloutEl.value = data.emergency_callout_price ?? "";
-      minJobEl.value = data.min_job_price ?? "";
-
-      originalPricing = {
-        callout_price: data.callout_price ?? "",
-        hourly_rate: data.hourly_rate ?? "",
-        emergency_callout_price: data.emergency_callout_price ?? "",
-        min_job_price: data.min_job_price ?? "",
-      };
-
-      // Header
-      headingTradeEl.textContent = data.trade_type || "Trade not set yet";
-      headingAreaEl.textContent = data.service_area || data.service_area_description || "";
-
-      statusEl.textContent = data.subscription_status || "Trial / not yet billing";
     }
 
-    async function saveSettings() {
-      if (!currentUserId) return;
-
-      clearGlobalError();
-      saveMessageEl.style.display = "none";
-
-      const tradeType = tradeTypeEl.value || null;
-
-      const updatePayload = {
-        trade_type: tradeType,
-        callout_price: toNumberOrNull(calloutEl.value),
-        hourly_rate: toNumberOrNull(hourlyEl.value),
-        emergency_callout_price: toNumberOrNull(emergencyCalloutEl.value),
-        min_job_price: toNumberOrNull(minJobEl.value),
-      };
-
-      saveBtn.disabled = true;
-      saveBtn.textContent = "Saving…";
-
-      const { error } = await supabase
-        .from("signups")
-        .update(updatePayload)
-        .eq("id", currentUserId);
-
-      saveBtn.disabled = false;
-      saveBtn.textContent = "Save changes";
-
-      if (error) {
-        console.error(error);
-        showGlobalError("Could not save your settings. Check the console for more details.");
-        return;
-      }
-
-      saveMessageEl.textContent = "Saved. TradeBotPro will use these settings on your next enquiries.";
-      saveMessageEl.className = "message success";
-      saveMessageEl.style.display = "block";
-
-      headingTradeEl.textContent = tradeType || "Trade not set yet";
-    }
-
-    function resetPricing() {
-      if (!originalPricing) return;
-      calloutEl.value = originalPricing.callout_price ?? "";
-      hourlyEl.value = originalPricing.hourly_rate ?? "";
-      emergencyCalloutEl.value = originalPricing.emergency_callout_price ?? "";
-      minJobEl.value = originalPricing.min_job_price ?? "";
-
-      saveMessageEl.textContent = "Pricing reset to the last saved values.";
-      saveMessageEl.className = "message";
-      saveMessageEl.style.display = "block";
-    }
-
-    saveBtn.addEventListener("click", saveSettings);
-    resetBtn.addEventListener("click", resetPricing);
-
-    loadDashboard().catch((err) => {
-      console.error(err);
-      showGlobalError("Unexpected error while loading the dashboard. See console for details.");
-      statusEl.textContent = "Error";
-    });
+    initDashboard();
   </script>
 </body>
 </html>
