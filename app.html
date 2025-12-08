@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TradeBotPro — Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --primary-blue: #1f4e79;
+      --accent-blue: #00a3ff;
+      --dark-text: #1b1b1f;
+      --light-bg: #f5f7fa;
+      --white: #ffffff;
+      --border-subtle: #dde3ec;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--light-bg);
+      color: var(--dark-text);
+      line-height: 1.5;
+    }
+
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 260px;
+      background: var(--primary-blue);
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      padding: 1.25rem 1.5rem 1.5rem;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sidebar-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-blue), #5cd3ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .sidebar-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .sidebar-subtitle {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .nav-section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0.75rem 0 0.3rem;
+      opacity: 0.7;
+    }
+
+    .nav-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1rem;
+    }
+
+    .nav-item {
+      margin-bottom: 0.25rem;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .nav-link span.icon {
+      width: 20px;
+      text-align: center;
+      opacity: 0.9;
+    }
+
+    .nav-link.active {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+
+    /* MAIN AREA */
+
+    .main {
+      flex: 1;
+      padding: 1.5rem 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .main-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .main-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .main-subtitle {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      border-radius: 999px;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.85rem;
+      border: 1px solid var(--border-subtle);
+      background: var(--white);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-primary {
+      background: var(--primary-blue);
+      color: var(--white);
+      border-color: var(--primary-blue);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--dark-text);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .app-shell {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        overflow-x: auto;
+      }
+
+      .sidebar-header {
+        margin-bottom: 0;
+        margin-right: 1rem;
+      }
+
+      .nav-section-title {
+        display: none;
+      }
+
+      .main {
+        padding: 1rem;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 0.9rem;
+      padding: 1rem 1.1rem 1.1rem;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 7px 18px rgba(12, 25, 45, 0.08);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.6rem;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .card-caption {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .field-group {
+      margin-bottom: 0.7rem;
+    }
+
+    .field-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin-bottom: 0.1rem;
+    }
+
+    .field-label span.hint {
+      opacity: 0.7;
+      font-style: italic;
+    }
+
+    .input, .textarea, .select {
+      width: 100%;
+      padding: 0.45rem 0.55rem;
+      border-radius: 0.55rem;
+      border: 1px solid var(--border-subtle);
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: var(--white);
+    }
+
+    .textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    .inline-inputs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .inline-inputs .field-group {
+      flex: 1;
+      min-width: 130px;
+      margin-bottom: 0;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .toggle-row input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border-radius: 999px;
+      padding: 0.15rem 0.6rem;
+      font-size: 0.76rem;
+      background: rgba(31, 78, 121, 0.06);
+      color: var(--primary-blue);
+    }
+
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #21c16b;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .muted {
+      font-size: 0.78rem;
+      opacity: 0.75;
+    }
+
+    .footer-note {
+      font-size: 0.78rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">T</div>
+        <div>
+          <div class="sidebar-title">TradeBotPro</div>
+          <div class="sidebar-subtitle">Trade dashboard</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="nav-section-title">Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <button class="nav-link active">
+              <span class="icon">📊</span>
+              <span>Dashboard</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link">
+              <span class="icon">💬</span>
+              <span>Conversations</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link">
+              <span class="icon">🧾</span>
+              <span>Jobs & bookings</span>
+            </button>
+          </li>
+        </ul>
+
+        <div class="nav-section-title">Settings</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <button class="nav-link">
+              <span class="icon">💷</span>
+              <span>Pricing</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link">
+              <span class="icon">🤖</span>
+              <span>Assistant</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link">
+              <span class="icon">👤</span>
+              <span>Account</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <div>Logged in as</div>
+        <div><strong>Sample Plumbing &amp; Heating Ltd</strong></div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <header class="main-header">
+        <div>
+          <div class="main-title">Welcome back, Sample Plumbing &amp; Heating Ltd</div>
+          <div class="main-subtitle">
+            Control your pricing, tune your AI assistant, and manage how you appear to customers.
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-ghost" type="button">
+            ❓ Help
+          </button>
+          <button class="btn btn-primary" type="button">
+            ⚡ Test my assistant
+          </button>
+        </div>
+      </header>
+
+      <section class="grid">
+        <!-- LEFT COLUMN -->
+        <section class="stack">
+          <!-- Business overview -->
+          <article class="card">
+            <div class="card-header">
+              <div class="card-title">Business overview</div>
+              <div class="pill">
+                <span class="pill-dot"></span>
+                Live
+              </div>
+            </div>
+            <div class="field-group">
+              <div class="field-label">
+                <label for="businessName">Business name</label>
+              </div>
+              <input id="businessName" class="input" type="text"
+                     value="Sample Plumbing &amp; Heating Ltd" />
+            </div>
+
+            <div class="inline-inputs">
+              <div class="field-group">
+                <div class="field-label">
+                  <label for="tradeType">Trade</label>
+                </div>
+                <select id="tradeType" class="select">
+                  <option value="plumbing_heating" selected>Plumbing &amp; Heating</option>
+                </select>
+              </div>
+
+              <div class="field-group">
+                <div class="field-label">
+                  <label for="serviceArea">Service area</label>
+                </div>
+                <input id="serviceArea" class="input" type="text"
+                       placeholder="e.g. North West London, HP, SL, UB" />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">
+                <label for="whatsappNumber">WhatsApp number</label>
+              </div>
+              <input id="whatsappNumber" class="input" type="text"
+                     placeholder="+44 7..." />
+            </div>
+
+            <button class="btn btn-primary" type="button" onclick="saveBusinessBasics()">
+              💾 Save business details
+            </button>
+            <div class="footer-note">
+              These details are used when your assistant introduces your business to new customers.
+            </div>
+          </article>
+
+          <!-- Public presence -->
+          <article class="card">
+            <div class="card-header">
+              <div class="card-title">Public presence (coming soon)</div>
+              <div class="card-caption">Control how you appear in the TradeBotPro directory.</div>
+            </div>
+
+            <div class="toggle-row">
+              <input id="showOnMap" type="checkbox" />
+              <label for="showOnMap">
+                Show my business on the TradeBotPro map / trade locator
+              </label>
+            </div>
+            <div class="toggle-row">
+              <input id="showProfilePage" type="checkbox" />
+              <label for="showProfilePage">
+                Give me a TradeBotPro profile page (mini-website)
+              </label>
+            </div>
+            <p class="muted">
+              This will later power a public directory where homeowners can find trusted trades.
+              You’ll be able to upgrade to featured listings and website add-ons.
+            </p>
+          </article>
+        </section>
+
+        <!-- RIGHT COLUMN -->
+        <section class="stack">
+          <!-- Pricing controls -->
+          <article class="card">
+            <div class="card-header">
+              <div class="card-title">Pricing for call-outs &amp; jobs</div>
+              <div class="card-caption">What should your assistant tell customers?</div>
+            </div>
+
+            <div class="inline-inputs">
+              <div class="field-group">
+                <div class="field-label">
+                  <label for="calloutFee">Call-out fee (£)</label>
+                  <span class="hint">0 for no call-out fee</span>
+                </div>
+                <input id="calloutFee" class="input" type="number" min="0" step="1" value="0" />
+              </div>
+              <div class="field-group">
+                <div class="field-label">
+                  <label for="hourlyRate">Hourly rate (£)</label>
+                </div>
+                <input id="hourlyRate" class="input" type="number" min="0" step="1" value="90" />
+              </div>
+              <div class="field-group">
+                <div class="field-label">
+                  <label for="minimumJobPrice">Minimum job price (£)</label>
+                </div>
+                <input id="minimumJobPrice" class="input" type="number" min="0" step="1" value="80" />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">
+                <label for="pricingNotes">How should we talk about your pricing?</label>
+              </div>
+              <textarea id="pricingNotes" class="textarea"
+                        placeholder="Example: We always confirm prices clearly before starting work. For complex jobs, the assistant should say that one of our engineers will provide a detailed quote."></textarea>
+            </div>
+
+            <button class="btn btn-primary" type="button" onclick="savePricing()">
+              💾 Save pricing
+            </button>
+            <div class="footer-note">
+              Your assistant will use this as guidance — it’s not a legally binding quote and we’ll reflect that in the wording and T&amp;Cs.
+            </div>
+          </article>
+
+          <!-- Assistant behaviour / feedback -->
+          <article class="card">
+            <div class="card-header">
+              <div class="card-title">Assistant behaviour &amp; tone</div>
+              <div class="card-caption">Help TradeBotPro answer like a member of your team.</div>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">
+                <label for="toneOfVoice">Tone of voice</label>
+                <span class="hint">How should we sound?</span>
+              </div>
+              <textarea id="toneOfVoice" class="textarea"
+                        placeholder="Example: Friendly, professional and straight-talking. Avoid jargon with homeowners. Always be polite, never pushy."></textarea>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">
+                <label for="goldenRules">Golden rules &amp; things to avoid</label>
+              </div>
+              <textarea id="goldenRules" class="textarea"
+                        placeholder="Example: We never give diagnostic advice that could be dangerous. We don’t quote for boiler installs over WhatsApp without photos and an address."></textarea>
+            </div>
+
+            <p class="muted">
+              As you use the system, we can add a simple “This answer was helpful / This needs improvement” button into your assistant view.
+              Those thumbs-up / down events can be stored and used to keep improving answers over time.
+            </p>
+          </article>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // For V1 these just log to the console.
+    // Later we’ll POST this data to your backend / Supabase.
+
+    function saveBusinessBasics() {
+      const payload = {
+        businessName: document.getElementById('businessName').value,
+        tradeType: document.getElementById('tradeType').value,
+        serviceArea: document.getElementById('serviceArea').value,
+        whatsappNumber: document.getElementById('whatsappNumber').value,
+        showOnMap: document.getElementById('showOnMap').checked,
+        showProfilePage: document.getElementById('showProfilePage').checked
+      };
+      console.log('Save business basics →', payload);
+      alert('Business details saved (demo only for now).');
+    }
+
+    function savePricing() {
+      const payload = {
+        calloutFee: Number(document.getElementById('calloutFee').value || 0),
+        hourlyRate: Number(document.getElementById('hourlyRate').value || 0),
+        minimumJobPrice: Number(document.getElementById('minimumJobPrice').value || 0),
+        pricingNotes: document.getElementById('pricingNotes').value
+      };
+      console.log('Save pricing →', payload);
+      alert('Pricing saved (demo only for now).');
+    }
+  </script>
+</body>
+</html>
