@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro — Dashboard</title>
+  <title>TradeBotPro — Your Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <style>
     :root {
       --primary-blue: #1f4e79;
@@ -12,7 +11,7 @@
       --dark-text: #1b1b1f;
       --light-bg: #f5f7fa;
       --white: #ffffff;
-      --border: #dde2eb;
+      --border: #dde1e7;
     }
 
     * {
@@ -35,473 +34,578 @@
     header {
       background: var(--primary-blue);
       color: var(--white);
-      padding: 16px 24px;
+      padding: 1rem 1.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 1rem;
     }
 
-    header .logo {
-      font-weight: 700;
-      letter-spacing: 0.04em;
+    header h1 {
+      font-size: 1.25rem;
+      margin: 0;
     }
 
-    header .account-status {
-      font-size: 14px;
-      opacity: 0.9;
-    }
-
-    header .account-status span {
-      font-weight: 600;
+    header .pill {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      opacity: 0.95;
     }
 
     main {
-      flex: 1;
-      padding: 24px;
+      padding: 1.5rem;
       max-width: 1100px;
-      margin: 0 auto;
       width: 100%;
+      margin: 0 auto 2rem;
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .status-card {
+      background: var(--white);
+      border-radius: 0.75rem;
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--border);
+      min-width: 230px;
+      flex: 1;
+    }
+
+    .status-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b7280;
+      margin-bottom: 0.25rem;
+    }
+
+    .status-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .status-error {
+      color: #b91c1c;
+    }
+
+    .status-ok {
+      color: #15803d;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 1.5fr);
-      gap: 24px;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: 1.25rem;
+      align-items: flex-start;
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 800px) {
       .grid {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: 1fr;
       }
     }
 
     .card {
       background: var(--white);
-      border-radius: 12px;
+      border-radius: 0.75rem;
+      padding: 1.25rem 1.25rem 1.35rem;
       border: 1px solid var(--border);
-      padding: 16px 18px;
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
     }
 
     .card h2 {
-      margin: 0 0 8px 0;
-      font-size: 18px;
+      font-size: 1.05rem;
+      margin: 0 0 0.75rem;
     }
 
-    .card p.description {
-      margin: 0 0 12px 0;
-      font-size: 13px;
+    .card p.helper {
+      font-size: 0.85rem;
+      margin: 0 0 1rem;
       color: #6b7280;
     }
 
-    .details-list {
+    .field {
+      margin-bottom: 0.8rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+      color: #4b5563;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 0.5rem 0.55rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+      font: inherit;
+    }
+
+    .field small {
+      display: block;
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 0.15rem;
+    }
+
+    textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    .two-col {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px 16px;
-      font-size: 14px;
+      gap: 0.75rem;
     }
 
     @media (max-width: 600px) {
-      .details-list {
-        grid-template-columns: minmax(0, 1fr);
+      .two-col {
+        grid-template-columns: 1fr;
       }
-    }
-
-    .details-list .label {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: #6b7280;
-      margin-bottom: 2px;
-    }
-
-    .details-list .value {
-      font-weight: 500;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      border: 1px solid;
-    }
-
-    .badge.status {
-      border-color: rgba(255, 255, 255, 0.8);
-      background: rgba(255, 255, 255, 0.12);
-      color: #e5f2ff;
-    }
-
-    .badge.error {
-      border-color: #f97373;
-      color: #b91c1c;
-      background: #fee2e2;
-    }
-
-    .badge.ok {
-      border-color: #4ade80;
-      color: #166534;
-      background: #dcfce7;
-    }
-
-    .status-text {
-      font-size: 13px;
-      margin-top: 6px;
-      color: #4b5563;
     }
 
     .pill-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
+      gap: 0.35rem;
+      margin-top: 0.6rem;
     }
 
-    .pill {
-      font-size: 12px;
-      padding: 4px 10px;
+    .pill-row span {
+      font-size: 0.73rem;
       border-radius: 999px;
       border: 1px solid var(--border);
+      padding: 0.15rem 0.5rem;
       background: #f9fafb;
+      color: #4b5563;
     }
 
-    .section-title {
-      font-size: 15px;
-      font-weight: 600;
-      margin: 16px 0 8px 0;
-    }
-
-    .field-group {
+    .button-row {
+      margin-top: 1rem;
       display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-bottom: 10px;
-    }
-
-    .field-group label {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #6b7280;
-    }
-
-    .field-group select,
-    .field-group input {
-      padding: 8px 10px;
-      font-size: 14px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      width: 100%;
-    }
-
-    .btn-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
+      gap: 0.5rem;
       flex-wrap: wrap;
     }
 
-    .btn {
-      border-radius: 999px;
-      border: none;
-      font-size: 14px;
-      padding: 8px 16px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .btn-primary {
+    button.primary {
       background: var(--primary-blue);
       color: var(--white);
+      border-radius: 999px;
+      border: none;
+      padding: 0.55rem 1.1rem;
+      font: inherit;
+      cursor: pointer;
     }
 
-    .btn-secondary {
-      background: #e5e7eb;
-      color: #111827;
+    button.secondary {
+      background: transparent;
+      color: var(--primary-blue);
+      border-radius: 999px;
+      border: 1px solid var(--primary-blue);
+      padding: 0.5rem 1rem;
+      font: inherit;
+      cursor: pointer;
     }
 
-    .helper-text {
-      font-size: 12px;
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .small-text {
+      font-size: 0.78rem;
       color: #6b7280;
-      margin-top: 6px;
+      margin-top: 0.6rem;
     }
 
-    .error-message {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #b91c1c;
-    }
-
-    .info-message {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #374151;
-    }
-
-    .muted {
-      opacity: 0.8;
-    }
-
-    .loading {
-      font-size: 13px;
-      color: #6b7280;
+    footer {
+      font-size: 0.78rem;
+      text-align: center;
+      color: #9ca3af;
+      padding: 1rem;
+      margin-top: auto;
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <header>
-      <div class="logo">TradeBotPro</div>
-      <div class="account-status">
-        Account status:
-        <span id="accountStatusTag">Loading…</span>
+<div class="page">
+  <header>
+    <div>
+      <h1>TradeBotPro — Dashboard</h1>
+      <div style="font-size:0.82rem;opacity:0.9;">
+        Manage how your AI office assistant works for your trade business.
       </div>
-    </header>
+    </div>
+    <div class="pill" id="accountStatusPill">Account status: <span id="accountStatusText">Loading…</span></div>
+  </header>
 
-    <main>
-      <div id="loadingGlobal" class="loading">Loading your dashboard…</div>
-      <div id="errorGlobal" class="error-message" style="display:none;"></div>
+  <main>
+    <div class="status-row">
+      <div class="status-card">
+        <div class="status-label">Business</div>
+        <div class="status-value" id="businessName">Loading…</div>
+      </div>
+      <div class="status-card">
+        <div class="status-label">Trade type</div>
+        <div class="status-value" id="tradeType">Loading…</div>
+      </div>
+      <div class="status-card">
+        <div class="status-label">Plan</div>
+        <div class="status-value" id="planStatus">Trial / Not configured yet</div>
+      </div>
+    </div>
 
-      <div class="grid" id="dashboardGrid" style="display:none;">
-        <!-- LEFT COLUMN: BUSINESS PROFILE -->
-        <section class="card">
-          <h2>Your business profile</h2>
-          <p class="description">
-            This is how TradeBotPro knows who you are and what you do. Later, this will power your public mini-website and map listing.
-          </p>
+    <div class="grid">
+      <!-- LEFT: Business profile & trade -->
+      <section class="card">
+        <h2>Your business profile</h2>
+        <p class="helper">
+          This is what TradeBotPro uses when talking to your customers and (in future) what we show on any public
+          “find a trusted trade” page.
+        </p>
 
-          <div class="details-list">
-            <div>
-              <div class="label">Business name</div>
-              <div class="value" id="businessName">–</div>
-            </div>
-            <div>
-              <div class="label">Trade</div>
-              <div class="value" id="tradeType">–</div>
-            </div>
-            <div>
-              <div class="label">Contact name</div>
-              <div class="value" id="contactName">–</div>
-            </div>
-            <div>
-              <div class="label">Email</div>
-              <div class="value" id="emailAddress">–</div>
-            </div>
-            <div>
-              <div class="label">Phone</div>
-              <div class="value" id="phoneNumber">–</div>
-            </div>
-            <div>
-              <div class="label">Account status</div>
-              <div class="value">
-                <span id="accountStatusBadge" class="badge status">Checking…</span>
-              </div>
-            </div>
+        <div class="field">
+          <label for="business_name">Business name</label>
+          <input id="business_name" type="text" placeholder="e.g. AG Plumbing & Heating" />
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label for="contact_name">Main contact name</label>
+            <input id="contact_name" type="text" placeholder="e.g. Andy Gifford" />
           </div>
+          <div class="field">
+            <label for="phone">Primary phone / WhatsApp</label>
+            <input id="phone" type="text" placeholder="e.g. 07123 456789" />
+          </div>
+        </div>
 
-          <div class="section-title">What TradeBotPro can do for you</div>
-          <p class="status-text">
-            Over time you’ll be able to tweak how your AI assistant answers questions so it matches your business, pricing and tone of voice.
-          </p>
+        <div class="field">
+          <label for="postcode">Base postcode (for coverage)</label>
+          <input id="postcode" type="text" placeholder="e.g. HP14 3QF" />
+          <small>This helps us show you on the trade locator map in a later phase.</small>
+        </div>
 
+        <div class="field">
+          <label for="trade_type">Trade type</label>
+          <select id="trade_type">
+            <!-- CORE TRADES (from Supabase) -->
+            <option value="">Select your main trade…</option>
+            <option value="plumbing_heating">Plumbers &amp; Heating Engineers</option>
+            <option value="roofing_guttering">Roofers &amp; Guttering</option>
+            <option value="cleaning_carpets">Cleaners &amp; Carpet Cleaners</option>
+            <option value="electrician">Electricians</option>
+            <option value="pest_control">Pest Control</option>
+            <option value="window_cleaning">Window Cleaners</option>
+            <option value="landscaping_gardening">Landscapers &amp; Gardeners</option>
+            <option value="home_repairs_maintenance">Home Repairs &amp; Maintenance</option>
+            <option value="builders_handymen">Builders &amp; Handymen</option>
+            <option value="painting_decorating">Painters &amp; Decorators</option>
+
+            <!-- EXTRA OPTIONS YOU ASKED TO ADD -->
+            <option value="gas_engineer">Gas Engineer</option>
+            <option value="drainage">Drainage / Blockages</option>
+            <option value="boiler_specialist">Boiler Specialist</option>
+            <option value="bathroom_installer">Bathroom Installer</option>
+            <option value="heat_pump">Heat Pump / Renewables</option>
+            <option value="general_builder">General Builder</option>
+            <option value="locksmith">Locksmith</option>
+          </select>
+          <small>You can only pick one main trade for now. We’ll let you tick extras later.</small>
+        </div>
+
+        <div class="field">
+          <label for="services_summary">What do you want TradeBotPro to tell people you do?</label>
+          <textarea id="services_summary"
+            placeholder="e.g. Boiler breakdowns, emergency leaks, full bathroom installs, annual servicing…"></textarea>
+          <small>We’ll use this to improve how your assistant answers questions.</small>
+        </div>
+
+        <div class="button-row">
+          <button class="primary" id="saveProfileBtn">Save profile</button>
+          <button class="secondary" id="refreshBtn">Refresh from Supabase</button>
+        </div>
+        <div class="small-text" id="profileSaveStatus"></div>
+      </section>
+
+      <!-- RIGHT: Pricing & assistant behaviour -->
+      <section class="card">
+        <h2>Call-out & job pricing (V1)</h2>
+        <p class="helper">
+          These are guidelines for your assistant. It will explain them clearly to customers but not promise exact
+          prices unless you tell it to.
+        </p>
+
+        <div class="two-col">
+          <div class="field">
+            <label for="callout_from">Standard call-out (from)</label>
+            <input id="callout_from" type="number" min="0" step="1" placeholder="e.g. 80" />
+            <small>Base price in £ for a weekday call-out.</small>
+          </div>
+          <div class="field">
+            <label for="hourly_rate">Hourly rate (from)</label>
+            <input id="hourly_rate" type="number" min="0" step="1" placeholder="e.g. 60" />
+            <small>Typical hourly rate used in quotes.</small>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="pricing_notes">Anything else we should say about pricing?</label>
+          <textarea id="pricing_notes"
+            placeholder="e.g. Fixed-price boiler services, no call-out for existing customers, free quotes within 10 miles…"></textarea>
+        </div>
+
+        <div class="field">
+          <label>How cautious should TradeBotPro be?</label>
           <div class="pill-row">
-            <div class="pill">Answer FAQs 24/7</div>
-            <div class="pill">Capture leads & bookings</div>
-            <div class="pill">Send quotes & invoices</div>
-            <div class="pill">Chase payments</div>
+            <span>Never promise exact prices</span>
+            <span>Always suggest a site visit if unsure</span>
+            <span>Avoid technical advice that could be unsafe</span>
           </div>
+          <small>We’ll hard-code these safeguards in the assistant for now to reduce legal risk.</small>
+        </div>
 
-          <p class="helper-text">
-            If something looks wrong here, message us and we’ll fix your profile behind the scenes while we build profile editing into the dashboard.
-          </p>
-        </section>
+        <div class="button-row">
+          <button class="primary" id="savePricingBtn">Save pricing</button>
+        </div>
+        <div class="small-text" id="pricingSaveStatus"></div>
 
-        <!-- RIGHT COLUMN: PRICING & ASSISTANT CONTROLS (V1 PLACEHOLDER) -->
-        <section class="card">
-          <h2>Assistant settings (coming soon)</h2>
-          <p class="description">
-            These controls will let you tune your assistant without needing any tech skills.
-          </p>
+        <p class="small-text" style="margin-top:1rem;">
+          In a later phase you’ll also see stats here (conversations, leads, bookings) and be able to give
+          feedback to improve how the assistant answers questions.
+        </p>
+      </section>
+    </div>
+  </main>
 
-          <div class="section-title">1. Call-out & job pricing</div>
-          <div class="field-group">
-            <label for="calloutPrice">Typical call-out fee</label>
-            <input
-              id="calloutPrice"
-              type="text"
-              placeholder="e.g. £80 + VAT"
-              disabled
-            />
-          </div>
+  <footer>
+    TradeBotPro — early access dashboard (Phase 3). Data stored in Supabase (EU region).
+  </footer>
+</div>
 
-          <div class="field-group">
-            <label for="pricingStyle">How should TradeBotPro talk about pricing?</label>
-            <select id="pricingStyle" disabled>
-              <option value="guide_only">Give guide prices only (never exact quotes)</option>
-              <option value="from_prices">Use “from £X” ranges</option>
-              <option value="no_prices">Never mention prices automatically</option>
-            </select>
-            <div class="helper-text">
-              Whatever you choose here, our T&Cs make it clear that pricing is <strong>guidance only</strong> and the final decision is always yours.
-            </div>
-          </div>
+<!-- Supabase JS -->
+<script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
+<script>
+  // 1) SET YOUR REAL SUPABASE DETAILS HERE
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-          <div class="section-title">2. Your trade</div>
-          <div class="field-group">
-            <label for="tradeSelector">Main trade</label>
-            <select id="tradeSelector" disabled>
-              <!-- COMBINED TRADE LIST: FROM SUPABASE + EXTRA OPTIONS -->
-              <!-- Core trades you told me are already in Supabase -->
-              <option value="plumbing_heating">Plumbers &amp; Heating Engineers</option>
-              <option value="roofing_guttering">Roofers &amp; Guttering</option>
-              <option value="cleaning_carpets">Cleaners &amp; Carpet Cleaners</option>
-              <option value="electrician">Electricians</option>
-              <option value="pest_control">Pest Control</option>
-              <option value="window_cleaner">Window Cleaners</option>
-              <option value="landscaping_gardening">Landscapers &amp; Gardeners</option>
-              <option value="home_repairs">Home Repairs &amp; Maintenance</option>
-              <option value="builder_handyman">Builders &amp; Handymen</option>
-              <option value="painting_decorating">Painters &amp; Decorators</option>
+  // 2) INITIALISE CLIENT (typo fixed: createClient, not createClieni)
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-              <!-- Extra trades for future expansion -->
-              <option value="gas_engineer">Gas Engineer</option>
-              <option value="drainage">Drainage / Blockages</option>
-              <option value="boiler_specialist">Boiler Specialist</option>
-              <option value="bathroom_installer">Bathroom Installer</option>
-              <option value="heat_pump">Heat Pump / Renewables</option>
-              <option value="general_builder">General Builder</option>
-              <option value="locksmith">Locksmith</option>
-            </select>
-            <div class="helper-text">
-              In the next version you’ll be able to choose one or more trades here and your assistant will answer accordingly.
-            </div>
-          </div>
+  // 3) READ USER ID FROM URL (?user_id=... or ?profile_id=...)
+  const params = new URLSearchParams(window.location.search);
+  const userIdFromUrl = params.get("user_id") || params.get("profile_id");
 
-          <div class="section-title">3. Help us train your assistant</div>
-          <p class="info-message">
-            Soon you’ll be able to mark answers as “helpful” or “needs work”, and send us your own preferred wording.
-            We’ll use this feedback to improve your assistant and our safety prompts — without you having to write any code.
-          </p>
+  const businessNameEl = document.getElementById("businessName");
+  const tradeTypeEl = document.getElementById("tradeType");
+  const planStatusEl = document.getElementById("planStatus");
+  const accountStatusPill = document.getElementById("accountStatusPill");
+  const accountStatusText = document.getElementById("accountStatusText");
 
-          <div class="btn-row">
-            <button class="btn btn-primary" disabled>
-              Save settings
-            </button>
-            <button class="btn btn-secondary" disabled>
-              Request a change
-            </button>
-          </div>
+  const profileSaveStatusEl = document.getElementById("profileSaveStatus");
+  const pricingSaveStatusEl = document.getElementById("pricingSaveStatus");
+  const saveProfileBtn = document.getElementById("saveProfileBtn");
+  const refreshBtn = document.getElementById("refreshBtn");
+  const savePricingBtn = document.getElementById("savePricingBtn");
 
-          <div class="helper-text muted">
-            For now, these controls are “read only” — they’re here to show you what’s coming and to prove your account is linked correctly.
-          </div>
-        </section>
-      </div>
-    </main>
-  </div>
+  // Form fields
+  const f = {
+    business_name: document.getElementById("business_name"),
+    contact_name: document.getElementById("contact_name"),
+    phone: document.getElementById("phone"),
+    postcode: document.getElementById("postcode"),
+    trade_type: document.getElementById("trade_type"),
+    services_summary: document.getElementById("services_summary"),
+    callout_from: document.getElementById("callout_from"),
+    hourly_rate: document.getElementById("hourly_rate"),
+    pricing_notes: document.getElementById("pricing_notes"),
+  };
 
-  <!-- Supabase JS -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  function setAccountStatus(text, isError) {
+    accountStatusText.textContent = text;
+    if (isError) {
+      accountStatusPill.style.background = "#7f1d1d";
+    } else {
+      accountStatusPill.style.background = "var(--primary-blue)";
+    }
+  }
 
-  <script>
-    // 1. PUT YOUR REAL SUPABASE VALUES HERE
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  function setStatus(el, message, isError = false) {
+    el.textContent = message || "";
+    el.style.color = isError ? "#b91c1c" : "#6b7280";
+  }
 
-    // 2. Initialise Supabase client
-    const { createClient } = supabase;
-    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  function prettyTradeLabel(value) {
+    if (!value) return "Not set yet";
+    const map = {
+      plumbing_heating: "Plumbers & Heating Engineers",
+      roofing_guttering: "Roofers & Guttering",
+      cleaning_carpets: "Cleaners & Carpet Cleaners",
+      electrician: "Electricians",
+      pest_control: "Pest Control",
+      window_cleaning: "Window Cleaners",
+      landscaping_gardening: "Landscapers & Gardeners",
+      home_repairs_maintenance: "Home Repairs & Maintenance",
+      builders_handymen: "Builders & Handymen",
+      painting_decorating: "Painters & Decorators",
+      gas_engineer: "Gas Engineer",
+      drainage: "Drainage / Blockages",
+      boiler_specialist: "Boiler Specialist",
+      bathroom_installer: "Bathroom Installer",
+      heat_pump: "Heat Pump / Renewables",
+      general_builder: "General Builder",
+      locksmith: "Locksmith"
+    };
+    return map[value] || value;
+  }
 
-    const $ = (id) => document.getElementById(id);
-
-    async function loadDashboard() {
-      const loadingGlobal = $("loadingGlobal");
-      const errorGlobal = $("errorGlobal");
-      const dashboardGrid = $("dashboardGrid");
-      const accountStatusTag = $("accountStatusTag");
-      const accountStatusBadge = $("accountStatusBadge");
-
-      loadingGlobal.style.display = "block";
-      errorGlobal.style.display = "none";
-      dashboardGrid.style.display = "none";
-      accountStatusTag.textContent = "Loading…";
-      accountStatusBadge.textContent = "Checking…";
-
-      // Get user_id from URL ?user_id=...
-      const params = new URLSearchParams(window.location.search);
-      const userId = params.get("user_id");
-
-      if (!userId) {
-        loadingGlobal.style.display = "none";
-        errorGlobal.style.display = "block";
-        errorGlobal.textContent =
-          "Missing user_id in the URL. Ask Andy for your correct dashboard link.";
-        accountStatusTag.textContent = "Error";
-        accountStatusBadge.textContent = "Missing user_id";
-        accountStatusBadge.classList.remove("status");
-        accountStatusBadge.classList.add("error");
-        return;
-      }
-
-      try {
-        // 3. Load the record from business_profiles (NOT tradebotpro_signups)
-        const { data, error } = await supabaseClient
-          .from("business_profiles")
-          .select(
-            "id, business_name, contact_name, email, phone, trade_type, account_status"
-          )
-          .eq("id", userId)
-          .single();
-
-        if (error) {
-          console.error("Supabase error:", error);
-          throw error;
-        }
-
-        if (!data) {
-          throw new Error("No profile found for this user_id.");
-        }
-
-        // 4. Populate the dashboard fields
-        $("businessName").textContent = data.business_name || "Not set";
-        $("contactName").textContent = data.contact_name || "Not set";
-        $("emailAddress").textContent = data.email || "Not set";
-        $("phoneNumber").textContent = data.phone || "Not set";
-        $("tradeType").textContent = data.trade_type || "Not set";
-
-        const statusText = data.account_status || "Trial";
-        accountStatusTag.textContent = statusText;
-        accountStatusBadge.textContent = statusText;
-
-        accountStatusBadge.classList.remove("error");
-        accountStatusBadge.classList.add("ok");
-
-        loadingGlobal.style.display = "none";
-        dashboardGrid.style.display = "grid";
-
-      } catch (err) {
-        console.error("Dashboard load failed:", err);
-        loadingGlobal.style.display = "none";
-        errorGlobal.style.display = "block";
-        errorGlobal.textContent =
-          "Could not load your details (Supabase error).";
-
-        accountStatusTag.textContent = "Error";
-        accountStatusBadge.textContent = "Error";
-        accountStatusBadge.classList.remove("ok");
-        accountStatusBadge.classList.add("error");
-      }
+  async function loadProfile() {
+    if (!userIdFromUrl) {
+      setAccountStatus("No user ID in URL", true);
+      businessNameEl.textContent = "Unknown — add ?profile_id=UUID to the URL";
+      tradeTypeEl.textContent = "Unknown";
+      return;
     }
 
-    document.addEventListener("DOMContentLoaded", loadDashboard);
-  </script>
+    setAccountStatus("Loading from Supabase…", false);
+    businessNameEl.textContent = "Loading…";
+    tradeTypeEl.textContent = "Loading…";
+
+    // FIRST TRY: business_profiles (this is where your UUID is from)
+    let { data: profile, error } = await supabaseClient
+      .from("business_profiles")
+      .select("*")
+      .eq("id", userIdFromUrl)
+      .maybeSingle();
+
+    // FALLBACK: tradebotpro_signups (in case we wired it that way before)
+    if (!profile && error) {
+      console.warn("business_profiles error, trying tradebotpro_signups:", error.message);
+      const fallback = await supabaseClient
+        .from("tradebotpro_signups")
+        .select("*")
+        .eq("id", userIdFromUrl)
+        .maybeSingle();
+      profile = fallback.data;
+      error = fallback.error;
+    }
+
+    if (error && !profile) {
+      console.error("Supabase error:", error);
+      setAccountStatus("Could not load your details (Supabase error).", true);
+      businessNameEl.textContent = "Error loading profile";
+      tradeTypeEl.textContent = "—";
+      return;
+    }
+
+    if (!profile) {
+      setAccountStatus("No profile found for this ID.", true);
+      businessNameEl.textContent = "Not found";
+      tradeTypeEl.textContent = "—";
+      return;
+    }
+
+    // Update header tiles
+    businessNameEl.textContent = profile.business_name || "Business name not set";
+    tradeTypeEl.textContent = prettyTradeLabel(profile.trade_type);
+    planStatusEl.textContent = profile.plan_status || "Trial / Not configured yet";
+    setAccountStatus("Connected to Supabase", false);
+
+    // Fill form fields (handle both table shapes)
+    f.business_name.value = profile.business_name || "";
+    f.contact_name.value = profile.contact_name || profile.contact || "";
+    f.phone.value = profile.phone || profile.whatsapp_number || "";
+    f.postcode.value = profile.base_postcode || profile.postcode || "";
+    f.trade_type.value = profile.trade_type || "";
+    f.services_summary.value = profile.services_summary || profile.services || "";
+    f.callout_from.value = profile.callout_from || "";
+    f.hourly_rate.value = profile.hourly_rate || "";
+    f.pricing_notes.value = profile.pricing_notes || "";
+  }
+
+  async function saveProfile() {
+    if (!userIdFromUrl) return;
+
+    saveProfileBtn.disabled = true;
+    setStatus(profileSaveStatusEl, "Saving to Supabase…");
+
+    const payload = {
+      business_name: f.business_name.value || null,
+      contact_name: f.contact_name.value || null,
+      phone: f.phone.value || null,
+      base_postcode: f.postcode.value || null,
+      trade_type: f.trade_type.value || null,
+      services_summary: f.services_summary.value || null,
+      // Basic plan info placeholder
+      plan_status: "Trial"
+    };
+
+    // Upsert into business_profiles keyed by id
+    const { data, error } = await supabaseClient
+      .from("business_profiles")
+      .upsert({ id: userIdFromUrl, ...payload })
+      .select("*")
+      .maybeSingle();
+
+    saveProfileBtn.disabled = false;
+
+    if (error) {
+      console.error("Save profile error:", error);
+      setStatus(profileSaveStatusEl, "Could not save profile (" + error.message + ")", true);
+      return;
+    }
+
+    businessNameEl.textContent = data.business_name || "Business name not set";
+    tradeTypeEl.textContent = prettyTradeLabel(data.trade_type);
+    planStatusEl.textContent = data.plan_status || "Trial / Not configured yet";
+    setStatus(profileSaveStatusEl, "Profile saved.", false);
+  }
+
+  async function savePricing() {
+    if (!userIdFromUrl) return;
+
+    savePricingBtn.disabled = true;
+    setStatus(pricingSaveStatusEl, "Saving pricing…");
+
+    const payload = {
+      callout_from: f.callout_from.value ? Number(f.callout_from.value) : null,
+      hourly_rate: f.hourly_rate.value ? Number(f.hourly_rate.value) : null,
+      pricing_notes: f.pricing_notes.value || null
+    };
+
+    const { error } = await supabaseClient
+      .from("business_profiles")
+      .update(payload)
+      .eq("id", userIdFromUrl);
+
+    savePricingBtn.disabled = false;
+
+    if (error) {
+      console.error("Save pricing error:", error);
+      setStatus(pricingSaveStatusEl, "Could not save pricing (" + error.message + ")", true);
+      return;
+    }
+
+    setStatus(pricingSaveStatusEl, "Pricing saved.", false);
+  }
+
+  saveProfileBtn.addEventListener("click", saveProfile);
+  refreshBtn.addEventListener("click", loadProfile);
+  savePricingBtn.addEventListener("click", savePricing);
+
+  // Initial load
+  loadProfile();
+</script>
 </body>
 </html>
