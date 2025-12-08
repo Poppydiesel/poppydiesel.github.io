@@ -8,188 +8,84 @@
   <style>
     :root {
       --primary: #1f4e79;
-      --accent: #00a3ff;
       --bg: #f5f7fa;
       --card: #ffffff;
       --text: #1b1b1f;
       --muted: #6b7280;
       --border: #dde3ec;
     }
-
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
     }
-
-    .layout {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    /* SIDEBAR */
+    .layout { display: flex; min-height: 100vh; }
     .sidebar {
-      width: 260px;
-      padding: 20px;
-      background: var(--primary);
-      color: white;
-      display: flex;
-      flex-direction: column;
+      width: 250px; background: var(--primary); color: white;
+      padding: 20px; display: flex; flex-direction: column;
     }
-
-    .logo {
-      font-weight: 700;
-      font-size: 20px;
-      margin-bottom: 20px;
-    }
-
+    .logo { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
     .nav a {
-      display: block;
-      padding: 10px;
-      border-radius: 8px;
-      color: white;
-      text-decoration: none;
-      margin-bottom: 6px;
+      display: block; padding: 10px; color: white; text-decoration: none;
+      border-radius: 8px; margin-bottom: 6px;
     }
-
-    .nav a.active,
-    .nav a:hover {
-      background: rgba(255,255,255,0.15);
-    }
-
-    .sidebar-footer {
-      margin-top: auto;
-      font-size: 12px;
-      opacity: 0.8;
-    }
-
-    /* MAIN */
+    .nav a.active, .nav a:hover { background: rgba(255,255,255,0.15); }
+    .sidebar-footer { margin-top: auto; font-size: 12px; opacity: .8; }
     .main {
-      flex: 1;
-      padding: 24px;
-      max-width: 1100px;
-      margin: 0 auto;
+      flex: 1; padding: 24px; max-width: 1100px; margin: auto;
     }
-
-    h1 {
-      margin-top: 0;
-      font-size: 24px;
-    }
-
+    h1 { margin-top: 0; }
     .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 18px;
+      display: grid; grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
+      gap: 16px;
     }
-
     .card {
-      background: var(--card);
-      border-radius: 14px;
-      padding: 18px;
+      background: var(--card); border-radius: 14px; padding: 16px;
       border: 1px solid var(--border);
     }
-
-    .card h2 {
-      margin-top: 0;
-      font-size: 16px;
+    label { display: block; margin-top: 10px; font-weight: 600; font-size: 14px; }
+    input, select, textarea {
+      width: 100%; padding: 8px; margin-top: 4px; border-radius: 8px;
+      border: 1px solid var(--border); font-size: 14px;
     }
-
-    label {
-      font-size: 13px;
-      font-weight: 500;
-      display: block;
-      margin: 10px 0 4px;
-    }
-
-    .input, .select, .textarea {
-      width: 100%;
-      padding: 8px 10px;
-      font-size: 14px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
-    .textarea {
-      min-height: 80px;
-    }
-
-    .muted {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
+    textarea { min-height: 70px; }
     .btn {
-      margin-top: 14px;
-      padding: 10px 16px;
-      border-radius: 999px;
-      font-size: 14px;
-      border: none;
+      margin-top: 14px; padding: 10px; border-radius: 999px;
+      border: none; background: var(--primary); color: white;
       cursor: pointer;
     }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .pill {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: #e6f4ff;
-      color: #003366;
-      font-size: 12px;
-      margin-top: 6px;
-    }
-
-    @media (max-width: 800px) {
-      .layout { flex-direction: column; }
-      .sidebar { width: 100%; flex-direction: row; gap: 10px; }
-      .nav { display: flex; gap: 6px; flex-wrap: wrap; }
-      .sidebar-footer { display: none; }
-    }
+    .muted { font-size: 12px; color: var(--muted); }
   </style>
 </head>
 
 <body>
 <div class="layout">
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="logo">TradeBotPro</div>
-
     <div class="nav">
-      <a href="#" class="active">Dashboard</a>
-      <a href="#">Conversations</a>
-      <a href="#">Jobs</a>
-      <a href="#">Billing</a>
+      <a class="active">Dashboard</a>
+      <a>Conversations</a>
+      <a>Billing</a>
     </div>
-
-    <div class="sidebar-footer">
-      Logged in as<br>
-      <strong>Demo Business</strong>
-    </div>
+    <div class="sidebar-footer">Dashboard V1</div>
   </aside>
 
-  <!-- MAIN -->
   <main class="main">
-    <h1>Dashboard</h1>
+    <h1>Business Dashboard</h1>
 
     <div class="cards">
 
-      <!-- BUSINESS DETAILS -->
+      <!-- BUSINESS -->
       <div class="card">
-        <h2>Business Details</h2>
-
+        <h2>Business details</h2>
         <label>Business name</label>
-        <input class="input" value="Demo Plumbing Ltd" />
+        <input id="business_name" />
 
         <label>Main trade</label>
-        <select id="tradeType" class="select">
+        <select id="trade_type">
           <option value="plumbing_heating">Plumbers & Heating Engineers</option>
           <option value="electrical">Electricians</option>
           <option value="roofing_guttering">Roofers & Guttering</option>
@@ -210,81 +106,93 @@
         </select>
 
         <label>WhatsApp number</label>
-        <input class="input" placeholder="+44..." />
-
-        <button class="btn btn-primary" onclick="saveBusiness()">Save business details</button>
-        <div class="muted">Used when the assistant introduces your business.</div>
+        <input id="whatsapp_number" />
+        <button class="btn" onclick="saveBusiness()">Save business details</button>
       </div>
 
       <!-- PRICING -->
       <div class="card">
-        <h2>Pricing Guidance</h2>
-
+        <h2>Pricing guidance</h2>
         <label>Call-out fee (£)</label>
-        <input class="input" type="number" value="75" />
-
+        <input id="callout_fee" type="number" />
         <label>Hourly rate (£)</label>
-        <input class="input" type="number" value="90" />
-
+        <input id="hourly_rate" type="number" />
         <label>Minimum job price (£)</label>
-        <input class="input" type="number" value="80" />
-
-        <label>How should pricing be explained?</label>
-        <textarea class="textarea"
-          placeholder="We always confirm prices before work begins. Emergency work costs more."></textarea>
-
-        <button class="btn btn-primary" onclick="savePricing()">Save pricing</button>
-        <div class="muted">
-          Prices are guidance only — final costs must be confirmed by you.
-        </div>
+        <input id="minimum_job_price" type="number" />
+        <label>Pricing explanation</label>
+        <textarea id="pricing_notes"></textarea>
+        <button class="btn" onclick="savePricing()">Save pricing & AI settings</button>
       </div>
 
-      <!-- AI BEHAVIOUR -->
+      <!-- AI -->
       <div class="card">
-        <h2>Assistant Behaviour</h2>
-
+        <h2>Assistant behaviour</h2>
         <label>Tone of voice</label>
-        <textarea class="textarea"
-          placeholder="Friendly, professional, straight-talking. No jargon."></textarea>
-
-        <label>Golden rules / things to avoid</label>
-        <textarea class="textarea"
-          placeholder="Never give safety advice. Never confirm prices."></textarea>
-
-        <div class="pill">Used to improve AI answers</div>
-        <div class="muted">
-          These settings directly shape how your assistant replies.
-        </div>
-      </div>
-
-      <!-- STATUS -->
-      <div class="card">
-        <h2>Assistant Status</h2>
-
-        <p><strong>Status:</strong> Live on WhatsApp ✅</p>
-        <p><strong>Trade:</strong> Plumbing & Heating</p>
-
-        <button class="btn">Pause assistant</button>
-        <div class="muted">
-          You can pause replies at any time.
-        </div>
+        <textarea id="ai_tone"></textarea>
+        <label>Rules / things to avoid</label>
+        <textarea id="ai_rules"></textarea>
       </div>
 
     </div>
   </main>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  function saveBusiness() {
-    console.log("Saving business...");
-    alert("Business details saved (demo).");
-  }
+/* ===== CONFIG – EDIT THESE ONLY ===== */
+const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
+const SUPABASE_ANON = "YOUR_PUBLIC_ANON_KEY";
+const BUSINESS_ID   = "PASTE_BUSINESS_UUID_HERE";
+/* =================================== */
 
-  function savePricing() {
-    console.log("Saving pricing...");
-    alert("Pricing saved (demo).");
-  }
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const el = id => document.getElementById(id);
+
+// LOAD
+async function loadBusiness() {
+  const { data, error } = await sb
+    .from("business_profiles")
+    .select("*")
+    .eq("id", BUSINESS_ID)
+    .single();
+
+  if (error) return alert("Load failed");
+
+  el("business_name").value = data.business_name || "";
+  el("trade_type").value = data.trade_type || "";
+  el("whatsapp_number").value = data.whatsapp_number || "";
+  el("callout_fee").value = data.callout_fee || "";
+  el("hourly_rate").value = data.hourly_rate || "";
+  el("minimum_job_price").value = data.minimum_job_price || "";
+  el("pricing_notes").value = data.pricing_notes || "";
+  el("ai_tone").value = data.ai_tone || "";
+  el("ai_rules").value = data.ai_rules || "";
+}
+
+// SAVE
+async function saveBusiness() {
+  await sb.from("business_profiles").update({
+    business_name: el("business_name").value,
+    trade_type: el("trade_type").value,
+    whatsapp_number: el("whatsapp_number").value
+  }).eq("id", BUSINESS_ID);
+  alert("Business details saved ✅");
+}
+
+async function savePricing() {
+  await sb.from("business_profiles").update({
+    callout_fee: el("callout_fee").value,
+    hourly_rate: el("hourly_rate").value,
+    minimum_job_price: el("minimum_job_price").value,
+    pricing_notes: el("pricing_notes").value,
+    ai_tone: el("ai_tone").value,
+    ai_rules: el("ai_rules").value
+  }).eq("id", BUSINESS_ID);
+  alert("Pricing & AI saved ✅");
+}
+
+loadBusiness();
 </script>
-
 </body>
 </html>
