@@ -2,23 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro — Control Panel</title>
+  <title>TradeBotPro — Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     :root {
-      --primary-blue: #1f4e79;
-      --accent-blue: #00a3ff;
-      --bg: #f5f7fa;
-      --card-bg: #ffffff;
-      --border: #dde2eb;
-      --text-main: #1b1b1f;
-      --text-muted: #6b7280;
+      --primary: #1f4e79;
+      --primary-soft: #e3f2ff;
+      --accent: #00a3ff;
+      --border: #d0d7e2;
+      --bg: #f5f7fb;
+      --panel-bg: #ffffff;
+      --text-main: #151824;
+      --text-soft: #6b7280;
       --danger: #b91c1c;
       --success: #15803d;
-      --warning: #b45309;
-      --row-hover: #eef3ff;
-      --row-selected: #dbeafe;
-      --chip-bg: #e5e7eb;
     }
 
     * {
@@ -45,208 +43,189 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
       position: sticky;
       top: 0;
       z-index: 10;
     }
 
-    .brand {
+    header .title-block {
       display: flex;
-      align-items: center;
-      gap: 10px;
+      flex-direction: column;
+      gap: 2px;
     }
 
-    .brand-mark {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: radial-gradient(circle at 30% 30%, #ffffff 0, #a8c3ff 18%, #1f4e79 70%, #0b1f33 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #ffffff;
-      font-weight: 700;
+    header h1 {
+      margin: 0;
       font-size: 18px;
-    }
-
-    .brand-text-main {
       font-weight: 600;
-      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .brand-text-sub {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .header-badge {
-      font-size: 12px;
+    header h1 span.badge {
+      font-size: 11px;
+      padding: 2px 8px;
       border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      border: 1px solid rgba(31, 78, 121, 0.2);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      font-size: 12px;
       padding: 4px 10px;
-      background: #e5f3ff;
-      color: var(--primary-blue);
-      border: 1px solid #c4ddff;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text-soft);
+    }
+
+    .pill strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .btn-ghost {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      background: #ffffff;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-ghost:hover {
+      background: #f9fafb;
     }
 
     main {
       flex: 1;
       padding: 16px;
       max-width: 1400px;
-      margin: 0 auto 32px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2.2fr) minmax(0, 2fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 960px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 8px;
+      min-height: 0;
     }
 
-    .top-row {
-      display: grid;
-      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
-      gap: 16px;
-      align-items: flex-start;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      padding: 14px 16px;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-    }
-
-    .card-header {
+    .panel-header {
       display: flex;
-      align-items: baseline;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 8px;
+      align-items: center;
+      gap: 8px;
     }
 
-    .card-title {
-      font-size: 16px;
+    .panel-header h2 {
+      margin: 0;
+      font-size: 14px;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .card-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
+    .panel-header h2 span.sub {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-soft);
+    }
+
+    .panel-header small {
+      font-size: 11px;
+      color: var(--text-soft);
     }
 
     .chips-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 4px;
+      gap: 8px;
     }
 
     .chip {
-      padding: 4px 8px;
-      border-radius: 999px;
+      padding: 3px 10px;
       font-size: 11px;
-      border: 1px solid #e5e7eb;
-      background: var(--chip-bg);
-      color: var(--text-muted);
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #f9fafb;
+      color: var(--text-soft);
       display: inline-flex;
       align-items: center;
       gap: 4px;
     }
 
-    .chip-dot {
+    .chip .dot {
       width: 6px;
       height: 6px;
       border-radius: 999px;
-      background: #9ca3af;
+      background: var(--border);
     }
 
-    .chip-live .chip-dot {
+    .chip.active .dot {
       background: var(--success);
     }
 
-    .chip-trial .chip-dot {
-      background: var(--accent-blue);
+    .chip.pending .dot {
+      background: #f97316;
     }
 
-    .chip-pending .chip-dot {
-      background: var(--warning);
+    .chip.paused .dot {
+      background: #eab308;
     }
 
-    .chip-risk .chip-dot {
+    .chip.cancelled .dot {
       background: var(--danger);
     }
 
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    .metric-card {
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      padding: 8px 10px;
-      background: #f9fafb;
-    }
-
-    .metric-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-    }
-
-    .metric-value {
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .metric-footnote {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    .filters-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 8px 0 4px;
-      align-items: center;
-    }
-
-    .filters-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .filters-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    select,
-    input[type="search"] {
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      padding: 6px 10px;
-      font-size: 12px;
-      background: #ffffff;
-      min-width: 120px;
-    }
-
-    input[type="search"] {
-      min-width: 160px;
-    }
-
+    /* Table */
     .table-wrapper {
+      border-radius: 10px;
       border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
       background: #ffffff;
-      margin-top: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 300px;
     }
 
     table {
@@ -257,1023 +236,930 @@
 
     thead {
       background: #f3f4f6;
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
 
-    th,
-    td {
+    th, td {
       padding: 8px 10px;
       border-bottom: 1px solid #e5e7eb;
       text-align: left;
+      white-space: nowrap;
     }
 
     th {
       font-weight: 500;
-      color: var(--text-muted);
+      color: var(--text-soft);
       font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
     }
 
     tbody tr {
       cursor: pointer;
-      transition: background 0.08s ease;
+      transition: background 0.08s ease, box-shadow 0.08s ease;
     }
 
     tbody tr:hover {
-      background: var(--row-hover);
+      background: #f9fafb;
     }
 
-    tbody tr.selected {
-      background: var(--row-selected);
+    tbody tr.selected-row {
+      background: var(--primary-soft);
+      box-shadow: inset 3px 0 0 var(--primary);
     }
 
-    .status-pill {
+    tbody tr.selected-row td {
+      border-bottom-color: #bfdbfe;
+    }
+
+    td .status-pill {
       display: inline-flex;
       align-items: center;
       gap: 4px;
       padding: 2px 8px;
       border-radius: 999px;
       font-size: 11px;
-      border: 1px solid transparent;
-    }
-
-    .status-pill.live {
-      background: #dcfce7;
-      color: #166534;
-      border-color: #bbf7d0;
-    }
-
-    .status-pill.trial {
-      background: #dbeafe;
+      border: 1px solid rgba(31, 78, 121, 0.18);
+      background: #eff6ff;
       color: #1d4ed8;
-      border-color: #bfdbfe;
     }
 
-    .status-pill.pending {
-      background: #fef9c3;
-      color: #854d0e;
-      border-color: #fef3c7;
+    td .status-pill.pending {
+      background: #fff7ed;
+      color: #ea580c;
+      border-color: rgba(234, 88, 12, 0.2);
     }
 
-    .status-pill.cancelled {
-      background: #fee2e2;
+    td .status-pill.paused {
+      background: #fefce8;
+      color: #eab308;
+      border-color: rgba(234, 179, 8, 0.3);
+    }
+
+    td .status-pill.cancelled {
+      background: #fef2f2;
       color: #b91c1c;
-      border-color: #fecaca;
+      border-color: rgba(185, 28, 28, 0.25);
     }
 
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px 16px;
-      margin-top: 6px;
+    td .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
     }
 
-    .field-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 2px;
-    }
-
-    .field-value {
+    .table-empty {
+      padding: 24px;
+      text-align: center;
       font-size: 13px;
-      font-weight: 500;
-      word-break: break-word;
+      color: var(--text-soft);
     }
 
-    .field-value.muted {
-      color: var(--text-muted);
-      font-weight: 400;
+    /* Details + actions */
+    .details-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
     }
 
-    .detail-section-title {
-      margin-top: 8px;
+    .details-card,
+    .actions-card {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      padding: 10px;
+    }
+
+    .details-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .details-header h3 {
+      margin: 0;
       font-size: 13px;
       font-weight: 600;
     }
 
-    textarea {
-      width: 100%;
-      min-height: 70px;
-      resize: vertical;
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      font-family: inherit;
-      font-size: 13px;
+    .details-header span {
+      font-size: 11px;
+      color: var(--text-soft);
     }
 
-    .stack-vertical {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px 16px;
+      font-size: 12px;
     }
 
-    .stack-horizontal {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
+    @media (max-width: 600px) {
+      .details-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
 
-    .btn {
-      border-radius: 999px;
-      border: none;
-      padding: 6px 14px;
+    .details-item-label {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .details-item-value {
       font-size: 12px;
       font-weight: 500;
+    }
+
+    .details-empty {
+      font-size: 12px;
+      color: var(--text-soft);
+      padding: 12px 4px 4px;
+    }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .status-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .status-field label {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    select,
+    textarea {
+      font-family: inherit;
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      background: #ffffff;
+      outline: none;
+    }
+
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(31, 78, 121, 0.15);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .actions-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .actions-header h3 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .template-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .template-row label {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .template-row select {
+      min-width: 160px;
+    }
+
+    .actions-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      border-radius: 999px;
+      border: none;
+      padding: 7px 16px;
+      font-size: 12px;
+      background: var(--primary);
+      color: #ffffff;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
     }
 
-    .btn-primary {
-      background: var(--primary-blue);
-      color: #ffffff;
+    .btn-primary:hover {
+      background: #163a5a;
     }
 
     .btn-secondary {
-      background: #e5e7eb;
-      color: #111827;
-    }
-
-    .btn-ghost {
-      background: transparent;
+      border-radius: 999px;
       border: 1px solid var(--border);
-      color: #374151;
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: default;
-    }
-
-    .status-row {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
-      margin-top: 4px;
-      margin-bottom: 4px;
-    }
-
-    .status-row select {
-      width: 100%;
-    }
-
-    .small-hint {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .message-panel {
-      margin-top: 4px;
-    }
-
-    .message-panel select {
-      width: 100%;
-      margin-bottom: 4px;
-    }
-
-    .message-footer {
-      margin-top: 4px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .message-footer .small-hint {
-      flex: 1;
-    }
-
-    .pill {
+      padding: 6px 12px;
+      font-size: 12px;
+      background: #ffffff;
+      color: var(--text-main);
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      background: #e5e7eb;
-      color: #4b5563;
-      gap: 4px;
+      gap: 6px;
     }
 
-    .pill-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: #9ca3af;
-    }
-
-    .pill-ok .pill-dot {
-      background: var(--success);
-    }
-
-    .pill-risk .pill-dot {
-      background: var(--danger);
-    }
-
-    .pill-break .pill-dot {
-      background: #f97316;
-    }
-
-    .inline-badge {
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid #e5e7eb;
-      color: var(--text-muted);
+    .btn-secondary:hover {
       background: #f9fafb;
     }
 
-    .loading {
-      font-size: 13px;
-      color: var(--text-muted);
-      padding: 4px 0;
+    .hint {
+      font-size: 11px;
+      color: var(--text-soft);
     }
 
-    .error {
-      color: var(--danger);
+    .tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .tag.paused {
+      background: #fefce8;
+      color: #ca8a04;
+    }
+
+    .tag.cancelled {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: #111827;
+      color: #f9fafb;
       font-size: 12px;
-      margin-top: 4px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 50;
     }
 
-    @media (max-width: 960px) {
-      .top-row {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    @media (max-width: 768px) {
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .metrics-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      th:nth-child(4),
-      td:nth-child(4),
-      th:nth-child(5),
-      td:nth-child(5),
-      th:nth-child(6),
-      td:nth-child(6) {
-        display: none;
-      }
+    .toast.show {
+      display: inline-flex;
     }
   </style>
 </head>
 <body>
   <div class="app-shell">
     <header>
-      <div class="brand">
-        <div class="brand-mark">T</div>
-        <div>
-          <div class="brand-text-main">TradeBotPro Control Panel</div>
-          <div class="brand-text-sub">Signups, statuses & setup at a glance</div>
-        </div>
+      <div class="title-block">
+        <h1>
+          TradeBotPro Admin
+          <span class="badge">Phase 4B / 4C</span>
+        </h1>
+        <p>Review new signups, update statuses, and draft messages for WhatsApp/email.</p>
       </div>
-      <div class="stack-horizontal">
-        <span class="header-badge">Internal · v4B / v4C baseline</span>
-        <span class="small-hint">Changes save to Supabase in real time.</span>
+      <div class="header-actions">
+        <div class="pill">
+          Total signups: <strong id="totalCount">–</strong>
+        </div>
+        <div class="pill">
+          Active: <strong id="activeCount">–</strong>
+        </div>
+        <div class="pill">
+          Pending setup: <strong id="pendingCount">–</strong>
+        </div>
+        <button type="button" class="btn-ghost" id="refreshBtn">
+          ↻ Refresh
+        </button>
       </div>
     </header>
 
     <main>
-      <div class="top-row">
-        <!-- LEFT: SIGNUPS TABLE + METRICS -->
-        <section class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Signups overview</div>
-              <div class="card-subtitle">Read/write view of <code>tradebotpro_signups</code></div>
-              <div class="chips-row">
-                <span class="chip chip-live">
-                  <span class="chip-dot"></span> Live
-                </span>
-                <span class="chip chip-trial">
-                  <span class="chip-dot"></span> Trials
-                </span>
-                <span class="chip chip-pending">
-                  <span class="chip-dot"></span> Pending setup
-                </span>
-                <span class="chip chip-risk">
-                  <span class="chip-dot"></span> Churn risk / issues
-                </span>
-              </div>
-            </div>
+      <div class="grid">
+        <!-- LEFT: SIGNUPS TABLE -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Signups <span class="sub">Most recent first</span></h2>
+            <small id="lastRefreshed">Last refreshed: –</small>
           </div>
 
-          <div class="metrics-grid" id="metrics">
-            <div class="metric-card">
-              <div class="metric-label">Total signups</div>
-              <div class="metric-value" id="metric-total">–</div>
-              <div class="metric-footnote">All time</div>
+          <div class="chips-row">
+            <div class="chip active">
+              <span class="dot"></span> Live
             </div>
-            <div class="metric-card">
-              <div class="metric-label">Pending setup</div>
-              <div class="metric-value" id="metric-pending">–</div>
-              <div class="metric-footnote">Need onboarding</div>
+            <div class="chip pending">
+              <span class="dot"></span> Pending onboarding
             </div>
-            <div class="metric-card">
-              <div class="metric-label">Live / active</div>
-              <div class="metric-value" id="metric-live">–</div>
-              <div class="metric-footnote">Plan status = live</div>
+            <div class="chip paused">
+              <span class="dot"></span> Paused
             </div>
-            <div class="metric-card">
-              <div class="metric-label">Trials</div>
-              <div class="metric-value" id="metric-trial">–</div>
-              <div class="metric-footnote">Plan status = trial</div>
+            <div class="chip cancelled">
+              <span class="dot"></span> Cancelled
             </div>
-          </div>
-
-          <div class="filters-row">
-            <div class="filters-group">
-              <span class="filters-label">Plan</span>
-              <select id="filter-plan">
-                <option value="all">All</option>
-                <option value="live">Live</option>
-                <option value="trial">Trial</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="paused">Paused / break</option>
-              </select>
-            </div>
-
-            <div class="filters-group">
-              <span class="filters-label">Account</span>
-              <select id="filter-account">
-                <option value="all">All</option>
-                <option value="ok">All OK</option>
-                <option value="churn_risk">Churn risk</option>
-                <option value="blocked">Blocked</option>
-              </select>
-            </div>
-
-            <div class="filters-group">
-              <span class="filters-label">Trade</span>
-              <select id="filter-trade">
-                <option value="all">All trades</option>
-                <option value="plumbing_heating">Plumbing &amp; Heating</option>
-                <option value="heating_only">Heating only</option>
-                <option value="general_plumbing">General plumbing</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            <div class="filters-group" style="margin-left:auto;">
-              <span class="filters-label">Search</span>
-              <input
-                type="search"
-                id="filter-search"
-                placeholder="Business, contact, postcode…"
-              />
-            </div>
-          </div>
-
-          <div id="table-loading" class="loading">Loading signups from Supabase…</div>
-          <div id="table-error" class="error" style="display:none;">
-            Something went wrong loading signups. Check the console.
           </div>
 
           <div class="table-wrapper">
             <table>
               <thead>
                 <tr>
-                  <th>Business & contact</th>
+                  <th>Business</th>
+                  <th>Contact</th>
                   <th>Trade</th>
                   <th>Postcode</th>
-                  <th>Plan</th>
-                  <th>Setup</th>
-                  <th>Account</th>
+                  <th>Status</th>
+                  <th>Created</th>
                 </tr>
               </thead>
-              <tbody id="signups-body">
-                <!-- injected via JS -->
+              <tbody id="leadsBody">
+                <tr>
+                  <td colspan="6" class="table-empty">
+                    Loading signups…
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
         </section>
 
-        <!-- RIGHT: SELECTED SIGNUP DETAILS + MESSAGING -->
-        <section class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Selected signup</div>
-              <div class="card-subtitle">Choose a signup on the left to see full details</div>
-            </div>
-            <button class="btn btn-ghost" id="btn-refresh" type="button">Refresh</button>
-          </div>
+        <!-- RIGHT: DETAILS + ACTIONS -->
+        <section class="panel">
+          <div class="details-layout">
+            <!-- Details card -->
+            <div class="details-card">
+              <div class="details-header">
+                <div>
+                  <h3 id="detailsTitle">No signup selected</h3>
+                  <span id="detailsSubtitle">Click a row on the left to see full details.</span>
+                </div>
+                <div id="detailsStatusTag"></div>
+              </div>
 
-          <div id="detail-empty">
-            <p class="small-hint">
-              Nothing selected yet. Click any row in the signups table to load full details here.
-            </p>
-          </div>
+              <div id="detailsEmpty" class="details-empty">
+                You’ll see full customer info here once you click a signup.
+              </div>
 
-          <div id="detail-panel" style="display:none;">
-            <div class="detail-section-title">Who they are</div>
-            <div class="detail-grid">
-              <div>
-                <div class="field-label">Business name</div>
-                <div class="field-value" id="detail-business">–</div>
-              </div>
-              <div>
-                <div class="field-label">Trade type</div>
-                <div class="field-value" id="detail-trade">–</div>
-              </div>
-              <div>
-                <div class="field-label">Contact name</div>
-                <div class="field-value" id="detail-contact">–</div>
-              </div>
-              <div>
-                <div class="field-label">Owner name</div>
-                <div class="field-value" id="detail-owner">–</div>
-              </div>
-              <div>
-                <div class="field-label">Base postcode</div>
-                <div class="field-value" id="detail-postcode">–</div>
-              </div>
-              <div>
-                <div class="field-label">Website</div>
-                <div class="field-value" id="detail-website">–</div>
-              </div>
-              <div>
-                <div class="field-label">Email</div>
-                <div class="field-value" id="detail-email">–</div>
-              </div>
-              <div>
-                <div class="field-label">Phone / WhatsApp</div>
-                <div class="field-value" id="detail-phone">–</div>
-              </div>
-            </div>
-
-            <div class="detail-section-title">Status & plan</div>
-            <div class="status-row">
-              <div class="stack-vertical">
-                <span class="field-label">Plan status</span>
-                <select id="detail-plan-status">
-                  <option value="">(no value)</option>
-                  <option value="trial">Trial</option>
-                  <option value="live">Live</option>
-                  <option value="cancelled">Cancelled</option>
-                  <option value="paused">Paused / break</option>
-                </select>
-              </div>
-              <div class="stack-vertical">
-                <span class="field-label">Setup status</span>
-                <select id="detail-pending-setup">
-                  <option value="">(no value)</option>
-                  <option value="not_started">Not started</option>
-                  <option value="needs_info">Needs info from customer</option>
-                  <option value="building_assistant">Building assistant</option>
-                  <option value="awaiting_signoff">Awaiting sign-off</option>
-                  <option value="complete">Complete</option>
-                </select>
-              </div>
-              <div class="stack-vertical">
-                <span class="field-label">Account status</span>
-                <select id="detail-account-status">
-                  <option value="">(no value)</option>
-                  <option value="ok">All OK</option>
-                  <option value="churn_risk">Churn risk</option>
-                  <option value="blocked">Blocked</option>
-                </select>
-              </div>
-            </div>
-            <div class="stack-vertical" style="margin-top:4px;">
-              <span class="field-label">Account status reason</span>
-              <textarea id="detail-account-reason" placeholder="Notes e.g. slow payer, tech issues, wants a break…"></textarea>
-            </div>
-            <div class="message-footer" style="margin-top:6px;">
-              <button class="btn btn-primary" id="btn-save-status" type="button">
-                Save status
-              </button>
-              <span class="small-hint" id="status-save-hint">Changes save to Supabase & refresh the list.</span>
-            </div>
-
-            <div class="detail-section-title">Pricing signals</div>
-            <div class="detail-grid">
-              <div>
-                <div class="field-label">Call-out fee</div>
-                <div class="field-value" id="detail-callout">–</div>
-              </div>
-              <div>
-                <div class="field-label">First hour</div>
-                <div class="field-value" id="detail-first-hour">–</div>
-              </div>
-              <div>
-                <div class="field-label">Hourly rate</div>
-                <div class="field-value" id="detail-hourly-rate">–</div>
-              </div>
-              <div>
-                <div class="field-label">Boiler service from</div>
-                <div class="field-value" id="detail-boiler">–</div>
-              </div>
-              <div>
-                <div class="field-label">Quote minimum</div>
-                <div class="field-value" id="detail-quote-min">–</div>
-              </div>
-            </div>
-
-            <div class="detail-section-title">What they want from the AI</div>
-            <div class="stack-vertical">
-              <div>
-                <div class="field-label">Services summary</div>
-                <div class="field-value" id="detail-services" style="white-space:pre-wrap;">–</div>
-              </div>
-              <div>
-                <div class="field-label">AI style notes</div>
-                <div class="field-value" id="detail-ai-notes" style="white-space:pre-wrap;">–</div>
-              </div>
-            </div>
-
-            <div class="detail-section-title">System fields</div>
-            <div class="detail-grid">
-              <div>
-                <div class="field-label">Created at</div>
-                <div class="field-value muted" id="detail-created-at">–</div>
-              </div>
-              <div>
-                <div class="field-label">Raw ID</div>
-                <div class="field-value muted" id="detail-id">–</div>
-              </div>
-            </div>
-
-            <div class="detail-section-title">Assistant messaging (stub)</div>
-            <div class="message-panel">
-              <select id="message-template">
-                <option value="">Choose a quick message…</option>
-                <option value="welcome_trial">
-                  Welcome — trial started & expectations
-                </option>
-                <option value="setup_call">
-                  Ask for setup call / missing info
-                </option>
-                <option value="go_live">
-                  Confirm they are live & what to expect
-                </option>
-                <option value="break">
-                  Offer to pause plan for a month instead of cancelling
-                </option>
-              </select>
-              <textarea
-                id="message-body"
-                placeholder="Choose a template above, or write a message you’ll paste into WhatsApp/email."
-              ></textarea>
-              <div class="message-footer">
-                <span class="small-hint">
-                  This doesn’t send automatically yet — it’s a drafting area so you can
-                  copy/paste into WhatsApp, email or SMS.
-                </span>
-                <div class="stack-horizontal">
-                  <button class="btn btn-secondary" id="btn-copy-message" type="button">
-                    Copy message
-                  </button>
-                  <button class="btn btn-ghost" id="btn-clear-message" type="button">
-                    Clear
-                  </button>
+              <div id="detailsGrid" class="details-grid" style="display:none;">
+                <div>
+                  <div class="details-item-label">Business name</div>
+                  <div class="details-item-value" id="d_businessName">–</div>
+                </div>
+                <div>
+                  <div class="details-item-label">Trade</div>
+                  <div class="details-item-value" id="d_tradeType">–</div>
+                </div>
+                <div>
+                  <div class="details-item-label">Primary contact</div>
+                  <div class="details-item-value" id="d_contactName">–</div>
+                </div>
+                <div>
+                  <div class="details-item-label">Email</div>
+                  <div class="details-item-value" id="d_email">–</div>
+                </div>
+                <div>
+                  <div class="details-item-label">WhatsApp / mobile</div>
+                  <div class="details-item-value" id="d_phone">–</div>
+                </div>
+                <div>
+                  <div class="details-item-label">Base postcode</div>
+                  <div class="details-item-value" id="d_postcode">–</div>
+                </div>
+                <div>
+                  <div class="details-item-label">Website</div>
+                  <div class="details-item-value" id="d_website">–</div>
+                </div>
+                <div>
+                  <div class="details-item-label">Plan status</div>
+                  <div class="details-item-value" id="d_planStatus">–</div>
                 </div>
               </div>
+
+              <div class="status-row">
+                <div class="status-field">
+                  <label for="planStatusSelect">Plan status</label>
+                  <select id="planStatusSelect">
+                    <option value="">— Leave unchanged —</option>
+                    <option value="Trial">Trial</option>
+                    <option value="Active">Active</option>
+                    <option value="Pending payment">Pending payment</option>
+                    <option value="Chasing payment">Chasing payment</option>
+                  </select>
+                </div>
+                <div class="status-field">
+                  <label for="pendingSetupSelect">Onboarding / setup</label>
+                  <select id="pendingSetupSelect">
+                    <option value="">— Leave unchanged —</option>
+                    <option value="Not started">Not started</option>
+                    <option value="Booked">Booked</option>
+                    <option value="In progress">In progress</option>
+                    <option value="Complete">Complete</option>
+                  </select>
+                </div>
+                <div class="status-field">
+                  <label for="accountStatusSelect">Account status</label>
+                  <select id="accountStatusSelect">
+                    <option value="">— Leave unchanged —</option>
+                    <option value="Active">Active</option>
+                    <option value="Paused">Paused (taking a break)</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-top:8px; display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" class="btn-secondary" id="resetStatusBtn">
+                  Reset form
+                </button>
+                <button type="button" class="btn-primary" id="saveStatusBtn">
+                  💾 Save statuses & refresh
+                </button>
+              </div>
             </div>
 
-            <div style="margin-top:8px;">
-              <span class="pill pill-ok">
-                <span class="pill-dot"></span> All OK
-              </span>
-              <span class="pill pill-break">
-                <span class="pill-dot"></span> Wants a break
-              </span>
-              <span class="pill pill-risk">
-                <span class="pill-dot"></span> Churn risk
-              </span>
+            <!-- Messaging card -->
+            <div class="actions-card">
+              <div class="actions-header">
+                <h3>Message assistant</h3>
+                <span class="hint" id="selectedLeadHint">No signup selected</span>
+              </div>
+
+              <div class="template-row">
+                <label for="messageTemplate">Template</label>
+                <select id="messageTemplate">
+                  <option value="">— Choose a starting point —</option>
+                  <option value="welcome">Welcome / next steps</option>
+                  <option value="onboarding-booking">Book onboarding call</option>
+                  <option value="chase-info">Chase missing info</option>
+                  <option value="paused">Confirm account paused</option>
+                  <option value="cancelled">Confirm cancellation</option>
+                </select>
+              </div>
+
+              <textarea id="messageBox" placeholder="Select a signup, choose a template, then tweak the message here before copying into WhatsApp or email."></textarea>
+
+              <div class="actions-footer">
+                <button type="button" class="btn-primary" id="copyMessageBtn">
+                  📋 Copy message
+                </button>
+                <span class="hint">
+                  We don’t auto-send yet — this is your drafting pad for WhatsApp / email replies.
+                </span>
+              </div>
             </div>
           </div>
         </section>
       </div>
     </main>
+
+    <div class="toast" id="toast"></div>
   </div>
 
-  <!-- Supabase client -->
-  <script src="https://esm.sh/@supabase/supabase-js@2.48.0"></script>
-  <script>
-    // 🔑 1) Supabase config (REPLACE with your real values)
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    // 🔧 IMPORTANT: use the SAME values as your signup form
     const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error("Supabase URL or anon key is missing. Set them at the top of admin-dashboard.html");
+    if (!supabaseUrl || !supabaseKey || supabaseKey.includes('YOUR_SUPABASE')) {
+      console.error('Please set supabaseUrl and supabaseKey in admin-dashboard.html');
     }
 
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // State
-    let allSignups = [];
-    let filteredSignups = [];
-    let selectedSignupId = null;
-    let isSavingStatus = false;
+    let leads = [];
+    let selectedLeadId = null;
 
-    // Elements
-    const tableLoadingEl = document.getElementById("table-loading");
-    const tableErrorEl = document.getElementById("table-error");
-    const signupsBodyEl = document.getElementById("signups-body");
+    const tbody = document.getElementById('leadsBody');
+    const totalCountEl = document.getElementById('totalCount');
+    const activeCountEl = document.getElementById('activeCount');
+    const pendingCountEl = document.getElementById('pendingCount');
+    const lastRefreshedEl = document.getElementById('lastRefreshed');
 
-    const filterPlanEl = document.getElementById("filter-plan");
-    const filterAccountEl = document.getElementById("filter-account");
-    const filterTradeEl = document.getElementById("filter-trade");
-    const filterSearchEl = document.getElementById("filter-search");
+    const detailsTitle = document.getElementById('detailsTitle');
+    const detailsSubtitle = document.getElementById('detailsSubtitle');
+    const detailsStatusTag = document.getElementById('detailsStatusTag');
+    const detailsEmpty = document.getElementById('detailsEmpty');
+    const detailsGrid = document.getElementById('detailsGrid');
 
-    const metricTotalEl = document.getElementById("metric-total");
-    const metricPendingEl = document.getElementById("metric-pending");
-    const metricLiveEl = document.getElementById("metric-live");
-    const metricTrialEl = document.getElementById("metric-trial");
+    const d_businessName = document.getElementById('d_businessName');
+    const d_tradeType = document.getElementById('d_tradeType');
+    const d_contactName = document.getElementById('d_contactName');
+    const d_email = document.getElementById('d_email');
+    const d_phone = document.getElementById('d_phone');
+    const d_postcode = document.getElementById('d_postcode');
+    const d_website = document.getElementById('d_website');
+    const d_planStatus = document.getElementById('d_planStatus');
 
-    const detailEmptyEl = document.getElementById("detail-empty");
-    const detailPanelEl = document.getElementById("detail-panel");
+    const planStatusSelect = document.getElementById('planStatusSelect');
+    const pendingSetupSelect = document.getElementById('pendingSetupSelect');
+    const accountStatusSelect = document.getElementById('accountStatusSelect');
+    const saveStatusBtn = document.getElementById('saveStatusBtn');
+    const resetStatusBtn = document.getElementById('resetStatusBtn');
 
-    const detailBusinessEl = document.getElementById("detail-business");
-    const detailTradeEl = document.getElementById("detail-trade");
-    const detailContactEl = document.getElementById("detail-contact");
-    const detailOwnerEl = document.getElementById("detail-owner");
-    const detailPostcodeEl = document.getElementById("detail-postcode");
-    const detailWebsiteEl = document.getElementById("detail-website");
-    const detailEmailEl = document.getElementById("detail-email");
-    const detailPhoneEl = document.getElementById("detail-phone");
+    const messageTemplate = document.getElementById('messageTemplate');
+    const messageBox = document.getElementById('messageBox');
+    const copyMessageBtn = document.getElementById('copyMessageBtn');
+    const selectedLeadHint = document.getElementById('selectedLeadHint');
 
-    const detailPlanStatusEl = document.getElementById("detail-plan-status");
-    const detailPendingSetupEl = document.getElementById("detail-pending-setup");
-    const detailAccountStatusEl = document.getElementById("detail-account-status");
-    const detailAccountReasonEl = document.getElementById("detail-account-reason");
+    const refreshBtn = document.getElementById('refreshBtn');
+    const toast = document.getElementById('toast');
 
-    const detailCalloutEl = document.getElementById("detail-callout");
-    const detailFirstHourEl = document.getElementById("detail-first-hour");
-    const detailHourlyRateEl = document.getElementById("detail-hourly-rate");
-    const detailBoilerEl = document.getElementById("detail-boiler");
-    const detailQuoteMinEl = document.getElementById("detail-quote-min");
-
-    const detailServicesEl = document.getElementById("detail-services");
-    const detailAiNotesEl = document.getElementById("detail-ai-notes");
-
-    const detailCreatedAtEl = document.getElementById("detail-created-at");
-    const detailIdEl = document.getElementById("detail-id");
-
-    const btnRefreshEl = document.getElementById("btn-refresh");
-    const btnSaveStatusEl = document.getElementById("btn-save-status");
-    const statusSaveHintEl = document.getElementById("status-save-hint");
-
-    const messageTemplateEl = document.getElementById("message-template");
-    const messageBodyEl = document.getElementById("message-body");
-    const btnCopyMessageEl = document.getElementById("btn-copy-message");
-    const btnClearMessageEl = document.getElementById("btn-clear-message");
-
-    // Helpers
-    function formatMoney(value) {
-      if (value === null || value === undefined || value === "") return "–";
-      const num = Number(value);
-      if (Number.isNaN(num)) return String(value);
-      return "£" + num.toFixed(0);
+    function toastMessage(text) {
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
-    function safe(value) {
-      if (value === null || value === undefined || value === "") return "–";
-      return String(value);
-    }
-
-    function getPlanClass(planStatus) {
-      switch (planStatus) {
-        case "live":
-          return "live";
-        case "trial":
-          return "trial";
-        case "cancelled":
-          return "cancelled";
-        case "paused":
-          return "pending";
-        default:
-          return "pending";
+    function formatDate(iso) {
+      if (!iso) return '–';
+      try {
+        const d = new Date(iso);
+        return d.toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+      } catch {
+        return iso;
       }
     }
 
-    function applyFilters() {
-      const planFilter = filterPlanEl.value;
-      const accountFilter = filterAccountEl.value;
-      const tradeFilter = filterTradeEl.value;
-      const search = filterSearchEl.value.trim().toLowerCase();
+    function computeStatusPill(lead) {
+      const accountStatus = (lead.account_status || '').toLowerCase();
+      const planStatus = (lead.plan_status || '').toLowerCase();
+      const pendingSetup = (lead.pending_setup || '').toLowerCase();
 
-      filteredSignups = allSignups.filter((row) => {
-        if (planFilter !== "all") {
-          if ((row.plan_status || "") !== planFilter) return false;
-        }
-        if (accountFilter !== "all") {
-          if ((row.account_status || "") !== accountFilter) return false;
-        }
-        if (tradeFilter !== "all") {
-          const t = (row.trade_type || "").toLowerCase();
-          if (tradeFilter === "plumbing_heating" && !t.includes("plumb")) return false;
-          if (tradeFilter === "heating_only" && !t.includes("heat")) return false;
-          if (tradeFilter === "general_plumbing" && !t.includes("plumb")) return false; // simple heuristic
-          if (tradeFilter === "other" && (t.includes("plumb") || t.includes("heat"))) return false;
-        }
+      let label = 'New';
+      let cls = '';
 
-        if (search) {
-          const haystack =
-            (row.business_name || "") +
-            " " +
-            (row.owner_name || "") +
-            " " +
-            (row.contact_name || "") +
-            " " +
-            (row.email || "") +
-            " " +
-            (row.base_postcode || "");
-          if (!haystack.toLowerCase().includes(search)) return false;
-        }
+      if (accountStatus === 'cancelled') {
+        label = 'Cancelled';
+        cls = 'cancelled';
+      } else if (accountStatus === 'paused') {
+        label = 'Paused';
+        cls = 'paused';
+      } else if (planStatus === 'active') {
+        label = 'Active';
+        cls = '';
+      } else if (pendingSetup && pendingSetup !== 'complete') {
+        label = 'Pending setup';
+        cls = 'pending';
+      } else if (planStatus) {
+        label = planStatus[0].toUpperCase() + planStatus.slice(1);
+      }
 
-        return true;
-      });
-
-      renderTable();
+      return { label, cls };
     }
 
-    function renderMetrics() {
-      const total = allSignups.length;
-      const pendingSetup = allSignups.filter((r) => (r.pending_setup || "") !== "" && (r.pending_setup || "") !== "complete").length;
-      const live = allSignups.filter((r) => r.plan_status === "live").length;
-      const trial = allSignups.filter((r) => r.plan_status === "trial").length;
+    function renderCounts() {
+      const total = leads.length;
+      const active = leads.filter(l =>
+        (l.account_status || '').toLowerCase() === 'active' ||
+        (l.plan_status || '').toLowerCase() === 'active'
+      ).length;
+      const pending = leads.filter(l =>
+        (l.pending_setup || '').toLowerCase() !== '' &&
+        (l.pending_setup || '').toLowerCase() !== 'complete'
+      ).length;
 
-      metricTotalEl.textContent = total;
-      metricPendingEl.textContent = pendingSetup;
-      metricLiveEl.textContent = live;
-      metricTrialEl.textContent = trial;
+      totalCountEl.textContent = total;
+      activeCountEl.textContent = active;
+      pendingCountEl.textContent = pending;
     }
 
     function renderTable() {
-      signupsBodyEl.innerHTML = "";
+      if (!leads.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="table-empty">
+              No signups yet. Once people use the website form, they’ll appear here.
+            </td>
+          </tr>
+        `;
+        return;
+      }
 
-      filteredSignups.forEach((row) => {
-        const tr = document.createElement("tr");
-        tr.dataset.id = row.id;
+      tbody.innerHTML = '';
+      leads.forEach(lead => {
+        const tr = document.createElement('tr');
+        tr.dataset.id = lead.id;
 
-        if (String(row.id) === String(selectedSignupId)) {
-          tr.classList.add("selected");
-        }
+        const { label, cls } = computeStatusPill(lead);
+        const contactName = lead.contact_name || lead.owner_name || '—';
+        const phone = lead.phone || lead.whatsapp_number || '';
+        const trade = lead.trade_type || '—';
+        const post = lead.base_postcode || '—';
 
-        // Business & contact
-        const tdBiz = document.createElement("td");
-        const biz = safe(row.business_name);
-        const contact = safe(row.contact_name);
-        const email = safe(row.email);
-        tdBiz.innerHTML =
-          `<strong>${biz}</strong><br>` +
-          `<span class="small-hint">${contact !== "–" ? contact : ""}${contact !== "–" && email !== "–" ? " · " : ""}${email !== "–" ? email : ""}</span>`;
-        tr.appendChild(tdBiz);
+        tr.innerHTML = `
+          <td>${lead.business_name || '—'}</td>
+          <td>${contactName}<br><span style="font-size:11px; color:#6b7280;">${phone || ''}</span></td>
+          <td>${trade}</td>
+          <td>${post}</td>
+          <td>
+            <span class="status-pill ${cls}">
+              <span class="status-dot"></span>${label}
+            </span>
+          </td>
+          <td>${formatDate(lead.created_at)}</td>
+        `;
 
-        // Trade
-        const tdTrade = document.createElement("td");
-        tdTrade.textContent = safe(row.trade_type);
-        tr.appendChild(tdTrade);
-
-        // Postcode
-        const tdPost = document.createElement("td");
-        tdPost.textContent = safe(row.base_postcode);
-        tr.appendChild(tdPost);
-
-        // Plan
-        const tdPlan = document.createElement("td");
-        const planStatus = row.plan_status || "";
-        const planLabel = planStatus ? planStatus.replace("_", " ") : "no plan";
-        const planClass = getPlanClass(planStatus);
-        tdPlan.innerHTML = `<span class="status-pill ${planClass}">${planLabel}</span>`;
-        tr.appendChild(tdPlan);
-
-        // Setup
-        const tdSetup = document.createElement("td");
-        tdSetup.textContent = safe(row.pending_setup);
-        tr.appendChild(tdSetup);
-
-        // Account
-        const tdAccount = document.createElement("td");
-        const accStatus = row.account_status || "";
-        tdAccount.textContent = accStatus || "–";
-        tr.appendChild(tdAccount);
-
-        tr.addEventListener("click", () => {
-          selectRow(row.id);
+        tr.addEventListener('click', () => {
+          selectLead(lead.id);
         });
 
-        signupsBodyEl.appendChild(tr);
+        tbody.appendChild(tr);
       });
 
-      renderMetrics();
-    }
-
-    function selectRow(id) {
-      selectedSignupId = id;
-
-      // highlight selected row
-      Array.from(signupsBodyEl.querySelectorAll("tr")).forEach((tr) => {
-        tr.classList.toggle("selected", tr.dataset.id === String(id));
-      });
-
-      const row = allSignups.find((r) => String(r.id) === String(id));
-      if (!row) return;
-
-      detailEmptyEl.style.display = "none";
-      detailPanelEl.style.display = "block";
-
-      detailBusinessEl.textContent = safe(row.business_name);
-      detailTradeEl.textContent = safe(row.trade_type);
-      detailContactEl.textContent = safe(row.contact_name);
-      detailOwnerEl.textContent = safe(row.owner_name);
-      detailPostcodeEl.textContent = safe(row.base_postcode);
-      detailWebsiteEl.textContent = safe(row.website_url);
-      detailEmailEl.textContent = safe(row.email);
-      detailPhoneEl.textContent = safe(row.phone || row.whatsapp_number);
-
-      detailPlanStatusEl.value = row.plan_status || "";
-      detailPendingSetupEl.value = row.pending_setup || "";
-      detailAccountStatusEl.value = row.account_status || "";
-      detailAccountReasonEl.value = row.account_status_reason || "";
-
-      detailCalloutEl.textContent = formatMoney(row.callout_fee);
-      detailFirstHourEl.textContent = formatMoney(row.first_hour_rate);
-      detailHourlyRateEl.textContent = formatMoney(row.hourly_rate);
-      detailBoilerEl.textContent = formatMoney(row.boiler_service_from);
-      detailQuoteMinEl.textContent = formatMoney(row.quote_minimum);
-
-      detailServicesEl.textContent = safe(row.services_summary);
-      detailAiNotesEl.textContent = safe(row.ai_style_notes);
-
-      detailCreatedAtEl.textContent = row.created_at || "–";
-      detailIdEl.textContent = row.id || "–";
-
-      // reset messaging
-      messageTemplateEl.value = "";
-      messageBodyEl.value = "";
-    }
-
-    async function loadSignups() {
-      tableLoadingEl.style.display = "block";
-      tableErrorEl.style.display = "none";
-
-      try {
-        const { data, error } = await supabase
-          .from("tradebotpro_signups")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          console.error("Error loading signups:", error);
-          tableErrorEl.style.display = "block";
-          tableLoadingEl.style.display = "none";
-          return;
-        }
-
-        allSignups = data || [];
-        filteredSignups = [...allSignups];
-        tableLoadingEl.style.display = "none";
-
-        applyFilters(); // will call renderTable
-      } catch (err) {
-        console.error("Network / fetch error:", err);
-        tableErrorEl.style.display = "block";
-        tableLoadingEl.style.display = "none";
-      }
-    }
-
-    async function saveStatus() {
-      if (!selectedSignupId || isSavingStatus) return;
-
-      isSavingStatus = true;
-      btnSaveStatusEl.disabled = true;
-      statusSaveHintEl.textContent = "Saving changes…";
-
-      const updates = {
-        plan_status: detailPlanStatusEl.value || null,
-        pending_setup: detailPendingSetupEl.value || null,
-        account_status: detailAccountStatusEl.value || null,
-        account_status_reason: detailAccountReasonEl.value || null
-      };
-
-      try {
-        const { error } = await supabase
-          .from("tradebotpro_signups")
-          .update(updates)
-          .eq("id", selectedSignupId);
-
-        if (error) {
-          console.error("Error updating status:", error);
-          statusSaveHintEl.textContent = "Error saving – see console.";
+      // Re-highlight if we already had something selected
+      if (selectedLeadId) {
+        const stillExists = leads.some(l => l.id === selectedLeadId);
+        if (stillExists) {
+          applyRowHighlight();
         } else {
-          statusSaveHintEl.textContent = "Saved. Refreshing list…";
-          await loadSignups();
-          // reselect the same signup after refresh
-          if (selectedSignupId) {
-            selectRow(selectedSignupId);
-          }
-          statusSaveHintEl.textContent = "Changes saved.";
+          selectedLeadId = null;
+          clearDetails();
         }
-      } catch (err) {
-        console.error("Network / save error:", err);
-        statusSaveHintEl.textContent = "Network error – see console.";
-      } finally {
-        isSavingStatus = false;
-        btnSaveStatusEl.disabled = false;
-        setTimeout(() => {
-          statusSaveHintEl.textContent = "Changes save to Supabase & refresh the list.";
-        }, 2500);
       }
     }
 
-    function applyMessageTemplate() {
-      if (!selectedSignupId) {
-        alert("Select a signup first.");
-        messageTemplateEl.value = "";
+    function applyRowHighlight() {
+      const rows = tbody.querySelectorAll('tr');
+      rows.forEach(row => {
+        if (row.dataset.id === selectedLeadId) {
+          row.classList.add('selected-row');
+        } else {
+          row.classList.remove('selected-row');
+        }
+      });
+    }
+
+    function clearDetails() {
+      detailsTitle.textContent = 'No signup selected';
+      detailsSubtitle.textContent = 'Click a row on the left to see full details.';
+      detailsStatusTag.innerHTML = '';
+      detailsEmpty.style.display = 'block';
+      detailsGrid.style.display = 'none';
+      selectedLeadHint.textContent = 'No signup selected';
+      planStatusSelect.value = '';
+      pendingSetupSelect.value = '';
+      accountStatusSelect.value = '';
+    }
+
+    function renderStatusTag(lead) {
+      const account = (lead.account_status || '').toLowerCase();
+      let label = 'New';
+      let cls = 'tag';
+
+      if (account === 'active') {
+        label = 'Active';
+      } else if (account === 'paused') {
+        label = 'Paused';
+        cls += ' paused';
+      } else if (account === 'cancelled') {
+        label = 'Cancelled';
+        cls += ' cancelled';
+      } else if ((lead.plan_status || '').toLowerCase() === 'active') {
+        label = 'Active';
+      }
+
+      detailsStatusTag.innerHTML = `<span class="${cls}">${label}</span>`;
+    }
+
+    function selectLead(id) {
+      selectedLeadId = id;
+      applyRowHighlight();
+
+      const lead = leads.find(l => l.id === id);
+      if (!lead) {
+        clearDetails();
         return;
       }
 
-      const row = allSignups.find((r) => String(r.id) === String(selectedSignupId));
-      const biz = row ? row.business_name || "there" : "there";
-      const template = messageTemplateEl.value;
+      detailsTitle.textContent = lead.business_name || 'Untitled business';
+      const trade = lead.trade_type || 'Trade not set yet';
+      const post = lead.base_postcode || 'No postcode';
+      detailsSubtitle.textContent = `${trade} · ${post}`;
+      renderStatusTag(lead);
 
-      let text = "";
+      detailsEmpty.style.display = 'none';
+      detailsGrid.style.display = 'grid';
 
-      switch (template) {
-        case "welcome_trial":
-          text =
-            `Hi ${biz}, thanks for signing up to TradeBotPro 👋\n\n` +
-            `You're now in a trial period while we get your AI office set up. ` +
-            `We'll confirm your call-out pricing, service areas and the tone of voice for your assistant before going live.\n\n` +
-            `If anything changes in the meantime, just reply to this message.`;
-          break;
-        case "setup_call":
-          text =
-            `Hi ${biz}, it’s TradeBotPro here.\n\n` +
-            `We just need a quick setup call to finish configuring your AI office – ` +
-            `things like service radius, pricing and how you’d like us to respond to common questions.\n\n` +
-            `Reply with a couple of times that work for you and we’ll get you booked in.`;
-          break;
-        case "go_live":
-          text =
-            `Hi ${biz}, great news — your TradeBotPro AI office is now live ✅\n\n` +
-            `New enquiries will be handled 24/7. We’ll keep an eye on the first few conversations and tune the assistant where needed.\n\n` +
-            `If you’d like any changes to pricing, wording or availability, just let us know.`;
-          break;
-        case "break":
-          text =
-            `Hi ${biz}, totally understand you might want to slow things down.\n\n` +
-            `Instead of cancelling outright, we can pause your TradeBotPro subscription for a month ` +
-            `so you don’t lose your setup. You won’t be billed during a pause.\n\n` +
-            `Would you like us to pause you, or keep things running as they are?`;
-          break;
+      d_businessName.textContent = lead.business_name || '—';
+      d_tradeType.textContent = lead.trade_type || '—';
+      d_contactName.textContent = lead.contact_name || lead.owner_name || '—';
+      d_email.textContent = lead.email || '—';
+      d_phone.textContent = lead.phone || lead.whatsapp_number || '—';
+      d_postcode.textContent = lead.base_postcode || '—';
+      d_website.textContent = lead.website_url || '—';
+      d_planStatus.textContent = lead.plan_status || '—';
+
+      // Pre-fill dropdowns with existing values
+      planStatusSelect.value = lead.plan_status || '';
+      pendingSetupSelect.value = lead.pending_setup || '';
+      accountStatusSelect.value = lead.account_status || '';
+
+      selectedLeadHint.textContent = `Replying about: ${lead.business_name || 'customer'}`;
+    }
+
+    async function loadLeads() {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="table-empty">
+            Loading signups…
+          </td>
+        </tr>
+      `;
+
+      const { data, error } = await supabase
+        .from('tradebotpro_signups')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading signups:', error);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="table-empty">
+              Error loading signups. Check DevTools console for details.
+            </td>
+          </tr>
+        `;
+        toastMessage('Error loading signups (check console).');
+        return;
+      }
+
+      leads = data || [];
+      renderCounts();
+      renderTable();
+
+      const now = new Date();
+      lastRefreshedEl.textContent = 'Last refreshed: ' + now.toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    async function saveStatuses() {
+      if (!selectedLeadId) {
+        toastMessage('Select a signup first.');
+        return;
+      }
+
+      const lead = leads.find(l => l.id === selectedLeadId);
+      if (!lead) {
+        toastMessage('Could not find that signup.');
+        return;
+      }
+
+      const updates = {};
+
+      if (planStatusSelect.value !== '') {
+        updates.plan_status = planStatusSelect.value;
+      }
+      if (pendingSetupSelect.value !== '') {
+        updates.pending_setup = pendingSetupSelect.value;
+      }
+      if (accountStatusSelect.value !== '') {
+        updates.account_status = accountStatusSelect.value;
+        // Keep is_active roughly in sync:
+        if (accountStatusSelect.value === 'Active') {
+          updates.is_active = true;
+        } else if (accountStatusSelect.value === 'Paused' || accountStatusSelect.value === 'Cancelled') {
+          updates.is_active = false;
+        }
+      }
+
+      if (Object.keys(updates).length === 0) {
+        toastMessage('Nothing to update.');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('tradebotpro_signups')
+        .update(updates)
+        .eq('id', selectedLeadId);
+
+      if (error) {
+        console.error('Error saving statuses:', error);
+        toastMessage('Error saving statuses (check console).');
+        return;
+      }
+
+      toastMessage('Statuses saved. Refreshing…');
+      // Reload list, keep same selection if it still exists
+      await loadLeads();
+      if (selectedLeadId) {
+        const stillExists = leads.some(l => l.id === selectedLeadId);
+        if (stillExists) {
+          selectLead(selectedLeadId);
+        } else {
+          clearDetails();
+        }
+      }
+    }
+
+    function resetStatusForm() {
+      planStatusSelect.value = '';
+      pendingSetupSelect.value = '';
+      accountStatusSelect.value = '';
+    }
+
+    function buildTemplate(templateKey, lead) {
+      const business = lead?.business_name || 'your business';
+      const name = lead?.contact_name || lead?.owner_name || 'there';
+
+      switch (templateKey) {
+        case 'welcome':
+          return `Hi ${name}, thanks for registering ${business} with TradeBotPro.\n\nThis is Andy. I’ll get your AI office set up so it actually matches how you work.\n\nNext step is a quick onboarding call to confirm:\n• Your service area\n• Your pricing rules\n• How you like quotes & bookings handled\n\nWhen are you generally free for a 20–30 minute call?`;
+        case 'onboarding-booking':
+          return `Hi ${name},\n\nShall we get your TradeBotPro AI office booked in for setup?\n\nI’ve got availability this week on:\n• [Day/time]\n• [Day/time]\n\nWhich works best for you?`;
+        case 'chase-info':
+          return `Hi ${name},\n\nJust a quick one – I’ve got most of what I need to finish setting up TradeBotPro for ${business}, but I’m missing a couple of bits:\n\n• [Missing item]\n• [Missing item]\n\nIf you can reply to this message with the answers, I can get the rest finished.`;
+        case 'paused':
+          return `Hi ${name},\n\nI’ve marked your TradeBotPro account as *Paused* for now.\n\nNothing will be deleted – we’ll simply stop new usage and billing.\n\nWhenever you’re ready to turn it back on, just message me and we’ll flip you back to Active.`;
+        case 'cancelled':
+          return `Hi ${name},\n\nI’ve cancelled your TradeBotPro account as requested.\n\nYour data will be retained for our records, but we’ll stop billing and your AI office will be switched off.\n\nIf you ever want to come back, I can get you up and running again very quickly.`;
         default:
-          text = "";
+          return '';
       }
-
-      messageBodyEl.value = text;
     }
 
-    async function copyMessage() {
-      const text = messageBodyEl.value.trim();
-      if (!text) {
-        alert("Nothing to copy yet – choose a template or type a message first.");
+    async function copyMessageToClipboard() {
+      if (!selectedLeadId) {
+        toastMessage('Select a signup first.');
         return;
       }
-
+      const text = messageBox.value.trim();
+      if (!text) {
+        toastMessage('Message box is empty.');
+        return;
+      }
       try {
         await navigator.clipboard.writeText(text);
-        alert("Message copied. Paste into WhatsApp, email or SMS.");
-      } catch (err) {
-        console.error("Clipboard error:", err);
-        alert("Could not copy to clipboard – you can still select and copy manually.");
+        toastMessage('Message copied. Paste into WhatsApp or email.');
+      } catch {
+        toastMessage('Could not access clipboard – select and copy manually.');
       }
     }
 
-    function clearMessage() {
-      messageTemplateEl.value = "";
-      messageBodyEl.value = "";
-    }
-
-    // Event wiring
-    filterPlanEl.addEventListener("change", applyFilters);
-    filterAccountEl.addEventListener("change", applyFilters);
-    filterTradeEl.addEventListener("change", applyFilters);
-    filterSearchEl.addEventListener("input", applyFilters);
-
-    btnRefreshEl.addEventListener("click", () => {
-      loadSignups();
+    // EVENT WIRING
+    refreshBtn.addEventListener('click', () => {
+      loadLeads();
     });
 
-    btnSaveStatusEl.addEventListener("click", saveStatus);
-    messageTemplateEl.addEventListener("change", applyMessageTemplate);
-    btnCopyMessageEl.addEventListener("click", copyMessage);
-    btnClearMessageEl.addEventListener("click", clearMessage);
+    saveStatusBtn.addEventListener('click', () => {
+      saveStatuses();
+    });
 
-    // Initial load
-    loadSignups();
+    resetStatusBtn.addEventListener('click', () => {
+      resetStatusForm();
+    });
+
+    messageTemplate.addEventListener('change', () => {
+      const key = messageTemplate.value;
+      if (!key) return;
+      const lead = leads.find(l => l.id === selectedLeadId);
+      const text = buildTemplate(key, lead);
+      if (text) {
+        messageBox.value = text;
+      }
+    });
+
+    copyMessageBtn.addEventListener('click', () => {
+      copyMessageToClipboard();
+    });
+
+    // INITIAL LOAD
+    loadLeads();
   </script>
 </body>
 </html>
