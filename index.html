@@ -837,243 +837,140 @@
   </div>
 
   <script>
-    // -----------------------
-    // BASIC STEP / PROGRESS
-    // -----------------------
-    const form = document.getElementById('signup-form');
-    const steps = Array.from(document.querySelectorAll('.form-step'));
-    const progressBarInner = document.getElementById('progress-bar-inner');
-    const stepCurrentEl = document.getElementById('step-current');
-    const stepLabelText = document.getElementById('step-label-text');
-    const totalSteps = steps.length;
+  /* ===============================
+     ✅ SUPABASE CONFIG (FIXED)
+  =============================== */
 
-    const stepLabels = {
-      1: 'Business basics',
-      2: 'Area & pricing',
-      3: 'AI office focus',
-      4: 'Confirm'
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
+  /* ===============================
+     ✅ FORM ELEMENTS
+  =============================== */
+
+  const form = document.getElementById('signup-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const successMessage = document.getElementById('success-message');
+  const errorMessage = document.getElementById('error-message');
+
+  /* ===============================
+     ✅ AI FOCUS CHIPS
+  =============================== */
+
+  const focusChips = Array.from(document.querySelectorAll('.focus-chip'));
+
+  function getSelectedFocus() {
+    return focusChips
+      .filter(chip => chip.classList.contains('selected'))
+      .map(chip => chip.dataset.value);
+  }
+
+  /* ===============================
+     ✅ BUILD PAYLOAD (UX LOGIC)
+  =============================== */
+
+  function buildPayloadFromForm() {
+    const services = Array.from(
+      document.querySelectorAll('input[name="services"]:checked')
+    ).map(el => el.value);
+
+    const servicesOther =
+      document.getElementById('services_other')?.value.trim() || '';
+
+    const aiFocus = getSelectedFocus();
+    const aiFocusExtra =
+      document.getElementById('ai_focus_extra')?.value.trim() || '';
+
+    const aiTone =
+      document.getElementById('ai_tone_notes')?.value.trim() || '';
+
+    const combinedServicesSummary = [
+      services.length ? `Services: ${services.join(', ')}` : '',
+      servicesOther ? `Other services: ${servicesOther}` : ''
+    ].filter(Boolean).join(' | ');
+
+    const combinedAIStyleNotes = [
+      aiFocus.length ? `Focus areas: ${aiFocus.join(', ')}` : '',
+      aiFocusExtra ? `Extra focus notes: ${aiFocusExtra}` : '',
+      aiTone ? `Tone & voice: ${aiTone}` : ''
+    ].filter(Boolean).join(' || ');
+
+    return {
+      business_name: document.getElementById('business_name').value.trim(),
+      owner_name: document.getElementById('owner_name').value.trim(),
+      contact_name: document.getElementById('contact_name').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      trade_type: document.getElementById('trade_type').value.trim(),
+      base_postcode: document.getElementById('base_postcode').value.trim(),
+      website_url: document.getElementById('website_url').value.trim(),
+
+      callout_fee: document.getElementById('callout_fee').value.trim(),
+      first_hour_rate: document.getElementById('first_hour_rate').value.trim(),
+      hourly_rate: document.getElementById('hourly_rate').value.trim(),
+      boiler_service_from: document.getElementById('boiler_service_from').value.trim(),
+      quote_minimum: document.getElementById('quote_minimum').value.trim(),
+
+      services_summary: combinedServicesSummary || null,
+      ai_style_notes: combinedAIStyleNotes || null,
+
+      plan_status: 'Lead - New',
+      pending_setup: true,
+      is_active: false,
+      account_status: 'Lead - New',
+      account_status_reason: 'Website signup'
     };
+  }
 
-    let currentStep = 1;
+  /* ===============================
+     ✅ FORM SUBMIT HANDLER
+  =============================== */
 
-    function updateStepDisplay() {
-      steps.forEach(step => {
-        step.classList.toggle('active', Number(step.dataset.step) === currentStep);
-      });
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+    successMessage.style.display = 'none';
+    errorMessage.style.display = 'none';
 
-      stepCurrentEl.textContent = currentStep.toString();
-      stepLabelText.textContent = stepLabels[currentStep] || '';
+    const payload = buildPayloadFromForm();
+    console.log('Submitting payload:', payload);
 
-      const pct = (currentStep - 1) / (totalSteps - 1) * 100;
-      progressBarInner.style.width = pct + '%';
-    }
-
-    document.querySelectorAll('[data-next]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (currentStep < totalSteps) {
-          currentStep += 1;
-          updateStepDisplay();
-        }
-      });
-    });
-
-    document.querySelectorAll('[data-back]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (currentStep > 1) {
-          currentStep -= 1;
-          updateStepDisplay();
-        }
-      });
-    });
-
-    updateStepDisplay();
-
-    // -----------------------
-    // FOCUS CHIPS LOGIC
-    // -----------------------
-    const focusChips = Array.from(document.querySelectorAll('.focus-chip'));
-
-    focusChips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        chip.classList.toggle('selected');
-      });
-    });
-
-    // -----------------------
-    // SUPABASE CONFIG
-    // -----------------------
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-
-    const submitBtn = document.getElementById('submit-btn');
-    const successMessage = document.getElementById('success-message');
-    const errorMessage = document.getElementById('error-message');
-
-    function showStatus(type, msgHtml) {
-      if (type === 'success') {
-        successMessage.innerHTML = msgHtml;
-        successMessage.style.display = 'block';
-        errorMessage.style.display = 'none';
-      } else if (type === 'error') {
-        errorMessage.innerHTML = msgHtml;
-        errorMessage.style.display = 'block';
-        successMessage.style.display = 'none';
-      } else {
-        successMessage.style.display = 'none';
-        errorMessage.style.display = 'none';
-      }
-    }
-
-    // -----------------------
-    // BUILD PAYLOAD
-    // -----------------------
-    function buildPayloadFromForm() {
-      // Basic details
-      const business_name = document.getElementById('business_name').value.trim();
-      const trade_type = document.getElementById('trade_type').value.trim();
-      const owner_name = document.getElementById('owner_name').value.trim();
-      const contact_name = document.getElementById('contact_name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const website_url = document.getElementById('website_url').value.trim();
-
-      // Area / pricing
-      const base_postcode = document.getElementById('base_postcode').value.trim();
-      const callout_fee = document.getElementById('callout_fee').value.trim();
-      const first_hour_rate = document.getElementById('first_hour_rate').value.trim();
-      const hourly_rate = document.getElementById('hourly_rate').value.trim();
-      const boiler_service_from = document.getElementById('boiler_service_from').value.trim();
-      const quote_minimum = document.getElementById('quote_minimum').value.trim();
-
-      // Services summary
-      const selectedServices = Array.from(document.querySelectorAll('input[name="services"]:checked'))
-        .map(cb => cb.value.trim());
-      const services_other = document.getElementById('services_other').value.trim();
-
-      let services_summary = '';
-      if (selectedServices.length) {
-        services_summary += 'Core services: ' + selectedServices.join(', ');
-      }
-      if (services_other) {
-        services_summary += (services_summary ? ' | ' : '') + 'Other / notes: ' + services_other;
-      }
-
-      // AI focus chips
-      const selectedFocuses = focusChips
-        .filter(chip => chip.classList.contains('selected'))
-        .map(chip => chip.dataset.value.trim());
-      const ai_focus_extra = document.getElementById('ai_focus_extra').value.trim();
-      const ai_tone_notes = document.getElementById('ai_tone_notes').value.trim();
-      const anything_else = document.getElementById('anything_else').value.trim();
-
-      let ai_focus_block = '';
-      if (selectedFocuses.length) {
-        ai_focus_block += 'Key focus areas: ' + selectedFocuses.join(', ');
-      }
-      if (ai_focus_extra) {
-        ai_focus_block += (ai_focus_block ? ' | ' : '') + 'Extra focus notes: ' + ai_focus_extra;
-      }
-
-      let ai_style_notes = '';
-      if (ai_focus_block) {
-        ai_style_notes += 'AI focus:\n' + ai_focus_block;
-      }
-      if (ai_tone_notes) {
-        ai_style_notes += (ai_style_notes ? '\n\n' : '') + 'Tone & voice:\n' + ai_tone_notes;
-      }
-      if (anything_else) {
-        ai_style_notes += (ai_style_notes ? '\n\n' : '') + 'Other notes:\n' + anything_else;
-      }
-
-      // System / status fields – keep simple, DB trigger handles business_profiles
-      const plan_status = 'Lead - New';
-      const pending_setup = true;
-      const is_active = false;
-      const account_status = 'Lead - New';
-      const account_status_reason = 'Signup form submission via website';
-
-      return {
-        business_name,
-        owner_name,
-        contact_name,
-        email,
-        phone,
-        trade_type,
-        base_postcode,
-        website_url,
-        callout_fee,
-        first_hour_rate,
-        hourly_rate,
-        boiler_service_from,
-        quote_minimum,
-        services_summary,
-        ai_style_notes,
-        plan_status,
-        pending_setup,
-        is_active,
-        account_status,
-        account_status_reason
-      };
-    }
-
-    // -----------------------
-    // SUBMIT HANDLER
-    // -----------------------
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      showStatus(null, '');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting…';
-
-      const payload = buildPayloadFromForm();
-      console.log('Submitting payload to Supabase:', payload);
-
-      try {
-        const res = await fetch(`${supabaseUrl}/rest/v1/tradebotpro_signups`, {
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/tradebotpro_signups`,
+        {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            apikey: supabaseAnonKey,
-            Authorization: `Bearer ${supabaseAnonKey}`,
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
             Prefer: 'return=representation'
           },
           body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          console.error('Supabase insert error:', errData);
-          showStatus('error',
-            '<strong>⚠️ Something went wrong saving your details.</strong> Please try again or contact us.'
-          );
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Submit details ⚡';
-          return;
         }
+      );
 
-        const data = await res.json();
-        console.log('Supabase insert success:', data);
-
-        showStatus('success',
-          '<strong>✅ Thank you –</strong> we’ve received your details. We’ll be in touch shortly.'
-        );
-
-        // Optionally reset – or leave so they can still see what they entered.
-        form.reset();
-        focusChips.forEach(chip => chip.classList.remove('selected'));
-        currentStep = 4;
-        updateStepDisplay();
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit details ⚡';
-      } catch (err) {
-        console.error('Network / fetch error:', err);
-        showStatus('error',
-          '<strong>⚠️ Something went wrong saving your details.</strong> Please try again or contact us.'
-        );
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit details ⚡';
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        console.error('Supabase insert error:', err);
+        throw new Error('Insert failed');
       }
-    });
-  </script>
+
+      await res.json();
+      successMessage.style.display = 'block';
+      form.reset();
+      focusChips.forEach(chip => chip.classList.remove('selected'));
+    } catch (err) {
+      console.error('Network / submit error:', err);
+      errorMessage.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit details ⚡';
+    }
+  });
+</script>
+
 </body>
 </html>
+
