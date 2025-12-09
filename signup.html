@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TradeBotPro — Sign up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --primary-blue: #1f4e79;
+      --accent-blue: #00a3ff;
+      --dark-text: #1b1b1f;
+      --light-bg: #f5f7fa;
+      --white: #ffffff;
+      --border-radius: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--light-bg);
+      color: var(--dark-text);
+      padding: 24px;
+    }
+
+    .shell {
+      max-width: 700px;
+      margin: 0 auto;
+      background: var(--white);
+      border-radius: 16px;
+      padding: 24px 24px 32px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.6rem;
+      color: var(--primary-blue);
+    }
+
+    .subtitle {
+      margin-bottom: 24px;
+      color: #555;
+      font-size: 0.95rem;
+    }
+
+    /* Progress bar */
+    .progress-wrapper {
+      margin-bottom: 24px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin-bottom: 6px;
+      color: #555;
+    }
+
+    .progress-bar {
+      position: relative;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: #e1e5ee;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      position: absolute;
+      inset: 0;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary-blue), var(--accent-blue));
+      transition: width 0.25s ease-out;
+    }
+
+    .steps-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      margin-top: 6px;
+      color: #888;
+    }
+
+    /* Form */
+    form {
+      margin-top: 8px;
+    }
+
+    fieldset {
+      border: none;
+      padding: 0;
+      margin: 0;
+      display: none;
+    }
+
+    fieldset.active {
+      display: block;
+    }
+
+    .field-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .field-group > .field {
+      flex: 1;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: var(--border-radius);
+      border: 1px solid #d0d5e2;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 2px rgba(31,78,121,0.12);
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .help {
+      font-size: 0.75rem;
+      color: #777;
+      margin-top: 2px;
+    }
+
+    /* Buttons */
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      gap: 12px;
+    }
+
+    .left-buttons,
+    .right-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 9px 18px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary-blue);
+      color: #fff;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--primary-blue);
+      border: 1px solid rgba(31,78,121,0.35);
+    }
+
+    /* Status area */
+    .status {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      min-height: 18px;
+    }
+
+    .status.ok {
+      color: #1b7b3a;
+    }
+
+    .status.error {
+      color: #b3261e;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <h1>Tell us about your business</h1>
+    <p class="subtitle">
+      A quick 4-step setup so TradeBotPro can talk like it’s part of your team.
+    </p>
+
+    <!-- Progress -->
+    <div class="progress-wrapper">
+      <div class="progress-label">
+        <span id="progress-step-label">Step 1 of 4</span>
+        <span id="progress-percent-label">0% complete</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="steps-labels">
+        <span>Basics</span>
+        <span>Contact</span>
+        <span>Pricing</span>
+        <span>Style</span>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <form id="tradebotpro-signup-form">
+      <!-- STEP 1: Business basics -->
+      <fieldset data-step="1" class="active">
+        <div class="field">
+          <label for="business_name">Business name *</label>
+          <input type="text" id="business_name" name="business_name" required />
+        </div>
+
+        <div class="field-group">
+          <div class="field">
+            <label for="trade_type">What type of work do you do? *</label>
+            <select id="trade_type" name="trade_type" required>
+              <option value="">Select a trade…</option>
+              <option value="Plumbing & Heating">Plumbing &amp; Heating</option>
+              <option value="Gas & Boilers">Gas &amp; Boilers</option>
+              <option value="General Plumbing">General Plumbing</option>
+              <option value="Bathroom Installations">Bathroom Installations</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="website_url">Website (if you have one)</label>
+            <input type="text" id="website_url" name="website_url" placeholder="https://…" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field">
+            <label for="base_postcode">Base postcode *</label>
+            <input type="text" id="base_postcode" name="base_postcode" required />
+            <div class="help">Where you usually start your day from.</div>
+          </div>
+          <div class="field">
+            <label for="service_radius">Service radius (miles)</label>
+            <input type="number" id="service_radius" name="service_radius" min="1" max="100" />
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- STEP 2: Contact channels -->
+      <fieldset data-step="2">
+        <div class="field-group">
+          <div class="field">
+            <label for="contact_name">Main contact name *</label>
+            <input type="text" id="contact_name" name="contact_name" required />
+          </div>
+          <div class="field">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field">
+            <label for="phone">Phone number *</label>
+            <input type="tel" id="phone" name="phone" required />
+          </div>
+          <div class="field">
+            <label for="whatsapp_number">WhatsApp number</label>
+            <input type="tel" id="whatsapp_number" name="whatsapp_number" />
+            <div class="help">If different from your main phone.</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="callout_from">Call-out from where?</label>
+          <input type="text" id="callout_from" name="callout_from" placeholder="E.g. HP14, London, etc." />
+        </div>
+      </fieldset>
+
+      <!-- STEP 3: Pricing & callout -->
+      <fieldset data-step="3">
+        <div class="field-group">
+          <div class="field">
+            <label for="callout_fee">Call-out fee (£)</label>
+            <input type="number" id="callout_fee" name="callout_fee" step="0.01" />
+          </div>
+          <div class="field">
+            <label for="first_hour_rate">First hour rate (£)</label>
+            <input type="number" id="first_hour_rate" name="first_hour_rate" step="0.01" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field">
+            <label for="hourly_rate">Standard hourly rate (£)</label>
+            <input type="number" id="hourly_rate" name="hourly_rate" step="0.01" />
+          </div>
+          <div class="field">
+            <label for="hourly_rate_from">“From” hourly price for quotes (£)</label>
+            <input type="number" id="hourly_rate_from" name="hourly_rate_from" step="0.01" />
+            <div class="help">Used for wording like “from £X per hour”.</div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field">
+            <label for="boiler_service_from">Boiler service “from” (£)</label>
+            <input type="number" id="boiler_service_from" name="boiler_service_from" step="0.01" />
+          </div>
+          <div class="field">
+            <label for="quote_minimum">Minimum job / quote value (£)</label>
+            <input type="number" id="quote_minimum" name="quote_minimum" step="0.01" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="pricing_notes">Anything we should know about your pricing?</label>
+          <textarea id="pricing_notes" name="pricing_notes" placeholder="E.g. evenings are higher, no weekends, etc."></textarea>
+        </div>
+      </fieldset>
+
+      <!-- STEP 4: Style & summary -->
+      <fieldset data-step="4">
+        <div class="field">
+          <label for="services_summary">What services do you want us to talk about?</label>
+          <textarea
+            id="services_summary"
+            name="services_summary"
+            placeholder="E.g. emergency leaks, boiler breakdowns, landlord gas safety, bathroom installs…"
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label for="ai_style_notes">How should TradeBotPro sound?</label>
+          <textarea
+            id="ai_style_notes"
+            name="ai_style_notes"
+            placeholder="Friendly and relaxed? Very professional? Use emojis? Avoid certain phrases? Mention that you’re family-run?"
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label for="callout_notes">Any call-out rules or areas to avoid?</label>
+          <textarea
+            id="callout_notes"
+            name="callout_notes"
+            placeholder="E.g. no central London congestion zone, only within 20 mins of HP14, etc."
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label for="notes">Anything else you want us to know?</label>
+          <textarea
+            id="notes"
+            name="notes"
+            placeholder="Final notes, special instructions, or anything that doesn’t fit above."
+          ></textarea>
+        </div>
+      </fieldset>
+
+      <div class="buttons">
+        <div class="left-buttons">
+          <button type="button" class="btn-ghost" id="back-btn">Back</button>
+        </div>
+        <div class="right-buttons">
+          <button type="button" class="btn-ghost" id="next-btn">
+            Next
+          </button>
+          <button type="submit" class="btn-primary" id="submit-btn">
+            Submit details
+          </button>
+        </div>
+      </div>
+
+      <div class="status" id="status"></div>
+    </form>
+  </div>
+
+  <!-- JS: Supabase + Wizard logic -->
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    // 🔴 REPLACE THESE WITH YOUR REAL VALUES
+    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      console.error("Supabase URL and anon key are required");
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const form = document.getElementById("tradebotpro-signup-form");
+    const fieldsets = Array.from(form.querySelectorAll("fieldset"));
+    const backBtn = document.getElementById("back-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const submitBtn = document.getElementById("submit-btn");
+    const statusEl = document.getElementById("status");
+
+    const progressFill = document.getElementById("progress-fill");
+    const progressStepLabel = document.getElementById("progress-step-label");
+    const progressPercentLabel = document.getElementById("progress-percent-label");
+
+    const totalSteps = fieldsets.length;
+    let currentStep = 1;
+
+    function updateStepUI() {
+      fieldsets.forEach(fs => {
+        const step = Number(fs.dataset.step);
+        fs.classList.toggle("active", step === currentStep);
+      });
+
+      // Buttons
+      backBtn.disabled = currentStep === 1;
+      nextBtn.style.display = currentStep < totalSteps ? "inline-flex" : "none";
+      submitBtn.style.display = currentStep === totalSteps ? "inline-flex" : "none";
+
+      // Progress bar
+      const progress = Math.round((currentStep - 1) / (totalSteps) * 100);
+      const displayProgress = currentStep === totalSteps ? 100 : progress;
+      progressFill.style.width = displayProgress + "%";
+
+      progressStepLabel.textContent = `Step ${currentStep} of ${totalSteps}`;
+      progressPercentLabel.textContent = `${displayProgress}% complete`;
+    }
+
+    backBtn.addEventListener("click", () => {
+      if (currentStep > 1) {
+        currentStep--;
+        updateStepUI();
+        statusEl.textContent = "";
+        statusEl.className = "status";
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      // Basic “required” validation on current step
+      const activeFs = fieldsets.find(fs => Number(fs.dataset.step) === currentStep);
+      const requiredInputs = Array.from(activeFs.querySelectorAll("[required]"));
+      const invalid = requiredInputs.filter(input => !input.value.trim());
+
+      if (invalid.length > 0) {
+        statusEl.textContent = "Please fill in the required fields on this step.";
+        statusEl.className = "status error";
+        invalid[0].focus();
+        return;
+      }
+
+      if (currentStep < totalSteps) {
+        currentStep++;
+        updateStepUI();
+        statusEl.textContent = "";
+        statusEl.className = "status";
+      }
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      statusEl.textContent = "";
+      statusEl.className = "status";
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Saving…";
+
+      const formData = new FormData(form);
+
+      // Shape this to match the SQL table columns
+      const payload = {
+        business_name: formData.get("business_name") || null,
+        trade_type: formData.get("trade_type") || null,
+        website_url: formData.get("website_url") || null,
+
+        base_postcode: formData.get("base_postcode") || null,
+        service_radius: formData.get("service_radius")
+          ? Number(formData.get("service_radius"))
+          : null,
+
+        contact_name: formData.get("contact_name") || null,
+        email: formData.get("email") || null,
+        phone: formData.get("phone") || null,
+        whatsapp_number: formData.get("whatsapp_number") || null,
+        callout_from: formData.get("callout_from") || null,
+
+        callout_fee: formData.get("callout_fee")
+          ? Number(formData.get("callout_fee"))
+          : null,
+        first_hour_rate: formData.get("first_hour_rate")
+          ? Number(formData.get("first_hour_rate"))
+          : null,
+        hourly_rate: formData.get("hourly_rate")
+          ? Number(formData.get("hourly_rate"))
+          : null,
+        hourly_rate_from: formData.get("hourly_rate_from")
+          ? Number(formData.get("hourly_rate_from"))
+          : null,
+        boiler_service_from: formData.get("boiler_service_from")
+          ? Number(formData.get("boiler_service_from"))
+          : null,
+        quote_minimum: formData.get("quote_minimum")
+          ? Number(formData.get("quote_minimum"))
+          : null,
+
+        pricing_notes: formData.get("pricing_notes") || null,
+        services_summary: formData.get("services_summary") || null,
+        ai_style_notes: formData.get("ai_style_notes") || null,
+        callout_notes: formData.get("callout_notes") || null,
+        notes: formData.get("notes") || null,
+
+        // Defaults for new lead
+        plan_status: "Lead",
+        pending_setup: true,
+        account_status: "Pending setup",
+        is_active: false
+      };
+
+      console.log("Submitting payload:", payload);
+
+      const { error } = await supabase
+        .from("tradebotpro_signups")
+        .insert(payload);
+
+      if (error) {
+        console.error("Supabase insert error:", error);
+        statusEl.textContent = "There was a problem saving your details. Please try again.";
+        statusEl.className = "status error";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit details";
+        return;
+      }
+
+      statusEl.textContent = "Thanks! Your details have been saved. We’ll be in touch shortly.";
+      statusEl.className = "status ok";
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Saved";
+    });
+
+    // Initialise UI
+    updateStepUI();
+  </script>
+</body>
+</html>
