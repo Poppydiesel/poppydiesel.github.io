@@ -1250,13 +1250,15 @@
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  async function loadMessages() {
-    const container = document.getElementById('messages');
-    if (!container) return;
+async function loadMessages() {
+  const container = document.getElementById('messages');
+  if (!container) return;
 
-    try {
-      // const res = await fetch('https://tradesai-backend.onrender.com/messages');
-// const data = await res.json();
+  // const res = await fetch('https://tradesai-backend.onrender.com/messages');
+  // const data = await res.json();
+
+  // existing DOM code can stay for now
+}
 
 
       container.innerHTML = '';
@@ -1287,4 +1289,5 @@
 </script>
 </body>
 </html>
+
 
