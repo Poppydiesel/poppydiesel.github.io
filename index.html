@@ -4,17 +4,7 @@
   <meta charset="UTF-8" />
   <title>TradeBotPro — More jobs. Less admin. Powered by AI.</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta
-    name="description"
-    content="TradeBotPro is an AI office assistant built for trades and home services. More jobs, less admin."
-  />
-
-  <!--
-    NOTE:
-    This file is a DESIGN-ONLY CLEANUP.
-    No backend, no demo JS, no Supabase, no signup logic.
-    Purpose: restore confidence + brand.
-  -->
+  <meta name="description" content="TradeBotPro is a 24/7 AI office assistant for trades and home services. More jobs, less admin, powered by AI." />
 
   <style>
     :root {
@@ -26,7 +16,6 @@
     }
 
     * { box-sizing: border-box; }
-
     html { scroll-behavior: smooth; }
 
     body {
@@ -39,11 +28,7 @@
 
     a { color: inherit; text-decoration: none; }
 
-    .page {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
+    .page { min-height: 100vh; }
 
     .inner {
       max-width: 1120px;
@@ -51,177 +36,132 @@
       padding: 0 1.25rem;
     }
 
-    /* HEADER */
-
     header {
       position: sticky;
       top: 0;
       z-index: 10;
       background: rgba(245, 247, 250, 0.97);
       backdrop-filter: blur(6px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid rgba(0,0,0,.05);
     }
 
     .nav {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 1rem;
-      padding: 0.75rem 0;
-      font-size: 0.9rem;
-    }
-
-    .logo-wrap {
-      display: flex;
       align-items: center;
-      gap: 0.6rem;
+      padding: .75rem 0;
+      font-size: .9rem;
+      gap: 1rem;
     }
 
+    .logo-wrap { display: flex; gap: .6rem; align-items: center; }
     .logo-icon {
-      width: 32px;
-      height: 32px;
+      width: 32px; height: 32px;
       border-radius: 9px;
       background: var(--primary-blue);
       position: relative;
     }
-
     .logo-icon::before,
     .logo-icon::after {
-      content: "";
-      position: absolute;
-      background: var(--white);
-      border-radius: 4px;
+      content:"";
+      position:absolute;
+      background:#fff;
+      border-radius:4px;
     }
+    .logo-icon::before { width:12px;height:18px;left:7px;top:7px;}
+    .logo-icon::after { width:6px;height:12px;right:7px;top:10px;}
+    .logo-main { font-weight:700;color:var(--primary-blue);}
+    .logo-tag { font-size:.7rem;opacity:.7;}
 
-    .logo-icon::before {
-      width: 12px;
-      height: 18px;
-      left: 7px;
-      top: 7px;
-    }
-
-    .logo-icon::after {
-      width: 6px;
-      height: 12px;
-      right: 7px;
-      top: 10px;
-    }
-
-    .logo-main {
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: var(--primary-blue);
-    }
-
-    .logo-tag {
-      font-size: 0.7rem;
-      opacity: 0.7;
-    }
-
-    .nav-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-      align-items: center;
-    }
-
-    .nav-links a {
-      padding: 0.2rem 0.45rem;
-      border-radius: 999px;
-    }
-
-    .nav-links a:hover {
-      background: rgba(0, 0, 0, 0.05);
-    }
-
+    .nav-links { display:flex;gap:.8rem;flex-wrap:wrap; }
+    .nav-links a { padding:.25rem .5rem;border-radius:999px;}
+    .nav-links a:hover { background:rgba(0,0,0,.05);}
     .nav-cta {
-      background: var(--primary-blue);
-      color: var(--white);
-      padding: 0.4rem 0.9rem;
-      border-radius: 999px;
-      font-weight: 600;
+      background:var(--primary-blue);
+      color:#fff;
+      padding:.4rem .9rem;
+      border-radius:999px;
+      font-weight:600;
     }
 
-    .nav-cta:hover {
-      background: #163857;
-    }
+    section { padding: 3rem 0; }
 
-    /* HERO */
-
-    .hero {
-      padding: 3rem 0 2.5rem;
+    h1,h2,h3 { color:var(--primary-blue); }
+    h1 {
+      font-size: clamp(2.2rem,4vw,2.9rem);
+      line-height:1.1;
+      margin:.4rem 0 .8rem;
     }
 
     .hero-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-      gap: 2.5rem;
-      align-items: center;
+      display:grid;
+      grid-template-columns: minmax(0,1.4fr) minmax(0,1fr);
+      gap:2.5rem;
+      align-items:center;
     }
 
     .hero-kicker {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--accent-blue);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
+      font-size:.85rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--accent-blue);
+      font-weight:600;
     }
 
-    .hero h1 {
-      margin: 0 0 0.6rem;
-      font-size: clamp(2.1rem, 4vw, 2.9rem);
-      line-height: 1.1;
-      color: var(--primary-blue);
+    .btn-primary,.btn-outline{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:.75rem 1.4rem;
+      border-radius:999px;
+      font-size:.95rem;
+      cursor:pointer;
+      border:none;
     }
 
-    .hero-tagline {
-      font-weight: 600;
-      margin-bottom: 0.8rem;
+    .btn-primary{
+      background:var(--primary-blue);
+      color:#fff;
+      font-weight:600;
+    }
+    .btn-outline{
+      background:#fff;
+      border:1px solid rgba(0,0,0,.15);
+      color:var(--primary-blue);
     }
 
-    .hero p {
-      margin: 0 0 1.3rem;
-      max-width: 34rem;
+    .card{
+      background:#fff;
+      border-radius:1rem;
+      padding:1.1rem 1.2rem;
+      box-shadow:0 8px 20px rgba(0,0,0,.04);
     }
 
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
+    .grid{display:grid;gap:1rem;}
+    .grid-3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));}
+
+    .pill-row{display:flex;flex-wrap:wrap;gap:.6rem;}
+    .pill{
+      background:#fff;
+      border:1px solid rgba(0,0,0,.06);
+      padding:.35rem .9rem;
+      border-radius:999px;
+      font-size:.8rem;
     }
 
-    .btn-primary,
-    .btn-outline {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.35rem;
-      padding: 0.75rem 1.4rem;
-      border-radius: 999px;
-      font-size: 0.95rem;
-      cursor: pointer;
-      border: none;
+    footer{
+      background:#fff;
+      border-top:1px solid rgba(0,0,0,.06);
+      font-size:.8rem;
+    }
+    .footer-inner{
+      display:flex;justify-content:space-between;flex-wrap:wrap;
+      gap:1rem;align-items:center;
+      padding:1.2rem 0;
     }
 
-    .btn-primary {
-      background: var(--primary-blue);
-      color: var(--white);
-      font-weight: 600;
-    }
-
-    .btn-outline {
-      background: var(--white);
-      border: 1px solid rgba(0, 0, 0, 0.15);
-      color: var(--primary-blue);
-    }
-
-    /* RESPONSIVE */
-
-    @media (max-width: 900px) {
-      .hero-grid {
-        grid-template-columns: 1fr;
-      }
+    @media(max-width:900px){
+      .hero-grid{grid-template-columns:1fr;}
     }
   </style>
 </head>
@@ -230,56 +170,147 @@
 <div class="page">
 
 <header>
-  <div class="inner">
-    <div class="nav">
-      <div class="logo-wrap">
-        <div class="logo-icon"></div>
-        <div>
-          <div class="logo-main">TradeBotPro</div>
-          <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
-        </div>
+  <div class="inner nav">
+    <div class="logo-wrap">
+      <div class="logo-icon"></div>
+      <div>
+        <div class="logo-main">TradeBotPro</div>
+        <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
       </div>
-      <nav class="nav-links">
-        <a href="#who">Who it’s for</a>
-        <a href="#how">How it works</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#faq">FAQ</a>
-        <a href="#demo" class="nav-cta">Book a free demo</a>
-      </nav>
     </div>
+    <nav class="nav-links">
+      <a href="#who">Who it’s for</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="#demo" class="nav-cta">Book a free demo</a>
+    </nav>
   </div>
 </header>
 
 <main>
-  <section class="hero">
-    <div class="inner hero-grid">
-      <div>
-        <div class="hero-kicker">24/7 AI office assistant</div>
-        <h1>Never Miss a Job Again.</h1>
-        <div class="hero-tagline">Built by people who’ve actually run trade businesses.</div>
-        <p>
-          TradeBotPro handles enquiries, gathers job details and books work automatically —
-          so you can stay on the tools instead of chasing messages.
-        </p>
-        <div class="hero-actions">
-          <a href="#demo" class="btn-primary">Book a Free Demo</a>
-          <a href="#how" class="btn-outline">How it works</a>
-        </div>
+
+<section class="hero">
+  <div class="inner hero-grid">
+    <div>
+      <div class="hero-kicker">24/7 AI office assistant</div>
+      <h1>Never Miss a Job Again.</h1>
+      <p><strong>More jobs. Less admin. Built by people who’ve actually run trade businesses.</strong></p>
+      <p>
+        TradeBotPro handles customer enquiries, gathers job details, sends quotes,
+        books work and follows up automatically — so you can stay on the tools
+        instead of glued to your phone.
+      </p>
+      <div style="margin-top:1rem">
+        <a href="#demo" class="btn-primary">Book a Free Demo</a>
+        <a href="#how" class="btn-outline">How it works</a>
+      </div>
+      <p style="font-size:.8rem;opacity:.75;margin-top:.7rem">
+        No long-term contract. Setup done for you.
+      </p>
+    </div>
+
+    <!-- Visual chat example preserved (static) -->
+    <div class="card">
+      <strong>How TradeBotPro handles a real enquiry</strong>
+      <p style="margin-top:.5rem;font-size:.85rem">
+        <em>Customer:</em> Hi, my boiler is leaking in OX2. Can you come out tomorrow?
+      </p>
+      <p style="font-size:.85rem">
+        <em>TradeBotPro:</em> I can help with that. What’s your full postcode and
+        is it a combi or system boiler?
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="who">
+  <div class="inner">
+    <h2>Built for Trades &amp; Home Services</h2>
+    <p>
+      If you work on the tools, you don’t have time to answer every call and message.
+      TradeBotPro makes sure you never miss a serious enquiry.
+    </p>
+    <div class="pill-row">
+      <div class="pill">Plumbers &amp; Heating Engineers</div>
+      <div class="pill">Electricians</div>
+      <div class="pill">Roofers</div>
+      <div class="pill">Builders</div>
+      <div class="pill">Landscapers</div>
+      <div class="pill">Cleaners</div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="inner">
+    <h2>Your 24/7 AI Office Assistant</h2>
+    <div class="grid grid-3">
+      <div class="card">
+        <h3>Instant Replies</h3>
+        Customers get a reply in seconds — even out of hours.
+      </div>
+      <div class="card">
+        <h3>Smarter Quoting</h3>
+        Collects photos, details and sends estimates based on your rules.
+      </div>
+      <div class="card">
+        <h3>Automatic Booking</h3>
+        Books jobs straight into your calendar with confirmations.
       </div>
     </div>
-  </section>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="inner">
+    <h2>Simple Monthly Pricing</h2>
+    <div class="grid grid-3">
+      <div class="card">
+        <strong>Starter</strong><br/>£299 / month
+      </div>
+      <div class="card">
+        <strong>Pro</strong><br/>£549 / month
+      </div>
+      <div class="card">
+        <strong>Premium</strong><br/>£799 / month
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="inner">
+    <h2>Frequently Asked Questions</h2>
+    <div class="grid grid-3">
+      <div class="card"><strong>Will it sound robotic?</strong><br/>No — we tune it to your tone.</div>
+      <div class="card"><strong>Can I still reply myself?</strong><br/>Of course.</div>
+      <div class="card"><strong>Is there a contract?</strong><br/>No long-term tie-in.</div>
+    </div>
+  </div>
+</section>
+
+<section id="demo" style="text-align:center">
+  <div class="inner">
+    <h2>Ready to Book More Jobs Automatically?</h2>
+    <p>Book a no-pressure demo and see how TradeBotPro would work for your business.</p>
+    <a href="mailto:hello@tradebotpro.co.uk" class="btn-primary">Email to Book Demo</a>
+  </div>
+</section>
+
 </main>
 
 <footer>
-  <div class="inner" style="padding:1.6rem 0;font-size:0.8rem;opacity:.8;">
-    © <span id="year"></span> TradeBotPro. All rights reserved.
+  <div class="inner footer-inner">
+    <div>© <span id="year"></span> TradeBotPro</div>
+    <div><a href="#top">Back to top</a></div>
   </div>
 </footer>
+
+</div>
 
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
 </script>
-
-</div>
 </body>
 </html>
