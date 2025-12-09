@@ -8,307 +8,286 @@
 <style>
 :root{
   --blue:#1f4e79;
+  --blue-soft:#e8f1fb;
   --bg:#f5f7fa;
-  --card:#fff;
+  --card:#ffffff;
   --border:#d1d5db;
   --text:#1b1b1f;
   --muted:#6b7280;
-  --green:#166534;
-  --amber:#92400e;
 }
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   background:var(--bg);
-  color:var(--text)
+  color:var(--text);
 }
-.container{
+
+header{
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  padding:14px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+header h1{
+  margin:0;
+  font-size:18px;
+}
+
+header span{
+  font-size:12px;
+  color:var(--muted);
+}
+
+main{
   max-width:1400px;
-  margin:24px auto;
-  padding:0 16px
-}
-h1{margin:0;color:var(--blue)}
-.subtitle{color:var(--muted);margin:8px 0 16px;font-size:14px}
-
-.kpis{
+  margin:20px auto;
+  padding:0 16px;
   display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:12px;
-  margin-bottom:16px
+  grid-template-columns:2.2fr 1.4fr;
+  gap:16px;
 }
-.kpi{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:12px
-}
-.kpi strong{font-size:22px}
-.kpi span{font-size:12px;color:var(--muted)}
 
-.layout{
-  display:grid;
-  grid-template-columns:2fr 1fr;
-  gap:16px
-}
 .card{
   background:var(--card);
-  border-radius:14px;
-  box-shadow:0 12px 32px rgba(0,0,0,.08);
-  padding:16px
+  border-radius:12px;
+  border:1px solid var(--border);
+  padding:14px;
 }
 
 /* TABLE */
-table{width:100%;border-collapse:collapse}
+table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{
-  font-size:13px;
   padding:10px;
   border-bottom:1px solid #e5e7eb;
-  vertical-align:top
+  text-align:left;
 }
-th{color:var(--muted);font-weight:600}
+th{
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+tbody tr{
+  cursor:pointer;
+}
+tbody tr:hover{
+  background:#f9fafb;
+}
+tbody tr.selected{
+  background:var(--blue-soft);
+  box-shadow:inset 4px 0 0 var(--blue);
+}
+
+/* STATUS */
+.status{
+  font-size:11px;
+  padding:3px 8px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:var(--blue);
+}
+
+/* RIGHT PANEL */
+h3{
+  margin:0 0 8px 0;
+  font-size:14px;
+}
+
+.small{
+  font-size:12px;
+  color:var(--muted);
+}
+
+label{
+  font-size:11px;
+  color:var(--muted);
+}
 
 select,textarea{
   width:100%;
-  font-size:12px;
-  padding:6px;
+  margin-top:4px;
+  margin-bottom:8px;
+  padding:6px 8px;
+  font-size:13px;
+  border-radius:8px;
   border:1px solid var(--border);
-  border-radius:8px
+  font-family:inherit;
 }
-textarea{resize:vertical;min-height:60px}
 
-.badge{
-  display:inline-block;
-  padding:3px 9px;
-  font-size:11px;
-  border-radius:999px
-}
-.live{background:#ecfdf3;color:var(--green)}
-.paused{background:#fff7ed;color:var(--amber)}
-.lead{background:#eef2ff;color:var(--blue)}
+textarea{min-height:120px}
 
 button{
-  margin-top:6px;
   border:none;
   border-radius:999px;
-  padding:6px 14px;
+  padding:8px 14px;
   font-size:12px;
   cursor:pointer;
   background:var(--blue);
-  color:#fff
+  color:#fff;
 }
-.secondary{background:#e5e7eb;color:#111}
-
-/* SUPPORT */
-.support textarea{min-height:140px;font-size:13px}
-.template{
-  display:block;
-  width:100%;
-  margin-bottom:6px;
-  background:#edf2ff;
-  color:#1f4e79
-}
-.copy{background:#16a34a}
-.toggle{background:#e5e7eb;color:#111}
-.advanced{display:none;margin-top:10px}
-.notice{font-size:12px;color:var(--muted)}
-
-.chart{
-  display:flex;
-  align-items:flex-end;
-  height:120px;
-  gap:4px;
-  margin-bottom:16px
-}
-.bar{
-  flex:1;
+button.secondary{
   background:#e5e7eb;
-  border-radius:4px 4px 0 0
+  color:#111;
 }
-.bar>div{
-  background:var(--blue);
-  width:100%;
-  border-radius:4px 4px 0 0
+
+.selected-banner{
+  background:var(--blue-soft);
+  border:1px solid #c7ddf4;
+  padding:8px 10px;
+  border-radius:8px;
+  font-size:13px;
+  margin-bottom:10px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h1>Admin dashboard</h1>
-  <p class="subtitle">Operational overview & support</p>
+<header>
+  <h1>TradeBotPro Admin</h1>
+  <span>Internal · COPY-ONLY messages</span>
+</header>
 
-  <div class="kpis">
-    <div class="kpi"><strong id="kpiTotal">–</strong><span>Total signups</span></div>
-    <div class="kpi"><strong id="kpiLive">–</strong><span>Live</span></div>
-    <div class="kpi"><strong id="kpiPaused">–</strong><span>Paused</span></div>
-    <div class="kpi"><strong id="kpiLeads">–</strong><span>Leads / onboarding</span></div>
+<main>
+
+  <!-- LEFT -->
+  <div class="card">
+    <h3>Signups</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Business</th>
+          <th>Contact</th>
+          <th>Postcode</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="4" class="small">Loading…</td></tr>
+      </tbody>
+    </table>
   </div>
 
-  <div class="layout">
+  <!-- RIGHT -->
+  <div class="card">
+    <h3>Messaging</h3>
 
-    <div class="card">
-      <h3>Recent signups</h3>
-      <div class="chart" id="chart"></div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Business</th>
-            <th>Owner</th>
-            <th>Contact</th>
-            <th>Status</th>
-            <th>Notes</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
+    <div id="selectedInfo" class="selected-banner small">
+      No customer selected
     </div>
 
-    <div class="card support">
-      <h3>Support & messages</h3>
-      <p class="notice">Click a customer row, then choose a template.</p>
+    <label for="templateSelect">Template</label>
+    <select id="templateSelect" aria-label="Message template">
+      <option value="">— choose —</option>
+      <option value="welcome">Welcome / next steps</option>
+      <option value="onboarding">Book onboarding call</option>
+      <option value="live">You’re now live</option>
+      <option value="pause">Account paused</option>
+    </select>
 
-      <button class="template" onclick="templateOnboarding()">Onboarding update</button>
-      <button class="template" onclick="templateLive()">You're now live</button>
-      <button class="template" onclick="templatePaused()">Paused (friendly)</button>
+    <label for="messageBox">Message (copy only)</label>
+    <textarea id="messageBox"
+      aria-label="Message body"
+      placeholder="Choose a template or write freely…"></textarea>
 
-      <textarea id="messageBox" placeholder="Choose a template…"></textarea>
-
-      <button class="copy" onclick="copyMsg()">Copy message</button>
-      <button class="toggle" onclick="toggleAdvanced()">Advanced ▾</button>
-
-      <div class="advanced" id="advanced">
-        <button onclick="polishWithAI()">Polish with AI</button>
-        <p class="notice">AI never sends messages automatically.</p>
-      </div>
-    </div>
-
+    <button onclick="copyMessage()">Copy message</button>
   </div>
-</div>
 
+</main>
+
+<script src="https://esm.sh/@supabase/supabase-js@2"></script>
 <script>
+/* ⛔ CHANGE ONLY THESE TWO LINES */
 const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-let allRows=[];
-let selected=null;
+const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let allRows = [];
+let selected = null;
+
+const rowsEl = document.getElementById('rows');
+const selectedInfo = document.getElementById('selectedInfo');
+const templateSelect = document.getElementById('templateSelect');
+const messageBox = document.getElementById('messageBox');
 
 async function load(){
-  const res=await fetch(
-    `${SUPABASE_URL}/rest/v1/tradebotpro_signups?order=created_at.desc`,
-    {headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}}
-  );
-  allRows=await res.json();
-  renderKPIs();
-  renderChart();
-  renderTable();
+  const { data, error } = await supabase
+    .from('tradebotpro_signups')
+    .select('*')
+    .order('created_at', { ascending:false });
+
+  if(error){
+    rowsEl.innerHTML='<tr><td colspan="4">Error loading</td></tr>';
+    return;
+  }
+  allRows=data;
+  render();
 }
 
-function renderKPIs(){
-  kpiTotal.textContent=allRows.length;
-  kpiLive.textContent=allRows.filter(r=>r.is_active).length;
-  kpiPaused.textContent=allRows.filter(r=>r.account_status==='Paused').length;
-  kpiLeads.textContent=allRows.filter(r=>!r.is_active && r.account_status!=='Paused').length;
-}
-
-function renderChart(){
-  chart.innerHTML='';
-  const days=[...Array(14)].map((_,i)=>{
-    const d=new Date(); d.setDate(d.getDate()-i);
-    return d.toISOString().slice(0,10);
-  }).reverse();
-  const counts=days.map(d=>allRows.filter(r=>r.created_at?.slice(0,10)===d).length);
-  const max=Math.max(...counts,1);
-  counts.forEach(c=>{
-    const b=document.createElement('div');
-    b.className='bar';
-    b.innerHTML=`<div style="height:${(c/max)*100}%"></div>`;
-    chart.appendChild(b);
-  });
-}
-
-function renderTable(){
-  const tbody=document.getElementById('rows');
-  tbody.innerHTML='';
-
-  allRows.slice(0,20).forEach(r=>{
-    const cls=r.account_status==='Paused'?'paused':r.is_active?'live':'lead';
+function render(){
+  rowsEl.innerHTML='';
+  allRows.forEach(r=>{
     const tr=document.createElement('tr');
-
-    tr.onclick=()=>selected=r;
-
+    tr.dataset.id=r.id;
+    if(selected && selected.id===r.id) tr.classList.add('selected');
     tr.innerHTML=`
       <td><strong>${r.business_name||''}</strong></td>
-      <td>${r.owner_name||''}</td>
-      <td>${r.email||''}<br>${r.phone||''}</td>
-      <td>
-        <span class="badge ${cls}">${r.account_status||r.plan_status}</span>
-        <select id="status-${r.id}">
-          <option ${r.account_status==='Lead - New'?'selected':''}>Lead - New</option>
-          <option ${r.account_status==='Onboarding'?'selected':''}>Onboarding</option>
-          <option ${r.account_status==='Live'?'selected':''}>Live</option>
-          <option ${r.account_status==='Paused'?'selected':''}>Paused</option>
-          <option ${r.account_status==='Support needed'?'selected':''}>Support needed</option>
-          <option ${r.account_status==='Cancelled'?'selected':''}>Cancelled</option>
-        </select>
-      </td>
-      <td><textarea id="notes-${r.id}">${r.account_status_reason||''}</textarea></td>
-      <td>
-        <button class="secondary" onclick="saveRow(event,'${r.id}')">Save</button>
-      </td>
+      <td>${r.contact_name||r.owner_name||''}</td>
+      <td>${r.base_postcode||''}</td>
+      <td><span class="status">${r.account_status||r.plan_status||''}</span></td>
     `;
-    tbody.appendChild(tr);
+    tr.onclick=()=>selectRow(r);
+    rowsEl.appendChild(tr);
   });
 }
 
-function saveRow(e,id){
-  e.stopPropagation();
-  fetch(`${SUPABASE_URL}/rest/v1/tradebotpro_signups?id=eq.${id}`,{
-    method:'PATCH',
-    headers:{
-      'Content-Type':'application/json',
-      apikey:SUPABASE_ANON_KEY,
-      Authorization:`Bearer ${SUPABASE_ANON_KEY}`
-    },
-    body:JSON.stringify({
-      account_status:document.getElementById(`status-${id}`).value,
-      account_status_reason:document.getElementById(`notes-${id}`).value,
-      is_active:document.getElementById(`status-${id}`).value==='Live',
-      pending_setup:document.getElementById(`status-${id}`).value==='Onboarding'
-    })
-  });
+function selectRow(r){
+  selected=r;
+  selectedInfo.textContent=`Selected: ${r.business_name}`;
+  document.querySelectorAll('tr').forEach(tr=>tr.classList.remove('selected'));
+  const row=[...rowsEl.children].find(x=>x.dataset.id==r.id);
+  if(row) row.classList.add('selected');
+  templateSelect.value='';
+  messageBox.value='';
 }
 
-/* TEMPLATES */
-function templateOnboarding(){
-  if(!selected)return;
-  messageBox.value=`Hi ${selected.owner_name||''} 👋
+templateSelect.onchange=()=>{
+  if(!selected){
+    alert('Select a customer first');
+    templateSelect.value='';
+    return;
+  }
+  const name=selected.contact_name||selected.owner_name||'there';
+  const biz=selected.business_name||'your business';
+  switch(templateSelect.value){
+    case 'welcome':
+      messageBox.value=`Hi ${name}, thanks for signing up to TradeBotPro.\n\nNext step is a quick onboarding call so we tailor the assistant properly for ${biz}.`;
+      break;
+    case 'onboarding':
+      messageBox.value=`Hi ${name}, can we book a short onboarding call to finish setting TradeBotPro up for ${biz}?`;
+      break;
+    case 'live':
+      messageBox.value=`Hi ${name}, your TradeBotPro AI office for ${biz} is now live ✅`;
+      break;
+    case 'pause':
+      messageBox.value=`Hi ${name}, we’ve paused TradeBotPro for now. Nothing is deleted — just message when ready to resume.`;
+      break;
+  }
+};
 
-We’re setting TradeBotPro up for ${selected.business_name||'you'} now.
-
-If you need anything in the meantime just reply here 👍`;
+function copyMessage(){
+  if(!messageBox.value){
+    alert('Nothing to copy');
+    return;
+  }
+  navigator.clipboard.writeText(messageBox.value);
+  alert('Copied to clipboard');
 }
-function templateLive(){
-  if(!selected)return;
-  messageBox.value=`Hi ${selected.owner_name||''} ✅
-
-Your TradeBotPro AI office for ${selected.business_name||'your business'} is now live.`;
-}
-function templatePaused(){
-  if(!selected)return;
-  messageBox.value=`Hi ${selected.owner_name||''}
-
-We’ve paused TradeBotPro for ${selected.business_name||'you'}.
-
-Just let us know when you’re ready to continue 👍`;
-}
-
-function copyMsg(){ navigator.clipboard.writeText(messageBox.value); alert('Copied'); }
-function toggleAdvanced(){ advanced.style.display=advanced.style.display==='block'?'none':'block'; }
-function polishWithAI(){ alert('AI polish coming next (safe).'); }
 
 load();
 </script>
