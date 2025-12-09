@@ -1,1165 +1,296 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>TradeBotPro — Admin Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <style>
-    :root {
-      --primary: #1f4e79;
-      --primary-soft: #e3f2ff;
-      --accent: #00a3ff;
-      --border: #d0d7e2;
-      --bg: #f5f7fb;
-      --panel-bg: #ffffff;
-      --text-main: #151824;
-      --text-soft: #6b7280;
-      --danger: #b91c1c;
-      --success: #15803d;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text-main);
-    }
-
-    .app-shell {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      background: #ffffff;
-      border-bottom: 1px solid var(--border);
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    header .title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    header h1 span.badge {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: var(--primary-soft);
-      color: var(--primary);
-      border: 1px solid rgba(31, 78, 121, 0.2);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    header p {
-      margin: 0;
-      font-size: 12px;
-      color: var(--text-soft);
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .pill {
-      font-size: 12px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: #ffffff;
-      color: var(--text-soft);
-    }
-
-    .pill strong {
-      color: var(--text-main);
-      font-weight: 600;
-    }
-
-    .btn-ghost {
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      background: #ffffff;
-      font-size: 12px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .btn-ghost:hover {
-      background: #f9fafb;
-    }
-
-    main {
-      flex: 1;
-      padding: 16px;
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: minmax(0, 2.2fr) minmax(0, 2fr);
-      gap: 16px;
-    }
-
-    @media (max-width: 960px) {
-      .grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .panel {
-      background: var(--panel-bg);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-height: 0;
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .panel-header h2 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .panel-header h2 span.sub {
-      font-size: 11px;
-      font-weight: 400;
-      color: var(--text-soft);
-    }
-
-    .panel-header small {
-      font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    .chips-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .chip {
-      padding: 3px 10px;
-      font-size: 11px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: #f9fafb;
-      color: var(--text-soft);
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .chip .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: var(--border);
-    }
-
-    .chip.active .dot {
-      background: var(--success);
-    }
-
-    .chip.pending .dot {
-      background: #f97316;
-    }
-
-    .chip.paused .dot {
-      background: #eab308;
-    }
-
-    .chip.cancelled .dot {
-      background: var(--danger);
-    }
-
-    /* Table */
-    .table-wrapper {
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #ffffff;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      min-height: 300px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-
-    thead {
-      background: #f3f4f6;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    th, td {
-      padding: 8px 10px;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-      white-space: nowrap;
-    }
-
-    th {
-      font-weight: 500;
-      color: var(--text-soft);
-      font-size: 11px;
-    }
-
-    tbody tr {
-      cursor: pointer;
-      transition: background 0.08s ease, box-shadow 0.08s ease;
-    }
-
-    tbody tr:hover {
-      background: #f9fafb;
-    }
-
-    tbody tr.selected-row {
-      background: var(--primary-soft);
-      box-shadow: inset 3px 0 0 var(--primary);
-    }
-
-    tbody tr.selected-row td {
-      border-bottom-color: #bfdbfe;
-    }
-
-    td .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      border: 1px solid rgba(31, 78, 121, 0.18);
-      background: #eff6ff;
-      color: #1d4ed8;
-    }
-
-    td .status-pill.pending {
-      background: #fff7ed;
-      color: #ea580c;
-      border-color: rgba(234, 88, 12, 0.2);
-    }
-
-    td .status-pill.paused {
-      background: #fefce8;
-      color: #eab308;
-      border-color: rgba(234, 179, 8, 0.3);
-    }
-
-    td .status-pill.cancelled {
-      background: #fef2f2;
-      color: #b91c1c;
-      border-color: rgba(185, 28, 28, 0.25);
-    }
-
-    td .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-
-    .table-empty {
-      padding: 24px;
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-soft);
-    }
-
-    /* Details + actions */
-    .details-layout {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      min-height: 0;
-    }
-
-    .details-card,
-    .actions-card {
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #ffffff;
-      padding: 10px;
-    }
-
-    .details-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .details-header h3 {
-      margin: 0;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .details-header span {
-      font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    .details-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 4px 16px;
-      font-size: 12px;
-    }
-
-    @media (max-width: 600px) {
-      .details-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .details-item-label {
-      font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    .details-item-value {
-      font-size: 12px;
-      font-weight: 500;
-    }
-
-    .details-empty {
-      font-size: 12px;
-      color: var(--text-soft);
-      padding: 12px 4px 4px;
-    }
-
-    .status-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    .status-field {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 12px;
-    }
-
-    .status-field label {
-      font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    select,
-    textarea {
-      font-family: inherit;
-      font-size: 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      padding: 6px 8px;
-      background: #ffffff;
-      outline: none;
-    }
-
-    select:focus,
-    textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 1px rgba(31, 78, 121, 0.15);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .actions-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .actions-header h3 {
-      margin: 0;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .template-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 6px;
-      flex-wrap: wrap;
-    }
-
-    .template-row label {
-      font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    .template-row select {
-      min-width: 160px;
-    }
-
-    .actions-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-top: 8px;
-      flex-wrap: wrap;
-    }
-
-    .btn-primary {
-      border-radius: 999px;
-      border: none;
-      padding: 7px 16px;
-      font-size: 12px;
-      background: var(--primary);
-      color: #ffffff;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .btn-primary:hover {
-      background: #163a5a;
-    }
-
-    .btn-secondary {
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      font-size: 12px;
-      background: #ffffff;
-      color: var(--text-main);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .btn-secondary:hover {
-      background: #f9fafb;
-    }
-
-    .hint {
-      font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    .tag {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #eff6ff;
-      color: #1d4ed8;
-    }
-
-    .tag.paused {
-      background: #fefce8;
-      color: #ca8a04;
-    }
-
-    .tag.cancelled {
-      background: #fef2f2;
-      color: #b91c1c;
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 16px;
-      right: 16px;
-      background: #111827;
-      color: #f9fafb;
-      font-size: 12px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      display: none;
-      align-items: center;
-      gap: 8px;
-      z-index: 50;
-    }
-
-    .toast.show {
-      display: inline-flex;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>TradeBotPro — Admin Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --blue:#1f4e79;
+  --blue-soft:#e8f1fb;
+  --bg:#f5f7fa;
+  --card:#ffffff;
+  --border:#d1d5db;
+  --text:#1b1b1f;
+  --muted:#6b7280;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+header{
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  padding:14px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+header h1{
+  margin:0;
+  font-size:18px;
+}
+
+header span{
+  font-size:12px;
+  color:var(--muted);
+}
+
+main{
+  max-width:1400px;
+  margin:20px auto;
+  padding:0 16px;
+  display:grid;
+  grid-template-columns:2.2fr 1.4fr;
+  gap:16px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:12px;
+  border:1px solid var(--border);
+  padding:14px;
+}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{
+  padding:10px;
+  border-bottom:1px solid #e5e7eb;
+  text-align:left;
+}
+th{
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+tbody tr{
+  cursor:pointer;
+}
+tbody tr:hover{
+  background:#f9fafb;
+}
+tbody tr.selected{
+  background:var(--blue-soft);
+  box-shadow:inset 4px 0 0 var(--blue);
+}
+
+/* STATUS */
+.status{
+  font-size:11px;
+  padding:3px 8px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:var(--blue);
+}
+
+/* RIGHT PANEL */
+h3{
+  margin:0 0 8px 0;
+  font-size:14px;
+}
+
+.small{
+  font-size:12px;
+  color:var(--muted);
+}
+
+label{
+  font-size:11px;
+  color:var(--muted);
+}
+
+select,textarea{
+  width:100%;
+  margin-top:4px;
+  margin-bottom:8px;
+  padding:6px 8px;
+  font-size:13px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  font-family:inherit;
+}
+
+textarea{min-height:120px}
+
+button{
+  border:none;
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:12px;
+  cursor:pointer;
+  background:var(--blue);
+  color:#fff;
+}
+button.secondary{
+  background:#e5e7eb;
+  color:#111;
+}
+
+.selected-banner{
+  background:var(--blue-soft);
+  border:1px solid #c7ddf4;
+  padding:8px 10px;
+  border-radius:8px;
+  font-size:13px;
+  margin-bottom:10px;
+}
+</style>
 </head>
+
 <body>
-  <div class="app-shell">
-    <header>
-      <div class="title-block">
-        <h1>
-          TradeBotPro Admin
-          <span class="badge">Phase 4B / 4C</span>
-        </h1>
-        <p>Review new signups, update statuses, and draft messages for WhatsApp/email.</p>
-      </div>
-      <div class="header-actions">
-        <div class="pill">
-          Total signups: <strong id="totalCount">–</strong>
-        </div>
-        <div class="pill">
-          Active: <strong id="activeCount">–</strong>
-        </div>
-        <div class="pill">
-          Pending setup: <strong id="pendingCount">–</strong>
-        </div>
-        <button type="button" class="btn-ghost" id="refreshBtn">
-          ↻ Refresh
-        </button>
-      </div>
-    </header>
 
-    <main>
-      <div class="grid">
-        <!-- LEFT: SIGNUPS TABLE -->
-        <section class="panel">
-          <div class="panel-header">
-            <h2>Signups <span class="sub">Most recent first</span></h2>
-            <small id="lastRefreshed">Last refreshed: –</small>
-          </div>
+<header>
+  <h1>TradeBotPro Admin</h1>
+  <span>Internal · COPY-ONLY messages</span>
+</header>
 
-          <div class="chips-row">
-            <div class="chip active">
-              <span class="dot"></span> Live
-            </div>
-            <div class="chip pending">
-              <span class="dot"></span> Pending onboarding
-            </div>
-            <div class="chip paused">
-              <span class="dot"></span> Paused
-            </div>
-            <div class="chip cancelled">
-              <span class="dot"></span> Cancelled
-            </div>
-          </div>
+<main>
 
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Business</th>
-                  <th>Contact</th>
-                  <th>Trade</th>
-                  <th>Postcode</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                </tr>
-              </thead>
-              <tbody id="leadsBody">
-                <tr>
-                  <td colspan="6" class="table-empty">
-                    Loading signups…
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- RIGHT: DETAILS + ACTIONS -->
-        <section class="panel">
-          <div class="details-layout">
-            <!-- Details card -->
-            <div class="details-card">
-              <div class="details-header">
-                <div>
-                  <h3 id="detailsTitle">No signup selected</h3>
-                  <span id="detailsSubtitle">Click a row on the left to see full details.</span>
-                </div>
-                <div id="detailsStatusTag"></div>
-              </div>
-
-              <div id="detailsEmpty" class="details-empty">
-                You’ll see full customer info here once you click a signup.
-              </div>
-
-              <div id="detailsGrid" class="details-grid" style="display:none;">
-                <div>
-                  <div class="details-item-label">Business name</div>
-                  <div class="details-item-value" id="d_businessName">–</div>
-                </div>
-                <div>
-                  <div class="details-item-label">Trade</div>
-                  <div class="details-item-value" id="d_tradeType">–</div>
-                </div>
-                <div>
-                  <div class="details-item-label">Primary contact</div>
-                  <div class="details-item-value" id="d_contactName">–</div>
-                </div>
-                <div>
-                  <div class="details-item-label">Email</div>
-                  <div class="details-item-value" id="d_email">–</div>
-                </div>
-                <div>
-                  <div class="details-item-label">WhatsApp / mobile</div>
-                  <div class="details-item-value" id="d_phone">–</div>
-                </div>
-                <div>
-                  <div class="details-item-label">Base postcode</div>
-                  <div class="details-item-value" id="d_postcode">–</div>
-                </div>
-                <div>
-                  <div class="details-item-label">Website</div>
-                  <div class="details-item-value" id="d_website">–</div>
-                </div>
-                <div>
-                  <div class="details-item-label">Plan status</div>
-                  <div class="details-item-value" id="d_planStatus">–</div>
-                </div>
-              </div>
-
-              <div class="status-row">
-                <div class="status-field">
-                  <label for="planStatusSelect">Plan status</label>
-                  <select id="planStatusSelect">
-                    <option value="">— Leave unchanged —</option>
-                    <option value="Trial">Trial</option>
-                    <option value="Active">Active</option>
-                    <option value="Pending payment">Pending payment</option>
-                    <option value="Chasing payment">Chasing payment</option>
-                  </select>
-                </div>
-                <div class="status-field">
-                  <label for="pendingSetupSelect">Onboarding / setup</label>
-                  <select id="pendingSetupSelect">
-                    <option value="">— Leave unchanged —</option>
-                    <option value="Not started">Not started</option>
-                    <option value="Booked">Booked</option>
-                    <option value="In progress">In progress</option>
-                    <option value="Complete">Complete</option>
-                  </select>
-                </div>
-                <div class="status-field">
-                  <label for="accountStatusSelect">Account status</label>
-                  <select id="accountStatusSelect">
-                    <option value="">— Leave unchanged —</option>
-                    <option value="Active">Active</option>
-                    <option value="Paused">Paused (taking a break)</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style="margin-top:8px; display:flex; justify-content:flex-end; gap:8px;">
-                <button type="button" class="btn-secondary" id="resetStatusBtn">
-                  Reset form
-                </button>
-                <button type="button" class="btn-primary" id="saveStatusBtn">
-                  💾 Save statuses & refresh
-                </button>
-              </div>
-            </div>
-
-            <!-- Messaging card -->
-            <div class="actions-card">
-              <div class="actions-header">
-                <h3>Message assistant</h3>
-                <span class="hint" id="selectedLeadHint">No signup selected</span>
-              </div>
-
-              <div class="template-row">
-                <label for="messageTemplate">Template</label>
-                <select id="messageTemplate">
-                  <option value="">— Choose a starting point —</option>
-                  <option value="welcome">Welcome / next steps</option>
-                  <option value="onboarding-booking">Book onboarding call</option>
-                  <option value="chase-info">Chase missing info</option>
-                  <option value="paused">Confirm account paused</option>
-                  <option value="cancelled">Confirm cancellation</option>
-                </select>
-              </div>
-
-              <textarea id="messageBox" placeholder="Select a signup, choose a template, then tweak the message here before copying into WhatsApp or email."></textarea>
-
-              <div class="actions-footer">
-                <button type="button" class="btn-primary" id="copyMessageBtn">
-                  📋 Copy message
-                </button>
-                <span class="hint">
-                  We don’t auto-send yet — this is your drafting pad for WhatsApp / email replies.
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
-
-    <div class="toast" id="toast"></div>
+  <!-- LEFT -->
+  <div class="card">
+    <h3>Signups</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Business</th>
+          <th>Contact</th>
+          <th>Postcode</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="4" class="small">Loading…</td></tr>
+      </tbody>
+    </table>
   </div>
 
-  <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+  <!-- RIGHT -->
+  <div class="card">
+    <h3>Messaging</h3>
 
-    // 🔧 IMPORTANT: use the SAME values as your signup form
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    <div id="selectedInfo" class="selected-banner small">
+      No customer selected
+    </div>
+
+    <label for="templateSelect">Template</label>
+    <select id="templateSelect" aria-label="Message template">
+      <option value="">— choose —</option>
+      <option value="welcome">Welcome / next steps</option>
+      <option value="onboarding">Book onboarding call</option>
+      <option value="live">You’re now live</option>
+      <option value="pause">Account paused</option>
+    </select>
+
+    <label for="messageBox">Message (copy only)</label>
+    <textarea id="messageBox"
+      aria-label="Message body"
+      placeholder="Choose a template or write freely…"></textarea>
+
+    <button onclick="copyMessage()">Copy message</button>
+  </div>
+
+</main>
+
+<script src="https://esm.sh/@supabase/supabase-js@2"></script>
+<script>
+/* ⛔ CHANGE ONLY THESE TWO LINES */
+ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-    if (!supabaseUrl || !supabaseKey || supabaseKey.includes('YOUR_SUPABASE')) {
-      console.error('Please set supabaseUrl and supabaseKey in admin-dashboard.html');
-    }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let leads = [];
-    let selectedLeadId = null;
+let allRows = [];
+let selected = null;
 
-    const tbody = document.getElementById('leadsBody');
-    const totalCountEl = document.getElementById('totalCount');
-    const activeCountEl = document.getElementById('activeCount');
-    const pendingCountEl = document.getElementById('pendingCount');
-    const lastRefreshedEl = document.getElementById('lastRefreshed');
+const rowsEl = document.getElementById('rows');
+const selectedInfo = document.getElementById('selectedInfo');
+const templateSelect = document.getElementById('templateSelect');
+const messageBox = document.getElementById('messageBox');
 
-    const detailsTitle = document.getElementById('detailsTitle');
-    const detailsSubtitle = document.getElementById('detailsSubtitle');
-    const detailsStatusTag = document.getElementById('detailsStatusTag');
-    const detailsEmpty = document.getElementById('detailsEmpty');
-    const detailsGrid = document.getElementById('detailsGrid');
+async function load(){
+  const { data, error } = await supabase
+    .from('tradebotpro_signups')
+    .select('*')
+    .order('created_at', { ascending:false });
 
-    const d_businessName = document.getElementById('d_businessName');
-    const d_tradeType = document.getElementById('d_tradeType');
-    const d_contactName = document.getElementById('d_contactName');
-    const d_email = document.getElementById('d_email');
-    const d_phone = document.getElementById('d_phone');
-    const d_postcode = document.getElementById('d_postcode');
-    const d_website = document.getElementById('d_website');
-    const d_planStatus = document.getElementById('d_planStatus');
+  if(error){
+    rowsEl.innerHTML='<tr><td colspan="4">Error loading</td></tr>';
+    return;
+  }
+  allRows=data;
+  render();
+}
 
-    const planStatusSelect = document.getElementById('planStatusSelect');
-    const pendingSetupSelect = document.getElementById('pendingSetupSelect');
-    const accountStatusSelect = document.getElementById('accountStatusSelect');
-    const saveStatusBtn = document.getElementById('saveStatusBtn');
-    const resetStatusBtn = document.getElementById('resetStatusBtn');
+function render(){
+  rowsEl.innerHTML='';
+  allRows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.dataset.id=r.id;
+    if(selected && selected.id===r.id) tr.classList.add('selected');
+    tr.innerHTML=`
+      <td><strong>${r.business_name||''}</strong></td>
+      <td>${r.contact_name||r.owner_name||''}</td>
+      <td>${r.base_postcode||''}</td>
+      <td><span class="status">${r.account_status||r.plan_status||''}</span></td>
+    `;
+    tr.onclick=()=>selectRow(r);
+    rowsEl.appendChild(tr);
+  });
+}
 
-    const messageTemplate = document.getElementById('messageTemplate');
-    const messageBox = document.getElementById('messageBox');
-    const copyMessageBtn = document.getElementById('copyMessageBtn');
-    const selectedLeadHint = document.getElementById('selectedLeadHint');
+function selectRow(r){
+  selected=r;
+  selectedInfo.textContent=`Selected: ${r.business_name}`;
+  document.querySelectorAll('tr').forEach(tr=>tr.classList.remove('selected'));
+  const row=[...rowsEl.children].find(x=>x.dataset.id==r.id);
+  if(row) row.classList.add('selected');
+  templateSelect.value='';
+  messageBox.value='';
+}
 
-    const refreshBtn = document.getElementById('refreshBtn');
-    const toast = document.getElementById('toast');
+templateSelect.onchange=()=>{
+  if(!selected){
+    alert('Select a customer first');
+    templateSelect.value='';
+    return;
+  }
+  const name=selected.contact_name||selected.owner_name||'there';
+  const biz=selected.business_name||'your business';
+  switch(templateSelect.value){
+    case 'welcome':
+      messageBox.value=`Hi ${name}, thanks for signing up to TradeBotPro.\n\nNext step is a quick onboarding call so we tailor the assistant properly for ${biz}.`;
+      break;
+    case 'onboarding':
+      messageBox.value=`Hi ${name}, can we book a short onboarding call to finish setting TradeBotPro up for ${biz}?`;
+      break;
+    case 'live':
+      messageBox.value=`Hi ${name}, your TradeBotPro AI office for ${biz} is now live ✅`;
+      break;
+    case 'pause':
+      messageBox.value=`Hi ${name}, we’ve paused TradeBotPro for now. Nothing is deleted — just message when ready to resume.`;
+      break;
+  }
+};
 
-    function toastMessage(text) {
-      toast.textContent = text;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2500);
-    }
+function copyMessage(){
+  if(!messageBox.value){
+    alert('Nothing to copy');
+    return;
+  }
+  navigator.clipboard.writeText(messageBox.value);
+  alert('Copied to clipboard');
+}
 
-    function formatDate(iso) {
-      if (!iso) return '–';
-      try {
-        const d = new Date(iso);
-        return d.toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric'
-        });
-      } catch {
-        return iso;
-      }
-    }
+load();
+</script>
 
-    function computeStatusPill(lead) {
-      const accountStatus = (lead.account_status || '').toLowerCase();
-      const planStatus = (lead.plan_status || '').toLowerCase();
-      const pendingSetup = (lead.pending_setup || '').toLowerCase();
-
-      let label = 'New';
-      let cls = '';
-
-      if (accountStatus === 'cancelled') {
-        label = 'Cancelled';
-        cls = 'cancelled';
-      } else if (accountStatus === 'paused') {
-        label = 'Paused';
-        cls = 'paused';
-      } else if (planStatus === 'active') {
-        label = 'Active';
-        cls = '';
-      } else if (pendingSetup && pendingSetup !== 'complete') {
-        label = 'Pending setup';
-        cls = 'pending';
-      } else if (planStatus) {
-        label = planStatus[0].toUpperCase() + planStatus.slice(1);
-      }
-
-      return { label, cls };
-    }
-
-    function renderCounts() {
-      const total = leads.length;
-      const active = leads.filter(l =>
-        (l.account_status || '').toLowerCase() === 'active' ||
-        (l.plan_status || '').toLowerCase() === 'active'
-      ).length;
-      const pending = leads.filter(l =>
-        (l.pending_setup || '').toLowerCase() !== '' &&
-        (l.pending_setup || '').toLowerCase() !== 'complete'
-      ).length;
-
-      totalCountEl.textContent = total;
-      activeCountEl.textContent = active;
-      pendingCountEl.textContent = pending;
-    }
-
-    function renderTable() {
-      if (!leads.length) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="6" class="table-empty">
-              No signups yet. Once people use the website form, they’ll appear here.
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      tbody.innerHTML = '';
-      leads.forEach(lead => {
-        const tr = document.createElement('tr');
-        tr.dataset.id = lead.id;
-
-        const { label, cls } = computeStatusPill(lead);
-        const contactName = lead.contact_name || lead.owner_name || '—';
-        const phone = lead.phone || lead.whatsapp_number || '';
-        const trade = lead.trade_type || '—';
-        const post = lead.base_postcode || '—';
-
-        tr.innerHTML = `
-          <td>${lead.business_name || '—'}</td>
-          <td>${contactName}<br><span style="font-size:11px; color:#6b7280;">${phone || ''}</span></td>
-          <td>${trade}</td>
-          <td>${post}</td>
-          <td>
-            <span class="status-pill ${cls}">
-              <span class="status-dot"></span>${label}
-            </span>
-          </td>
-          <td>${formatDate(lead.created_at)}</td>
-        `;
-
-        tr.addEventListener('click', () => {
-          selectLead(lead.id);
-        });
-
-        tbody.appendChild(tr);
-      });
-
-      // Re-highlight if we already had something selected
-      if (selectedLeadId) {
-        const stillExists = leads.some(l => l.id === selectedLeadId);
-        if (stillExists) {
-          applyRowHighlight();
-        } else {
-          selectedLeadId = null;
-          clearDetails();
-        }
-      }
-    }
-
-    function applyRowHighlight() {
-      const rows = tbody.querySelectorAll('tr');
-      rows.forEach(row => {
-        if (row.dataset.id === selectedLeadId) {
-          row.classList.add('selected-row');
-        } else {
-          row.classList.remove('selected-row');
-        }
-      });
-    }
-
-    function clearDetails() {
-      detailsTitle.textContent = 'No signup selected';
-      detailsSubtitle.textContent = 'Click a row on the left to see full details.';
-      detailsStatusTag.innerHTML = '';
-      detailsEmpty.style.display = 'block';
-      detailsGrid.style.display = 'none';
-      selectedLeadHint.textContent = 'No signup selected';
-      planStatusSelect.value = '';
-      pendingSetupSelect.value = '';
-      accountStatusSelect.value = '';
-    }
-
-    function renderStatusTag(lead) {
-      const account = (lead.account_status || '').toLowerCase();
-      let label = 'New';
-      let cls = 'tag';
-
-      if (account === 'active') {
-        label = 'Active';
-      } else if (account === 'paused') {
-        label = 'Paused';
-        cls += ' paused';
-      } else if (account === 'cancelled') {
-        label = 'Cancelled';
-        cls += ' cancelled';
-      } else if ((lead.plan_status || '').toLowerCase() === 'active') {
-        label = 'Active';
-      }
-
-      detailsStatusTag.innerHTML = `<span class="${cls}">${label}</span>`;
-    }
-
-    function selectLead(id) {
-      selectedLeadId = id;
-      applyRowHighlight();
-
-      const lead = leads.find(l => l.id === id);
-      if (!lead) {
-        clearDetails();
-        return;
-      }
-
-      detailsTitle.textContent = lead.business_name || 'Untitled business';
-      const trade = lead.trade_type || 'Trade not set yet';
-      const post = lead.base_postcode || 'No postcode';
-      detailsSubtitle.textContent = `${trade} · ${post}`;
-      renderStatusTag(lead);
-
-      detailsEmpty.style.display = 'none';
-      detailsGrid.style.display = 'grid';
-
-      d_businessName.textContent = lead.business_name || '—';
-      d_tradeType.textContent = lead.trade_type || '—';
-      d_contactName.textContent = lead.contact_name || lead.owner_name || '—';
-      d_email.textContent = lead.email || '—';
-      d_phone.textContent = lead.phone || lead.whatsapp_number || '—';
-      d_postcode.textContent = lead.base_postcode || '—';
-      d_website.textContent = lead.website_url || '—';
-      d_planStatus.textContent = lead.plan_status || '—';
-
-      // Pre-fill dropdowns with existing values
-      planStatusSelect.value = lead.plan_status || '';
-      pendingSetupSelect.value = lead.pending_setup || '';
-      accountStatusSelect.value = lead.account_status || '';
-
-      selectedLeadHint.textContent = `Replying about: ${lead.business_name || 'customer'}`;
-    }
-
-    async function loadLeads() {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="6" class="table-empty">
-            Loading signups…
-          </td>
-        </tr>
-      `;
-
-      const { data, error } = await supabase
-        .from('tradebotpro_signups')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading signups:', error);
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="6" class="table-empty">
-              Error loading signups. Check DevTools console for details.
-            </td>
-          </tr>
-        `;
-        toastMessage('Error loading signups (check console).');
-        return;
-      }
-
-      leads = data || [];
-      renderCounts();
-      renderTable();
-
-      const now = new Date();
-      lastRefreshedEl.textContent = 'Last refreshed: ' + now.toLocaleTimeString('en-GB', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-
-    async function saveStatuses() {
-      if (!selectedLeadId) {
-        toastMessage('Select a signup first.');
-        return;
-      }
-
-      const lead = leads.find(l => l.id === selectedLeadId);
-      if (!lead) {
-        toastMessage('Could not find that signup.');
-        return;
-      }
-
-      const updates = {};
-
-      if (planStatusSelect.value !== '') {
-        updates.plan_status = planStatusSelect.value;
-      }
-      if (pendingSetupSelect.value !== '') {
-        updates.pending_setup = pendingSetupSelect.value;
-      }
-      if (accountStatusSelect.value !== '') {
-        updates.account_status = accountStatusSelect.value;
-        // Keep is_active roughly in sync:
-        if (accountStatusSelect.value === 'Active') {
-          updates.is_active = true;
-        } else if (accountStatusSelect.value === 'Paused' || accountStatusSelect.value === 'Cancelled') {
-          updates.is_active = false;
-        }
-      }
-
-      if (Object.keys(updates).length === 0) {
-        toastMessage('Nothing to update.');
-        return;
-      }
-
-      const { error } = await supabase
-        .from('tradebotpro_signups')
-        .update(updates)
-        .eq('id', selectedLeadId);
-
-      if (error) {
-        console.error('Error saving statuses:', error);
-        toastMessage('Error saving statuses (check console).');
-        return;
-      }
-
-      toastMessage('Statuses saved. Refreshing…');
-      // Reload list, keep same selection if it still exists
-      await loadLeads();
-      if (selectedLeadId) {
-        const stillExists = leads.some(l => l.id === selectedLeadId);
-        if (stillExists) {
-          selectLead(selectedLeadId);
-        } else {
-          clearDetails();
-        }
-      }
-    }
-
-    function resetStatusForm() {
-      planStatusSelect.value = '';
-      pendingSetupSelect.value = '';
-      accountStatusSelect.value = '';
-    }
-
-    function buildTemplate(templateKey, lead) {
-      const business = lead?.business_name || 'your business';
-      const name = lead?.contact_name || lead?.owner_name || 'there';
-
-      switch (templateKey) {
-        case 'welcome':
-          return `Hi ${name}, thanks for registering ${business} with TradeBotPro.\n\nThis is Andy. I’ll get your AI office set up so it actually matches how you work.\n\nNext step is a quick onboarding call to confirm:\n• Your service area\n• Your pricing rules\n• How you like quotes & bookings handled\n\nWhen are you generally free for a 20–30 minute call?`;
-        case 'onboarding-booking':
-          return `Hi ${name},\n\nShall we get your TradeBotPro AI office booked in for setup?\n\nI’ve got availability this week on:\n• [Day/time]\n• [Day/time]\n\nWhich works best for you?`;
-        case 'chase-info':
-          return `Hi ${name},\n\nJust a quick one – I’ve got most of what I need to finish setting up TradeBotPro for ${business}, but I’m missing a couple of bits:\n\n• [Missing item]\n• [Missing item]\n\nIf you can reply to this message with the answers, I can get the rest finished.`;
-        case 'paused':
-          return `Hi ${name},\n\nI’ve marked your TradeBotPro account as *Paused* for now.\n\nNothing will be deleted – we’ll simply stop new usage and billing.\n\nWhenever you’re ready to turn it back on, just message me and we’ll flip you back to Active.`;
-        case 'cancelled':
-          return `Hi ${name},\n\nI’ve cancelled your TradeBotPro account as requested.\n\nYour data will be retained for our records, but we’ll stop billing and your AI office will be switched off.\n\nIf you ever want to come back, I can get you up and running again very quickly.`;
-        default:
-          return '';
-      }
-    }
-
-    async function copyMessageToClipboard() {
-      if (!selectedLeadId) {
-        toastMessage('Select a signup first.');
-        return;
-      }
-      const text = messageBox.value.trim();
-      if (!text) {
-        toastMessage('Message box is empty.');
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(text);
-        toastMessage('Message copied. Paste into WhatsApp or email.');
-      } catch {
-        toastMessage('Could not access clipboard – select and copy manually.');
-      }
-    }
-
-    // EVENT WIRING
-    refreshBtn.addEventListener('click', () => {
-      loadLeads();
-    });
-
-    saveStatusBtn.addEventListener('click', () => {
-      saveStatuses();
-    });
-
-    resetStatusBtn.addEventListener('click', () => {
-      resetStatusForm();
-    });
-
-    messageTemplate.addEventListener('change', () => {
-      const key = messageTemplate.value;
-      if (!key) return;
-      const lead = leads.find(l => l.id === selectedLeadId);
-      const text = buildTemplate(key, lead);
-      if (text) {
-        messageBox.value = text;
-      }
-    });
-
-    copyMessageBtn.addEventListener('click', () => {
-      copyMessageToClipboard();
-    });
-
-    // INITIAL LOAD
-    loadLeads();
-  </script>
 </body>
 </html>
