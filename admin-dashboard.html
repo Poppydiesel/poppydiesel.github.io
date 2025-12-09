@@ -2,121 +2,104 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>TradeBotPro — Admin Dashboard</title>
+<title>TradeBotPro — Admin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <style>
-:root {
-  --blue: #1f4e79;
-  --bg: #f5f7fa;
-  --card: #ffffff;
-  --border: #d1d5db;
-  --text: #1b1b1f;
-  --muted: #6b7280;
-  --success: #166534;
-  --paused: #92400e;
+:root{
+  --blue:#1f4e79;
+  --bg:#f5f7fa;
+  --card:#fff;
+  --border:#d1d5db;
+  --text:#1b1b1f;
+  --muted:#6b7280;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text)
+}
+.container{
+  max-width:1400px;
+  margin:24px auto;
+  padding:0 16px;
+  display:grid;
+  grid-template-columns:1.3fr 1fr;
+  gap:16px
+}
+.card{
+  background:var(--card);
+  border-radius:14px;
+  box-shadow:0 12px 40px rgba(0,0,0,.08);
+  padding:16px
+}
+h1{margin:0 0 6px;color:var(--blue)}
+.subtitle{color:var(--muted);margin-bottom:16px;font-size:14px}
+
+table{width:100%;border-collapse:collapse}
+th,td{
+  border-bottom:1px solid #e5e7eb;
+  padding:10px;
+  vertical-align:top;
+  font-size:13px
+}
+th{color:var(--muted);font-weight:600}
+
+button{
+  border:none;
+  border-radius:999px;
+  padding:6px 14px;
+  font-size:12px;
+  cursor:pointer;
+  background:var(--blue);
+  color:#fff
+}
+button.secondary{
+  background:#e5e7eb;
+  color:#111
+}
+select,textarea{
+  width:100%;
+  border-radius:8px;
+  border:1px solid var(--border);
+  font-size:12px;
+  padding:6px
+}
+textarea{min-height:80px;resize:vertical}
+
+.badge{
+  font-size:11px;
+  padding:3px 9px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:var(--blue);
+  display:inline-block
 }
 
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+/* Support panel */
+.support h2{margin-top:0;color:var(--blue)}
+.template{
+  display:block;
+  width:100%;
+  margin-bottom:6px;
+  background:#edf2ff;
+  color:#1f4e79
 }
-
-.container {
-  max-width: 1200px;
-  margin: 32px auto;
-  padding: 0 16px;
+.copy{
+  background:#16a34a;margin-top:8px
 }
-
-h1 {
-  margin: 0 0 6px;
-  color: var(--blue);
+.toggle{
+  background:#e5e7eb;
+  color:#111;
+  margin-top:10px
 }
-
-.subtitle {
-  color: var(--muted);
-  margin-bottom: 24px;
-}
-
-.card {
-  background: var(--card);
-  border-radius: 14px;
-  box-shadow: 0 12px 40px rgba(0,0,0,.08);
-  padding: 20px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  padding: 12px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 14px;
-  vertical-align: top;
-}
-
-th {
-  text-align: left;
-  color: var(--muted);
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.status {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  display: inline-block;
-}
-
-.status.live {
-  background: #ecfdf3;
-  color: var(--success);
-}
-
-.status.paused {
-  background: #fff7ed;
-  color: var(--paused);
-}
-
-.status.lead {
-  background: #eef2ff;
-  color: var(--blue);
-}
-
-select, textarea {
-  width: 100%;
-  font-size: 13px;
-  padding: 6px 8px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-}
-
-textarea {
-  resize: vertical;
-  min-height: 44px;
-}
-
-button {
-  margin-top: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: none;
-  background: var(--blue);
-  color: #fff;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-button.secondary {
-  background: #e5e7eb;
-  color: var(--text);
+.advanced{display:none;margin-top:10px}
+.notice{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:6px
 }
 </style>
 </head>
@@ -124,12 +107,12 @@ button.secondary {
 <body>
 
 <div class="container">
-  <h1>Admin Dashboard</h1>
-  <p class="subtitle">
-    Internal TradeBotPro signups & account management
-  </p>
 
+  <!-- LEFT: SIGNUPS -->
   <div class="card">
+    <h1>Admin dashboard</h1>
+    <p class="subtitle">Signups & account control</p>
+
     <table>
       <thead>
         <tr>
@@ -137,69 +120,60 @@ button.secondary {
           <th>Contact</th>
           <th>Status</th>
           <th>Notes</th>
-          <th>Action</th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
     </table>
   </div>
+
+  <!-- RIGHT: SUPPORT -->
+  <div class="card support">
+    <h2>Support & messages</h2>
+    <p class="notice">Select a signup to view message templates.</p>
+
+    <textarea id="messageBox" placeholder="Select a customer to generate a message…"></textarea>
+
+    <button class="copy" onclick="copyMsg()">Copy message</button>
+
+    <button class="toggle" onclick="toggleAdvanced()">Advanced ▾</button>
+
+    <div class="advanced" id="advanced">
+      <button onclick="polishWithAI()">Polish with AI</button>
+      <p class="notice">AI never sends messages automatically.</p>
+    </div>
+  </div>
+
 </div>
 
 <script>
-/* ========================
-   CONFIG — EDIT ONE LINE
-======================== */
+/* CONFIG */
 const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-/* ========================
-   LOAD SIGNUPS
-======================== */
-async function loadSignups() {
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/tradebotpro_signups?order=created_at.desc`,
-    {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      }
-    }
-  );
+let selectedRow=null;
 
-  const data = await res.json();
+/* LOAD */
+async function loadSignups(){
+  const res=await fetch(
+    `${SUPABASE_URL}/rest/v1/tradebotpro_signups?order=created_at.desc`,
+    {headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}}
+  );
+  const data=await res.json();
   renderRows(data);
 }
 
-/* ========================
-   RENDER TABLE
-======================== */
-function renderRows(items) {
-  const tbody = document.getElementById('rows');
-  tbody.innerHTML = '';
-
-  items.forEach(row => {
-    const tr = document.createElement('tr');
-
-    const statusClass =
-      row.account_status === 'Paused' ? 'paused' :
-      row.is_active ? 'live' : 'lead';
-
-    tr.innerHTML = `
+/* RENDER */
+function renderRows(items){
+  const tbody=document.getElementById('rows');
+  tbody.innerHTML='';
+  items.forEach(row=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><strong>${row.business_name||''}</strong></td>
+      <td>${row.email||''}<br>${row.phone||''}</td>
       <td>
-        <strong>${row.business_name || '-'}</strong><br>
-        <span style="color:#6b7280">${row.trade_type || ''}</span>
-      </td>
-
-      <td>
-        ${row.email || ''}<br>
-        ${row.phone || ''}
-      </td>
-
-      <td>
-        <span class="status ${statusClass}">
-          ${row.account_status || row.plan_status}
-        </span><br><br>
-
+        <span class="badge">${row.account_status||row.plan_status}</span>
         <select id="status-${row.id}">
           <option>Lead - New</option>
           <option>Onboarding</option>
@@ -209,51 +183,75 @@ function renderRows(items) {
           <option>Cancelled</option>
         </select>
       </td>
-
       <td>
-        <textarea id="notes-${row.id}">${row.account_status_reason || ''}</textarea>
+        <textarea id="notes-${row.id}">${row.account_status_reason||''}</textarea>
       </td>
-
       <td>
-        <button onclick="saveRow('${row.id}')">Save</button>
+        <button onclick='openSupport(${JSON.stringify(row)})'>Support</button><br>
+        <button class="secondary" onclick="saveRow('${row.id}')">Save</button>
       </td>
     `;
-
     tbody.appendChild(tr);
   });
 }
 
-/* ========================
-   SAVE UPDATE
-======================== */
-async function saveRow(id) {
-  const status = document.getElementById(`status-${id}`).value;
-  const notes = document.getElementById(`notes-${id}`).value;
-
-  const payload = {
-    account_status: status,
-    account_status_reason: notes,
-    is_active: status === 'Live',
-    pending_setup: status === 'Onboarding'
-  };
+/* SAVE */
+async function saveRow(id){
+  const status=document.getElementById(`status-${id}`).value;
+  const notes=document.getElementById(`notes-${id}`).value;
 
   await fetch(
     `${SUPABASE_URL}/rest/v1/tradebotpro_signups?id=eq.${id}`,
     {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      method:'PATCH',
+      headers:{
+        'Content-Type':'application/json',
+        apikey:SUPABASE_ANON_KEY,
+        Authorization:`Bearer ${SUPABASE_ANON_KEY}`
       },
-      body: JSON.stringify(payload)
+      body:JSON.stringify({
+        account_status:status,
+        account_status_reason:notes,
+        is_active:status==='Live',
+        pending_setup:status==='Onboarding'
+      })
     }
   );
-
-  loadSignups();
 }
 
-/* INIT */
+/* SUPPORT */
+function openSupport(row){
+  selectedRow=row;
+
+  const msg=
+`Hi ${row.owner_name||''} 👋
+
+It’s TradeBotPro here.
+
+We’re getting your AI office set up for ${row.business_name||'your business'} and just wanted to let you know we’re working through your details now.
+
+If you have any questions in the meantime, just reply here 👍`;
+
+  document.getElementById('messageBox').value=msg;
+}
+
+/* COPY */
+function copyMsg(){
+  navigator.clipboard.writeText(document.getElementById('messageBox').value);
+  alert('Message copied');
+}
+
+/* ADVANCED */
+function toggleAdvanced(){
+  const el=document.getElementById('advanced');
+  el.style.display=el.style.display==='block'?'none':'block';
+}
+
+/* AI (PLACEHOLDER SAFE) */
+function polishWithAI(){
+  alert('AI polish will be enabled next. This is stubbed safely.');
+}
+
 loadSignups();
 </script>
 
