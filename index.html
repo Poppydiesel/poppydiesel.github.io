@@ -1,8 +1,290 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TradeBotPro — Get your AI office set up</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="description" content="TradeBotPro is an AI office assistant for trades. Handle enquiries, quotes and bookings automatically.">
+
+<style>
+:root{
+  --blue:#1f4e79;
+  --bg:#f5f7fa;
+  --card:#ffffff;
+  --border:#d1d5db;
+  --text:#1b1b1f;
+  --muted:#6b7280;
+  --accent:#00a3ff;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+main{
+  max-width:720px;
+  margin:40px auto;
+  padding:0 16px;
+}
+
+h1{
+  font-size:28px;
+  margin-bottom:8px;
+}
+
+p.lead{
+  color:var(--muted);
+  margin-bottom:24px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:16px;
+  border:1px solid var(--border);
+  padding:24px;
+}
+
+fieldset{
+  border:none;
+  padding:0;
+  margin:0 0 18px 0;
+}
+
+label{
+  display:block;
+  font-size:13px;
+  font-weight:500;
+  margin-bottom:4px;
+}
+
+input, textarea{
+  width:100%;
+  padding:10px 12px;
+  font-size:14px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  font-family:inherit;
+}
+
+textarea{min-height:90px}
+
+input:focus, textarea:focus{
+  outline:none;
+  border-color:var(--blue);
+}
+
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+@media(max-width:600px){
+  .row{grid-template-columns:1fr}
+}
+
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:6px;
+}
+
+.chip{
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-size:13px;
+  cursor:pointer;
+}
+
+.chip.active{
+  background:var(--blue);
+  color:#fff;
+  border-color:var(--blue);
+}
+
+button{
+  width:100%;
+  margin-top:18px;
+  padding:14px;
+  border-radius:999px;
+  border:none;
+  background:var(--blue);
+  color:#fff;
+  font-size:15px;
+  cursor:pointer;
+}
+
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+.notice{
+  margin-top:12px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+.success{
+  color:green;
+}
+
+.error{
+  color:#b91c1c;
+}
+</style>
+</head>
+
 <body>
+
+<main>
+  <h1>Set up your AI office</h1>
+  <p class="lead">
+    Tell us a bit about your business. We’ll configure TradeBotPro to match how you actually work.
+  </p>
+
+  <div class="card">
+    <form id="signupForm">
+
+      <fieldset>
+        <label>Business name</label>
+        <input required id="business_name">
+      </fieldset>
+
+      <div class="row">
+        <fieldset>
+          <label>Owner name</label>
+          <input id="owner_name">
+        </fieldset>
+        <fieldset>
+          <label>Main contact name</label>
+          <input id="contact_name">
+        </fieldset>
+      </div>
+
+      <div class="row">
+        <fieldset>
+          <label>Email</label>
+          <input type="email" required id="email">
+        </fieldset>
+        <fieldset>
+          <label>WhatsApp number</label>
+          <input required id="phone" placeholder="e.g. 07700 900123">
+        </fieldset>
+      </div>
+
+      <div class="row">
+        <fieldset>
+          <label>Trade</label>
+          <input required id="trade_type" placeholder="e.g. Plumber">
+        </fieldset>
+        <fieldset>
+          <label>Base postcode</label>
+          <input required id="base_postcode">
+        </fieldset>
+      </div>
+
+      <fieldset>
+        <label>Website (optional)</label>
+        <input id="website_url">
+      </fieldset>
+
+      <fieldset>
+        <label>What should your AI office focus on?</label>
+        <div class="chips" id="focusChips">
+          <div class="chip">Answering enquiries</div>
+          <div class="chip">Booking jobs</div>
+          <div class="chip">Pricing & quotes</div>
+          <div class="chip">Out of hours messages</div>
+          <div class="chip">Reducing missed calls</div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <label>Anything else we should know?</label>
+        <textarea id="ai_style_notes"></textarea>
+      </fieldset>
+
+      <button id="submitBtn">Submit details</button>
+      <div id="formNotice" class="notice"></div>
+
+    </form>
+  </div>
+</main>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  alert('JS IS RUNNING');
+/* CHANGE THESE TWO LINES ONLY */
+const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+const form = document.getElementById('signupForm');
+const notice = document.getElementById('formNotice');
+const btn = document.getElementById('submitBtn');
+
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.onclick=()=>chip.classList.toggle('active');
+});
+
+form.onsubmit = async (e)=>{
+  e.preventDefault();
+  btn.disabled=true;
+  notice.textContent='Submitting…';
+
+  const focus = [...document.querySelectorAll('.chip.active')]
+    .map(c=>c.textContent)
+    .join(', ');
+
+  const payload = {
+    business_name: business_name.value,
+    owner_name: owner_name.value,
+    contact_name: contact_name.value,
+    email: email.value,
+    phone: phone.value,
+    trade_type: trade_type.value,
+    base_postcode: base_postcode.value,
+    website_url: website_url.value,
+    services_summary: focus,
+    ai_style_notes: ai_style_notes.value,
+    plan_status: 'Trial',
+    pending_setup: 'Not started',
+    account_status: 'New',
+    is_active: false
+  };
+
+  const { error } = await supabase
+    .from('tradebotpro_signups')
+    .insert([payload]);
+
+  if(error){
+    console.error(error);
+    notice.textContent='Something went wrong saving your details. Please try again or contact us.';
+    notice.className='notice error';
+    btn.disabled=false;
+    return;
+  }
+
+  notice.textContent='Thank you – we’ve received your details. We’ll be in touch shortly.';
+  notice.className='notice success';
+  form.reset();
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+};
 </script>
+
 </body>
 </html>
