@@ -2,23 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro — Admin Dashboard</title>
+  <title>TradeBotPro — Control Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <style>
     :root {
       --primary-blue: #1f4e79;
       --accent-blue: #00a3ff;
-      --light-bg: #f5f7fb;
+      --bg: #f5f7fa;
       --card-bg: #ffffff;
-      --border-subtle: #d7dce5;
-      --text-main: #1f2933;
+      --border: #dde2eb;
+      --text-main: #1b1b1f;
       --text-muted: #6b7280;
-      --danger: #d9534f;
-      --success: #198754;
-      --warning: #f0ad4e;
-      --radius-lg: 14px;
-      --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.08);
+      --danger: #b91c1c;
+      --success: #15803d;
+      --warning: #b45309;
+      --row-hover: #eef3ff;
+      --row-selected: #dbeafe;
+      --chip-bg: #e5e7eb;
     }
 
     * {
@@ -28,53 +28,51 @@
     body {
       margin: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: radial-gradient(circle at top left, #e8f1ff, #f7f9fc);
+      background: var(--bg);
       color: var(--text-main);
     }
 
-    .page {
+    .app-shell {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
     header {
-      padding: 14px 24px;
-      background: #ffffffd9;
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 16px;
       position: sticky;
       top: 0;
-      z-index: 20;
+      z-index: 10;
     }
 
-    header .brand {
+    .brand {
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
-    .brand-logo {
+    .brand-mark {
       width: 32px;
       height: 32px;
-      border-radius: 10px;
-      background: radial-gradient(circle at 30% 30%, #ffffff, #1f4e79);
+      border-radius: 8px;
+      background: radial-gradient(circle at 30% 30%, #ffffff 0, #a8c3ff 18%, #1f4e79 70%, #0b1f33 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #fefefe;
+      color: #ffffff;
       font-weight: 700;
-      font-size: 17px;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22);
+      font-size: 18px;
     }
 
     .brand-text-main {
-      font-weight: 650;
-      letter-spacing: 0.03em;
-      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
     }
 
     .brand-text-sub {
@@ -82,1117 +80,1200 @@
       color: var(--text-muted);
     }
 
-    header .right {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .env-pill {
-      font-size: 11px;
-      padding: 5px 10px;
+    .header-badge {
+      font-size: 12px;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      color: var(--text-muted);
-      background: #f9fafb;
+      padding: 4px 10px;
+      background: #e5f3ff;
+      color: var(--primary-blue);
+      border: 1px solid #c4ddff;
     }
 
     main {
       flex: 1;
-      padding: 18px;
-      display: grid;
-      gap: 16px;
-      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.3fr);
-      align-items: flex-start;
-    }
-
-    @media (max-width: 1100px) {
-      main {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    /* Left column */
-
-    .left-column {
+      padding: 16px;
+      max-width: 1400px;
+      margin: 0 auto 32px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 16px;
     }
 
-    .summary-cards {
+    .top-row {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    @media (max-width: 900px) {
-      .summary-cards {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+      gap: 16px;
+      align-items: flex-start;
     }
 
     .card {
       background: var(--card-bg);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-soft);
-      padding: 12px 14px;
-      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
     }
 
-    .card h3 {
-      margin: 0 0 4px;
-      font-size: 13px;
+    .card-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 16px;
       font-weight: 600;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
       color: var(--text-muted);
     }
 
-    .card .big {
-      font-size: 22px;
-      font-weight: 700;
+    .chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
     }
 
-    .card .tag {
+    .chip {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid #e5e7eb;
+      background: var(--chip-bg);
+      color: var(--text-muted);
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      font-size: 11px;
-      padding: 2px 8px;
+    }
+
+    .chip-dot {
+      width: 6px;
+      height: 6px;
       border-radius: 999px;
-      background: #f3f4ff;
-      color: var(--primary-blue);
+      background: #9ca3af;
+    }
+
+    .chip-live .chip-dot {
+      background: var(--success);
+    }
+
+    .chip-trial .chip-dot {
+      background: var(--accent-blue);
+    }
+
+    .chip-pending .chip-dot {
+      background: var(--warning);
+    }
+
+    .chip-risk .chip-dot {
+      background: var(--danger);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
       margin-top: 4px;
+    }
+
+    .metric-card {
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      padding: 8px 10px;
+      background: #f9fafb;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .metric-footnote {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
     }
 
     .filters-row {
       display: flex;
-      gap: 8px;
       flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 0 4px;
       align-items: center;
     }
 
-    .filters-row .group {
+    .filters-group {
       display: flex;
-      gap: 6px;
       flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
     }
 
-    label {
+    .filters-label {
       font-size: 11px;
       color: var(--text-muted);
-      display: block;
-      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
 
-    .select,
-    .input {
+    select,
+    input[type="search"] {
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.8);
+      border: 1px solid var(--border);
       padding: 6px 10px;
       font-size: 12px;
+      background: #ffffff;
       min-width: 120px;
-      outline: none;
-      background: #f9fafb;
-      color: var(--text-main);
     }
 
-    .input {
-      border-radius: 999px;
+    input[type="search"] {
+      min-width: 160px;
     }
 
-    .select:focus,
-    .input:focus {
-      border-color: var(--accent-blue);
-      box-shadow: 0 0 0 1px rgba(0, 163, 255, 0.25);
-      background: #ffffff;
-    }
-
-    .ghost-button {
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.9);
-      padding: 6px 12px;
-      font-size: 12px;
-      background: #ffffff;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .ghost-button span.icon {
-      font-size: 14px;
-    }
-
-    .ghost-button:hover {
-      background: #f3f4ff;
-      border-color: var(--primary-blue);
-    }
-
-    /* Signups table */
-
-    .table-card {
-      margin-top: 6px;
-      background: var(--card-bg);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      padding: 10px 12px;
+    .table-wrapper {
+      border: 1px solid var(--border);
+      border-radius: 12px;
       overflow: hidden;
-    }
-
-    .table-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .table-header-row h2 {
-      margin: 0;
-      font-size: 15px;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .table-header-row h2 span.badge {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      color: var(--text-muted);
-    }
-
-    .table-scroll {
-      max-height: 460px;
-      overflow: auto;
-      border-radius: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: #ffffff;
+      margin-top: 6px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
-      background: #ffffff;
     }
 
     thead {
-      position: sticky;
-      top: 0;
-      z-index: 3;
-      background: linear-gradient(to bottom, #f5f7fb, #e9edf7);
+      background: #f3f4f6;
     }
 
     th,
     td {
-      padding: 6px 8px;
-      white-space: nowrap;
-      border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+      padding: 8px 10px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
     }
 
     th {
-      text-align: left;
-      font-size: 11px;
+      font-weight: 500;
       color: var(--text-muted);
-      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
 
-    tr {
+    tbody tr {
       cursor: pointer;
-      transition: background 0.1s ease;
+      transition: background 0.08s ease;
     }
 
     tbody tr:hover {
-      background: #f4f6ff;
+      background: var(--row-hover);
     }
 
-    tr.selected-row {
-      background: #e4f0ff !important;
+    tbody tr.selected {
+      background: var(--row-selected);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid transparent;
+    }
+
+    .status-pill.live {
+      background: #dcfce7;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+
+    .status-pill.trial {
+      background: #dbeafe;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+
+    .status-pill.pending {
+      background: #fef9c3;
+      color: #854d0e;
+      border-color: #fef3c7;
+    }
+
+    .status-pill.cancelled {
+      background: #fee2e2;
+      color: #b91c1c;
+      border-color: #fecaca;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 16px;
+      margin-top: 6px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 2px;
+    }
+
+    .field-value {
+      font-size: 13px;
+      font-weight: 500;
+      word-break: break-word;
+    }
+
+    .field-value.muted {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .detail-section-title {
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 70px;
+      resize: vertical;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    .stack-vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stack-horizontal {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary-blue);
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: #374151;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+
+    .status-row select {
+      width: 100%;
+    }
+
+    .small-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .message-panel {
+      margin-top: 4px;
+    }
+
+    .message-panel select {
+      width: 100%;
+      margin-bottom: 4px;
+    }
+
+    .message-footer {
+      margin-top: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .message-footer .small-hint {
+      flex: 1;
     }
 
     .pill {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      border-radius: 999px;
       padding: 2px 8px;
-      font-size: 11px;
-      border: 1px solid rgba(148, 163, 184, 0.9);
-      background: #f9fafb;
-    }
-
-    .pill.pending {
-      border-color: var(--warning);
-      background: #fff7e6;
-    }
-
-    .pill.active {
-      border-color: var(--success);
-      background: #e8f7ee;
-    }
-
-    .pill.cancelled {
-      border-color: var(--danger);
-      background: #fde2e1;
-    }
-
-    .pill.break {
-      border-color: #6366f1;
-      background: #eef2ff;
-    }
-
-    .small-muted {
-      color: var(--text-muted);
-      font-size: 11px;
-    }
-
-    .status-select {
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.8);
-      padding: 2px 6px;
       font-size: 11px;
-      background: #f9fafb;
-      max-width: 135px;
+      background: #e5e7eb;
+      color: #4b5563;
+      gap: 4px;
     }
 
-    .status-select:focus {
-      outline: none;
-      border-color: var(--accent-blue);
-      background: #ffffff;
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #9ca3af;
     }
 
-    /* Right column */
-
-    .right-column {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+    .pill-ok .pill-dot {
+      background: var(--success);
     }
 
-    .panel {
-      background: var(--card-bg);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      padding: 14px 16px;
+    .pill-risk .pill-dot {
+      background: var(--danger);
     }
 
-    .panel h2 {
-      margin: 0 0 8px;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .pill-break .pill-dot {
+      background: #f97316;
     }
 
-    .panel h2 span.sub {
-      font-size: 12px;
+    .inline-badge {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
       color: var(--text-muted);
-      font-weight: 400;
+      background: #f9fafb;
     }
 
-    .selected-summary {
+    .loading {
       font-size: 13px;
-      margin-bottom: 8px;
-    }
-
-    .selected-summary .name {
-      font-weight: 600;
-    }
-
-    .selected-summary .meta {
       color: var(--text-muted);
+      padding: 4px 0;
+    }
+
+    .error {
+      color: var(--danger);
       font-size: 12px;
-    }
-
-    .two-col {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px 12px;
-      margin-bottom: 10px;
-    }
-
-    .field {
-      font-size: 12px;
-    }
-
-    .field .label {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 1px;
-    }
-
-    .field .value {
-      font-weight: 500;
-    }
-
-    .tag-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-
-    .chip {
-      border-radius: 999px;
-      padding: 3px 9px;
-      font-size: 11px;
-      border: 1px dashed rgba(148, 163, 184, 0.9);
-      color: var(--text-muted);
-      background: #f9fafb;
-    }
-
-    .chip.primary {
-      border-style: solid;
-      border-color: var(--primary-blue);
-      color: var(--primary-blue);
-      background: #eef2ff;
-    }
-
-    /* Messaging */
-
-    .message-panel {
-      margin-top: 8px;
-      padding-top: 10px;
-      border-top: 1px dashed rgba(148, 163, 184, 0.5);
-    }
-
-    .message-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-    }
-
-    .message-row select {
-      flex: 1;
-      min-width: 160px;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 80px;
-      border-radius: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.9);
-      padding: 8px 10px;
-      font-size: 12px;
-      resize: vertical;
-      font-family: inherit;
-      background: #f9fafb;
-    }
-
-    textarea:focus {
-      outline: none;
-      border-color: var(--accent-blue);
-      background: #ffffff;
-      box-shadow: 0 0 0 1px rgba(0, 163, 255, 0.25);
-    }
-
-    .primary-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border-radius: 999px;
-      border: none;
-      padding: 7px 14px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      color: #ffffff;
-      background: linear-gradient(135deg, var(--primary-blue), #0b6fb6);
-      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.35);
-    }
-
-    .primary-button[disabled] {
-      opacity: 0.55;
-      cursor: default;
-      box-shadow: none;
-    }
-
-    .primary-button:hover:not([disabled]) {
-      filter: brightness(1.05);
-      transform: translateY(-0.5px);
-    }
-
-    .helper-text {
       margin-top: 4px;
-      font-size: 11px;
-      color: var(--text-muted);
     }
 
-    .toast {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      background: #111827;
-      color: #f9fafb;
-      padding: 9px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.55);
-      z-index: 200;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: opacity 0.15s ease, transform 0.15s ease;
+    @media (max-width: 960px) {
+      .top-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
 
-    .toast.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
 
-    .toast.ok {
-      background: #14532d;
-    }
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
 
-    .toast.error {
-      background: #7f1d1d;
-    }
-
-    .toast .pill-inline {
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(248, 250, 252, 0.4);
-      font-size: 10px;
+      th:nth-child(4),
+      td:nth-child(4),
+      th:nth-child(5),
+      td:nth-child(5),
+      th:nth-child(6),
+      td:nth-child(6) {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="page">
+  <div class="app-shell">
     <header>
       <div class="brand">
-        <div class="brand-logo">TB</div>
+        <div class="brand-mark">T</div>
         <div>
-          <div class="brand-text-main">TradeBotPro Admin</div>
-          <div class="brand-text-sub">Signups • Status • Light messaging</div>
+          <div class="brand-text-main">TradeBotPro Control Panel</div>
+          <div class="brand-text-sub">Signups, statuses & setup at a glance</div>
         </div>
       </div>
-      <div class="right">
-        <div class="env-pill">v0.4 • Phase 4B UI</div>
+      <div class="stack-horizontal">
+        <span class="header-badge">Internal · v4B / v4C baseline</span>
+        <span class="small-hint">Changes save to Supabase in real time.</span>
       </div>
     </header>
 
     <main>
-      <!-- LEFT: summary + table -->
-      <section class="left-column">
-        <div class="summary-cards">
-          <div class="card">
-            <h3>Total signups</h3>
-            <div class="big" id="stat-total">–</div>
-            <div class="small-muted" id="stat-total-sub">Loading…</div>
+      <div class="top-row">
+        <!-- LEFT: SIGNUPS TABLE + METRICS -->
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Signups overview</div>
+              <div class="card-subtitle">Read/write view of <code>tradebotpro_signups</code></div>
+              <div class="chips-row">
+                <span class="chip chip-live">
+                  <span class="chip-dot"></span> Live
+                </span>
+                <span class="chip chip-trial">
+                  <span class="chip-dot"></span> Trials
+                </span>
+                <span class="chip chip-pending">
+                  <span class="chip-dot"></span> Pending setup
+                </span>
+                <span class="chip chip-risk">
+                  <span class="chip-dot"></span> Churn risk / issues
+                </span>
+              </div>
+            </div>
           </div>
-          <div class="card">
-            <h3>Live / active</h3>
-            <div class="big" id="stat-active">–</div>
-            <div class="small-muted" id="stat-active-sub">Plan status</div>
-          </div>
-          <div class="card">
-            <h3>Pending setup</h3>
-            <div class="big" id="stat-pending">–</div>
-            <div class="small-muted" id="stat-pending-sub">Need onboarding</div>
-          </div>
-          <div class="card">
-            <h3>Break / Cancelled</h3>
-            <div class="big" id="stat-stopped">–</div>
-            <div class="small-muted" id="stat-stopped-sub">Paused or cancelled</div>
-          </div>
-        </div>
 
-        <div class="card">
+          <div class="metrics-grid" id="metrics">
+            <div class="metric-card">
+              <div class="metric-label">Total signups</div>
+              <div class="metric-value" id="metric-total">–</div>
+              <div class="metric-footnote">All time</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Pending setup</div>
+              <div class="metric-value" id="metric-pending">–</div>
+              <div class="metric-footnote">Need onboarding</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Live / active</div>
+              <div class="metric-value" id="metric-live">–</div>
+              <div class="metric-footnote">Plan status = live</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Trials</div>
+              <div class="metric-value" id="metric-trial">–</div>
+              <div class="metric-footnote">Plan status = trial</div>
+            </div>
+          </div>
+
           <div class="filters-row">
-            <div class="group">
-              <div>
-                <label for="filter-plan">Plan status</label>
-                <select id="filter-plan" class="select">
-                  <option value="all">All plans</option>
-                  <option value="Free">Free</option>
-                  <option value="Starter">Starter</option>
-                  <option value="Pro">Pro</option>
-                </select>
-              </div>
-              <div>
-                <label for="filter-account">Account status</label>
-                <select id="filter-account" class="select">
-                  <option value="all">All accounts</option>
-                  <option value="Active">Active</option>
-                  <option value="Pending setup">Pending setup</option>
-                  <option value="On break">On break</option>
-                  <option value="Cancelled">Cancelled</option>
-                </select>
-              </div>
+            <div class="filters-group">
+              <span class="filters-label">Plan</span>
+              <select id="filter-plan">
+                <option value="all">All</option>
+                <option value="live">Live</option>
+                <option value="trial">Trial</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="paused">Paused / break</option>
+              </select>
             </div>
-            <div class="group">
-              <div>
-                <label for="filter-search">Search</label>
-                <input id="filter-search" class="input" placeholder="Name, email, postcode…" />
-              </div>
-              <div>
-                <label>&nbsp;</label>
-                <button id="refresh-btn" class="ghost-button" type="button">
-                  <span class="icon">↻</span> Refresh
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div class="table-card">
-          <div class="table-header-row">
-            <h2>
-              Signups
-              <span class="badge" id="visible-count">0 shown</span>
-            </h2>
-            <span class="small-muted">Click a row to view & message</span>
+            <div class="filters-group">
+              <span class="filters-label">Account</span>
+              <select id="filter-account">
+                <option value="all">All</option>
+                <option value="ok">All OK</option>
+                <option value="churn_risk">Churn risk</option>
+                <option value="blocked">Blocked</option>
+              </select>
+            </div>
+
+            <div class="filters-group">
+              <span class="filters-label">Trade</span>
+              <select id="filter-trade">
+                <option value="all">All trades</option>
+                <option value="plumbing_heating">Plumbing &amp; Heating</option>
+                <option value="heating_only">Heating only</option>
+                <option value="general_plumbing">General plumbing</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div class="filters-group" style="margin-left:auto;">
+              <span class="filters-label">Search</span>
+              <input
+                type="search"
+                id="filter-search"
+                placeholder="Business, contact, postcode…"
+              />
+            </div>
           </div>
-          <div class="table-scroll">
+
+          <div id="table-loading" class="loading">Loading signups from Supabase…</div>
+          <div id="table-error" class="error" style="display:none;">
+            Something went wrong loading signups. Check the console.
+          </div>
+
+          <div class="table-wrapper">
             <table>
               <thead>
                 <tr>
-                  <th>Signed up</th>
-                  <th>Business</th>
-                  <th>Contact</th>
+                  <th>Business & contact</th>
                   <th>Trade</th>
-                  <th>Area</th>
+                  <th>Postcode</th>
                   <th>Plan</th>
+                  <th>Setup</th>
                   <th>Account</th>
                 </tr>
               </thead>
-              <tbody id="signups-table-body">
-                <!-- rows injected by JS -->
+              <tbody id="signups-body">
+                <!-- injected via JS -->
               </tbody>
             </table>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- RIGHT: details + messaging -->
-      <section class="right-column">
-        <div class="panel">
-          <h2>
-            Selected customer
-            <span class="sub" id="selected-label">None selected</span>
-          </h2>
-
-          <div class="selected-summary" id="selected-summary">
-            Click a row on the left to see details here.
+        <!-- RIGHT: SELECTED SIGNUP DETAILS + MESSAGING -->
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Selected signup</div>
+              <div class="card-subtitle">Choose a signup on the left to see full details</div>
+            </div>
+            <button class="btn btn-ghost" id="btn-refresh" type="button">Refresh</button>
           </div>
 
-          <div class="two-col" id="selected-fields" style="display:none;">
-            <div class="field">
-              <div class="label">Business name</div>
-              <div class="value" id="field-business"></div>
-            </div>
-            <div class="field">
-              <div class="label">Contact</div>
-              <div class="value" id="field-contact"></div>
-            </div>
-            <div class="field">
-              <div class="label">Email</div>
-              <div class="value" id="field-email"></div>
-            </div>
-            <div class="field">
-              <div class="label">Phone / WhatsApp</div>
-              <div class="value" id="field-phone"></div>
-            </div>
-            <div class="field">
-              <div class="label">Trade & area</div>
-              <div class="value" id="field-trade-area"></div>
-            </div>
-            <div class="field">
-              <div class="label">Plan / account</div>
-              <div class="value" id="field-plan-account"></div>
-            </div>
+          <div id="detail-empty">
+            <p class="small-hint">
+              Nothing selected yet. Click any row in the signups table to load full details here.
+            </p>
           </div>
 
-          <div class="tag-row" id="selected-tags" style="display:none;">
-            <span class="chip primary" id="tag-primary"></span>
-            <span class="chip" id="tag-secondary"></span>
-            <span class="chip" id="tag-tertiary"></span>
-          </div>
+          <div id="detail-panel" style="display:none;">
+            <div class="detail-section-title">Who they are</div>
+            <div class="detail-grid">
+              <div>
+                <div class="field-label">Business name</div>
+                <div class="field-value" id="detail-business">–</div>
+              </div>
+              <div>
+                <div class="field-label">Trade type</div>
+                <div class="field-value" id="detail-trade">–</div>
+              </div>
+              <div>
+                <div class="field-label">Contact name</div>
+                <div class="field-value" id="detail-contact">–</div>
+              </div>
+              <div>
+                <div class="field-label">Owner name</div>
+                <div class="field-value" id="detail-owner">–</div>
+              </div>
+              <div>
+                <div class="field-label">Base postcode</div>
+                <div class="field-value" id="detail-postcode">–</div>
+              </div>
+              <div>
+                <div class="field-label">Website</div>
+                <div class="field-value" id="detail-website">–</div>
+              </div>
+              <div>
+                <div class="field-label">Email</div>
+                <div class="field-value" id="detail-email">–</div>
+              </div>
+              <div>
+                <div class="field-label">Phone / WhatsApp</div>
+                <div class="field-value" id="detail-phone">–</div>
+              </div>
+            </div>
 
-          <div class="message-panel">
-            <div class="message-row">
-              <div style="flex:1;">
-                <label for="message-template">Quick message template</label>
-                <select id="message-template" class="select">
-                  <option value="">Choose a template…</option>
-                  <option value="welcome">
-                    Welcome — “You’re on our list, we’ll set you up”
-                  </option>
-                  <option value="setup">
-                    Setup — “Let’s book a call to configure your assistant”
-                  </option>
-                  <option value="break">
-                    Break — “We can pause instead of cancelling”
-                  </option>
-                  <option value="support">
-                    Support — “Anything you’re stuck on?”
-                  </option>
+            <div class="detail-section-title">Status & plan</div>
+            <div class="status-row">
+              <div class="stack-vertical">
+                <span class="field-label">Plan status</span>
+                <select id="detail-plan-status">
+                  <option value="">(no value)</option>
+                  <option value="trial">Trial</option>
+                  <option value="live">Live</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="paused">Paused / break</option>
+                </select>
+              </div>
+              <div class="stack-vertical">
+                <span class="field-label">Setup status</span>
+                <select id="detail-pending-setup">
+                  <option value="">(no value)</option>
+                  <option value="not_started">Not started</option>
+                  <option value="needs_info">Needs info from customer</option>
+                  <option value="building_assistant">Building assistant</option>
+                  <option value="awaiting_signoff">Awaiting sign-off</option>
+                  <option value="complete">Complete</option>
+                </select>
+              </div>
+              <div class="stack-vertical">
+                <span class="field-label">Account status</span>
+                <select id="detail-account-status">
+                  <option value="">(no value)</option>
+                  <option value="ok">All OK</option>
+                  <option value="churn_risk">Churn risk</option>
+                  <option value="blocked">Blocked</option>
                 </select>
               </div>
             </div>
-            <label for="message-body">Draft message (not wired to WhatsApp yet)</label>
-            <textarea
-              id="message-body"
-              placeholder="Hi Andy — thanks for signing up to TradeBotPro..."
-            ></textarea>
-            <div style="margin-top: 8px; display:flex; justify-content: space-between; align-items:center; gap:8px; flex-wrap: wrap;">
-              <button id="send-message-btn" class="primary-button" type="button" disabled>
-                <span>Send message (preview)</span>
+            <div class="stack-vertical" style="margin-top:4px;">
+              <span class="field-label">Account status reason</span>
+              <textarea id="detail-account-reason" placeholder="Notes e.g. slow payer, tech issues, wants a break…"></textarea>
+            </div>
+            <div class="message-footer" style="margin-top:6px;">
+              <button class="btn btn-primary" id="btn-save-status" type="button">
+                Save status
               </button>
-              <div class="helper-text">
-                Phase 5 will hook this into WhatsApp / email. For now this just shows a preview toast.
+              <span class="small-hint" id="status-save-hint">Changes save to Supabase & refresh the list.</span>
+            </div>
+
+            <div class="detail-section-title">Pricing signals</div>
+            <div class="detail-grid">
+              <div>
+                <div class="field-label">Call-out fee</div>
+                <div class="field-value" id="detail-callout">–</div>
+              </div>
+              <div>
+                <div class="field-label">First hour</div>
+                <div class="field-value" id="detail-first-hour">–</div>
+              </div>
+              <div>
+                <div class="field-label">Hourly rate</div>
+                <div class="field-value" id="detail-hourly-rate">–</div>
+              </div>
+              <div>
+                <div class="field-label">Boiler service from</div>
+                <div class="field-value" id="detail-boiler">–</div>
+              </div>
+              <div>
+                <div class="field-label">Quote minimum</div>
+                <div class="field-value" id="detail-quote-min">–</div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-    </main>
 
-    <div id="toast" class="toast">
-      <span id="toast-text"></span>
-      <span id="toast-sub" class="pill-inline"></span>
-    </div>
+            <div class="detail-section-title">What they want from the AI</div>
+            <div class="stack-vertical">
+              <div>
+                <div class="field-label">Services summary</div>
+                <div class="field-value" id="detail-services" style="white-space:pre-wrap;">–</div>
+              </div>
+              <div>
+                <div class="field-label">AI style notes</div>
+                <div class="field-value" id="detail-ai-notes" style="white-space:pre-wrap;">–</div>
+              </div>
+            </div>
+
+            <div class="detail-section-title">System fields</div>
+            <div class="detail-grid">
+              <div>
+                <div class="field-label">Created at</div>
+                <div class="field-value muted" id="detail-created-at">–</div>
+              </div>
+              <div>
+                <div class="field-label">Raw ID</div>
+                <div class="field-value muted" id="detail-id">–</div>
+              </div>
+            </div>
+
+            <div class="detail-section-title">Assistant messaging (stub)</div>
+            <div class="message-panel">
+              <select id="message-template">
+                <option value="">Choose a quick message…</option>
+                <option value="welcome_trial">
+                  Welcome — trial started & expectations
+                </option>
+                <option value="setup_call">
+                  Ask for setup call / missing info
+                </option>
+                <option value="go_live">
+                  Confirm they are live & what to expect
+                </option>
+                <option value="break">
+                  Offer to pause plan for a month instead of cancelling
+                </option>
+              </select>
+              <textarea
+                id="message-body"
+                placeholder="Choose a template above, or write a message you’ll paste into WhatsApp/email."
+              ></textarea>
+              <div class="message-footer">
+                <span class="small-hint">
+                  This doesn’t send automatically yet — it’s a drafting area so you can
+                  copy/paste into WhatsApp, email or SMS.
+                </span>
+                <div class="stack-horizontal">
+                  <button class="btn btn-secondary" id="btn-copy-message" type="button">
+                    Copy message
+                  </button>
+                  <button class="btn btn-ghost" id="btn-clear-message" type="button">
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:8px;">
+              <span class="pill pill-ok">
+                <span class="pill-dot"></span> All OK
+              </span>
+              <span class="pill pill-break">
+                <span class="pill-dot"></span> Wants a break
+              </span>
+              <span class="pill pill-risk">
+                <span class="pill-dot"></span> Churn risk
+              </span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
   </div>
 
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.0";
-
-    // 1) UPDATE THESE TWO LINES WITH YOUR REAL VALUES
+  <!-- Supabase client -->
+  <script src="https://esm.sh/@supabase/supabase-js@2.48.0"></script>
+  <script>
+    // 🔑 1) Supabase config (REPLACE with your real values)
     const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error("Supabase URL or anon key is missing. Set them at the top of admin-dashboard.html");
+    }
 
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    // State
     let allSignups = [];
-    let selectedId = null;
+    let filteredSignups = [];
+    let selectedSignupId = null;
+    let isSavingStatus = false;
 
-    const tbody = document.getElementById('signups-table-body');
-    const filterPlan = document.getElementById('filter-plan');
-    const filterAccount = document.getElementById('filter-account');
-    const filterSearch = document.getElementById('filter-search');
-    const visibleCount = document.getElementById('visible-count');
-    const refreshBtn = document.getElementById('refresh-btn');
+    // Elements
+    const tableLoadingEl = document.getElementById("table-loading");
+    const tableErrorEl = document.getElementById("table-error");
+    const signupsBodyEl = document.getElementById("signups-body");
 
-    // Stats
-    const statTotal = document.getElementById('stat-total');
-    const statTotalSub = document.getElementById('stat-total-sub');
-    const statActive = document.getElementById('stat-active');
-    const statActiveSub = document.getElementById('stat-active-sub');
-    const statPending = document.getElementById('stat-pending');
-    const statPendingSub = document.getElementById('stat-pending-sub');
-    const statStopped = document.getElementById('stat-stopped');
-    const statStoppedSub = document.getElementById('stat-stopped-sub');
+    const filterPlanEl = document.getElementById("filter-plan");
+    const filterAccountEl = document.getElementById("filter-account");
+    const filterTradeEl = document.getElementById("filter-trade");
+    const filterSearchEl = document.getElementById("filter-search");
 
-    // Selected details
-    const selectedLabel = document.getElementById('selected-label');
-    const selectedSummary = document.getElementById('selected-summary');
-    const selectedFields = document.getElementById('selected-fields');
-    const selectedTags = document.getElementById('selected-tags');
-    const fieldBusiness = document.getElementById('field-business');
-    const fieldContact = document.getElementById('field-contact');
-    const fieldEmail = document.getElementById('field-email');
-    const fieldPhone = document.getElementById('field-phone');
-    const fieldTradeArea = document.getElementById('field-trade-area');
-    const fieldPlanAccount = document.getElementById('field-plan-account');
-    const tagPrimary = document.getElementById('tag-primary');
-    const tagSecondary = document.getElementById('tag-secondary');
-    const tagTertiary = document.getElementById('tag-tertiary');
+    const metricTotalEl = document.getElementById("metric-total");
+    const metricPendingEl = document.getElementById("metric-pending");
+    const metricLiveEl = document.getElementById("metric-live");
+    const metricTrialEl = document.getElementById("metric-trial");
 
-    // Messaging
-    const messageTemplate = document.getElementById('message-template');
-    const messageBody = document.getElementById('message-body');
-    const sendMessageBtn = document.getElementById('send-message-btn');
+    const detailEmptyEl = document.getElementById("detail-empty");
+    const detailPanelEl = document.getElementById("detail-panel");
 
-    // Toast
-    const toast = document.getElementById('toast');
-    const toastText = document.getElementById('toast-text');
-    const toastSub = document.getElementById('toast-sub');
-    let toastTimeout = null;
+    const detailBusinessEl = document.getElementById("detail-business");
+    const detailTradeEl = document.getElementById("detail-trade");
+    const detailContactEl = document.getElementById("detail-contact");
+    const detailOwnerEl = document.getElementById("detail-owner");
+    const detailPostcodeEl = document.getElementById("detail-postcode");
+    const detailWebsiteEl = document.getElementById("detail-website");
+    const detailEmailEl = document.getElementById("detail-email");
+    const detailPhoneEl = document.getElementById("detail-phone");
 
-    function showToast(text, sub, type = 'ok') {
-      toastText.textContent = text;
-      toastSub.textContent = sub || '';
-      toast.classList.remove('ok', 'error');
-      if (type === 'error') {
-        toast.classList.add('error');
-      } else {
-        toast.classList.add('ok');
-      }
-      toast.classList.add('visible');
-      if (toastTimeout) clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        toast.classList.remove('visible');
-      }, 2800);
+    const detailPlanStatusEl = document.getElementById("detail-plan-status");
+    const detailPendingSetupEl = document.getElementById("detail-pending-setup");
+    const detailAccountStatusEl = document.getElementById("detail-account-status");
+    const detailAccountReasonEl = document.getElementById("detail-account-reason");
+
+    const detailCalloutEl = document.getElementById("detail-callout");
+    const detailFirstHourEl = document.getElementById("detail-first-hour");
+    const detailHourlyRateEl = document.getElementById("detail-hourly-rate");
+    const detailBoilerEl = document.getElementById("detail-boiler");
+    const detailQuoteMinEl = document.getElementById("detail-quote-min");
+
+    const detailServicesEl = document.getElementById("detail-services");
+    const detailAiNotesEl = document.getElementById("detail-ai-notes");
+
+    const detailCreatedAtEl = document.getElementById("detail-created-at");
+    const detailIdEl = document.getElementById("detail-id");
+
+    const btnRefreshEl = document.getElementById("btn-refresh");
+    const btnSaveStatusEl = document.getElementById("btn-save-status");
+    const statusSaveHintEl = document.getElementById("status-save-hint");
+
+    const messageTemplateEl = document.getElementById("message-template");
+    const messageBodyEl = document.getElementById("message-body");
+    const btnCopyMessageEl = document.getElementById("btn-copy-message");
+    const btnClearMessageEl = document.getElementById("btn-clear-message");
+
+    // Helpers
+    function formatMoney(value) {
+      if (value === null || value === undefined || value === "") return "–";
+      const num = Number(value);
+      if (Number.isNaN(num)) return String(value);
+      return "£" + num.toFixed(0);
     }
 
-    function formatDateTime(value) {
-      if (!value) return '';
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return '';
-      return date.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
+    function safe(value) {
+      if (value === null || value === undefined || value === "") return "–";
+      return String(value);
+    }
+
+    function getPlanClass(planStatus) {
+      switch (planStatus) {
+        case "live":
+          return "live";
+        case "trial":
+          return "trial";
+        case "cancelled":
+          return "cancelled";
+        case "paused":
+          return "pending";
+        default:
+          return "pending";
+      }
+    }
+
+    function applyFilters() {
+      const planFilter = filterPlanEl.value;
+      const accountFilter = filterAccountEl.value;
+      const tradeFilter = filterTradeEl.value;
+      const search = filterSearchEl.value.trim().toLowerCase();
+
+      filteredSignups = allSignups.filter((row) => {
+        if (planFilter !== "all") {
+          if ((row.plan_status || "") !== planFilter) return false;
+        }
+        if (accountFilter !== "all") {
+          if ((row.account_status || "") !== accountFilter) return false;
+        }
+        if (tradeFilter !== "all") {
+          const t = (row.trade_type || "").toLowerCase();
+          if (tradeFilter === "plumbing_heating" && !t.includes("plumb")) return false;
+          if (tradeFilter === "heating_only" && !t.includes("heat")) return false;
+          if (tradeFilter === "general_plumbing" && !t.includes("plumb")) return false; // simple heuristic
+          if (tradeFilter === "other" && (t.includes("plumb") || t.includes("heat"))) return false;
+        }
+
+        if (search) {
+          const haystack =
+            (row.business_name || "") +
+            " " +
+            (row.owner_name || "") +
+            " " +
+            (row.contact_name || "") +
+            " " +
+            (row.email || "") +
+            " " +
+            (row.base_postcode || "");
+          if (!haystack.toLowerCase().includes(search)) return false;
+        }
+
+        return true;
       });
+
+      renderTable();
     }
 
-    function planPillClass(plan) {
-      switch (plan) {
-        case 'Starter':
-        case 'Pro':
-          return 'pill active';
-        case 'Free':
-        default:
-          return 'pill';
-      }
-    }
+    function renderMetrics() {
+      const total = allSignups.length;
+      const pendingSetup = allSignups.filter((r) => (r.pending_setup || "") !== "" && (r.pending_setup || "") !== "complete").length;
+      const live = allSignups.filter((r) => r.plan_status === "live").length;
+      const trial = allSignups.filter((r) => r.plan_status === "trial").length;
 
-    function accountPillClass(status) {
-      switch (status) {
-        case 'Active':
-          return 'pill active';
-        case 'Cancelled':
-          return 'pill cancelled';
-        case 'On break':
-          return 'pill break';
-        case 'Pending setup':
-        default:
-          return 'pill pending';
-      }
+      metricTotalEl.textContent = total;
+      metricPendingEl.textContent = pendingSetup;
+      metricLiveEl.textContent = live;
+      metricTrialEl.textContent = trial;
     }
 
     function renderTable() {
-      const plan = filterPlan.value;
-      const account = filterAccount.value.toLowerCase();
-      const search = filterSearch.value.trim().toLowerCase();
+      signupsBodyEl.innerHTML = "";
 
-      tbody.innerHTML = '';
-
-      let visible = 0;
-      const rowsFragment = document.createDocumentFragment();
-
-      for (const row of allSignups) {
-        if (plan !== 'all' && (row.plan_status || '').trim() !== plan) continue;
-        if (account !== 'all' && (row.account_status || '').toLowerCase() !== account) continue;
-
-        const textBlob = [
-          row.business_name,
-          row.contact_name,
-          row.email,
-          row.phone,
-          row.whatsapp_number,
-          row.base_postcode,
-          row.trade_type
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
-
-        if (search && !textBlob.includes(search)) continue;
-
-        const tr = document.createElement('tr');
+      filteredSignups.forEach((row) => {
+        const tr = document.createElement("tr");
         tr.dataset.id = row.id;
 
-        if (row.id === selectedId) {
-          tr.classList.add('selected-row');
+        if (String(row.id) === String(selectedSignupId)) {
+          tr.classList.add("selected");
         }
 
-        const created = formatDateTime(row.created_at);
-        const business = row.business_name || '–';
-        const contact = row.contact_name || row.owner_name || '–';
-        const trade = row.trade_type || '–';
-        const area = row.base_postcode || '–';
-        const planStatus = (row.plan_status || 'Free').trim();
-        const accountStatus = (row.account_status || 'Pending setup').trim();
+        // Business & contact
+        const tdBiz = document.createElement("td");
+        const biz = safe(row.business_name);
+        const contact = safe(row.contact_name);
+        const email = safe(row.email);
+        tdBiz.innerHTML =
+          `<strong>${biz}</strong><br>` +
+          `<span class="small-hint">${contact !== "–" ? contact : ""}${contact !== "–" && email !== "–" ? " · " : ""}${email !== "–" ? email : ""}</span>`;
+        tr.appendChild(tdBiz);
 
-        tr.innerHTML = `
-          <td><span class="small-muted">${created}</span></td>
-          <td>${business}</td>
-          <td>${contact}</td>
-          <td>${trade}</td>
-          <td>${area}</td>
-          <td>
-            <select class="status-select" data-field="plan_status" data-id="${row.id}">
-              <option value="Free" ${planStatus === 'Free' ? 'selected' : ''}>Free</option>
-              <option value="Starter" ${planStatus === 'Starter' ? 'selected' : ''}>Starter</option>
-              <option value="Pro" ${planStatus === 'Pro' ? 'selected' : ''}>Pro</option>
-            </select>
-          </td>
-          <td>
-            <select class="status-select" data-field="account_status" data-id="${row.id}">
-              <option value="Pending setup" ${accountStatus === 'Pending setup' ? 'selected' : ''}>Pending setup</option>
-              <option value="Active" ${accountStatus === 'Active' ? 'selected' : ''}>Active</option>
-              <option value="On break" ${accountStatus === 'On break' ? 'selected' : ''}>On break</option>
-              <option value="Cancelled" ${accountStatus === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-            </select>
-          </td>
-        `;
+        // Trade
+        const tdTrade = document.createElement("td");
+        tdTrade.textContent = safe(row.trade_type);
+        tr.appendChild(tdTrade);
 
-        tr.addEventListener('click', (ev) => {
-          // Avoid treating clicks on dropdowns as "row selection" toggles.
-          if (ev.target.closest('select')) return;
-          handleRowSelect(row.id);
+        // Postcode
+        const tdPost = document.createElement("td");
+        tdPost.textContent = safe(row.base_postcode);
+        tr.appendChild(tdPost);
+
+        // Plan
+        const tdPlan = document.createElement("td");
+        const planStatus = row.plan_status || "";
+        const planLabel = planStatus ? planStatus.replace("_", " ") : "no plan";
+        const planClass = getPlanClass(planStatus);
+        tdPlan.innerHTML = `<span class="status-pill ${planClass}">${planLabel}</span>`;
+        tr.appendChild(tdPlan);
+
+        // Setup
+        const tdSetup = document.createElement("td");
+        tdSetup.textContent = safe(row.pending_setup);
+        tr.appendChild(tdSetup);
+
+        // Account
+        const tdAccount = document.createElement("td");
+        const accStatus = row.account_status || "";
+        tdAccount.textContent = accStatus || "–";
+        tr.appendChild(tdAccount);
+
+        tr.addEventListener("click", () => {
+          selectRow(row.id);
         });
 
-        rowsFragment.appendChild(tr);
-        visible++;
-      }
+        signupsBodyEl.appendChild(tr);
+      });
 
-      tbody.appendChild(rowsFragment);
-      visibleCount.textContent = `${visible} shown`;
+      renderMetrics();
     }
 
-    function updateStats() {
-      const total = allSignups.length;
-      const active = allSignups.filter((r) => (r.account_status || '').trim() === 'Active').length;
-      const pending = allSignups.filter((r) => (r.account_status || '').trim() === 'Pending setup').length;
-      const breakOrCancelled = allSignups.filter((r) => {
-        const s = (r.account_status || '').trim();
-        return s === 'On break' || s === 'Cancelled';
-      }).length;
+    function selectRow(id) {
+      selectedSignupId = id;
 
-      statTotal.textContent = total;
-      statTotalSub.textContent = total === 1 ? '1 company' : `${total} companies`;
+      // highlight selected row
+      Array.from(signupsBodyEl.querySelectorAll("tr")).forEach((tr) => {
+        tr.classList.toggle("selected", tr.dataset.id === String(id));
+      });
 
-      statActive.textContent = active;
-      statActiveSub.textContent = active === 1 ? 'Active account' : 'Active accounts';
+      const row = allSignups.find((r) => String(r.id) === String(id));
+      if (!row) return;
 
-      statPending.textContent = pending;
-      statPendingSub.textContent = pending === 1 ? 'Needs setup' : 'Need setup';
+      detailEmptyEl.style.display = "none";
+      detailPanelEl.style.display = "block";
 
-      statStopped.textContent = breakOrCancelled;
-      statStoppedSub.textContent = 'On break / cancelled';
+      detailBusinessEl.textContent = safe(row.business_name);
+      detailTradeEl.textContent = safe(row.trade_type);
+      detailContactEl.textContent = safe(row.contact_name);
+      detailOwnerEl.textContent = safe(row.owner_name);
+      detailPostcodeEl.textContent = safe(row.base_postcode);
+      detailWebsiteEl.textContent = safe(row.website_url);
+      detailEmailEl.textContent = safe(row.email);
+      detailPhoneEl.textContent = safe(row.phone || row.whatsapp_number);
+
+      detailPlanStatusEl.value = row.plan_status || "";
+      detailPendingSetupEl.value = row.pending_setup || "";
+      detailAccountStatusEl.value = row.account_status || "";
+      detailAccountReasonEl.value = row.account_status_reason || "";
+
+      detailCalloutEl.textContent = formatMoney(row.callout_fee);
+      detailFirstHourEl.textContent = formatMoney(row.first_hour_rate);
+      detailHourlyRateEl.textContent = formatMoney(row.hourly_rate);
+      detailBoilerEl.textContent = formatMoney(row.boiler_service_from);
+      detailQuoteMinEl.textContent = formatMoney(row.quote_minimum);
+
+      detailServicesEl.textContent = safe(row.services_summary);
+      detailAiNotesEl.textContent = safe(row.ai_style_notes);
+
+      detailCreatedAtEl.textContent = row.created_at || "–";
+      detailIdEl.textContent = row.id || "–";
+
+      // reset messaging
+      messageTemplateEl.value = "";
+      messageBodyEl.value = "";
     }
 
-    async function loadSignups(showToastOnDone = false) {
+    async function loadSignups() {
+      tableLoadingEl.style.display = "block";
+      tableErrorEl.style.display = "none";
+
       try {
         const { data, error } = await supabase
-          .from('tradebotpro_signups')
-          .select(
-            `
-            id,
-            created_at,
-            business_name,
-            owner_name,
-            contact_name,
-            email,
-            phone,
-            whatsapp_number,
-            trade_type,
-            base_postcode,
-            plan_status,
-            account_status,
-            pending_setup,
-            is_active
-          `
-          )
-          .order('created_at', { ascending: false });
+          .from("tradebotpro_signups")
+          .select("*")
+          .order("created_at", { ascending: false });
 
         if (error) {
-          console.error('Error loading signups', error);
-          showToast('Failed to load signups', error.message || '', 'error');
+          console.error("Error loading signups:", error);
+          tableErrorEl.style.display = "block";
+          tableLoadingEl.style.display = "none";
           return;
         }
 
         allSignups = data || [];
-        updateStats();
-        renderTable();
+        filteredSignups = [...allSignups];
+        tableLoadingEl.style.display = "none";
 
-        // Make sure selection is still valid
-        if (selectedId && !allSignups.some((r) => r.id === selectedId)) {
-          selectedId = null;
-          clearSelectionUI();
-        } else if (selectedId) {
-          updateSelectedUI(selectedId);
-        }
-
-        if (showToastOnDone) {
-          showToast('Refreshed signups', `${allSignups.length} total`);
-        }
+        applyFilters(); // will call renderTable
       } catch (err) {
-        console.error('Unexpected error loading signups', err);
-        showToast('Unexpected error loading signups', String(err), 'error');
+        console.error("Network / fetch error:", err);
+        tableErrorEl.style.display = "block";
+        tableLoadingEl.style.display = "none";
       }
     }
 
-    function clearSelectionUI() {
-      selectedLabel.textContent = 'None selected';
-      selectedSummary.textContent = 'Click a row on the left to see details here.';
-      selectedFields.style.display = 'none';
-      selectedTags.style.display = 'none';
-      messageBody.value = '';
-      messageTemplate.value = '';
-      sendMessageBtn.disabled = true;
-    }
+    async function saveStatus() {
+      if (!selectedSignupId || isSavingStatus) return;
 
-    function handleRowSelect(id) {
-      selectedId = id;
+      isSavingStatus = true;
+      btnSaveStatusEl.disabled = true;
+      statusSaveHintEl.textContent = "Saving changes…";
 
-      // Row highlight
-      [...tbody.querySelectorAll('tr')].forEach((tr) => {
-        if (tr.dataset.id === String(id)) {
-          tr.classList.add('selected-row');
-        } else {
-          tr.classList.remove('selected-row');
-        }
-      });
+      const updates = {
+        plan_status: detailPlanStatusEl.value || null,
+        pending_setup: detailPendingSetupEl.value || null,
+        account_status: detailAccountStatusEl.value || null,
+        account_status_reason: detailAccountReasonEl.value || null
+      };
 
-      updateSelectedUI(id);
-    }
-
-    function updateSelectedUI(id) {
-      const row = allSignups.find((r) => r.id === id);
-      if (!row) {
-        clearSelectionUI();
-        return;
-      }
-
-      const business = row.business_name || 'Unnamed business';
-      const contact = row.contact_name || row.owner_name || 'Contact unknown';
-      const trade = row.trade_type || 'Trade not set';
-      const area = row.base_postcode || 'No postcode';
-      const planStatus = (row.plan_status || 'Free').trim();
-      const accountStatus = (row.account_status || 'Pending setup').trim();
-
-      selectedLabel.textContent = business;
-      selectedSummary.innerHTML = `
-        <span class="name">${business}</span>
-        <span class="meta"> • ${trade} • ${area}</span>
-      `;
-
-      fieldBusiness.textContent = business;
-      fieldContact.textContent = contact;
-      fieldEmail.textContent = row.email || '–';
-      fieldPhone.textContent = [row.whatsapp_number, row.phone].filter(Boolean).join(' • ') || '–';
-      fieldTradeArea.textContent = `${trade} • ${area}`;
-      fieldPlanAccount.textContent = `${planStatus} • ${accountStatus}`;
-
-      tagPrimary.textContent = `Plan: ${planStatus}`;
-      tagSecondary.textContent = `Account: ${accountStatus}`;
-      tagTertiary.textContent = row.pending_setup ? 'Pending setup' : (row.is_active ? 'Billing active' : 'Billing not active');
-
-      selectedFields.style.display = 'grid';
-      selectedTags.style.display = 'flex';
-      sendMessageBtn.disabled = false;
-    }
-
-    async function updateField(id, field, value) {
       try {
-        const payload = { [field]: value };
-
-        // Convenience: mirror account_status into pending_setup / is_active
-        if (field === 'account_status') {
-          if (value === 'Active') {
-            payload.pending_setup = false;
-            payload.is_active = true;
-          } else if (value === 'Pending setup') {
-            payload.pending_setup = true;
-          } else if (value === 'On break' || value === 'Cancelled') {
-            payload.is_active = false;
-          }
-        }
-
         const { error } = await supabase
-          .from('tradebotpro_signups')
-          .update(payload)
-          .eq('id', id);
+          .from("tradebotpro_signups")
+          .update(updates)
+          .eq("id", selectedSignupId);
 
         if (error) {
-          console.error('Update error', error);
-          showToast('Could not update status', error.message || '', 'error');
-          return;
+          console.error("Error updating status:", error);
+          statusSaveHintEl.textContent = "Error saving – see console.";
+        } else {
+          statusSaveHintEl.textContent = "Saved. Refreshing list…";
+          await loadSignups();
+          // reselect the same signup after refresh
+          if (selectedSignupId) {
+            selectRow(selectedSignupId);
+          }
+          statusSaveHintEl.textContent = "Changes saved.";
         }
-
-        showToast('Status updated', `${field} → ${value}`);
-        // Auto-refresh table & stats
-        await loadSignups(false);
       } catch (err) {
-        console.error('Unexpected update error', err);
-        showToast('Unexpected update error', String(err), 'error');
+        console.error("Network / save error:", err);
+        statusSaveHintEl.textContent = "Network error – see console.";
+      } finally {
+        isSavingStatus = false;
+        btnSaveStatusEl.disabled = false;
+        setTimeout(() => {
+          statusSaveHintEl.textContent = "Changes save to Supabase & refresh the list.";
+        }, 2500);
       }
     }
 
-    function handleTemplateChange() {
-      const row = allSignups.find((r) => r.id === selectedId);
-      const tpl = messageTemplate.value;
-      if (!row || !tpl) return;
-
-      const name = row.contact_name || row.owner_name || 'there';
-      const business = row.business_name || 'your business';
-
-      let text = '';
-
-      if (tpl === 'welcome') {
-        text = `Hi ${name}, thanks for registering ${business} with TradeBotPro. You're now on our setup list — we’ll configure your AI office assistant and confirm your start date.`;
-      } else if (tpl === 'setup') {
-        text = `Hi ${name}, can we book a quick setup call for TradeBotPro? We'll walk through how your AI office assistant should answer, quote and book jobs for ${business}.`;
-      } else if (tpl === 'break') {
-        text = `Hi ${name}, if you ever need a break from TradeBotPro we can pause your account instead of cancelling completely — you won't lose your setup.`;
-      } else if (tpl === 'support') {
-        text = `Hi ${name}, just checking in — is there anything you'd like to tweak or improve with your TradeBotPro AI office assistant for ${business}?`;
-      }
-
-      messageBody.value = text;
-    }
-
-    function handleSendMessagePreview() {
-      const row = allSignups.find((r) => r.id === selectedId);
-      if (!row) {
-        showToast('Select a customer first', '', 'error');
+    function applyMessageTemplate() {
+      if (!selectedSignupId) {
+        alert("Select a signup first.");
+        messageTemplateEl.value = "";
         return;
       }
-      const text = messageBody.value.trim();
+
+      const row = allSignups.find((r) => String(r.id) === String(selectedSignupId));
+      const biz = row ? row.business_name || "there" : "there";
+      const template = messageTemplateEl.value;
+
+      let text = "";
+
+      switch (template) {
+        case "welcome_trial":
+          text =
+            `Hi ${biz}, thanks for signing up to TradeBotPro 👋\n\n` +
+            `You're now in a trial period while we get your AI office set up. ` +
+            `We'll confirm your call-out pricing, service areas and the tone of voice for your assistant before going live.\n\n` +
+            `If anything changes in the meantime, just reply to this message.`;
+          break;
+        case "setup_call":
+          text =
+            `Hi ${biz}, it’s TradeBotPro here.\n\n` +
+            `We just need a quick setup call to finish configuring your AI office – ` +
+            `things like service radius, pricing and how you’d like us to respond to common questions.\n\n` +
+            `Reply with a couple of times that work for you and we’ll get you booked in.`;
+          break;
+        case "go_live":
+          text =
+            `Hi ${biz}, great news — your TradeBotPro AI office is now live ✅\n\n` +
+            `New enquiries will be handled 24/7. We’ll keep an eye on the first few conversations and tune the assistant where needed.\n\n` +
+            `If you’d like any changes to pricing, wording or availability, just let us know.`;
+          break;
+        case "break":
+          text =
+            `Hi ${biz}, totally understand you might want to slow things down.\n\n` +
+            `Instead of cancelling outright, we can pause your TradeBotPro subscription for a month ` +
+            `so you don’t lose your setup. You won’t be billed during a pause.\n\n` +
+            `Would you like us to pause you, or keep things running as they are?`;
+          break;
+        default:
+          text = "";
+      }
+
+      messageBodyEl.value = text;
+    }
+
+    async function copyMessage() {
+      const text = messageBodyEl.value.trim();
       if (!text) {
-        showToast('Add a message first', '', 'error');
+        alert("Nothing to copy yet – choose a template or type a message first.");
         return;
       }
 
-      const name = row.contact_name || row.owner_name || 'there';
-      const dest = row.whatsapp_number || row.phone || row.email || 'no contact details';
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("Message copied. Paste into WhatsApp, email or SMS.");
+      } catch (err) {
+        console.error("Clipboard error:", err);
+        alert("Could not copy to clipboard – you can still select and copy manually.");
+      }
+    }
 
-      showToast(
-        `Preview only — not sent`,
-        `To ${name} (${dest})`,
-        'ok'
-      );
-
-      console.log('Message preview (Phase 5 will actually send):', {
-        to: dest,
-        signup: row,
-        message: text
-      });
+    function clearMessage() {
+      messageTemplateEl.value = "";
+      messageBodyEl.value = "";
     }
 
     // Event wiring
-    filterPlan.addEventListener('change', () => renderTable());
-    filterAccount.addEventListener('change', () => renderTable());
-    filterSearch.addEventListener('input', () => renderTable());
-    refreshBtn.addEventListener('click', () => loadSignups(true));
+    filterPlanEl.addEventListener("change", applyFilters);
+    filterAccountEl.addEventListener("change", applyFilters);
+    filterTradeEl.addEventListener("change", applyFilters);
+    filterSearchEl.addEventListener("input", applyFilters);
 
-    // Delegate change events for status dropdowns in the table
-    tbody.addEventListener('change', (ev) => {
-      const select = ev.target.closest('.status-select');
-      if (!select) return;
-      const id = select.dataset.id;
-      const field = select.dataset.field;
-      const value = select.value;
-      if (!id || !field) return;
-      updateField(id, field, value);
+    btnRefreshEl.addEventListener("click", () => {
+      loadSignups();
     });
 
-    messageTemplate.addEventListener('change', handleTemplateChange);
-    sendMessageBtn.addEventListener('click', handleSendMessagePreview);
+    btnSaveStatusEl.addEventListener("click", saveStatus);
+    messageTemplateEl.addEventListener("change", applyMessageTemplate);
+    btnCopyMessageEl.addEventListener("click", copyMessage);
+    btnClearMessageEl.addEventListener("click", clearMessage);
 
     // Initial load
-    loadSignups(false);
+    loadSignups();
   </script>
 </body>
 </html>
