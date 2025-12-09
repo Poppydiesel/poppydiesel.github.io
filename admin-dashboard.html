@@ -2,635 +2,1023 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro — Admin Dashboard</title>
+  <title>TradeBotPro — Admin Dashboard (Phase 4A)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta
-    name="description"
-    content="Internal dashboard for managing TradeBotPro signups."
-  />
-
-  <!-- Chart.js for simple charts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
     :root {
-      --primary-blue: #1f4e79;
-      --accent-blue: #00a3ff;
-      --dark-text: #1b1b1f;
-      --light-bg: #f5f7fa;
-      --white: #ffffff;
-      --border: #dde3ec;
-      --muted: #6b7280;
-      --danger: #b91c1c;
-      --success: #15803d;
-      --warning: #b45309;
+      --bg: #0f172a;
+      --bg-elevated: #111827;
+      --bg-soft: #020617;
+      --border-subtle: #1f2937;
+      --primary: #2563eb;
+      --primary-soft: rgba(37, 99, 235, 0.15);
+      --accent: #00a3ff;
+      --danger: #f97373;
+      --warning: #facc15;
+      --success: #22c55e;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --text-faint: #6b7280;
+      --chip-bg: #020617;
+      --chip-border: #1e293b;
+      --chip-active-bg: rgba(37, 99, 235, 0.12);
+      --chip-active-border: #2563eb;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.65);
+      --shadow-subtle: 0 10px 25px rgba(15, 23, 42, 0.8);
     }
 
     * {
       box-sizing: border-box;
     }
 
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #1f2937 0, #020617 45%, #020617 100%);
+      color: var(--text-main);
+    }
+
     body {
-      margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: var(--light-bg);
-      color: var(--dark-text);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    header {
-      background: linear-gradient(135deg, var(--primary-blue), #12263a);
-      color: var(--white);
-      padding: 16px 24px;
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Top bar */
+    .top-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-
-    header .title {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 1.4rem;
-      letter-spacing: 0.02em;
-    }
-
-    header span.subtitle {
-      font-size: 0.85rem;
-      opacity: 0.9;
-    }
-
-    header .env-badge {
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.12);
-      font-size: 0.8rem;
-      border: 1px solid rgba(255,255,255,0.3);
-    }
-
-    main {
-      flex: 1;
-      display: grid;
-      grid-template-columns: minmax(0, 2.2fr) minmax(320px, 1.1fr);
-      gap: 16px;
-      padding: 16px 20px 24px;
-    }
-
-    @media (max-width: 960px) {
-      main {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .card {
-      background: var(--white);
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(15,23,42,0.08);
-      border: 1px solid rgba(15,23,42,0.04);
-      padding: 16px 18px;
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-
-    .card-header h2 {
-      margin: 0;
-      font-size: 1rem;
-    }
-
-    .card-header .pill {
-      font-size: 0.75rem;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: #eff6ff;
-      color: var(--primary-blue);
-      border: 1px solid #bfdbfe;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    @media (max-width: 1200px) {
-      .stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    .stat-card {
-      background: #f9fafb;
-      border-radius: 12px;
-      padding: 10px;
-      border: 1px solid #e5e7eb;
-    }
-
-    .stat-label {
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-
-    .stat-value {
-      font-size: 1.2rem;
-      font-weight: 600;
-    }
-
-    .stat-chip {
-      margin-top: 4px;
-      font-size: 0.7rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid #e5e7eb;
-      background: #f3f4f6;
-      color: #4b5563;
-    }
-
-    .stat-chip-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: #6b7280;
-    }
-
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
-      align-items: center;
-    }
-
-    .filters label {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    .filters select,
-    .filters input[type="search"] {
-      padding: 6px 9px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      font-size: 0.8rem;
-      background: #f9fafb;
-      min-width: 120px;
-    }
-
-    .filters input[type="search"] {
-      min-width: 180px;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      font-weight: 500;
-      border: 1px solid transparent;
-      white-space: nowrap;
-    }
-
-    .badge-pill {
-      margin-left: 6px;
-    }
-
-    .badge-plan-trial {
-      background: #eff6ff;
-      border-color: #bfdbfe;
-      color: #1d4ed8;
-    }
-
-    .badge-plan-live {
-      background: #ecfdf3;
-      border-color: #bbf7d0;
-      color: #166534;
-    }
-
-    .badge-plan-cancelled {
-      background: #fef2f2;
-      border-color: #fecaca;
-      color: #b91c1c;
-    }
-
-    .badge-pending {
-      background: #fef9c3;
-      border-color: #facc15;
-      color: #92400e;
-    }
-
-    .badge-inactive {
-      background: #f3f4f6;
-      border-color: #e5e7eb;
-      color: #4b5563;
-    }
-
-    .badge-active {
-      background: #dcfce7;
-      border-color: #22c55e;
-      color: #166534;
-    }
-
-    .table-wrapper {
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      overflow: hidden;
-      background: white;
-      max-height: 440px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .table-header-row {
-      display: grid;
-      grid-template-columns: minmax(130px, 1.4fr) minmax(90px, 0.9fr) minmax(90px, 0.9fr) minmax(70px, 0.7fr) minmax(70px, 0.8fr) minmax(70px, 0.9fr);
-      padding: 8px 10px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: #f9fafb;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 14px 24px;
+      background: linear-gradient(to right, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.98));
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      box-shadow: var(--shadow-subtle);
       position: sticky;
       top: 0;
-      z-index: 1;
+      z-index: 20;
     }
 
-    .table-body {
-      overflow-y: auto;
-    }
-
-    .table-row {
-      display: grid;
-      grid-template-columns: minmax(130px, 1.4fr) minmax(90px, 0.9fr) minmax(90px, 0.9fr) minmax(70px, 0.7fr) minmax(70px, 0.8fr) minmax(70px, 0.9fr);
-      padding: 7px 10px;
-      font-size: 0.8rem;
-      border-bottom: 1px solid #f3f4f6;
-      cursor: pointer;
+    .top-left {
+      display: flex;
       align-items: center;
+      gap: 14px;
     }
 
-    .table-row:nth-child(even) {
-      background: #fcfcff;
+    .logo-pill {
+      width: 34px;
+      height: 34px;
+      border-radius: 14px;
+      background: radial-gradient(circle at 20% 0, #facc15, #f97316 35%, #111827 75%, #020617 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f9fafb;
+      font-weight: 700;
+      font-size: 17px;
+      box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.8), 0 10px 25px rgba(0, 0, 0, 0.75);
     }
 
-    .table-row:hover {
-      background: #e0efff;
-    }
-
-    .table-row.selected {
-      background: #dbeafe;
-    }
-
-    .table-cell-main {
+    .top-title {
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
 
-    .table-main-title {
-      font-weight: 500;
+    .top-title h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
-    .table-main-sub {
-      font-size: 0.7rem;
-      color: var(--muted);
+    .top-title span {
+      font-size: 12px;
+      color: var(--text-faint);
     }
 
-    .chip-small {
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-faint);
+    }
+
+    .env-pill {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: linear-gradient(to right, rgba(15, 23, 42, 0.98), rgba(8, 47, 73, 0.9));
       display: inline-flex;
       align-items: center;
-      padding: 2px 6px;
+      gap: 6px;
+    }
+
+    .env-pill-dot {
+      width: 7px;
+      height: 7px;
       border-radius: 999px;
-      font-size: 0.7rem;
-      background: #eef2ff;
-      color: #3730a3;
-      border: 1px solid #e0e7ff;
+      background: #22c55e;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.35);
     }
 
-    .muted {
-      color: var(--muted);
+    .env-pill-label {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 11px;
+      color: #bbf7d0;
     }
 
-    .sidebar {
+    .phase-tag {
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      border: 1px dashed rgba(148, 163, 184, 0.4);
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .badge-internal {
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fecaca;
+      font-size: 11px;
+    }
+
+    /* Layout */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 2.4fr) minmax(0, 1.6fr);
+      gap: 16px;
+      padding: 16px 18px 18px;
+      max-width: 1380px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (max-width: 1024px) {
+      .main {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto;
+      }
+    }
+
+    /* Panels */
+    .panel {
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.94), rgba(15, 23, 42, 0.92));
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      box-shadow: var(--shadow-soft);
+      padding: 14px 14px 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
+      overflow: hidden;
+      position: relative;
     }
 
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      pointer-events: none;
+      border: 1px solid transparent;
+      background: linear-gradient(
+          130deg,
+          rgba(59, 130, 246, 0.25),
+          rgba(14, 165, 233, 0.15),
+          rgba(168, 85, 247, 0.12),
+          transparent 45%
+        )
+        border-box;
+      mix-blend-mode: soft-light;
+      opacity: 0.18;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .panel-title span {
+      font-size: 12px;
+      color: var(--text-faint);
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: var(--text-muted);
+    }
+
+    .pill-soft {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    /* Summary cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 900px) {
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .summary-card {
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.85), rgba(17, 24, 39, 0.98));
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .summary-card::after {
+      content: "";
+      position: absolute;
+      right: -18px;
+      top: -18px;
+      width: 60px;
+      height: 60px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.08), transparent);
+      pointer-events: none;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+
+    .summary-value {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .summary-caption {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .summary-tag {
+      align-self: flex-start;
+      margin-top: 2px;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: var(--text-muted);
+    }
+
+    .summary-card.primary {
+      border-color: rgba(37, 99, 235, 0.7);
+      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), rgba(15, 23, 42, 0.98));
+    }
+
+    .summary-card.warning {
+      border-color: rgba(250, 204, 21, 0.65);
+    }
+
+    .summary-card.danger {
+      border-color: rgba(239, 68, 68, 0.65);
+    }
+
+    .summary-card.success {
+      border-color: rgba(34, 197, 94, 0.6);
+    }
+
+    .summary-card.primary .summary-value {
+      color: #bfdbfe;
+    }
+
+    .summary-card.warning .summary-value {
+      color: #facc15;
+    }
+
+    .summary-card.danger .summary-value {
+      color: #fecaca;
+    }
+
+    .summary-card.success .summary-value {
+      color: #bbf7d0;
+    }
+
+    /* Filters */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--chip-border);
+      background: var(--chip-bg);
+      padding: 3px 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.12s ease-out;
+    }
+
+    .chip span.label {
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-size: 10px;
+      color: var(--text-faint);
+    }
+
+    .chip span.value {
+      font-size: 11px;
+      color: var(--text-main);
+    }
+
+    .chip.active {
+      border-color: var(--chip-active-border);
+      background: var(--chip-active-bg);
+      color: #dbeafe;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+    }
+
+    .chip.active span.label {
+      color: #bfdbfe;
+    }
+
+    .chip .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.7);
+    }
+
+    .chip.plan-live .dot {
+      background: var(--success);
+    }
+
+    .chip.plan-trial .dot {
+      background: var(--warning);
+    }
+
+    .chip.plan-cancelled .dot {
+      background: var(--danger);
+    }
+
+    .chip.account-ok .dot {
+      background: #22c55e;
+    }
+
+    .chip.account-risk .dot {
+      background: #f97316;
+    }
+
+    .chip.account-blocked .dot {
+      background: #ef4444;
+    }
+
+    .search-input {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .search-input input {
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      outline: none;
+      font-size: 12px;
+      width: 100%;
+    }
+
+    .search-input input::placeholder {
+      color: var(--text-faint);
+    }
+
+    /* Table */
+    .table-wrapper {
+      margin-top: 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 1));
+      overflow: hidden;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 220px;
+      position: relative;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    thead {
+      background: rgba(15, 23, 42, 0.98);
+      border-bottom: 1px solid rgba(31, 41, 55, 0.95);
+    }
+
+    thead th {
+      text-align: left;
+      padding: 7px 9px;
+      font-weight: 500;
+      color: var(--text-faint);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      cursor: pointer;
+      transition: background 0.12s ease-out;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(17, 24, 39, 0.92);
+    }
+
+    tbody tr:hover {
+      background: rgba(37, 99, 235, 0.16);
+    }
+
+    tbody tr.selected {
+      background: rgba(37, 99, 235, 0.2);
+    }
+
+    tbody td {
+      padding: 7px 9px;
+      border-top: 1px solid rgba(15, 23, 42, 0.75);
+      color: var(--text-main);
+      vertical-align: middle;
+    }
+
+    tbody td.mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .cell-secondary {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .badge-plan-live {
+      border-color: rgba(34, 197, 94, 0.65);
+      background: rgba(22, 163, 74, 0.15);
+      color: #bbf7d0;
+    }
+
+    .badge-plan-trial {
+      border-color: rgba(250, 204, 21, 0.65);
+      background: rgba(250, 204, 21, 0.1);
+      color: #fef9c3;
+    }
+
+    .badge-plan-cancelled {
+      border-color: rgba(239, 68, 68, 0.7);
+      background: rgba(239, 68, 68, 0.1);
+      color: #fee2e2;
+    }
+
+    .badge-pending-yes {
+      border-color: rgba(59, 130, 246, 0.7);
+      background: rgba(37, 99, 235, 0.15);
+      color: #dbeafe;
+    }
+
+    .badge-pending-no {
+      border-color: rgba(148, 163, 184, 0.55);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-muted);
+    }
+
+    .badge-account-ok {
+      border-color: rgba(34, 197, 94, 0.75);
+      background: rgba(22, 163, 74, 0.12);
+      color: #bbf7d0;
+    }
+
+    .badge-account-risk {
+      border-color: rgba(249, 115, 22, 0.8);
+      background: rgba(248, 179, 91, 0.1);
+      color: #fed7aa;
+    }
+
+    .badge-account-blocked {
+      border-color: rgba(239, 68, 68, 0.85);
+      background: rgba(239, 68, 68, 0.12);
+      color: #fecaca;
+    }
+
+    .table-empty {
+      padding: 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .table-loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.98));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+      z-index: 10;
+    }
+
+    .spinner {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 2px solid rgba(148, 163, 184, 0.4);
+      border-top-color: #60a5fa;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .error-banner {
+      margin-top: 8px;
+      padding: 7px 9px;
+      border-radius: var(--radius-md);
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      font-size: 12px;
+      color: #fecaca;
+      display: none;
+    }
+
+    .error-banner.visible {
+      display: block;
+    }
+
+    /* Detail panel */
     .detail-section {
-      margin-bottom: 10px;
+      margin-top: 6px;
+      padding: 8px 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 1));
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .detail-section h3 {
-      margin: 0 0 4px 0;
-      font-size: 0.9rem;
+    .detail-group-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-faint);
     }
 
     .detail-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 6px 10px;
-      font-size: 0.8rem;
+      gap: 6px 14px;
+    }
+
+    @media (max-width: 700px) {
+      .detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
     }
 
     .detail-label {
-      font-size: 0.75rem;
-      color: var(--muted);
+      font-size: 11px;
+      color: var(--text-faint);
     }
 
     .detail-value {
-      font-size: 0.85rem;
+      font-size: 13px;
+      color: var(--text-main);
+      word-wrap: break-word;
+      word-break: break-word;
     }
 
-    .detail-mono {
-      font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 0.75rem;
-      background: #f3f4f6;
-      padding: 4px 6px;
-      border-radius: 6px;
-      border: 1px dashed #e5e7eb;
+    .detail-value.mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
-    .pill-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .pill-tag {
-      font-size: 0.75rem;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: #f3f4ff;
-      border: 1px solid #e0e7ff;
-    }
-
-    .support-note {
-      font-size: 0.78rem;
-      padding: 8px 9px;
-      border-radius: 8px;
-      background: #f9fafb;
-      border: 1px dashed #e5e7eb;
-      min-height: 60px;
+    .detail-multiline {
+      font-size: 12px;
+      color: var(--text-main);
+      line-height: 1.4;
       white-space: pre-wrap;
     }
 
-    .chart-container {
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px dashed #e5e7eb;
+    .detail-tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
     }
 
-    .error-banner {
-      margin-top: 8px;
-      padding: 6px 8px;
-      border-radius: 8px;
-      font-size: 0.78rem;
-      background: #fef2f2;
-      color: #b91c1c;
-      border: 1px solid #fecaca;
-      display: none;
+    .detail-tag {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-muted);
     }
 
-    .loading-banner {
-      margin-top: 8px;
-      padding: 6px 8px;
-      border-radius: 8px;
-      font-size: 0.78rem;
-      background: #eff6ff;
-      color: #1d4ed8;
-      border: 1px solid #bfdbfe;
-      display: none;
+    .detail-helper {
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 2px;
     }
 
-    .tag-pill {
-      font-size: 0.75rem;
-      padding: 3px 8px;
+    .assistant-box {
+      margin-top: 4px;
+      padding: 7px 9px;
+      border-radius: var(--radius-md);
+      border: 1px dashed rgba(148, 163, 184, 0.45);
+      background: rgba(15, 23, 42, 0.85);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .assistant-box strong {
+      color: #e5e7eb;
+      font-weight: 600;
+    }
+
+    .assistant-list {
+      margin: 4px 0 0;
+      padding-left: 16px;
+    }
+
+    .assistant-list li {
+      margin: 2px 0;
+    }
+
+    /* Status mix mini list */
+    .status-mix-list {
+      margin: 6px 0 0;
+      padding: 0;
+      list-style: none;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .status-mix-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+    }
+
+    .status-mix-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-mix-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 999px;
-      background: #f3f4f6;
-      border: 1px solid #e5e7eb;
-      color: #4b5563;
+      background: rgba(148, 163, 184, 0.8);
     }
 
-    .assistant-panel {
-      margin-top: 6px;
-      padding: 8px 9px;
-      border-radius: 10px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      font-size: 0.78rem;
+    .status-mix-dot.live {
+      background: #22c55e;
     }
 
-    .assistant-panel strong {
-      font-size: 0.8rem;
+    .status-mix-dot.trial {
+      background: #facc15;
+    }
+
+    .status-mix-dot.cancelled {
+      background: #ef4444;
+    }
+
+    .status-mix-count {
+      font-variant-numeric: tabular-nums;
+      color: var(--text-main);
     }
   </style>
 </head>
 <body>
-<header>
-  <div class="title">
-    <h1>TradeBotPro Control Panel</h1>
-    <span class="subtitle">Signups, statuses & setup at a glance (Phase 4A – read-only)</span>
-  </div>
-  <div class="env-badge">
-    Internal use only · v4A
-  </div>
-</header>
-
-<main>
-  <!-- LEFT: STATS + TABLE -->
-  <section class="card">
-    <div class="card-header">
-      <h2>Signups overview</h2>
-      <span class="pill" id="summary-pill">Loading…</span>
-    </div>
-
-    <div id="dashboard-loading" class="loading-banner">
-      Loading signups from Supabase…
-    </div>
-    <div id="dashboard-error" class="error-banner">
-      Something went wrong loading signups. Check the console (F12 → Console) for details.
-    </div>
-
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Total signups</div>
-        <div class="stat-value" id="stat-total">–</div>
-        <div class="stat-chip">
-          <span class="stat-chip-dot"></span>
-          All time
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="top-left">
+        <div class="logo-pill">T</div>
+        <div class="top-title">
+          <h1>TradeBotPro Control Panel</h1>
+          <span>Signups, statuses & setup at a glance (Phase 4A – read-only)</span>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">Pending setup</div>
-        <div class="stat-value" id="stat-pending-setup">–</div>
-        <div class="stat-chip">
-          <span class="stat-chip-dot"></span>
-          Need attention
+      <div class="top-right">
+        <span class="badge-internal">Internal use only</span>
+        <span class="phase-tag">Phase 4A · v1</span>
+        <span class="env-pill">
+          <span class="env-pill-dot"></span>
+          <span class="env-pill-label">Production</span>
+        </span>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- LEFT: SIGNUPS OVERVIEW -->
+      <section class="panel" id="signups-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h2>Signups overview</h2>
+            <span id="signups-subtitle">Loading signups from Supabase…</span>
+          </div>
+          <span class="pill pill-soft">Connected to <span id="project-label">Supabase</span></span>
         </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Live / active</div>
-        <div class="stat-value" id="stat-live-active">–</div>
-        <div class="stat-chip">
-          <span class="stat-chip-dot"></span>
-          Plan status = live
+
+        <!-- Summary cards -->
+        <div class="summary-grid">
+          <div class="summary-card primary">
+            <div class="summary-label">Total signups</div>
+            <div class="summary-value" id="metric-total">–</div>
+            <div class="summary-caption">All time</div>
+          </div>
+          <div class="summary-card warning">
+            <div class="summary-label">Pending setup</div>
+            <div class="summary-value" id="metric-pending">–</div>
+            <div class="summary-caption">pending_setup = true</div>
+          </div>
+          <div class="summary-card danger">
+            <div class="summary-label">Need attention</div>
+            <div class="summary-value" id="metric-need-attention">–</div>
+            <div class="summary-caption">pending OR account ≠ “OK”</div>
+          </div>
+          <div class="summary-card success">
+            <div class="summary-label">Live / active</div>
+            <div class="summary-value" id="metric-live">–</div>
+            <div class="summary-caption">plan_status = live</div>
+          </div>
         </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Trials</div>
-        <div class="stat-value" id="stat-trial">–</div>
-        <div class="stat-chip">
-          <span class="stat-chip-dot"></span>
-          Plan status = trial
+
+        <!-- Filters -->
+        <div class="filter-bar">
+          <div class="chip plan-all active" data-filter-group="plan" data-filter-value="all">
+            <span class="label">Plan</span>
+            <span class="value">All</span>
+          </div>
+          <div class="chip plan-trial" data-filter-group="plan" data-filter-value="trial">
+            <div class="dot plan-trial"></div>
+            <span class="value">Trial</span>
+          </div>
+          <div class="chip plan-live" data-filter-group="plan" data-filter-value="live">
+            <div class="dot plan-live"></div>
+            <span class="value">Live</span>
+          </div>
+          <div class="chip plan-cancelled" data-filter-group="plan" data-filter-value="cancelled">
+            <div class="dot plan-cancelled"></div>
+            <span class="value">Cancelled</span>
+          </div>
+
+          <div class="chip account-all active" data-filter-group="account" data-filter-value="all">
+            <span class="label">Account</span>
+            <span class="value">All</span>
+          </div>
+          <div class="chip account-ok" data-filter-group="account" data-filter-value="ok">
+            <div class="dot account-ok"></div>
+            <span class="value">OK</span>
+          </div>
+          <div class="chip account-risk" data-filter-group="account" data-filter-value="risk">
+            <div class="dot account-risk"></div>
+            <span class="value">Churn risk</span>
+          </div>
+          <div class="chip account-blocked" data-filter-group="account" data-filter-value="blocked">
+            <div class="dot account-blocked"></div>
+            <span class="value">Blocked</span>
+          </div>
+
+          <div class="chip trade-all active" data-filter-group="trade" data-filter-value="all">
+            <span class="label">Trade</span>
+            <span class="value">All trades</span>
+          </div>
+          <div class="chip trade-plumbing" data-filter-group="trade" data-filter-value="plumbing">
+            <span class="value">Plumbing & Heating</span>
+          </div>
+
+          <div class="search-input">
+            <span style="font-size: 14px; color: var(--text-faint);">🔍</span>
+            <input
+              id="search-input"
+              type="text"
+              placeholder="Search name, email, postcode, notes…"
+            />
+          </div>
         </div>
-      </div>
-    </div>
 
-    <div class="filters">
-      <label>
-        Plan
-        <select id="filter-plan">
-          <option value="">All</option>
-          <option value="trial">Trial</option>
-          <option value="live">Live</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
-      </label>
+        <!-- Table -->
+        <div class="table-wrapper">
+          <div class="table-loading-overlay" id="table-loading-overlay">
+            <div class="spinner"></div>
+            <div>Loading signups from <span id="overlay-project-label">Supabase</span>…</div>
+          </div>
 
-      <label>
-        Account
-        <select id="filter-account">
-          <option value="">All</option>
-          <option value="ok">OK</option>
-          <option value="blocked">Blocked</option>
-          <option value="churn-risk">Churn risk</option>
-        </select>
-      </label>
+          <table>
+            <thead>
+              <tr>
+                <th style="min-width: 210px;">Business & contact</th>
+                <th style="min-width: 90px;">Trade</th>
+                <th style="min-width: 70px;">Postcode</th>
+                <th style="min-width: 90px;">Plan</th>
+                <th style="min-width: 80px;">Setup</th>
+                <th style="min-width: 90px;">Account</th>
+                <th style="min-width: 110px;">Created</th>
+              </tr>
+            </thead>
+            <tbody id="signups-tbody">
+              <!-- Rows injected by JS -->
+            </tbody>
+          </table>
 
-      <label>
-        Trade
-        <select id="filter-trade">
-          <option value="">All trades</option>
-          <option value="Plumbing & Heating">Plumbing & Heating</option>
-          <option value="Heating only">Heating only</option>
-          <option value="General plumbing">General plumbing</option>
-          <option value="Other">Other</option>
-        </select>
-      </label>
+          <div id="table-empty" class="table-empty" style="display: none;">
+            No signups found for the current filters.
+          </div>
+        </div>
 
-      <label>
-        Search
-        <input
-          id="filter-search"
-          type="search"
-          placeholder="Business / contact / postcode…"
-        />
-      </label>
-    </div>
+        <div id="error-banner" class="error-banner">
+          Something went wrong loading signups. Open DevTools (F12 → Console) for details.
+        </div>
 
-    <div class="table-wrapper">
-      <div class="table-header-row">
-        <div>Business & contact</div>
-        <div>Trade</div>
-        <div>Postcode</div>
-        <div>Plan</div>
-        <div>Setup</div>
-        <div>Account</div>
-      </div>
-      <div id="signups-table-body" class="table-body">
-        <!-- rows injected by JS -->
-      </div>
-    </div>
-  </section>
-
-  <!-- RIGHT: DETAIL SIDEBAR -->
-  <aside class="sidebar">
-    <section class="card">
-      <div class="card-header">
-        <h2>Selected signup</h2>
-        <span class="pill">Detail view</span>
-      </div>
-
-      <div id="no-selection">
-        <p class="muted" style="font-size: 0.85rem;">
-          Choose a signup on the left to see full details here.
-        </p>
-      </div>
-
-      <div id="selection-content" style="display:none;">
         <div class="detail-section">
-          <h3>Who they are</h3>
+          <div class="detail-group-title">Status mix</div>
+          <ul class="status-mix-list" id="status-mix-list">
+            <!-- Filled by JS -->
+          </ul>
+        </div>
+      </section>
+
+      <!-- RIGHT: SELECTED SIGNUP DETAIL -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h2>Selected signup</h2>
+            <span id="detail-subtitle">Choose a signup on the left to see full details here.</span>
+          </div>
+          <span class="pill">Detail view</span>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-group-title">Who they are</div>
           <div class="detail-grid">
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Business name</div>
               <div class="detail-value" id="detail-business-name">–</div>
             </div>
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Trade type</div>
               <div class="detail-value" id="detail-trade-type">–</div>
             </div>
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Contact name</div>
               <div class="detail-value" id="detail-contact-name">–</div>
             </div>
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Owner name</div>
               <div class="detail-value" id="detail-owner-name">–</div>
             </div>
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Base postcode</div>
               <div class="detail-value" id="detail-base-postcode">–</div>
             </div>
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Website</div>
-              <div class="detail-value" id="detail-website-url">–</div>
+              <div class="detail-value" id="detail-website">–</div>
             </div>
           </div>
         </div>
 
         <div class="detail-section">
-          <h3>Status & plan</h3>
-          <div class="pill-row" id="detail-status-pills">
-            <!-- pills injected -->
+          <div class="detail-group-title">Status & plan</div>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <div class="detail-label">Plan status</div>
+              <div class="detail-value" id="detail-plan-status">–</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Pending setup</div>
+              <div class="detail-value" id="detail-pending-setup">–</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Account status</div>
+              <div class="detail-value" id="detail-account-status">–</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Account status reason</div>
+              <div class="detail-value" id="detail-account-reason">–</div>
+            </div>
           </div>
         </div>
 
         <div class="detail-section">
-          <h3>Pricing signals</h3>
+          <div class="detail-group-title">Pricing signals</div>
           <div class="detail-grid">
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Call-out fee</div>
               <div class="detail-value" id="detail-callout-fee">–</div>
             </div>
-            <div>
+            <div class="detail-item">
               <div class="detail-label">First hour</div>
-              <div class="detail-value" id="detail-first-hour-rate">–</div>
+              <div class="detail-value" id="detail-first-hour">–</div>
             </div>
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Hourly rate</div>
               <div class="detail-value" id="detail-hourly-rate">–</div>
             </div>
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Boiler service from</div>
-              <div class="detail-value" id="detail-boiler-service-from">–</div>
+              <div class="detail-value" id="detail-boiler-service">–</div>
             </div>
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Quote minimum</div>
               <div class="detail-value" id="detail-quote-minimum">–</div>
             </div>
@@ -638,475 +1026,437 @@
         </div>
 
         <div class="detail-section">
-          <h3>What they want from the AI</h3>
-          <div class="detail-label">Services summary</div>
-          <div class="support-note" id="detail-services-summary">–</div>
-
-          <div class="detail-label" style="margin-top: 8px;">AI style notes</div>
-          <div class="support-note" id="detail-ai-style-notes">–</div>
+          <div class="detail-group-title">What they want from the AI</div>
+          <div class="detail-item">
+            <div class="detail-label">Services summary</div>
+            <div class="detail-multiline" id="detail-services-summary">–</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">AI style notes</div>
+            <div class="detail-multiline" id="detail-ai-style-notes">–</div>
+          </div>
+          <div class="detail-helper">
+            Use this to tune the assistant’s tone and job-qualification questions before going live.
+          </div>
         </div>
 
         <div class="detail-section">
-          <h3>System fields</h3>
+          <div class="detail-group-title">System fields</div>
           <div class="detail-grid">
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Created at</div>
-              <div class="detail-value" id="detail-created-at">–</div>
+              <div class="detail-value mono" id="detail-created-at">–</div>
             </div>
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Raw ID</div>
-              <div class="detail-mono" id="detail-id">–</div>
+              <div class="detail-value mono" id="detail-id">–</div>
             </div>
           </div>
         </div>
 
-        <div class="detail-section">
-          <h3>Assistant suggestions (Phase 4C preview)</h3>
-          <div class="assistant-panel" id="assistant-panel">
-            <strong>Next actions suggestion</strong>
-            <ul style="margin: 4px 0 0 16px; padding: 0;">
-              <li id="assistant-suggestion-1">Pick one: follow-up call, WhatsApp, or email.</li>
-              <li id="assistant-suggestion-2">Make sure price points are configured inside their AI script.</li>
-              <li id="assistant-suggestion-3">Confirm coverage area matches their real service area.</li>
-            </ul>
+        <div class="assistant-box">
+          <strong>Assistant suggestions (Phase 4C preview)</strong>
+          <ul class="assistant-list" id="assistant-suggestions">
+            <li>Pick one: follow-up call, WhatsApp, or email.</li>
+            <li>Make sure price points are configured inside their AI script.</li>
+            <li>Confirm coverage area matches their real service area.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // ⬇⬇ CONFIG: Supabase project details ⬇⬇
+    // IMPORTANT: Use the SAME URL + anon key as on your working signup form.
+    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
+    // ⬇⬇ Internal state ⬇⬇
+    let allSignups = [];
+    let filteredSignups = [];
+    let selectedSignupId = null;
+
+    function formatMoney(value) {
+      if (value === null || value === undefined || value === "") return "–";
+      const num = Number(value);
+      if (Number.isNaN(num)) return String(value);
+      return "£" + num.toFixed(2);
+    }
+
+    function formatDate(value) {
+      if (!value) return "–";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return value;
+      return d.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function normaliseAccountStatus(raw) {
+      if (!raw) return "Unknown";
+      const v = String(raw).toLowerCase();
+      if (v === "ok" || v === "active") return "OK";
+      if (v.includes("risk")) return "Churn risk";
+      if (v.includes("block") || v.includes("suspend")) return "Blocked";
+      return raw;
+    }
+
+    function getAccountBadgeClass(raw) {
+      const v = normaliseAccountStatus(raw);
+      if (v === "OK") return "badge-account-ok";
+      if (v === "Blocked") return "badge-account-blocked";
+      if (v === "Churn risk") return "badge-account-risk";
+      return "";
+    }
+
+    function getPlanBadgeClass(plan) {
+      if (!plan) return "";
+      const v = String(plan).toLowerCase();
+      if (v === "live" || v === "paid") return "badge-plan-live";
+      if (v === "trial") return "badge-plan-trial";
+      if (v === "cancelled" || v === "canceled") return "badge-plan-cancelled";
+      return "";
+    }
+
+    function updateSummaryMetrics() {
+      const total = allSignups.length;
+      const pending = allSignups.filter(r => !!r.pending_setup).length;
+      const live = allSignups.filter(r =>
+        String(r.plan_status || "").toLowerCase() === "live"
+      ).length;
+      const needAttention = allSignups.filter(r => {
+        const pending = !!r.pending_setup;
+        const account = normaliseAccountStatus(r.account_status);
+        return pending || (account && account !== "OK");
+      }).length;
+
+      document.getElementById("metric-total").textContent = total;
+      document.getElementById("metric-pending").textContent = pending;
+      document.getElementById("metric-live").textContent = live;
+      document.getElementById("metric-need-attention").textContent = needAttention;
+    }
+
+    function updateStatusMix() {
+      const counts = {
+        live: 0,
+        trial: 0,
+        cancelled: 0,
+        other: 0
+      };
+      allSignups.forEach(r => {
+        const v = String(r.plan_status || "").toLowerCase();
+        if (v === "live") counts.live++;
+        else if (v === "trial") counts.trial++;
+        else if (v === "cancelled" || v === "canceled") counts.cancelled++;
+        else counts.other++;
+      });
+
+      const list = document.getElementById("status-mix-list");
+      list.innerHTML = "";
+
+      const total = allSignups.length || 1;
+
+      function addRow(label, key, className) {
+        const count = counts[key];
+        if (!count) return;
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <div class="status-mix-label">
+            <span class="status-mix-dot ${className}"></span>
+            <span>${label}</span>
           </div>
-        </div>
-      </div>
-    </section>
+          <span class="status-mix-count">${count} &nbsp;(<span>${Math.round((count / total) * 100)}%</span>)</span>
+        `;
+        list.appendChild(li);
+      }
 
-    <section class="card">
-      <div class="card-header">
-        <h2>Status mix</h2>
-        <span class="pill">Plan status (count)</span>
-      </div>
-      <canvas id="planStatusChart" height="130"></canvas>
-    </section>
-  </aside>
-</main>
+      addRow("Live", "live", "live");
+      addRow("Trial", "trial", "trial");
+      addRow("Cancelled", "cancelled", "cancelled");
+      if (counts.other) {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <div class="status-mix-label">
+            <span class="status-mix-dot"></span>
+            <span>Other / unset</span>
+          </div>
+          <span class="status-mix-count">${counts.other}</span>
+        `;
+        list.appendChild(li);
+      }
 
-<script type="module">
-  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-  // TODO: replace these with your real values
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  const tableBody = document.getElementById('signups-table-body');
-  const filterPlan = document.getElementById('filter-plan');
-  const filterAccount = document.getElementById('filter-account');
-  const filterTrade = document.getElementById('filter-trade');
-  const filterSearch = document.getElementById('filter-search');
-
-  const statTotal = document.getElementById('stat-total');
-  const statPendingSetup = document.getElementById('stat-pending-setup');
-  const statLiveActive = document.getElementById('stat-live-active');
-  const statTrial = document.getElementById('stat-trial');
-  const summaryPill = document.getElementById('summary-pill');
-
-  const dashboardError = document.getElementById('dashboard-error');
-  const dashboardLoading = document.getElementById('dashboard-loading');
-
-  let allSignups = [];
-  let currentSelectionId = null;
-  let planStatusChart = null;
-
-  function normalise(value) {
-    if (!value) return '';
-    return String(value).toLowerCase().trim();
-  }
-
-  function formatMoney(value) {
-    if (value === null || value === undefined || value === '') return '—';
-    const number = Number(value);
-    if (Number.isNaN(number)) return String(value);
-    return '£' + number.toFixed(2).replace(/\.00$/, '');
-  }
-
-  function formatDate(value) {
-    if (!value) return '—';
-    try {
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return String(value);
-      return date.toLocaleString('en-GB', {
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return String(value);
-    }
-  }
-
-  function computeStats(signups) {
-    const total = signups.length;
-    const pendingSetupCount = signups.filter(s => s.pending_setup === true).length;
-
-    const liveCount = signups.filter(s =>
-      normalise(s.plan_status) === 'live'
-    ).length;
-
-    const trialCount = signups.filter(s =>
-      normalise(s.plan_status) === 'trial'
-    ).length;
-
-    statTotal.textContent = total;
-    statPendingSetup.textContent = pendingSetupCount;
-    statLiveActive.textContent = liveCount;
-    statTrial.textContent = trialCount;
-
-    summaryPill.textContent = total === 0
-      ? 'No signups yet'
-      : `${total} signup${total !== 1 ? 's' : ''} · ${pendingSetupCount} pending work`;
-  }
-
-  function buildPlanStatusChart(signups) {
-    const counts = {};
-    for (const row of signups) {
-      const key = normalise(row.plan_status) || 'un-set';
-      counts[key] = (counts[key] || 0) + 1;
+      if (!list.children.length) {
+        const li = document.createElement("li");
+        li.textContent = "No signups yet.";
+        list.appendChild(li);
+      }
     }
 
-    const labels = Object.keys(counts);
-    const data = labels.map(label => counts[label]);
+    function applyFilters() {
+      const activePlanChip = document.querySelector('.chip[data-filter-group="plan"].active');
+      const activeAccountChip = document.querySelector('.chip[data-filter-group="account"].active');
+      const activeTradeChip = document.querySelector('.chip[data-filter-group="trade"].active');
+      const searchTerm = document.getElementById("search-input").value.trim().toLowerCase();
 
-    const ctx = document.getElementById('planStatusChart');
-    if (!ctx) return;
+      const planFilter = activePlanChip ? activePlanChip.getAttribute("data-filter-value") : "all";
+      const accountFilter = activeAccountChip ? activeAccountChip.getAttribute("data-filter-value") : "all";
+      const tradeFilter = activeTradeChip ? activeTradeChip.getAttribute("data-filter-value") : "all";
 
-    if (planStatusChart) {
-      planStatusChart.destroy();
-    }
+      filteredSignups = allSignups.filter(row => {
+        // Plan
+        if (planFilter !== "all") {
+          const v = String(row.plan_status || "").toLowerCase();
+          if (planFilter === "trial" && v !== "trial") return false;
+          if (planFilter === "live" && v !== "live") return false;
+          if (planFilter === "cancelled" && v !== "cancelled" && v !== "canceled") return false;
+        }
 
-    planStatusChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Signups',
-          data
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: false
-          }
-        },
-        scales: {
-          x: {
-            ticks: {
-              font: { size: 10 }
-            }
-          },
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1,
-              precision: 0
-            }
+        // Account
+        if (accountFilter !== "all") {
+          const v = normaliseAccountStatus(row.account_status);
+          if (accountFilter === "ok" && v !== "OK") return false;
+          if (accountFilter === "risk" && v !== "Churn risk") return false;
+          if (accountFilter === "blocked" && v !== "Blocked") return false;
+        }
+
+        // Trade
+        if (tradeFilter !== "all") {
+          const t = String(row.trade_type || "").toLowerCase();
+          if (tradeFilter === "plumbing" && !t.includes("plumb") && !t.includes("heating")) {
+            return false;
           }
         }
-      }
-    });
-  }
 
-  function applyFilters() {
-    const planFilter = normalise(filterPlan.value);
-    const accountFilter = normalise(filterAccount.value);
-    const tradeFilter = normalise(filterTrade.value);
-    const search = normalise(filterSearch.value);
+        // Search
+        if (searchTerm) {
+          const haystack = [
+            row.business_name,
+            row.contact_name,
+            row.owner_name,
+            row.email,
+            row.phone,
+            row.trade_type,
+            row.base_postcode,
+            row.services_summary,
+            row.ai_style_notes
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
 
-    const filtered = allSignups.filter(row => {
-      if (planFilter && normalise(row.plan_status) !== planFilter) {
-        return false;
-      }
-
-      if (accountFilter && normalise(row.account_status) !== accountFilter) {
-        return false;
-      }
-
-      if (tradeFilter && normalise(row.trade_type) !== normalise(tradeFilter)) {
-        return false;
-      }
-
-      if (search) {
-        const haystack = [
-          row.business_name,
-          row.contact_name,
-          row.owner_name,
-          row.base_postcode,
-          row.email,
-          row.phone,
-          row.trade_type
-        ].map(x => normalise(x)).join(' ');
-        if (!haystack.includes(search)) {
-          return false;
+          if (!haystack.includes(searchTerm)) return false;
         }
-      }
 
-      return true;
-    });
-
-    renderTable(filtered);
-  }
-
-  function renderTable(signups) {
-    tableBody.innerHTML = '';
-
-    if (signups.length === 0) {
-      const row = document.createElement('div');
-      row.className = 'table-row';
-      row.style.justifyContent = 'center';
-      row.innerHTML = '<span class="muted">No signups match the current filters.</span>';
-      tableBody.appendChild(row);
-      return;
-    }
-
-    for (const row of signups) {
-      const div = document.createElement('div');
-      div.className = 'table-row';
-      div.dataset.id = row.id;
-
-      if (row.id === currentSelectionId) {
-        div.classList.add('selected');
-      }
-
-      const plan = normalise(row.plan_status);
-      let planBadgeClass = 'badge-plan-trial';
-      let planLabel = row.plan_status || 'Not set';
-
-      if (plan === 'live') {
-        planBadgeClass = 'badge-plan-live';
-      } else if (plan === 'cancelled') {
-        planBadgeClass = 'badge-plan-cancelled';
-      } else if (!plan) {
-        planBadgeClass = 'badge-inactive';
-        planLabel = 'Not set';
-      }
-
-      const pending = row.pending_setup === true;
-      const isActive = row.is_active === true;
-
-      const accountStatus = normalise(row.account_status);
-      let accountLabel = row.account_status || '–';
-      let accountClass = 'badge-inactive';
-      if (accountStatus === 'ok') {
-        accountClass = 'badge-active';
-        accountLabel = 'OK';
-      } else if (accountStatus === 'blocked') {
-        accountClass = 'badge-plan-cancelled';
-        accountLabel = 'Blocked';
-      } else if (accountStatus === 'churn-risk') {
-        accountClass = 'badge-pending';
-        accountLabel = 'Churn risk';
-      }
-
-      div.innerHTML = `
-        <div class="table-cell-main">
-          <span class="table-main-title">${row.business_name || '—'}</span>
-          <span class="table-main-sub">
-            ${row.contact_name || 'No contact'} · ${row.email || 'No email'}
-          </span>
-        </div>
-        <div>
-          <span class="chip-small">${row.trade_type || 'Not set'}</span>
-        </div>
-        <div>
-          <span>${row.base_postcode || '–'}</span>
-        </div>
-        <div>
-          <span class="badge badge-pill ${planBadgeClass}">${planLabel}</span>
-        </div>
-        <div>
-          ${pending
-            ? '<span class="badge badge-pill badge-pending">Pending setup</span>'
-            : '<span class="badge badge-pill badge-active">Setup OK</span>'
-          }
-        </div>
-        <div>
-          <span class="badge badge-pill ${accountClass}">${accountLabel}</span>
-        </div>
-      `;
-
-      div.addEventListener('click', () => {
-        currentSelectionId = row.id;
-        for (const sibling of tableBody.querySelectorAll('.table-row')) {
-          sibling.classList.toggle('selected', sibling === div);
-        }
-        showSelection(row);
+        return true;
       });
 
-      tableBody.appendChild(div);
-    }
-  }
-
-  function clearSelection() {
-    currentSelectionId = null;
-    document.getElementById('no-selection').style.display = '';
-    document.getElementById('selection-content').style.display = 'none';
-  }
-
-  function showSelection(row) {
-    document.getElementById('no-selection').style.display = 'none';
-    document.getElementById('selection-content').style.display = '';
-
-    document.getElementById('detail-business-name').textContent = row.business_name || '—';
-    document.getElementById('detail-trade-type').textContent = row.trade_type || '—';
-    document.getElementById('detail-contact-name').textContent = row.contact_name || '—';
-    document.getElementById('detail-owner-name').textContent = row.owner_name || '—';
-    document.getElementById('detail-base-postcode').textContent = row.base_postcode || '—';
-
-    if (row.website_url) {
-      const urlText = row.website_url.replace(/^https?:\/\//i, '');
-      document.getElementById('detail-website-url').innerHTML =
-        `<a href="${row.website_url}" target="_blank" rel="noopener noreferrer">${urlText}</a>`;
-    } else {
-      document.getElementById('detail-website-url').textContent = '—';
+      renderTable();
     }
 
-    document.getElementById('detail-callout-fee').textContent = formatMoney(row.callout_fee);
-    document.getElementById('detail-first-hour-rate').textContent = formatMoney(row.first_hour_rate);
-    document.getElementById('detail-hourly-rate').textContent = formatMoney(row.hourly_rate);
-    document.getElementById('detail-boiler-service-from').textContent = formatMoney(row.boiler_service_from);
-    document.getElementById('detail-quote-minimum').textContent = formatMoney(row.quote_minimum);
+    function renderTable() {
+      const tbody = document.getElementById("signups-tbody");
+      const emptyState = document.getElementById("table-empty");
 
-    document.getElementById('detail-services-summary').textContent =
-      row.services_summary || 'No services summary captured yet.';
-    document.getElementById('detail-ai-style-notes').textContent =
-      row.ai_style_notes || 'No AI style notes captured yet.';
+      tbody.innerHTML = "";
 
-    document.getElementById('detail-created-at').textContent = formatDate(row.created_at);
-    document.getElementById('detail-id').textContent = row.id || '—';
-
-    // Status pills
-    const statusPills = document.getElementById('detail-status-pills');
-    statusPills.innerHTML = '';
-
-    const plan = normalise(row.plan_status);
-    let planClass = 'badge-plan-trial';
-    let planLabel = row.plan_status || 'Plan not set';
-
-    if (plan === 'live') {
-      planClass = 'badge-plan-live';
-      planLabel = 'Live';
-    } else if (plan === 'cancelled') {
-      planClass = 'badge-plan-cancelled';
-      planLabel = 'Cancelled';
-    }
-
-    const planPill = document.createElement('span');
-    planPill.className = `badge ${planClass}`;
-    planPill.textContent = `Plan: ${planLabel}`;
-    statusPills.appendChild(planPill);
-
-    const pendingPill = document.createElement('span');
-    pendingPill.className = `badge ${row.pending_setup ? 'badge-pending' : 'badge-active'}`;
-    pendingPill.textContent = row.pending_setup ? 'Pending setup' : 'Setup complete';
-    statusPills.appendChild(pendingPill);
-
-    const activePill = document.createElement('span');
-    activePill.className = `badge ${row.is_active ? 'badge-active' : 'badge-inactive'}`;
-    activePill.textContent = row.is_active ? 'Account active' : 'Inactive';
-    statusPills.appendChild(activePill);
-
-    const account = normalise(row.account_status);
-    if (account) {
-      const accountPill = document.createElement('span');
-      accountPill.className = 'badge badge-inactive';
-      accountPill.textContent = `Account status: ${row.account_status}`;
-      statusPills.appendChild(accountPill);
-    }
-
-    if (row.account_status_reason) {
-      const reasonPill = document.createElement('span');
-      reasonPill.className = 'badge badge-inactive';
-      reasonPill.textContent = row.account_status_reason;
-      statusPills.appendChild(reasonPill);
-    }
-
-    // Tiny heuristic suggestions – just placeholder logic for now
-    const suggestion1 = document.getElementById('assistant-suggestion-1');
-    const suggestion2 = document.getElementById('assistant-suggestion-2');
-    const suggestion3 = document.getElementById('assistant-suggestion-3');
-
-    if (plan === 'trial') {
-      suggestion1.textContent = 'Schedule a “trial check-in” call within 7 days of signup.';
-    } else if (plan === 'live') {
-      suggestion1.textContent = 'Confirm billing details and double-check their AI script covers their main services.';
-    } else {
-      suggestion1.textContent = 'Clarify whether they want a trial or to go live, then set the plan accordingly.';
-    }
-
-    if (row.pending_setup) {
-      suggestion2.textContent = 'Finish initial setup: base messages, pricing, coverage radius, and intake questions.';
-    } else {
-      suggestion2.textContent = 'Review one of their recent conversations to see if the bot is quoting as expected.';
-    }
-
-    if (account === 'churn-risk') {
-      suggestion3.textContent = 'Send a short WhatsApp or email asking how TradeBotPro can better support them.';
-    } else if (account === 'blocked') {
-      suggestion3.textContent = 'Document why the account is blocked and what is needed to unblock it.';
-    } else {
-      suggestion3.textContent = 'Add a quick support note after each significant change so future you knows what happened.';
-    }
-  }
-
-  async function loadSignups() {
-    dashboardError.style.display = 'none';
-    dashboardLoading.style.display = '';
-
-    try {
-      const { data, error } = await supabase
-        .from('tradebotpro_signups')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading signups from Supabase:', error);
-        dashboardError.style.display = '';
-        dashboardLoading.style.display = 'none';
-        tableBody.innerHTML = '<div class="table-row"><span class="muted">Error loading data.</span></div>';
-        clearSelection();
+      if (!filteredSignups.length) {
+        emptyState.style.display = "block";
         return;
       }
 
-      console.log('Loaded signups for dashboard:', data);
-      allSignups = data || [];
+      emptyState.style.display = "none";
 
-      computeStats(allSignups);
-      buildPlanStatusChart(allSignups);
-      applyFilters();
-      clearSelection();
+      filteredSignups.forEach(row => {
+        const tr = document.createElement("tr");
+        if (row.id === selectedSignupId) {
+          tr.classList.add("selected");
+        }
 
-      dashboardLoading.style.display = 'none';
-    } catch (e) {
-      console.error('Unexpected error loading signups:', e);
-      dashboardError.style.display = '';
-      dashboardLoading.style.display = 'none';
-      tableBody.innerHTML = '<div class="table-row"><span class="muted">Unexpected error loading data.</span></div>';
-      clearSelection();
+        const planClass = getPlanBadgeClass(row.plan_status);
+        const accountClass = getAccountBadgeClass(row.account_status);
+
+        const planLabel = row.plan_status || "–";
+        const accountLabel = normaliseAccountStatus(row.account_status);
+        const pendingYes = !!row.pending_setup;
+
+        tr.innerHTML = `
+          <td>
+            <div>${row.business_name || "—"}</div>
+            <div class="cell-secondary">
+              ${(row.contact_name || row.owner_name || "").toString()}
+              ${row.email ? " · " + row.email : ""}
+            </div>
+          </td>
+          <td>
+            <div class="cell-secondary">${row.trade_type || "—"}</div>
+          </td>
+          <td>
+            <div>${row.base_postcode || "—"}</div>
+          </td>
+          <td>
+            <span class="badge ${planClass}">
+              ${planLabel || "No plan"}
+            </span>
+          </td>
+          <td>
+            <span class="badge ${pendingYes ? "badge-pending-yes" : "badge-pending-no"}">
+              ${pendingYes ? "Pending setup" : "Setup OK"}
+            </span>
+          </td>
+          <td>
+            <span class="badge ${accountClass}">
+              ${accountLabel || "Unknown"}
+            </span>
+          </td>
+          <td class="mono">
+            ${formatDate(row.created_at)}
+          </td>
+        `;
+
+        tr.addEventListener("click", () => {
+          selectedSignupId = row.id;
+          renderTable(); // to update selected row highlight
+          renderDetail(row);
+        });
+
+        tbody.appendChild(tr);
+      });
     }
-  }
 
-  // Wire up filters
-  filterPlan.addEventListener('change', applyFilters);
-  filterAccount.addEventListener('change', applyFilters);
-  filterTrade.addEventListener('change', applyFilters);
-  filterSearch.addEventListener('input', () => {
-    // small debounce
-    if (window.__searchTimeout) {
-      clearTimeout(window.__searchTimeout);
+    function renderDetail(row) {
+      if (!row) {
+        document.getElementById("detail-subtitle").textContent =
+          "Choose a signup on the left to see full details here.";
+        return;
+      }
+
+      document.getElementById("detail-subtitle").textContent =
+        "Full context for this signup from tradebotpro_signups.";
+
+      // Who they are
+      document.getElementById("detail-business-name").textContent = row.business_name || "–";
+      document.getElementById("detail-trade-type").textContent = row.trade_type || "–";
+      document.getElementById("detail-contact-name").textContent = row.contact_name || "–";
+      document.getElementById("detail-owner-name").textContent = row.owner_name || "–";
+      document.getElementById("detail-base-postcode").textContent = row.base_postcode || "–";
+      document.getElementById("detail-website").textContent = row.website_url || "–";
+
+      // Status & plan
+      document.getElementById("detail-plan-status").textContent = row.plan_status || "–";
+      document.getElementById("detail-pending-setup").textContent =
+        row.pending_setup ? "Yes" : "No";
+      document.getElementById("detail-account-status").textContent =
+        normaliseAccountStatus(row.account_status) || "–";
+      document.getElementById("detail-account-reason").textContent =
+        row.account_status_reason || "–";
+
+      // Pricing
+      document.getElementById("detail-callout-fee").textContent = formatMoney(row.callout_fee);
+      document.getElementById("detail-first-hour").textContent = formatMoney(row.first_hour_rate);
+      document.getElementById("detail-hourly-rate").textContent = formatMoney(row.hourly_rate);
+      document.getElementById("detail-boiler-service").textContent = formatMoney(row.boiler_service_from);
+      document.getElementById("detail-quote-minimum").textContent = formatMoney(row.quote_minimum);
+
+      // AI / services
+      document.getElementById("detail-services-summary").textContent =
+        row.services_summary || "–";
+      document.getElementById("detail-ai-style-notes").textContent =
+        row.ai_style_notes || "–";
+
+      // System
+      document.getElementById("detail-created-at").textContent = formatDate(row.created_at);
+      document.getElementById("detail-id").textContent = row.id || "–";
     }
-    window.__searchTimeout = setTimeout(applyFilters, 200);
-  });
 
-  // Initial load
-  loadSignups();
-</script>
+    async function loadSignups() {
+      const projectLabel = document.getElementById("project-label");
+      const overlayProjectLabel = document.getElementById("overlay-project-label");
+      const subtitle = document.getElementById("signups-subtitle");
+      const loadingOverlay = document.getElementById("table-loading-overlay");
+      const errorBanner = document.getElementById("error-banner");
+
+      errorBanner.classList.remove("visible");
+      loadingOverlay.style.display = "flex";
+
+      try {
+        // Show abbreviated project name in the UI
+        try {
+          const url = new URL(SUPABASE_URL);
+          projectLabel.textContent = "Supabase · " + url.hostname.split(".")[0];
+          overlayProjectLabel.textContent = projectLabel.textContent;
+        } catch (_) {
+          projectLabel.textContent = "Supabase";
+          overlayProjectLabel.textContent = "Supabase";
+        }
+
+        const endpoint = `${SUPABASE_URL}/rest/v1/tradebotpro_signups?select=*&order=created_at.desc`;
+        console.log("Fetching signups from:", endpoint);
+
+        const res = await fetch(endpoint, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          }
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error("Error response from Supabase:", res.status, errText);
+          throw new Error("Supabase returned " + res.status);
+        }
+
+        const data = await res.json();
+        console.log("Loaded signups:", data);
+
+        allSignups = Array.isArray(data) ? data : [];
+        updateSummaryMetrics();
+        updateStatusMix();
+        applyFilters();
+
+        subtitle.textContent = `Loaded ${allSignups.length} signup${allSignups.length === 1 ? "" : "s"} from tradebotpro_signups.`;
+      } catch (err) {
+        console.error("Failed to load signups:", err);
+        errorBanner.classList.add("visible");
+        subtitle.textContent = "Something went wrong loading signups. See console.";
+        allSignups = [];
+        filteredSignups = [];
+        renderTable();
+        updateSummaryMetrics();
+        updateStatusMix();
+      } finally {
+        loadingOverlay.style.display = "none";
+      }
+    }
+
+    function wireFilters() {
+      document.querySelectorAll(".chip[data-filter-group]").forEach(chip => {
+        chip.addEventListener("click", () => {
+          const group = chip.getAttribute("data-filter-group");
+          document
+            .querySelectorAll(`.chip[data-filter-group="${group}"]`)
+            .forEach(c => c.classList.remove("active"));
+          chip.classList.add("active");
+          applyFilters();
+        });
+      });
+
+      const searchInput = document.getElementById("search-input");
+      searchInput.addEventListener("input", () => {
+        applyFilters();
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      wireFilters();
+      loadSignups();
+    });
+  </script>
 </body>
 </html>
