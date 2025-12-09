@@ -2,728 +2,1063 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro – Get your AI office set up</title>
+  <title>TradeBotPro — Tell us about your business</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
     :root {
-      --primary-blue: #1f4e79;
-      --accent-blue: #00a3ff;
-      --dark-text: #1b1b1f;
-      --light-bg: #f5f7fa;
-      --white: #ffffff;
-      --border-radius: 12px;
+      --primary: #1f4e79;
+      --primary-soft: #e3edf7;
+      --accent: #00a3ff;
+      --danger: #b00020;
+      --success: #1a7f37;
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --border: #dde3ec;
+      --text-main: #1b1b1f;
+      --text-muted: #6b7280;
+      --radius-lg: 16px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.12);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: var(--light-bg);
-      color: var(--dark-text);
+      background: radial-gradient(circle at top left, #e0f2fe, #f5f7fa 40%, #e5e7eb);
+      color: var(--text-main);
+      line-height: 1.5;
     }
 
     .page {
       min-height: 100vh;
       display: flex;
-      align-items: center;
       justify-content: center;
-      padding: 24px;
+      align-items: flex-start;
+      padding: 32px 16px;
     }
 
-    .card {
+    .shell {
       width: 100%;
-      max-width: 860px;
-      background: var(--white);
-      border-radius: 18px;
-      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
-      padding: 32px 28px;
+      max-width: 980px;
+      background: linear-gradient(135deg, rgba(31, 78, 121, 0.08), rgba(0, 163, 255, 0.06));
+      border-radius: 24px;
+      padding: 2px;
+      box-shadow: var(--shadow-soft);
     }
 
-    @media (min-width: 960px) {
-      .card {
-        padding: 40px 48px;
+    .inner {
+      background: var(--card-bg);
+      border-radius: 22px;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.1fr);
+      gap: 32px;
+    }
+
+    @media (max-width: 900px) {
+      .inner {
+        grid-template-columns: minmax(0, 1fr);
       }
     }
 
-    .header {
+    .left {
       display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
-
-    .title-block h1 {
-      margin: 0 0 6px;
-      font-size: 1.6rem;
-      letter-spacing: 0.02em;
-    }
-
-    .title-block p {
-      margin: 0;
-      font-size: 0.95rem;
-      color: #4b5563;
+      flex-direction: column;
+      gap: 20px;
     }
 
     .badge {
-      background: rgba(31, 78, 121, 0.06);
-      color: var(--primary-blue);
-      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 999px;
-      font-size: 0.8rem;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(0, 163, 255, 0.18);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .benefits {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 18px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 600px) {
+      .benefits {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .benefit {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .benefit-icon {
+      margin-top: 3px;
+      font-size: 12px;
+    }
+
+    .mini-highlight {
+      margin-top: 6px;
+      padding: 8px 11px;
+      border-radius: 12px;
+      background: #f0f9ff;
+      font-size: 12px;
+      color: #0369a1;
       display: inline-flex;
       align-items: center;
       gap: 6px;
     }
 
-    .badge span {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 18px;
-      height: 18px;
-      border-radius: 999px;
-      border: 1px solid rgba(31, 78, 121, 0.25);
-      font-size: 0.7rem;
+    .mini-highlight strong {
       font-weight: 600;
     }
 
-    /* Progress bar */
-
-    .progress-wrapper {
-      margin-bottom: 24px;
+    .right {
+      border-left: 1px solid var(--border);
+      padding-left: 24px;
     }
 
-    .progress-labels {
+    @media (max-width: 900px) {
+      .right {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding-left: 0;
+        padding-top: 20px;
+      }
+    }
+
+    /* Progress bar */
+    .progress-wrapper {
+      margin-bottom: 18px;
+    }
+
+    .progress-label-row {
       display: flex;
       justify-content: space-between;
-      font-size: 0.8rem;
-      color: #6b7280;
+      align-items: center;
       margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .progress-label-row strong {
+      color: var(--text-main);
+      font-size: 13px;
     }
 
     .progress-bar {
       position: relative;
       width: 100%;
       height: 8px;
-      background: #e5e7eb;
       border-radius: 999px;
+      background: #e5e7eb;
       overflow: hidden;
     }
 
-    .progress-bar-inner {
+    .progress-fill {
       position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--primary-blue), var(--accent-blue));
-      border-radius: 999px;
-      transition: width 0.3s ease;
+      inset: 0;
+      width: 25%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.28s ease-in-out;
     }
 
-    .progress-step-labels {
-      display: flex;
-      justify-content: space-between;
+    .progress-steps {
       margin-top: 8px;
-      font-size: 0.78rem;
-      color: #9ca3af;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
-    .progress-step-labels span.active {
-      color: var(--primary-blue);
+    .progress-step {
+      text-align: center;
+      padding: 4px 0;
+      border-radius: 999px;
+      background: #f3f4f6;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .progress-step.active {
+      background: rgba(31, 78, 121, 0.08);
+      color: var(--primary);
       font-weight: 600;
     }
 
-    /* Form layout */
-
+    /* Form */
     form {
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
 
-    .step {
+    fieldset {
+      border: none;
+      padding: 0;
+      margin: 0;
       display: none;
-    }
-    .step.active {
-      display: block;
-    }
-
-    .field-row {
-      display: grid;
-      grid-template-columns: 1fr;
+      flex-direction: column;
       gap: 16px;
     }
 
-    @media (min-width: 768px) {
-      .field-row.two {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .field-row.three {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+    fieldset.active {
+      display: flex;
+    }
+
+    .fieldset-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .fieldset-help {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 16px;
+    }
+
+    @media (max-width: 600px) {
+      .grid-2 {
+        grid-template-columns: minmax(0, 1fr);
       }
     }
 
-    .field {
+    .form-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
+      font-size: 13px;
     }
 
-    label {
-      font-size: 0.86rem;
-      font-weight: 500;
-      color: #374151;
-    }
-
-    .hint {
-      font-size: 0.78rem;
-      color: #6b7280;
+    label span.required {
+      color: #b91c1c;
     }
 
     input[type="text"],
     input[type="email"],
     input[type="tel"],
     input[type="number"],
-    textarea,
-    select {
+    select,
+    textarea {
       border-radius: 10px;
-      border: 1px solid #d1d5db;
+      border: 1px solid var(--border);
       padding: 8px 10px;
-      font-size: 0.9rem;
-      font-family: inherit;
-      outline: none;
+      font: inherit;
+      font-size: 13px;
       background: #f9fafb;
       transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
     }
 
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: var(--primary-blue);
-      box-shadow: 0 0 0 1px rgba(31, 78, 121, 0.2);
-      background: var(--white);
-    }
-
     textarea {
-      min-height: 72px;
+      min-height: 74px;
       resize: vertical;
     }
 
-    /* AI focus checkboxes */
-
-    .checkbox-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      margin-top: 8px;
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(0, 163, 255, 0.4);
+      background: #ffffff;
     }
 
-    @media (min-width: 768px) {
-      .checkbox-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+    .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .checkbox-group,
+    .checkbox-group-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
     }
 
     .checkbox-pill {
-      border-radius: 999px;
-      padding: 8px 10px;
-      border: 1px solid #d1d5db;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 8px;
-      font-size: 0.85rem;
-      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 12px;
       background: #f9fafb;
-      transition: all 0.15s ease;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .checkbox-pill input[type="checkbox"] {
-      width: 14px;
-      height: 14px;
-      margin: 0;
+    .checkbox-pill:hover {
+      background: #f3f4f6;
     }
 
-    .checkbox-pill span {
-      flex: 1;
+    .checkbox-pill input {
+      margin-top: 2px;
     }
 
-    .checkbox-pill.active {
-      border-color: var(--primary-blue);
-      background: rgba(31, 78, 121, 0.06);
+    .checkbox-text-main {
+      font-weight: 500;
     }
 
-    /* Footer / buttons */
+    .checkbox-text-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
 
-    .footer {
+    .buttons-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 8px;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .footer-left {
-      font-size: 0.8rem;
-      color: #6b7280;
-    }
-
-    .buttons {
-      display: flex;
+      margin-top: 4px;
       gap: 10px;
-      justify-content: flex-end;
+    }
+
+    .buttons-right {
+      display: flex;
+      gap: 8px;
     }
 
     .btn {
-      border-radius: 999px;
-      padding: 8px 16px;
-      font-size: 0.9rem;
-      font-weight: 500;
+      border-radius: var(--radius-pill);
       border: none;
+      padding: 8px 15px;
+      font-size: 13px;
+      font-weight: 500;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.06s ease;
+      white-space: nowrap;
     }
 
-    .btn-primary {
-      background: linear-gradient(90deg, var(--primary-blue), var(--accent-blue));
-      color: #ffffff;
+    .btn:active {
+      transform: translateY(1px);
     }
 
     .btn-secondary {
-      background: #e5e7eb;
-      color: #374151;
+      background: #f3f4f6;
+      color: var(--text-main);
     }
 
-    .btn:disabled {
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #ffffff;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.28);
+    }
+
+    .btn-primary[disabled],
+    .btn-secondary[disabled] {
       opacity: 0.6;
       cursor: default;
+      box-shadow: none;
     }
 
-    .status {
+    .btn-icon {
+      font-size: 14px;
+    }
+
+    .status-message {
       margin-top: 10px;
-      font-size: 0.85rem;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 12px;
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
     }
 
-    .status.error {
+    .status-message.show {
+      display: flex;
+    }
+
+    .status-success {
+      background: #ecfdf3;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .status-error {
+      background: #fef2f2;
       color: #b91c1c;
+      border: 1px solid #fecaca;
     }
 
-    .status.success {
-      color: #15803d;
+    .status-icon {
+      font-size: 14px;
+      margin-top: 2px;
+    }
+
+    .small-print {
+      margin-top: 8px;
+      font-size: 10px;
+      color: var(--text-muted);
     }
   </style>
 </head>
 <body>
   <div class="page">
-    <div class="card">
-      <div class="header">
-        <div class="title-block">
-          <h1>Tell us about your business</h1>
-          <p>We’ll set up your AI office around how you actually work day-to-day.</p>
-        </div>
-        <div class="badge">
-          <span>⚡</span>
+    <div class="shell">
+      <div class="inner">
+        <!-- LEFT SIDE COPY -->
+        <div class="left">
+          <div class="badge">
+            <span class="badge-dot"></span>
+            TradeBotPro • AI office for trades
+          </div>
           <div>
-            <div style="font-size:0.78rem;font-weight:600;">Done in under 2 minutes</div>
-            <div style="font-size:0.72rem;">No payment needed yet</div>
+            <h1>Tell us about your business in 60 seconds</h1>
+            <p class="subtitle">
+              Answer a few quick questions and we’ll set up your AI office to speak like you,
+              quote like you, and book work straight into your diary.
+            </p>
           </div>
+
+          <div class="benefits">
+            <div class="benefit">
+              <span class="benefit-icon">⚡</span>
+              <span>Reply to new enquiries in seconds — even when you’re on a roof or under a boiler.</span>
+            </div>
+            <div class="benefit">
+              <span class="benefit-icon">📅</span>
+              <span>Turn quotes into booked jobs with friendly follow-ups and reminders.</span>
+            </div>
+            <div class="benefit">
+              <span class="benefit-icon">💬</span>
+              <span>WhatsApp, web chat, and email — one AI office that never clocks off.</span>
+            </div>
+            <div class="benefit">
+              <span class="benefit-icon">🧾</span>
+              <span>Chase unpaid invoices and reviews without awkward phone calls.</span>
+            </div>
+          </div>
+
+          <div class="mini-highlight">
+            <span>✅</span>
+            <span>
+              <strong>No long forms.</strong> Just tick what you do and what you want help with.
+            </span>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE FORM -->
+        <div class="right">
+          <div class="progress-wrapper">
+            <div class="progress-label-row">
+              <strong>Step <span id="step-counter">1</span> of 4</strong>
+              <span id="step-label">Business basics</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-steps">
+              <div class="progress-step active" data-step-label="Business basics">1. Business</div>
+              <div class="progress-step" data-step-label="Where you work & pricing">2. Area & pricing</div>
+              <div class="progress-step" data-step-label="What your AI office should focus on">3. AI office focus</div>
+              <div class="progress-step" data-step-label="Confirm & submit">4. Confirm</div>
+            </div>
+          </div>
+
+          <form id="signup-form" novalidate>
+            <!-- STEP 1: BASIC DETAILS -->
+            <fieldset data-step="1" class="active">
+              <div class="fieldset-title">First, the basics</div>
+              <div class="fieldset-help">
+                These details tell us who we’re setting TradeBotPro up for and how to contact you.
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label for="business_name">
+                    Business name <span class="required">*</span>
+                  </label>
+                  <input type="text" id="business_name" name="business_name" required />
+                  <div class="hint">E.g. “Test Plumber Ltd”</div>
+                </div>
+                <div class="form-group">
+                  <label for="trade_type">
+                    Trade <span class="required">*</span>
+                  </label>
+                  <select id="trade_type" name="trade_type" required>
+                    <option value="">Please choose…</option>
+                    <option value="Plumbing & heating">Plumbing &amp; heating</option>
+                    <option value="Gas engineer">Gas engineer</option>
+                    <option value="Electrician">Electrician</option>
+                    <option value="Roofing">Roofing</option>
+                    <option value="Landscaping & gardening">Landscaping &amp; gardening</option>
+                    <option value="Handyman / multi-trade">Handyman / multi-trade</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label for="owner_name">
+                    Your name <span class="required">*</span>
+                  </label>
+                  <input type="text" id="owner_name" name="owner_name" required />
+                  <div class="hint">The main decision-maker we’ll speak to.</div>
+                </div>
+                <div class="form-group">
+                  <label for="contact_name">
+                    Contact name (if different)
+                  </label>
+                  <input type="text" id="contact_name" name="contact_name" />
+                  <div class="hint">Leave blank if it’s just you.</div>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label for="email">
+                    Email <span class="required">*</span>
+                  </label>
+                  <input type="email" id="email" name="email" required />
+                  <div class="hint">Where should we send setup details?</div>
+                </div>
+                <div class="form-group">
+                  <label for="phone">
+                    Mobile or WhatsApp number <span class="required">*</span>
+                  </label>
+                  <input type="tel" id="phone" name="phone" required />
+                  <div class="hint">So we can test your AI office with you.</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="website_url">
+                  Website (if you have one)
+                </label>
+                <input type="text" id="website_url" name="website_url" placeholder="https://…" />
+                <div class="hint">We’ll use this to match your branding and tone.</div>
+              </div>
+            </fieldset>
+
+            <!-- STEP 2: AREA & PRICING -->
+            <fieldset data-step="2">
+              <div class="fieldset-title">Where you work & typical pricing</div>
+              <div class="fieldset-help">
+                This helps TradeBotPro answer “How much do you charge?” without you picking up the phone.
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label for="base_postcode">
+                    Base postcode <span class="required">*</span>
+                  </label>
+                  <input type="text" id="base_postcode" name="base_postcode" required />
+                  <div class="hint">E.g. HP14 3QF — we won’t share this publicly.</div>
+                </div>
+                <div class="form-group">
+                  <label for="service_radius">
+                    How far do you usually travel?
+                  </label>
+                  <input type="text" id="service_radius" name="service_radius" placeholder="E.g. 15 miles or list of areas" />
+                  <div class="hint">We’ll use this as a guide for job locations.</div>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label for="callout_fee">
+                    Call-out fee (if any)
+                  </label>
+                  <input type="text" id="callout_fee" name="callout_fee" placeholder="E.g. £0, £60 inc. VAT" />
+                  <div class="hint">Leave blank if you don’t charge a call-out.</div>
+                </div>
+                <div class="form-group">
+                  <label for="first_hour_rate">
+                    First hour rate
+                  </label>
+                  <input type="text" id="first_hour_rate" name="first_hour_rate" placeholder="E.g. £90+VAT" />
+                  <div class="hint">We can say “typically from…” in replies.</div>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label for="hourly_rate">
+                    Hourly rate after first hour
+                  </label>
+                  <input type="text" id="hourly_rate" name="hourly_rate" placeholder="E.g. £65+VAT" />
+                </div>
+                <div class="form-group">
+                  <label for="boiler_service_from">
+                    Boiler service from
+                  </label>
+                  <input type="text" id="boiler_service_from" name="boiler_service_from" placeholder="E.g. £90 fixed" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="quote_minimum">
+                  Typical minimum for small jobs
+                </label>
+                <input type="text" id="quote_minimum" name="quote_minimum" placeholder="E.g. £120 minimum charge" />
+                <div class="hint">Helps avoid time-wasters on tiny jobs.</div>
+              </div>
+
+              <div class="form-group">
+                <label>
+                  What services do you offer? <span class="required">*</span>
+                </label>
+                <div class="fieldset-help">
+                  Tick all that apply — we’ll turn this into a simple “What we do” summary for your AI office.
+                </div>
+                <div class="checkbox-group">
+                  <label class="checkbox-pill">
+                    <input type="checkbox" name="services" value="Emergency callouts" />
+                    <div>
+                      <div class="checkbox-text-main">Emergency callouts</div>
+                      <div class="checkbox-text-sub">Burst pipes, leaks, no heating, no hot water, etc.</div>
+                    </div>
+                  </label>
+                  <label class="checkbox-pill">
+                    <input type="checkbox" name="services" value="Boiler servicing & safety checks" />
+                    <div>
+                      <div class="checkbox-text-main">Boiler servicing &amp; safety checks</div>
+                      <div class="checkbox-text-sub">Annual services, landlord certificates, safety checks.</div>
+                    </div>
+                  </label>
+                  <label class="checkbox-pill">
+                    <input type="checkbox" name="services" value="New boiler installs & upgrades" />
+                    <div>
+                      <div class="checkbox-text-main">New boiler installs &amp; upgrades</div>
+                      <div class="checkbox-text-sub">Quoting, site visits, finance options (if applicable).</div>
+                    </div>
+                  </label>
+                  <label class="checkbox-pill">
+                    <input type="checkbox" name="services" value="General plumbing" />
+                    <div>
+                      <div class="checkbox-text-main">General plumbing</div>
+                      <div class="checkbox-text-sub">Taps, toilets, radiators, cylinders, bathrooms, etc.</div>
+                    </div>
+                  </label>
+                  <label class="checkbox-pill">
+                    <input type="checkbox" name="services" value="Planned maintenance contracts" />
+                    <div>
+                      <div class="checkbox-text-main">Planned maintenance contracts</div>
+                      <div class="checkbox-text-sub">For landlords, agents, commercial clients, etc.</div>
+                    </div>
+                  </label>
+                  <label class="checkbox-pill">
+                    <input type="checkbox" name="services" value="Other specialist services" />
+                    <div>
+                      <div class="checkbox-text-main">Other specialist services</div>
+                      <div class="checkbox-text-sub">Water softeners, powerflushing, underfloor heating, etc.</div>
+                    </div>
+                  </label>
+                </div>
+                <div class="form-group" style="margin-top:8px;">
+                  <label for="services_other">
+                    Anything else we should mention?
+                  </label>
+                  <input type="text" id="services_other" name="services_other" placeholder="E.g. LPG, oil, commercial only, etc." />
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- STEP 3: AI OFFICE FOCUS -->
+            <fieldset data-step="3">
+              <div class="fieldset-title">What should your AI office focus on first?</div>
+              <div class="fieldset-help">
+                Tick the areas where you’d like the most help. We’ll prioritise these when we tune your AI.
+              </div>
+
+              <div class="checkbox-group">
+                <label class="checkbox-pill">
+                  <input type="checkbox" name="ai_focus" value="Answering new enquiries quickly" />
+                  <div>
+                    <div class="checkbox-text-main">Answering new enquiries quickly</div>
+                    <div class="checkbox-text-sub">Replying to new leads within seconds, 24/7.</div>
+                  </div>
+                </label>
+                <label class="checkbox-pill">
+                  <input type="checkbox" name="ai_focus" value="Turning quotes into booked jobs" />
+                  <div>
+                    <div class="checkbox-text-main">Turning quotes into booked jobs</div>
+                    <div class="checkbox-text-sub">Follow-ups, gentle nudges, and “ready to go ahead?” messages.</div>
+                  </div>
+                </label>
+                <label class="checkbox-pill">
+                  <input type="checkbox" name="ai_focus" value="Managing your diary & appointments" />
+                  <div>
+                    <div class="checkbox-text-main">Managing your diary &amp; appointments</div>
+                    <div class="checkbox-text-sub">Booking jobs into agreed slots and avoiding double-booking.</div>
+                  </div>
+                </label>
+                <label class="checkbox-pill">
+                  <input type="checkbox" name="ai_focus" value="Out-of-hours cover" />
+                  <div>
+                    <div class="checkbox-text-main">Out-of-hours cover</div>
+                    <div class="checkbox-text-sub">Looking after calls and messages when you’re closed.</div>
+                  </div>
+                </label>
+                <label class="checkbox-pill">
+                  <input type="checkbox" name="ai_focus" value="Chasing unpaid invoices" />
+                  <div>
+                    <div class="checkbox-text-main">Chasing unpaid invoices</div>
+                    <div class="checkbox-text-sub">Polite reminders so you don’t have to do the awkward bit.</div>
+                  </div>
+                </label>
+                <label class="checkbox-pill">
+                  <input type="checkbox" name="ai_focus" value="Getting more reviews" />
+                  <div>
+                    <div class="checkbox-text-main">Getting more reviews</div>
+                    <div class="checkbox-text-sub">Google / Trustpilot review requests after completed work.</div>
+                  </div>
+                </label>
+              </div>
+
+              <div class="form-group" style="margin-top:10px;">
+                <label for="ai_style_notes">
+                  Anything specific about tone or how we should speak for you?
+                </label>
+                <textarea id="ai_style_notes" name="ai_style_notes" placeholder="E.g. friendly but professional, no hard selling, plain English, etc."></textarea>
+                <div class="hint">
+                  Don’t overthink this — a couple of bullet points is enough. We can refine it together later.
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- STEP 4: CONFIRM & SUBMIT -->
+            <fieldset data-step="4">
+              <div class="fieldset-title">Confirm & submit</div>
+              <div class="fieldset-help">
+                Quick check and then you’re done. We’ll use this info to set up your TradeBotPro AI office and get in touch.
+              </div>
+
+              <div class="form-group">
+                <label>
+                  What happens next
+                </label>
+                <div class="hint">
+                  1) We review your answers &amp; build a first version of your AI office.<br />
+                  2) We walk through it with you on WhatsApp or a quick call.<br />
+                  3) Once you’re happy, we switch it on for your customers.
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>
+                  Anything else we should know?
+                </label>
+                <textarea id="extra_notes" name="extra_notes" placeholder="Optional — e.g. preferred hours, busy days, anything unusual about your business."></textarea>
+              </div>
+
+              <div class="small-print">
+                By submitting, you agree we can contact you about setting up TradeBotPro for your business.
+                We’ll never sell your data to anyone else.
+              </div>
+            </fieldset>
+
+            <!-- HIDDEN DEFAULTS USED BY SUPABASE -->
+            <input type="hidden" name="plan_status" value="Waitlist" />
+            <input type="hidden" name="pending_setup" value="true" />
+            <input type="hidden" name="is_active" value="false" />
+            <input type="hidden" name="account_status" value="Pending onboarding" />
+            <input type="hidden" name="account_status_reason" value="New signup via website" />
+
+            <!-- BUTTONS + STATUS -->
+            <div class="buttons-row">
+              <button type="button" class="btn btn-secondary" id="btn-prev" disabled>
+                <span class="btn-icon">←</span> Back
+              </button>
+              <div class="buttons-right">
+                <button type="button" class="btn btn-secondary" id="btn-next">
+                  Next <span class="btn-icon">→</span>
+                </button>
+                <button type="submit" class="btn btn-primary" id="btn-submit" style="display:none;">
+                  Submit details <span class="btn-icon">⚡</span>
+                </button>
+              </div>
+            </div>
+
+            <div id="status-success" class="status-message status-success">
+              <span class="status-icon">✅</span>
+              <span>Thank you – we’ve received your details. We’ll be in touch shortly.</span>
+            </div>
+            <div id="status-error" class="status-message status-error">
+              <span class="status-icon">⚠️</span>
+              <span>Something went wrong saving your details. Please try again or contact us.</span>
+            </div>
+          </form>
         </div>
       </div>
-
-      <!-- Progress bar -->
-      <div class="progress-wrapper">
-        <div class="progress-labels">
-          <span>Step <span id="progress-step">1</span> of 4</span>
-          <span id="progress-percent">0%</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-bar-inner" id="progress-inner"></div>
-        </div>
-        <div class="progress-step-labels">
-          <span id="label-step-1" class="active">Business basics</span>
-          <span id="label-step-2">AI focus</span>
-          <span id="label-step-3">Pricing</span>
-          <span id="label-step-4">Finish</span>
-        </div>
-      </div>
-
-      <form id="signup-form" novalidate>
-        <!-- STEP 1: business basics -->
-        <div class="step active" data-step="1">
-          <div class="field-row two">
-            <div class="field">
-              <label for="business_name">Business / trading name *</label>
-              <input type="text" id="business_name" name="business_name" required />
-              <div class="hint">E.g. “Test Plumber Ltd”</div>
-            </div>
-
-            <div class="field">
-              <label for="trade_type">What do you mainly do? *</label>
-              <select id="trade_type" name="trade_type" required>
-                <option value="">Select a trade</option>
-                <option value="Plumbing & Heating">Plumbing &amp; Heating</option>
-                <option value="Gas & Boilers">Gas &amp; Boiler Specialist</option>
-                <option value="Bathrooms">Bathrooms</option>
-                <option value="Drainage">Drainage</option>
-                <option value="Electrical">Electrical</option>
-                <option value="Multi-trade">Multi-trade / Property Maintenance</option>
-                <option value="Other">Other (tell us below)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="field-row two">
-            <div class="field">
-              <label for="owner_name">Owner’s name *</label>
-              <input type="text" id="owner_name" name="owner_name" required />
-            </div>
-            <div class="field">
-              <label for="contact_name">Main contact we’ll work with</label>
-              <input type="text" id="contact_name" name="contact_name" />
-              <div class="hint">Leave blank if that’s you.</div>
-            </div>
-          </div>
-
-          <div class="field-row two">
-            <div class="field">
-              <label for="email">Best email for setup *</label>
-              <input type="email" id="email" name="email" required />
-            </div>
-            <div class="field">
-              <label for="phone">Mobile / WhatsApp number *</label>
-              <input type="tel" id="phone" name="phone" required />
-              <div class="hint">We use this to connect your WhatsApp if you choose that later.</div>
-            </div>
-          </div>
-
-          <div class="field-row two">
-            <div class="field">
-              <label for="base_postcode">Base postcode *</label>
-              <input type="text" id="base_postcode" name="base_postcode" required />
-              <div class="hint">E.g. HP14 3QF.</div>
-            </div>
-            <div class="field">
-              <label for="website_url">Website (if you have one)</label>
-              <input type="text" id="website_url" name="website_url" />
-            </div>
-          </div>
-        </div>
-
-        <!-- STEP 2: AI focus (checkboxes + notes) -->
-        <div class="step" data-step="2">
-          <div class="field">
-            <label>What should your AI office focus on first? *</label>
-            <div class="hint">Tick all that apply – we’ll prioritise these in your setup.</div>
-
-            <div class="checkbox-grid" id="ai-focus-grid">
-              <label class="checkbox-pill">
-                <input type="checkbox" name="ai_focus" value="Answer new enquiries quickly" />
-                <span>Answer new enquiries quickly</span>
-              </label>
-              <label class="checkbox-pill">
-                <input type="checkbox" name="ai_focus" value="Quote simple jobs automatically" />
-                <span>Quote simple jobs automatically</span>
-              </label>
-              <label class="checkbox-pill">
-                <input type="checkbox" name="ai_focus" value="Book jobs into my diary" />
-                <span>Book jobs into my diary</span>
-              </label>
-              <label class="checkbox-pill">
-                <input type="checkbox" name="ai_focus" value="Handle boiler service reminders" />
-                <span>Handle boiler service reminders</span>
-              </label>
-              <label class="checkbox-pill">
-                <input type="checkbox" name="ai_focus" value="Chase unpaid invoices" />
-                <span>Chase unpaid invoices</span>
-              </label>
-              <label class="checkbox-pill">
-                <input type="checkbox" name="ai_focus" value="Turn website visitors into WhatsApp chats" />
-                <span>Turn website visitors into WhatsApp chats</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="ai_style_notes">Anything else we should know?</label>
-            <textarea id="ai_style_notes" name="ai_style_notes"
-              placeholder="Tell us about how you like to speak to customers, typical jobs, areas you cover, anything you want the AI to know..."></textarea>
-          </div>
-        </div>
-
-        <!-- STEP 3: pricing basics -->
-        <div class="step" data-step="3">
-          <div class="field-row three">
-            <div class="field">
-              <label for="callout_fee">Call-out fee (if any)</label>
-              <input type="number" id="callout_fee" name="callout_fee" min="0" step="1" />
-              <div class="hint">Leave blank if you don’t charge a call-out.</div>
-            </div>
-            <div class="field">
-              <label for="first_hour_rate">First hour rate (£)</label>
-              <input type="number" id="first_hour_rate" name="first_hour_rate" min="0" step="1" />
-            </div>
-            <div class="field">
-              <label for="hourly_rate">Ongoing hourly rate (£)</label>
-              <input type="number" id="hourly_rate" name="hourly_rate" min="0" step="1" />
-            </div>
-          </div>
-
-          <div class="field-row two">
-            <div class="field">
-              <label for="boiler_service_from">Boiler service from (£)</label>
-              <input type="number" id="boiler_service_from" name="boiler_service_from" min="0" step="1" />
-            </div>
-            <div class="field">
-              <label for="quote_minimum">Minimum job value (£)</label>
-              <input type="number" id="quote_minimum" name="quote_minimum" min="0" step="1" />
-              <div class="hint">E.g. £80 – below this we might suggest grouping work.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- STEP 4: finish -->
-        <div class="step" data-step="4">
-          <div class="field">
-            <label>Before you submit</label>
-            <div class="hint">
-              We’ll configure TradeBotPro for your trade, area and pricing, then email you a link to test it.
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="services_summary">Anything specific you want this AI to do in the next 30 days?</label>
-            <textarea id="services_summary" name="services_summary"
-              placeholder="E.g. “Reply to all boiler service enquiries within 30 seconds and book them into my existing diary slots.”"></textarea>
-          </div>
-        </div>
-
-        <div class="footer">
-          <div class="footer-left">
-            We’ll never share your details. You’re not committing to anything yet.
-          </div>
-          <div class="buttons">
-            <button type="button" class="btn btn-secondary" id="back-btn" disabled>Back</button>
-            <button type="button" class="btn btn-primary" id="next-btn">Next</button>
-            <button type="submit" class="btn btn-primary" id="submit-btn" style="display:none;">
-              Submit details
-            </button>
-          </div>
-        </div>
-
-        <div id="status" class="status" aria-live="polite"></div>
-      </form>
     </div>
   </div>
 
   <script>
-    // ==== CONFIG – PUT YOUR REAL VALUES HERE ====
+    // === CONFIG ===
+    // If your current live page already has these set correctly, keep those values.
     const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-    // ==== PROGRESS / STEPS ====
-    const form = document.getElementById('signup-form');
-    const steps = Array.from(document.querySelectorAll('.step'));
-    const backBtn = document.getElementById('back-btn');
-    const nextBtn = document.getElementById('next-btn');
-    const submitBtn = document.getElementById('submit-btn');
-    const statusEl = document.getElementById('status');
+    const TABLE_ENDPOINT = SUPABASE_URL + "/rest/v1/tradebotpro_signups";
+
+    // === MULTI-STEP FORM LOGIC ===
+    const form = document.getElementById("signup-form");
+    const fieldsets = Array.from(form.querySelectorAll("fieldset[data-step]"));
+    const btnPrev = document.getElementById("btn-prev");
+    const btnNext = document.getElementById("btn-next");
+    const btnSubmit = document.getElementById("btn-submit");
+    const stepCounter = document.getElementById("step-counter");
+    const stepLabel = document.getElementById("step-label");
+    const progressFill = document.getElementById("progress-fill");
+    const progressStepChips = Array.from(document.querySelectorAll(".progress-step"));
+
+    const statusSuccess = document.getElementById("status-success");
+    const statusError = document.getElementById("status-error");
 
     let currentStep = 1;
-    const totalSteps = steps.length;
+    const totalSteps = fieldsets.length;
 
-    function updateProgress() {
-      const percent = Math.round(((currentStep - 1) / (totalSteps - 1)) * 100);
-      document.getElementById('progress-step').textContent = currentStep;
-      document.getElementById('progress-percent').textContent = percent + '%';
-      document.getElementById('progress-inner').style.width = percent + '%';
-
-      for (let i = 1; i <= totalSteps; i++) {
-        const label = document.getElementById('label-step-' + i);
-        if (!label) continue;
-        label.classList.toggle('active', i === currentStep);
-      }
-
-      steps.forEach(step => {
-        const stepNum = Number(step.getAttribute('data-step'));
-        step.classList.toggle('active', stepNum === currentStep);
+    function updateStepUI() {
+      fieldsets.forEach(fs => {
+        fs.classList.toggle("active", Number(fs.dataset.step) === currentStep);
       });
 
-      backBtn.disabled = currentStep === 1;
-      if (currentStep === totalSteps) {
-        nextBtn.style.display = 'none';
-        submitBtn.style.display = 'inline-flex';
+      stepCounter.textContent = String(currentStep);
+      const activeChip = progressStepChips[currentStep - 1];
+      const label = activeChip ? activeChip.dataset.stepLabel : "";
+      stepLabel.textContent = label || "Step " + currentStep;
+
+      progressStepChips.forEach((chip, idx) => {
+        chip.classList.toggle("active", idx === currentStep - 1);
+      });
+
+      const progressPercent = (currentStep / totalSteps) * 100;
+      progressFill.style.width = progressPercent + "%";
+
+      btnPrev.disabled = currentStep === 1;
+      if (currentStep < totalSteps) {
+        btnNext.style.display = "inline-flex";
+        btnSubmit.style.display = "none";
       } else {
-        nextBtn.style.display = 'inline-flex';
-        submitBtn.style.display = 'none';
+        btnNext.style.display = "none";
+        btnSubmit.style.display = "inline-flex";
       }
+
+      statusSuccess.classList.remove("show");
+      statusError.classList.remove("show");
     }
 
-    function validateCurrentStep() {
-      const stepEl = steps[currentStep - 1];
-      const requiredFields = Array.from(stepEl.querySelectorAll('[required]'));
+    btnPrev.addEventListener("click", () => {
+      if (currentStep > 1) {
+        currentStep -= 1;
+        updateStepUI();
+      }
+    });
 
-      for (const field of requiredFields) {
-        if (!field.value || field.value.trim() === '') {
-          field.focus();
-          return false;
+    btnNext.addEventListener("click", () => {
+      // Very light validation: make sure required bits in current step are filled
+      if (!validateCurrentStep()) return;
+      if (currentStep < totalSteps) {
+        currentStep += 1;
+        updateStepUI();
+      }
+    });
+
+    function validateCurrentStep() {
+      const activeFs = fieldsets.find(fs => Number(fs.dataset.step) === currentStep);
+      if (!activeFs) return true;
+
+      const requiredInputs = Array.from(activeFs.querySelectorAll("[required]"));
+      let firstInvalid = null;
+
+      requiredInputs.forEach(el => {
+        if (!el.value.trim()) {
+          el.classList.add("invalid");
+          if (!firstInvalid) firstInvalid = el;
+        } else {
+          el.classList.remove("invalid");
         }
+      });
+
+      if (firstInvalid) {
+        firstInvalid.focus();
+        return false;
       }
       return true;
     }
 
-    backBtn.addEventListener('click', () => {
-      if (currentStep > 1) {
-        currentStep--;
-        updateProgress();
-      }
-    });
+    // === SUBMIT TO SUPABASE ===
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-    nextBtn.addEventListener('click', () => {
-      if (!validateCurrentStep()) {
-        statusEl.textContent = 'Please complete the required fields on this step.';
-        statusEl.className = 'status error';
-        return;
-      }
-      statusEl.textContent = '';
-      statusEl.className = 'status';
-      if (currentStep < totalSteps) {
-        currentStep++;
-        updateProgress();
-      }
-    });
+      // Last step validation
+      if (!validateCurrentStep()) return;
 
-    // Make checkbox pills toggle appearance
-    const aiFocusGrid = document.getElementById('ai-focus-grid');
-    if (aiFocusGrid) {
-      aiFocusGrid.addEventListener('change', (e) => {
-        if (e.target.type === 'checkbox') {
-          const label = e.target.closest('.checkbox-pill');
-          if (!label) return;
-          label.classList.toggle('active', e.target.checked);
+      statusSuccess.classList.remove("show");
+      statusError.classList.remove("show");
+
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = "Submitting…";
+
+      try {
+        // Basic fields
+        const business_name = (form.business_name.value || "").trim();
+        const owner_name = (form.owner_name.value || "").trim();
+        const contact_name = (form.contact_name.value || "").trim() || owner_name;
+        const email = (form.email.value || "").trim();
+        const phone = (form.phone.value || "").trim();
+        const trade_type = form.trade_type.value || "";
+        const base_postcode = (form.base_postcode.value || "").trim().toUpperCase();
+        const website_url = (form.website_url.value || "").trim();
+        const callout_fee = (form.callout_fee.value || "").trim();
+        const first_hour_rate = (form.first_hour_rate.value || "").trim();
+        const hourly_rate = (form.hourly_rate.value || "").trim();
+        const boiler_service_from = (form.boiler_service_from.value || "").trim();
+        const quote_minimum = (form.quote_minimum.value || "").trim();
+
+        // Services checkboxes -> services_summary
+        const serviceCheckboxes = Array.from(
+          form.querySelectorAll("input[name='services']:checked")
+        );
+        const serviceValues = serviceCheckboxes.map(cb => cb.value);
+        const services_other = (form.services_other.value || "").trim();
+        if (services_other) {
+          serviceValues.push(services_other);
         }
-      });
-    }
+        const services_summary = serviceValues.join("; ");
 
-    // ==== SUPABASE INSERT ====
+        // AI focus checkboxes -> combined into ai_style_notes with free text
+        const aiFocusCheckboxes = Array.from(
+          form.querySelectorAll("input[name='ai_focus']:checked")
+        );
+        const aiFocusValues = aiFocusCheckboxes.map(cb => cb.value);
+        const ai_style_notes_free = (form.ai_style_notes.value || "").trim();
+        let ai_style_notes = "";
 
-    async function submitToSupabase(formData) {
-      // Build AI focus list
-      const aiFocusSelections = [];
-      document.querySelectorAll('input[name="ai_focus"]:checked').forEach(cb => {
-        aiFocusSelections.push(cb.value);
-      });
+        if (aiFocusValues.length) {
+          ai_style_notes += "AI focus: " + aiFocusValues.join("; ");
+        }
+        if (ai_style_notes_free) {
+          if (ai_style_notes) ai_style_notes += " | ";
+          ai_style_notes += "Notes: " + ai_style_notes_free;
+        }
 
-      const aiFocusSummary = aiFocusSelections.length
-        ? 'AI focus priorities: ' + aiFocusSelections.join(', ')
-        : '';
+        const extra_notes = (form.extra_notes.value || "").trim();
 
-      const extraNotes = formData.get('services_summary') || '';
-      const combinedServicesSummary = [aiFocusSummary, extraNotes]
-        .filter(Boolean)
-        .join(' | ');
+        // Hidden defaults
+        const plan_status = form.plan_status.value || "Waitlist";
+        const pending_setup = String(form.pending_setup.value).toLowerCase() === "true";
+        const is_active = String(form.is_active.value).toLowerCase() === "true";
+        const account_status = form.account_status.value || "Pending onboarding";
+        const account_status_reason =
+          form.account_status_reason.value || "New signup via website";
 
-      const aiStyleNotes = formData.get('ai_style_notes') || '';
+        const payload = {
+          business_name,
+          owner_name,
+          contact_name,
+          email,
+          phone,
+          trade_type,
+          base_postcode,
+          website_url,
+          callout_fee,
+          first_hour_rate,
+          hourly_rate,
+          boiler_service_from,
+          quote_minimum,
+          services_summary,
+          ai_style_notes: ai_style_notes || extra_notes, // fall back to extra notes if needed
+          plan_status,
+          pending_setup,
+          is_active,
+          account_status,
+          account_status_reason
+        };
 
-      const payload = {
-        business_name: formData.get('business_name') || '',
-        owner_name: formData.get('owner_name') || '',
-        contact_name: formData.get('contact_name') || '',
-        email: formData.get('email') || '',
-        phone: formData.get('phone') || '',
-        trade_type: formData.get('trade_type') || '',
-        base_postcode: formData.get('base_postcode') || '',
-        website_url: formData.get('website_url') || '',
-        callout_fee: formData.get('callout_fee') || null,
-        first_hour_rate: formData.get('first_hour_rate') || null,
-        hourly_rate: formData.get('hourly_rate') || null,
-        boiler_service_from: formData.get('boiler_service_from') || null,
-        quote_minimum: formData.get('quote_minimum') || null,
-        services_summary: combinedServicesSummary,
-        ai_style_notes: aiStyleNotes,
-        plan_status: 'Trial requested',
-        pending_setup: true,
-        is_active: false,
-        account_status: 'Pending setup',
-        account_status_reason: 'New signup',
-      };
+        console.log("Submitting payload to Supabase:", payload);
 
-      console.log('Submitting payload to Supabase:', payload);
-
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/tradebotpro_signups?select=*`,
-        {
-          method: 'POST',
+        const res = await fetch(TABLE_ENDPOINT + "?select=*", {
+          method: "POST",
           headers: {
             apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-            Prefer: 'return=representation',
+            Authorization: "Bearer " + SUPABASE_ANON_KEY,
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errorBody = await res.json().catch(() => ({}));
+          console.error("Supabase insert error:", errorBody);
+          throw new Error("Supabase error " + res.status);
         }
-      );
 
-      let data;
-      try {
-        data = await res.json();
-      } catch (e) {
-        console.error('Failed to parse Supabase response as JSON:', e);
-        throw new Error('Supabase did not return valid JSON');
-      }
+        const data = await res.json();
+        console.log("Supabase insert success:", data);
 
-      if (!res.ok) {
-        console.error('Supabase insert error:', data);
-        throw new Error(data?.message || 'Supabase insert failed');
-      }
+        // Show success and move them to final step if they aren't already
+        statusSuccess.classList.add("show");
+        statusError.classList.remove("show");
 
-      console.log('Supabase insert success:', data);
-      return data[0];
-    }
+        currentStep = totalSteps;
+        updateStepUI();
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      if (!validateCurrentStep()) {
-        statusEl.textContent = 'Please complete the required fields.';
-        statusEl.className = 'status error';
-        return;
-      }
-
-      statusEl.textContent = 'Saving your details...';
-      statusEl.className = 'status';
-
-      backBtn.disabled = true;
-      nextBtn.disabled = true;
-      submitBtn.disabled = true;
-
-      try {
-        const formData = new FormData(form);
-        await submitToSupabase(formData);
-
-        statusEl.textContent = 'Thank you – we’ve received your details. We’ll be in touch shortly.';
-        statusEl.className = 'status success';
-
-        // Optionally reset form / stay on same screen
+        // You can optionally clear the form here if you like:
         // form.reset();
       } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Something went wrong saving your details. Please try again or contact us.';
-        statusEl.className = 'status error';
+        console.error("Error:", err);
+        statusError.classList.add("show");
+        statusSuccess.classList.remove("show");
       } finally {
-        backBtn.disabled = false;
-        nextBtn.disabled = false;
-        submitBtn.disabled = false;
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Submit details ⚡";
       }
     });
 
-    // Initialise
-    updateProgress();
+    // Initialise UI
+    updateStepUI();
   </script>
 </body>
 </html>
