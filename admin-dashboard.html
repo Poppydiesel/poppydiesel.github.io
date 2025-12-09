@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>TradeBotPro — Admin</title>
+<title>TradeBotPro — Admin Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <style>
 :root{
   --blue:#1f4e79;
   --bg:#f5f7fa;
-  --card:#fff;
+  --card:#ffffff;
   --border:#d1d5db;
   --text:#1b1b1f;
   --muted:#6b7280;
@@ -17,30 +17,22 @@
   --amber:#92400e;
 }
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   background:var(--bg);
   color:var(--text)
 }
+
 .container{
   max-width:1400px;
   margin:24px auto;
-  padding:0 16px;
+  padding:0 16px
 }
-.grid{
-  display:grid;
-  grid-template-columns:1.6fr 1fr;
-  gap:16px
-}
-.card{
-  background:var(--card);
-  border-radius:14px;
-  box-shadow:0 12px 40px rgba(0,0,0,.08);
-  padding:16px
-}
+
 h1{margin:0;color:var(--blue)}
-.subtitle{color:var(--muted);margin-bottom:16px;font-size:14px}
+.subtitle{color:var(--muted);margin:8px 0 16px;font-size:14px}
 
 .kpis{
   display:grid;
@@ -49,68 +41,58 @@ h1{margin:0;color:var(--blue)}
   margin-bottom:16px
 }
 .kpi{
+  background:var(--card);
   border:1px solid var(--border);
   border-radius:12px;
   padding:12px
 }
-.kpi strong{
-  font-size:22px;
-  display:block
-}
-.kpi span{
-  font-size:12px;
-  color:var(--muted)
+.kpi strong{font-size:22px}
+.kpi span{font-size:12px;color:var(--muted)}
+
+.layout{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:16px
 }
 
-/* chart */
-.chart{
-  height:160px;
-  display:flex;
-  align-items:flex-end;
-  gap:6px;
-  margin-top:8px
-}
-.bar{
-  flex:1;
-  background:#e5e7eb;
-  border-radius:6px 6px 0 0;
-}
-.bar > div{
-  background:var(--blue);
-  width:100%;
-  border-radius:6px 6px 0 0
+.card{
+  background:var(--card);
+  border-radius:14px;
+  box-shadow:0 12px 32px rgba(0,0,0,.08);
+  padding:16px
 }
 
-/* table */
+/* TABLE */
 table{width:100%;border-collapse:collapse}
 th,td{
+  font-size:13px;
   padding:10px;
   border-bottom:1px solid #e5e7eb;
-  font-size:13px;
   vertical-align:top
 }
 th{color:var(--muted);font-weight:600}
 
+select,textarea{
+  width:100%;
+  font-size:12px;
+  padding:6px;
+  border:1px solid var(--border);
+  border-radius:8px
+}
+textarea{resize:vertical;min-height:60px}
+
 .badge{
+  display:inline-block;
   padding:3px 9px;
-  border-radius:999px;
   font-size:11px;
-  display:inline-block
+  border-radius:999px
 }
 .live{background:#ecfdf3;color:var(--green)}
 .paused{background:#fff7ed;color:var(--amber)}
 .lead{background:#eef2ff;color:var(--blue)}
 
-select,textarea{
-  width:100%;
-  padding:6px;
-  font-size:12px;
-  border-radius:8px;
-  border:1px solid var(--border)
-}
-textarea{resize:vertical;min-height:70px}
-
 button{
+  margin-top:6px;
   border:none;
   border-radius:999px;
   padding:6px 14px;
@@ -123,6 +105,42 @@ button{
   background:#e5e7eb;
   color:#111
 }
+
+/* SUPPORT */
+.support textarea{
+  min-height:140px;
+  font-size:13px
+}
+.template{
+  display:block;
+  width:100%;
+  margin-bottom:6px;
+  background:#edf2ff;
+  color:#1f4e79
+}
+.copy{background:#16a34a}
+.toggle{background:#e5e7eb;color:#111}
+.advanced{display:none;margin-top:10px}
+.notice{font-size:12px;color:var(--muted)}
+
+/* CHART */
+.chart{
+  display:flex;
+  align-items:flex-end;
+  height:120px;
+  gap:4px;
+  margin-bottom:16px
+}
+.bar{
+  flex:1;
+  background:#e5e7eb;
+  border-radius:4px 4px 0 0
+}
+.bar>div{
+  background:var(--blue);
+  width:100%;
+  border-radius:4px 4px 0 0
+}
 </style>
 </head>
 
@@ -130,7 +148,7 @@ button{
 
 <div class="container">
   <h1>Admin dashboard</h1>
-  <p class="subtitle">Overview, support & account control</p>
+  <p class="subtitle">Operational overview & support</p>
 
   <!-- KPIs -->
   <div class="kpis">
@@ -140,14 +158,14 @@ button{
     <div class="kpi"><strong id="kpiLeads">–</strong><span>Leads / onboarding</span></div>
   </div>
 
-  <div class="grid">
+  <div class="layout">
 
-    <!-- LEFT -->
+    <!-- LEFT: SIGNUPS -->
     <div class="card">
-      <h3>Recent signups (last 14 days)</h3>
+      <h3>Recent signups</h3>
       <div class="chart" id="chart"></div>
 
-      <table style="margin-top:16px">
+      <table>
         <thead>
           <tr>
             <th>Business</th>
@@ -161,89 +179,149 @@ button{
       </table>
     </div>
 
-    <!-- RIGHT -->
-    <div class="card">
-      <h3>Status breakdown</h3>
-      <div id="statusList" style="font-size:13px"></div>
+    <!-- RIGHT: SUPPORT -->
+    <div class="card support">
+      <h3>Support & messages</h3>
+      <p class="notice">Select a signup to generate messages.</p>
+
+      <button class="template" onclick="templateOnboarding()">Onboarding update</button>
+      <button class="template" onclick="templateLive()">You're now live</button>
+      <button class="template" onclick="templatePaused()">Paused (friendly)</button>
+
+      <textarea id="messageBox" placeholder="Choose a template…"></textarea>
+
+      <button class="copy" onclick="copyMsg()">Copy message</button>
+      <button class="toggle" onclick="toggleAdvanced()">Advanced ▾</button>
+
+      <div class="advanced" id="advanced">
+        <button onclick="polishWithAI()">Polish with AI</button>
+        <p class="notice">AI never sends messages automatically.</p>
+      </div>
     </div>
 
   </div>
 </div>
 
 <script>
-const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+const SUPABASE_URL='https://yaiutswdcbfwkxfqxkzy.supabase.co';
+const SUPABASE_ANON_KEY= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8
 
-let allRows=[];
+let rows=[], selected=null;
 
 async function load(){
   const res=await fetch(
     `${SUPABASE_URL}/rest/v1/tradebotpro_signups?order=created_at.desc`,
     {headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}}
   );
-  allRows=await res.json();
-  renderKPIs();
-  renderChart();
-  renderStatusBreakdown();
-  renderTable();
+  rows=await res.json();
+  renderKPIs(); renderChart(); renderTable();
 }
 
 function renderKPIs(){
-  document.getElementById('kpiTotal').textContent=allRows.length;
-  document.getElementById('kpiLive').textContent=allRows.filter(r=>r.is_active).length;
-  document.getElementById('kpiPaused').textContent=allRows.filter(r=>r.account_status==='Paused').length;
-  document.getElementById('kpiLeads').textContent=allRows.filter(r=>!r.is_active && r.account_status!=='Paused').length;
+  kpiTotal.textContent=rows.length;
+  kpiLive.textContent=rows.filter(r=>r.is_active).length;
+  kpiPaused.textContent=rows.filter(r=>r.account_status==='Paused').length;
+  kpiLeads.textContent=rows.filter(r=>!r.is_active && r.account_status!=='Paused').length;
 }
 
 function renderChart(){
+  chart.innerHTML='';
   const days=[...Array(14)].map((_,i)=>{
-    const d=new Date();d.setDate(d.getDate()-i);
+    const d=new Date(); d.setDate(d.getDate()-i);
     return d.toISOString().slice(0,10);
   }).reverse();
 
-  const counts=days.map(day=>
-    allRows.filter(r=>r.created_at?.slice(0,10)===day).length
-  );
-
+  const counts=days.map(d=>rows.filter(r=>r.created_at?.slice(0,10)===d).length);
   const max=Math.max(...counts,1);
-  const chart=document.getElementById('chart');
-  chart.innerHTML='';
 
   counts.forEach(c=>{
-    const bar=document.createElement('div');
-    bar.className='bar';
-    bar.innerHTML=`<div style="height:${(c/max)*100}%"></div>`;
-    chart.appendChild(bar);
+    const b=document.createElement('div');
+    b.className='bar';
+    b.innerHTML=`<div style="height:${(c/max)*100}%"></div>`;
+    chart.appendChild(b);
   });
-}
-
-function renderStatusBreakdown(){
-  const box=document.getElementById('statusList');
-  const counts={};
-  allRows.forEach(r=>{
-    const key=r.account_status||r.plan_status;
-    counts[key]=(counts[key]||0)+1;
-  });
-  box.innerHTML=Object.entries(counts)
-    .map(([k,v])=>`${k}: <strong>${v}</strong>`)
-    .join('<br>');
 }
 
 function renderTable(){
-  const tbody=document.getElementById('rows');
-  tbody.innerHTML='';
-  allRows.slice(0,20).forEach(r=>{
+  rows.slice(0,20).forEach(r=>{
     const cls=r.account_status==='Paused'?'paused':r.is_active?'live':'lead';
-    tbody.innerHTML+=`
-      <tr>
+    rowsEl=document.getElementById('rows');
+
+    rowsEl.innerHTML+=`
+      <tr onclick='selectRow(${JSON.stringify(r)})'>
         <td><strong>${r.business_name||''}</strong></td>
         <td>${r.email||''}<br>${r.phone||''}</td>
-        <td><span class="badge ${cls}">${r.account_status||r.plan_status}</span></td>
-        <td><textarea>${r.account_status_reason||''}</textarea></td>
-        <td><button class="secondary">View</button></td>
+        <td>
+          <span class="badge ${cls}">${r.account_status||r.plan_status}</span>
+          <select id="status-${r.id}">
+            <option ${r.account_status==='Lead - New'?'selected':''}>Lead - New</option>
+            <option ${r.account_status==='Onboarding'?'selected':''}>Onboarding</option>
+            <option ${r.account_status==='Live'?'selected':''}>Live</option>
+            <option ${r.account_status==='Paused'?'selected':''}>Paused</option>
+            <option ${r.account_status==='Support needed'?'selected':''}>Support needed</option>
+            <option ${r.account_status==='Cancelled'?'selected':''}>Cancelled</option>
+          </select>
+        </td>
+        <td><textarea id="notes-${r.id}">${r.account_status_reason||''}</textarea></td>
+        <td>
+          <button class="secondary" onclick="saveRow(event,'${r.id}')">Save</button>
+        </td>
       </tr>`;
   });
 }
+
+function saveRow(e,id){
+  e.stopPropagation();
+  fetch(
+    `${SUPABASE_URL}/rest/v1/tradebotpro_signups?id=eq.${id}`,
+    {
+      method:'PATCH',
+      headers:{
+        'Content-Type':'application/json',
+        apikey:SUPABASE_ANON_KEY,
+        Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+      },
+      body:JSON.stringify({
+        account_status:document.getElementById(`status-${id}`).value,
+        account_status_reason:document.getElementById(`notes-${id}`).value,
+        is_active:document.getElementById(`status-${id}`).value==='Live',
+        pending_setup:document.getElementById(`status-${id}`).value==='Onboarding'
+      })
+    }
+  );
+}
+
+function selectRow(r){ selected=r; }
+
+/* SUPPORT TEMPLATES */
+function templateOnboarding(){
+  if(!selected)return;
+  messageBox.value=`Hi ${selected.owner_name||''} 👋
+
+Just a quick note from TradeBotPro — we’re setting everything up for ${selected.business_name||'you'} now.
+
+If you’ve got any questions, just reply here 👍`;
+}
+function templateLive(){
+  if(!selected)return;
+  messageBox.value=`Hi ${selected.owner_name||''} ✅
+
+Your TradeBotPro AI office for ${selected.business_name||'your business'} is now live.
+
+You’re all set — messages will come straight through here.`;
+}
+function templatePaused(){
+  if(!selected)return;
+  messageBox.value=`Hi ${selected.owner_name||''}
+
+No problem at all — we’ve paused TradeBotPro for ${selected.business_name||'you'}.
+
+Just drop us a message whenever you’re ready to pick things back up 👍`;
+}
+
+function copyMsg(){ navigator.clipboard.writeText(messageBox.value); alert('Copied'); }
+function toggleAdvanced(){ advanced.style.display=advanced.style.display==='block'?'none':'block'; }
+function polishWithAI(){ alert('AI polish coming next. Safe stub.'); }
 
 load();
 </script>
