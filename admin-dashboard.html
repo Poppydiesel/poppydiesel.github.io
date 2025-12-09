@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TradeBotPro — Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="Internal dashboard for managing TradeBotPro signups."
+  />
+
+  <!-- Chart.js for simple charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --primary-blue: #1f4e79;
+      --accent-blue: #00a3ff;
+      --dark-text: #1b1b1f;
+      --light-bg: #f5f7fa;
+      --white: #ffffff;
+      --border: #dde3ec;
+      --muted: #6b7280;
+      --danger: #b91c1c;
+      --success: #15803d;
+      --warning: #b45309;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--light-bg);
+      color: var(--dark-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary-blue), #12263a);
+      color: var(--white);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    header .title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      letter-spacing: 0.02em;
+    }
+
+    header span.subtitle {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+
+    header .env-badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      font-size: 0.8rem;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 2.2fr) minmax(320px, 1.1fr);
+      gap: 16px;
+      padding: 16px 20px 24px;
+    }
+
+    @media (max-width: 960px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(15,23,42,0.08);
+      border: 1px solid rgba(15,23,42,0.04);
+      padding: 16px 18px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .card-header .pill {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: var(--primary-blue);
+      border: 1px solid #bfdbfe;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 1200px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .stat-card {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 10px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .stat-chip {
+      margin-top: 4px;
+      font-size: 0.7rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .stat-chip-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #6b7280;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+
+    .filters label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .filters select,
+    .filters input[type="search"] {
+      padding: 6px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      background: #f9fafb;
+      min-width: 120px;
+    }
+
+    .filters input[type="search"] {
+      min-width: 180px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .badge-pill {
+      margin-left: 6px;
+    }
+
+    .badge-plan-trial {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      color: #1d4ed8;
+    }
+
+    .badge-plan-live {
+      background: #ecfdf3;
+      border-color: #bbf7d0;
+      color: #166534;
+    }
+
+    .badge-plan-cancelled {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #b91c1c;
+    }
+
+    .badge-pending {
+      background: #fef9c3;
+      border-color: #facc15;
+      color: #92400e;
+    }
+
+    .badge-inactive {
+      background: #f3f4f6;
+      border-color: #e5e7eb;
+      color: #4b5563;
+    }
+
+    .badge-active {
+      background: #dcfce7;
+      border-color: #22c55e;
+      color: #166534;
+    }
+
+    .table-wrapper {
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
+      background: white;
+      max-height: 440px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .table-header-row {
+      display: grid;
+      grid-template-columns: minmax(130px, 1.4fr) minmax(90px, 0.9fr) minmax(90px, 0.9fr) minmax(70px, 0.7fr) minmax(70px, 0.8fr) minmax(70px, 0.9fr);
+      padding: 8px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .table-body {
+      overflow-y: auto;
+    }
+
+    .table-row {
+      display: grid;
+      grid-template-columns: minmax(130px, 1.4fr) minmax(90px, 0.9fr) minmax(90px, 0.9fr) minmax(70px, 0.7fr) minmax(70px, 0.8fr) minmax(70px, 0.9fr);
+      padding: 7px 10px;
+      font-size: 0.8rem;
+      border-bottom: 1px solid #f3f4f6;
+      cursor: pointer;
+      align-items: center;
+    }
+
+    .table-row:nth-child(even) {
+      background: #fcfcff;
+    }
+
+    .table-row:hover {
+      background: #e0efff;
+    }
+
+    .table-row.selected {
+      background: #dbeafe;
+    }
+
+    .table-cell-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .table-main-title {
+      font-weight: 500;
+    }
+
+    .table-main-sub {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .chip-small {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      background: #eef2ff;
+      color: #3730a3;
+      border: 1px solid #e0e7ff;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .detail-section {
+      margin-bottom: 10px;
+    }
+
+    .detail-section h3 {
+      margin: 0 0 4px 0;
+      font-size: 0.9rem;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 10px;
+      font-size: 0.8rem;
+    }
+
+    .detail-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .detail-value {
+      font-size: 0.85rem;
+    }
+
+    .detail-mono {
+      font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.75rem;
+      background: #f3f4f6;
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px dashed #e5e7eb;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .pill-tag {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #f3f4ff;
+      border: 1px solid #e0e7ff;
+    }
+
+    .support-note {
+      font-size: 0.78rem;
+      padding: 8px 9px;
+      border-radius: 8px;
+      background: #f9fafb;
+      border: 1px dashed #e5e7eb;
+      min-height: 60px;
+      white-space: pre-wrap;
+    }
+
+    .chart-container {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed #e5e7eb;
+    }
+
+    .error-banner {
+      margin-top: 8px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+      display: none;
+    }
+
+    .loading-banner {
+      margin-top: 8px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      display: none;
+    }
+
+    .tag-pill {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      color: #4b5563;
+    }
+
+    .assistant-panel {
+      margin-top: 6px;
+      padding: 8px 9px;
+      border-radius: 10px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      font-size: 0.78rem;
+    }
+
+    .assistant-panel strong {
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <h1>TradeBotPro Control Panel</h1>
+    <span class="subtitle">Signups, statuses & setup at a glance (Phase 4A – read-only)</span>
+  </div>
+  <div class="env-badge">
+    Internal use only · v4A
+  </div>
+</header>
+
+<main>
+  <!-- LEFT: STATS + TABLE -->
+  <section class="card">
+    <div class="card-header">
+      <h2>Signups overview</h2>
+      <span class="pill" id="summary-pill">Loading…</span>
+    </div>
+
+    <div id="dashboard-loading" class="loading-banner">
+      Loading signups from Supabase…
+    </div>
+    <div id="dashboard-error" class="error-banner">
+      Something went wrong loading signups. Check the console (F12 → Console) for details.
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total signups</div>
+        <div class="stat-value" id="stat-total">–</div>
+        <div class="stat-chip">
+          <span class="stat-chip-dot"></span>
+          All time
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending setup</div>
+        <div class="stat-value" id="stat-pending-setup">–</div>
+        <div class="stat-chip">
+          <span class="stat-chip-dot"></span>
+          Need attention
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Live / active</div>
+        <div class="stat-value" id="stat-live-active">–</div>
+        <div class="stat-chip">
+          <span class="stat-chip-dot"></span>
+          Plan status = live
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Trials</div>
+        <div class="stat-value" id="stat-trial">–</div>
+        <div class="stat-chip">
+          <span class="stat-chip-dot"></span>
+          Plan status = trial
+        </div>
+      </div>
+    </div>
+
+    <div class="filters">
+      <label>
+        Plan
+        <select id="filter-plan">
+          <option value="">All</option>
+          <option value="trial">Trial</option>
+          <option value="live">Live</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </label>
+
+      <label>
+        Account
+        <select id="filter-account">
+          <option value="">All</option>
+          <option value="ok">OK</option>
+          <option value="blocked">Blocked</option>
+          <option value="churn-risk">Churn risk</option>
+        </select>
+      </label>
+
+      <label>
+        Trade
+        <select id="filter-trade">
+          <option value="">All trades</option>
+          <option value="Plumbing & Heating">Plumbing & Heating</option>
+          <option value="Heating only">Heating only</option>
+          <option value="General plumbing">General plumbing</option>
+          <option value="Other">Other</option>
+        </select>
+      </label>
+
+      <label>
+        Search
+        <input
+          id="filter-search"
+          type="search"
+          placeholder="Business / contact / postcode…"
+        />
+      </label>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="table-header-row">
+        <div>Business & contact</div>
+        <div>Trade</div>
+        <div>Postcode</div>
+        <div>Plan</div>
+        <div>Setup</div>
+        <div>Account</div>
+      </div>
+      <div id="signups-table-body" class="table-body">
+        <!-- rows injected by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: DETAIL SIDEBAR -->
+  <aside class="sidebar">
+    <section class="card">
+      <div class="card-header">
+        <h2>Selected signup</h2>
+        <span class="pill">Detail view</span>
+      </div>
+
+      <div id="no-selection">
+        <p class="muted" style="font-size: 0.85rem;">
+          Choose a signup on the left to see full details here.
+        </p>
+      </div>
+
+      <div id="selection-content" style="display:none;">
+        <div class="detail-section">
+          <h3>Who they are</h3>
+          <div class="detail-grid">
+            <div>
+              <div class="detail-label">Business name</div>
+              <div class="detail-value" id="detail-business-name">–</div>
+            </div>
+            <div>
+              <div class="detail-label">Trade type</div>
+              <div class="detail-value" id="detail-trade-type">–</div>
+            </div>
+            <div>
+              <div class="detail-label">Contact name</div>
+              <div class="detail-value" id="detail-contact-name">–</div>
+            </div>
+            <div>
+              <div class="detail-label">Owner name</div>
+              <div class="detail-value" id="detail-owner-name">–</div>
+            </div>
+            <div>
+              <div class="detail-label">Base postcode</div>
+              <div class="detail-value" id="detail-base-postcode">–</div>
+            </div>
+            <div>
+              <div class="detail-label">Website</div>
+              <div class="detail-value" id="detail-website-url">–</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Status & plan</h3>
+          <div class="pill-row" id="detail-status-pills">
+            <!-- pills injected -->
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Pricing signals</h3>
+          <div class="detail-grid">
+            <div>
+              <div class="detail-label">Call-out fee</div>
+              <div class="detail-value" id="detail-callout-fee">–</div>
+            </div>
+            <div>
+              <div class="detail-label">First hour</div>
+              <div class="detail-value" id="detail-first-hour-rate">–</div>
+            </div>
+            <div>
+              <div class="detail-label">Hourly rate</div>
+              <div class="detail-value" id="detail-hourly-rate">–</div>
+            </div>
+            <div>
+              <div class="detail-label">Boiler service from</div>
+              <div class="detail-value" id="detail-boiler-service-from">–</div>
+            </div>
+            <div>
+              <div class="detail-label">Quote minimum</div>
+              <div class="detail-value" id="detail-quote-minimum">–</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>What they want from the AI</h3>
+          <div class="detail-label">Services summary</div>
+          <div class="support-note" id="detail-services-summary">–</div>
+
+          <div class="detail-label" style="margin-top: 8px;">AI style notes</div>
+          <div class="support-note" id="detail-ai-style-notes">–</div>
+        </div>
+
+        <div class="detail-section">
+          <h3>System fields</h3>
+          <div class="detail-grid">
+            <div>
+              <div class="detail-label">Created at</div>
+              <div class="detail-value" id="detail-created-at">–</div>
+            </div>
+            <div>
+              <div class="detail-label">Raw ID</div>
+              <div class="detail-mono" id="detail-id">–</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Assistant suggestions (Phase 4C preview)</h3>
+          <div class="assistant-panel" id="assistant-panel">
+            <strong>Next actions suggestion</strong>
+            <ul style="margin: 4px 0 0 16px; padding: 0;">
+              <li id="assistant-suggestion-1">Pick one: follow-up call, WhatsApp, or email.</li>
+              <li id="assistant-suggestion-2">Make sure price points are configured inside their AI script.</li>
+              <li id="assistant-suggestion-3">Confirm coverage area matches their real service area.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Status mix</h2>
+        <span class="pill">Plan status (count)</span>
+      </div>
+      <canvas id="planStatusChart" height="130"></canvas>
+    </section>
+  </aside>
+</main>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  // TODO: replace these with your real values
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const tableBody = document.getElementById('signups-table-body');
+  const filterPlan = document.getElementById('filter-plan');
+  const filterAccount = document.getElementById('filter-account');
+  const filterTrade = document.getElementById('filter-trade');
+  const filterSearch = document.getElementById('filter-search');
+
+  const statTotal = document.getElementById('stat-total');
+  const statPendingSetup = document.getElementById('stat-pending-setup');
+  const statLiveActive = document.getElementById('stat-live-active');
+  const statTrial = document.getElementById('stat-trial');
+  const summaryPill = document.getElementById('summary-pill');
+
+  const dashboardError = document.getElementById('dashboard-error');
+  const dashboardLoading = document.getElementById('dashboard-loading');
+
+  let allSignups = [];
+  let currentSelectionId = null;
+  let planStatusChart = null;
+
+  function normalise(value) {
+    if (!value) return '';
+    return String(value).toLowerCase().trim();
+  }
+
+  function formatMoney(value) {
+    if (value === null || value === undefined || value === '') return '—';
+    const number = Number(value);
+    if (Number.isNaN(number)) return String(value);
+    return '£' + number.toFixed(2).replace(/\.00$/, '');
+  }
+
+  function formatDate(value) {
+    if (!value) return '—';
+    try {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      return date.toLocaleString('en-GB', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return String(value);
+    }
+  }
+
+  function computeStats(signups) {
+    const total = signups.length;
+    const pendingSetupCount = signups.filter(s => s.pending_setup === true).length;
+
+    const liveCount = signups.filter(s =>
+      normalise(s.plan_status) === 'live'
+    ).length;
+
+    const trialCount = signups.filter(s =>
+      normalise(s.plan_status) === 'trial'
+    ).length;
+
+    statTotal.textContent = total;
+    statPendingSetup.textContent = pendingSetupCount;
+    statLiveActive.textContent = liveCount;
+    statTrial.textContent = trialCount;
+
+    summaryPill.textContent = total === 0
+      ? 'No signups yet'
+      : `${total} signup${total !== 1 ? 's' : ''} · ${pendingSetupCount} pending work`;
+  }
+
+  function buildPlanStatusChart(signups) {
+    const counts = {};
+    for (const row of signups) {
+      const key = normalise(row.plan_status) || 'un-set';
+      counts[key] = (counts[key] || 0) + 1;
+    }
+
+    const labels = Object.keys(counts);
+    const data = labels.map(label => counts[label]);
+
+    const ctx = document.getElementById('planStatusChart');
+    if (!ctx) return;
+
+    if (planStatusChart) {
+      planStatusChart.destroy();
+    }
+
+    planStatusChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Signups',
+          data
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              font: { size: 10 }
+            }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+              precision: 0
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function applyFilters() {
+    const planFilter = normalise(filterPlan.value);
+    const accountFilter = normalise(filterAccount.value);
+    const tradeFilter = normalise(filterTrade.value);
+    const search = normalise(filterSearch.value);
+
+    const filtered = allSignups.filter(row => {
+      if (planFilter && normalise(row.plan_status) !== planFilter) {
+        return false;
+      }
+
+      if (accountFilter && normalise(row.account_status) !== accountFilter) {
+        return false;
+      }
+
+      if (tradeFilter && normalise(row.trade_type) !== normalise(tradeFilter)) {
+        return false;
+      }
+
+      if (search) {
+        const haystack = [
+          row.business_name,
+          row.contact_name,
+          row.owner_name,
+          row.base_postcode,
+          row.email,
+          row.phone,
+          row.trade_type
+        ].map(x => normalise(x)).join(' ');
+        if (!haystack.includes(search)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    renderTable(filtered);
+  }
+
+  function renderTable(signups) {
+    tableBody.innerHTML = '';
+
+    if (signups.length === 0) {
+      const row = document.createElement('div');
+      row.className = 'table-row';
+      row.style.justifyContent = 'center';
+      row.innerHTML = '<span class="muted">No signups match the current filters.</span>';
+      tableBody.appendChild(row);
+      return;
+    }
+
+    for (const row of signups) {
+      const div = document.createElement('div');
+      div.className = 'table-row';
+      div.dataset.id = row.id;
+
+      if (row.id === currentSelectionId) {
+        div.classList.add('selected');
+      }
+
+      const plan = normalise(row.plan_status);
+      let planBadgeClass = 'badge-plan-trial';
+      let planLabel = row.plan_status || 'Not set';
+
+      if (plan === 'live') {
+        planBadgeClass = 'badge-plan-live';
+      } else if (plan === 'cancelled') {
+        planBadgeClass = 'badge-plan-cancelled';
+      } else if (!plan) {
+        planBadgeClass = 'badge-inactive';
+        planLabel = 'Not set';
+      }
+
+      const pending = row.pending_setup === true;
+      const isActive = row.is_active === true;
+
+      const accountStatus = normalise(row.account_status);
+      let accountLabel = row.account_status || '–';
+      let accountClass = 'badge-inactive';
+      if (accountStatus === 'ok') {
+        accountClass = 'badge-active';
+        accountLabel = 'OK';
+      } else if (accountStatus === 'blocked') {
+        accountClass = 'badge-plan-cancelled';
+        accountLabel = 'Blocked';
+      } else if (accountStatus === 'churn-risk') {
+        accountClass = 'badge-pending';
+        accountLabel = 'Churn risk';
+      }
+
+      div.innerHTML = `
+        <div class="table-cell-main">
+          <span class="table-main-title">${row.business_name || '—'}</span>
+          <span class="table-main-sub">
+            ${row.contact_name || 'No contact'} · ${row.email || 'No email'}
+          </span>
+        </div>
+        <div>
+          <span class="chip-small">${row.trade_type || 'Not set'}</span>
+        </div>
+        <div>
+          <span>${row.base_postcode || '–'}</span>
+        </div>
+        <div>
+          <span class="badge badge-pill ${planBadgeClass}">${planLabel}</span>
+        </div>
+        <div>
+          ${pending
+            ? '<span class="badge badge-pill badge-pending">Pending setup</span>'
+            : '<span class="badge badge-pill badge-active">Setup OK</span>'
+          }
+        </div>
+        <div>
+          <span class="badge badge-pill ${accountClass}">${accountLabel}</span>
+        </div>
+      `;
+
+      div.addEventListener('click', () => {
+        currentSelectionId = row.id;
+        for (const sibling of tableBody.querySelectorAll('.table-row')) {
+          sibling.classList.toggle('selected', sibling === div);
+        }
+        showSelection(row);
+      });
+
+      tableBody.appendChild(div);
+    }
+  }
+
+  function clearSelection() {
+    currentSelectionId = null;
+    document.getElementById('no-selection').style.display = '';
+    document.getElementById('selection-content').style.display = 'none';
+  }
+
+  function showSelection(row) {
+    document.getElementById('no-selection').style.display = 'none';
+    document.getElementById('selection-content').style.display = '';
+
+    document.getElementById('detail-business-name').textContent = row.business_name || '—';
+    document.getElementById('detail-trade-type').textContent = row.trade_type || '—';
+    document.getElementById('detail-contact-name').textContent = row.contact_name || '—';
+    document.getElementById('detail-owner-name').textContent = row.owner_name || '—';
+    document.getElementById('detail-base-postcode').textContent = row.base_postcode || '—';
+
+    if (row.website_url) {
+      const urlText = row.website_url.replace(/^https?:\/\//i, '');
+      document.getElementById('detail-website-url').innerHTML =
+        `<a href="${row.website_url}" target="_blank" rel="noopener noreferrer">${urlText}</a>`;
+    } else {
+      document.getElementById('detail-website-url').textContent = '—';
+    }
+
+    document.getElementById('detail-callout-fee').textContent = formatMoney(row.callout_fee);
+    document.getElementById('detail-first-hour-rate').textContent = formatMoney(row.first_hour_rate);
+    document.getElementById('detail-hourly-rate').textContent = formatMoney(row.hourly_rate);
+    document.getElementById('detail-boiler-service-from').textContent = formatMoney(row.boiler_service_from);
+    document.getElementById('detail-quote-minimum').textContent = formatMoney(row.quote_minimum);
+
+    document.getElementById('detail-services-summary').textContent =
+      row.services_summary || 'No services summary captured yet.';
+    document.getElementById('detail-ai-style-notes').textContent =
+      row.ai_style_notes || 'No AI style notes captured yet.';
+
+    document.getElementById('detail-created-at').textContent = formatDate(row.created_at);
+    document.getElementById('detail-id').textContent = row.id || '—';
+
+    // Status pills
+    const statusPills = document.getElementById('detail-status-pills');
+    statusPills.innerHTML = '';
+
+    const plan = normalise(row.plan_status);
+    let planClass = 'badge-plan-trial';
+    let planLabel = row.plan_status || 'Plan not set';
+
+    if (plan === 'live') {
+      planClass = 'badge-plan-live';
+      planLabel = 'Live';
+    } else if (plan === 'cancelled') {
+      planClass = 'badge-plan-cancelled';
+      planLabel = 'Cancelled';
+    }
+
+    const planPill = document.createElement('span');
+    planPill.className = `badge ${planClass}`;
+    planPill.textContent = `Plan: ${planLabel}`;
+    statusPills.appendChild(planPill);
+
+    const pendingPill = document.createElement('span');
+    pendingPill.className = `badge ${row.pending_setup ? 'badge-pending' : 'badge-active'}`;
+    pendingPill.textContent = row.pending_setup ? 'Pending setup' : 'Setup complete';
+    statusPills.appendChild(pendingPill);
+
+    const activePill = document.createElement('span');
+    activePill.className = `badge ${row.is_active ? 'badge-active' : 'badge-inactive'}`;
+    activePill.textContent = row.is_active ? 'Account active' : 'Inactive';
+    statusPills.appendChild(activePill);
+
+    const account = normalise(row.account_status);
+    if (account) {
+      const accountPill = document.createElement('span');
+      accountPill.className = 'badge badge-inactive';
+      accountPill.textContent = `Account status: ${row.account_status}`;
+      statusPills.appendChild(accountPill);
+    }
+
+    if (row.account_status_reason) {
+      const reasonPill = document.createElement('span');
+      reasonPill.className = 'badge badge-inactive';
+      reasonPill.textContent = row.account_status_reason;
+      statusPills.appendChild(reasonPill);
+    }
+
+    // Tiny heuristic suggestions – just placeholder logic for now
+    const suggestion1 = document.getElementById('assistant-suggestion-1');
+    const suggestion2 = document.getElementById('assistant-suggestion-2');
+    const suggestion3 = document.getElementById('assistant-suggestion-3');
+
+    if (plan === 'trial') {
+      suggestion1.textContent = 'Schedule a “trial check-in” call within 7 days of signup.';
+    } else if (plan === 'live') {
+      suggestion1.textContent = 'Confirm billing details and double-check their AI script covers their main services.';
+    } else {
+      suggestion1.textContent = 'Clarify whether they want a trial or to go live, then set the plan accordingly.';
+    }
+
+    if (row.pending_setup) {
+      suggestion2.textContent = 'Finish initial setup: base messages, pricing, coverage radius, and intake questions.';
+    } else {
+      suggestion2.textContent = 'Review one of their recent conversations to see if the bot is quoting as expected.';
+    }
+
+    if (account === 'churn-risk') {
+      suggestion3.textContent = 'Send a short WhatsApp or email asking how TradeBotPro can better support them.';
+    } else if (account === 'blocked') {
+      suggestion3.textContent = 'Document why the account is blocked and what is needed to unblock it.';
+    } else {
+      suggestion3.textContent = 'Add a quick support note after each significant change so future you knows what happened.';
+    }
+  }
+
+  async function loadSignups() {
+    dashboardError.style.display = 'none';
+    dashboardLoading.style.display = '';
+
+    try {
+      const { data, error } = await supabase
+        .from('tradebotpro_signups')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading signups from Supabase:', error);
+        dashboardError.style.display = '';
+        dashboardLoading.style.display = 'none';
+        tableBody.innerHTML = '<div class="table-row"><span class="muted">Error loading data.</span></div>';
+        clearSelection();
+        return;
+      }
+
+      console.log('Loaded signups for dashboard:', data);
+      allSignups = data || [];
+
+      computeStats(allSignups);
+      buildPlanStatusChart(allSignups);
+      applyFilters();
+      clearSelection();
+
+      dashboardLoading.style.display = 'none';
+    } catch (e) {
+      console.error('Unexpected error loading signups:', e);
+      dashboardError.style.display = '';
+      dashboardLoading.style.display = 'none';
+      tableBody.innerHTML = '<div class="table-row"><span class="muted">Unexpected error loading data.</span></div>';
+      clearSelection();
+    }
+  }
+
+  // Wire up filters
+  filterPlan.addEventListener('change', applyFilters);
+  filterAccount.addEventListener('change', applyFilters);
+  filterTrade.addEventListener('change', applyFilters);
+  filterSearch.addEventListener('input', () => {
+    // small debounce
+    if (window.__searchTimeout) {
+      clearTimeout(window.__searchTimeout);
+    }
+    window.__searchTimeout = setTimeout(applyFilters, 200);
+  });
+
+  // Initial load
+  loadSignups();
+</script>
+</body>
+</html>
