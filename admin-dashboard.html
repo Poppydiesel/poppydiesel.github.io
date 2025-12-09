@@ -1,2 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>TradeBotPro — Admin Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+:root {
+  --blue: #1f4e79;
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --border: #d1d5db;
+  --text: #1b1b1f;
+  --muted: #6b7280;
+  --success: #166534;
+  --paused: #92400e;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+h1 {
+  margin: 0 0 6px;
+  color: var(--blue);
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.08);
+  padding: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  vertical-align: top;
+}
+
+th {
+  text-align: left;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.status {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.status.live {
+  background: #ecfdf3;
+  color: var(--success);
+}
+
+.status.paused {
+  background: #fff7ed;
+  color: var(--paused);
+}
+
+.status.lead {
+  background: #eef2ff;
+  color: var(--blue);
+}
+
+select, textarea {
+  width: 100%;
+  font-size: 13px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 44px;
+}
+
+button {
+  margin-top: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: none;
+  background: var(--blue);
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: #e5e7eb;
+  color: var(--text);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>Admin Dashboard</h1>
+  <p class="subtitle">
+    Internal TradeBotPro signups & account management
+  </p>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Business</th>
+          <th>Contact</th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+/* ========================
+   CONFIG — EDIT ONE LINE
+======================== */
+const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
+/* ========================
+   LOAD SIGNUPS
+======================== */
+async function loadSignups() {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/tradebotpro_signups?order=created_at.desc`,
+    {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    }
+  );
+
+  const data = await res.json();
+  renderRows(data);
+}
+
+/* ========================
+   RENDER TABLE
+======================== */
+function renderRows(items) {
+  const tbody = document.getElementById('rows');
+  tbody.innerHTML = '';
+
+  items.forEach(row => {
+    const tr = document.createElement('tr');
+
+    const statusClass =
+      row.account_status === 'Paused' ? 'paused' :
+      row.is_active ? 'live' : 'lead';
+
+    tr.innerHTML = `
+      <td>
+        <strong>${row.business_name || '-'}</strong><br>
+        <span style="color:#6b7280">${row.trade_type || ''}</span>
+      </td>
+
+      <td>
+        ${row.email || ''}<br>
+        ${row.phone || ''}
+      </td>
+
+      <td>
+        <span class="status ${statusClass}">
+          ${row.account_status || row.plan_status}
+        </span><br><br>
+
+        <select id="status-${row.id}">
+          <option>Lead - New</option>
+          <option>Onboarding</option>
+          <option>Live</option>
+          <option>Paused</option>
+          <option>Support needed</option>
+          <option>Cancelled</option>
+        </select>
+      </td>
+
+      <td>
+        <textarea id="notes-${row.id}">${row.account_status_reason || ''}</textarea>
+      </td>
+
+      <td>
+        <button onclick="saveRow('${row.id}')">Save</button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+/* ========================
+   SAVE UPDATE
+======================== */
+async function saveRow(id) {
+  const status = document.getElementById(`status-${id}`).value;
+  const notes = document.getElementById(`notes-${id}`).value;
+
+  const payload = {
+    account_status: status,
+    account_status_reason: notes,
+    is_active: status === 'Live',
+    pending_setup: status === 'Onboarding'
+  };
+
+  await fetch(
+    `${SUPABASE_URL}/rest/v1/tradebotpro_signups?id=eq.${id}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify(payload)
+    }
+  );
+
+  loadSignups();
+}
+
+/* INIT */
+loadSignups();
+</script>
+
+</body>
+</html>
