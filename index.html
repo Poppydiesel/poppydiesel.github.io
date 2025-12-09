@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>TradeBotPro — Get your AI office set up</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<meta name="description" content="TradeBotPro is an AI office assistant for trades. Handle enquiries, quotes and bookings automatically.">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="TradeBotPro is an AI office assistant for trades. Handle enquiries, quotes and bookings automatically." />
 
 <style>
 :root{
@@ -15,9 +14,7 @@
   --border:#d1d5db;
   --text:#1b1b1f;
   --muted:#6b7280;
-  --accent:#00a3ff;
 }
-
 *{box-sizing:border-box}
 
 body{
@@ -27,65 +24,80 @@ body{
   color:var(--text);
 }
 
-main{
-  max-width:720px;
-  margin:40px auto;
+header{
+  background:#ffffff;
+  border-bottom:1px solid var(--border);
+  padding:18px 0;
+}
+
+.header-inner{
+  max-width:920px;
+  margin:0 auto;
   padding:0 16px;
 }
 
-h1{
-  font-size:28px;
-  margin-bottom:8px;
+header h1{
+  margin:0;
+  font-size:30px;
 }
 
-p.lead{
+header p{
+  margin:6px 0 0;
   color:var(--muted);
-  margin-bottom:24px;
+  max-width:640px;
 }
 
-.card{
+main{
+  max-width:920px;
+  margin:32px auto 64px;
+  padding:0 16px;
+}
+
+.form-card{
   background:var(--card);
-  border-radius:16px;
+  border-radius:18px;
   border:1px solid var(--border);
-  padding:24px;
+  padding:28px;
 }
 
 fieldset{
   border:none;
   padding:0;
-  margin:0 0 18px 0;
+  margin:0 0 22px 0;
 }
 
 label{
   display:block;
   font-size:13px;
-  font-weight:500;
-  margin-bottom:4px;
+  font-weight:600;
+  margin-bottom:6px;
 }
 
-input, textarea{
+input, select, textarea{
   width:100%;
-  padding:10px 12px;
-  font-size:14px;
-  border-radius:10px;
+  padding:12px 14px;
+  font-size:15px;
+  border-radius:12px;
   border:1px solid var(--border);
   font-family:inherit;
 }
 
-textarea{min-height:90px}
-
-input:focus, textarea:focus{
+input:focus, select:focus, textarea:focus{
   outline:none;
   border-color:var(--blue);
+}
+
+textarea{
+  min-height:90px;
 }
 
 .row{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:16px;
+  gap:18px;
 }
 
-@media(max-width:600px){
+@media(max-width:680px){
   .row{grid-template-columns:1fr}
 }
 
@@ -93,15 +105,14 @@ input:focus, textarea:focus{
   display:flex;
   flex-wrap:wrap;
   gap:8px;
-  margin-top:6px;
 }
 
 .chip{
-  padding:6px 12px;
+  padding:8px 14px;
   border-radius:999px;
   border:1px solid var(--border);
   background:#fff;
-  font-size:13px;
+  font-size:14px;
   cursor:pointer;
 }
 
@@ -113,13 +124,13 @@ input:focus, textarea:focus{
 
 button{
   width:100%;
-  margin-top:18px;
-  padding:14px;
+  margin-top:10px;
+  padding:16px;
   border-radius:999px;
   border:none;
   background:var(--blue);
   color:#fff;
-  font-size:15px;
+  font-size:16px;
   cursor:pointer;
 }
 
@@ -129,73 +140,87 @@ button:disabled{
 }
 
 .notice{
-  margin-top:12px;
-  font-size:13px;
+  margin-top:14px;
+  font-size:14px;
+}
+
+.notice.success{color:#15803d}
+.notice.error{color:#b91c1c}
+
+.footer-note{
+  margin-top:14px;
+  font-size:12px;
   color:var(--muted);
-}
-
-.success{
-  color:green;
-}
-
-.error{
-  color:#b91c1c;
 }
 </style>
 </head>
 
 <body>
 
-<main>
-  <h1>Set up your AI office</h1>
-  <p class="lead">
-    Tell us a bit about your business. We’ll configure TradeBotPro to match how you actually work.
-  </p>
+<header>
+  <div class="header-inner">
+    <h1>Set up your AI office</h1>
+    <p>
+      Tell us a bit about your business. We’ll set TradeBotPro up so it handles enquiries,
+      messages and bookings the way <strong>you</strong> want it to.
+    </p>
+  </div>
+</header>
 
-  <div class="card">
+<main>
+  <div class="form-card">
     <form id="signupForm">
 
       <fieldset>
-        <label>Business name</label>
-        <input required id="business_name">
+        <label for="business_name">Business name</label>
+        <input required id="business_name" />
       </fieldset>
 
       <div class="row">
         <fieldset>
-          <label>Owner name</label>
-          <input id="owner_name">
+          <label for="owner_name">Owner name</label>
+          <input id="owner_name" />
         </fieldset>
         <fieldset>
-          <label>Main contact name</label>
-          <input id="contact_name">
-        </fieldset>
-      </div>
-
-      <div class="row">
-        <fieldset>
-          <label>Email</label>
-          <input type="email" required id="email">
-        </fieldset>
-        <fieldset>
-          <label>WhatsApp number</label>
-          <input required id="phone" placeholder="e.g. 07700 900123">
+          <label for="contact_name">Main contact name</label>
+          <input id="contact_name" />
         </fieldset>
       </div>
 
       <div class="row">
         <fieldset>
-          <label>Trade</label>
-          <input required id="trade_type" placeholder="e.g. Plumber">
+          <label for="email">Email</label>
+          <input type="email" id="email" required />
         </fieldset>
         <fieldset>
-          <label>Base postcode</label>
-          <input required id="base_postcode">
+          <label for="phone">WhatsApp number</label>
+          <input id="phone" required placeholder="e.g. 07700 900123" />
+        </fieldset>
+      </div>
+
+      <div class="row">
+        <fieldset>
+          <label for="trade_type">Trade</label>
+          <select id="trade_type" required>
+            <option value="">— Select your trade —</option>
+            <option>Plumber</option>
+            <option>Heating engineer</option>
+            <option>Gas engineer</option>
+            <option>Electrician</option>
+            <option>Roofer</option>
+            <option>Builder</option>
+            <option>Other</option>
+          </select>
+        </fieldset>
+        <fieldset>
+          <label for="base_postcode">Base postcode</label>
+          <input id="base_postcode" required />
         </fieldset>
       </div>
 
       <fieldset>
-        <label>Website (optional)</label>
-        <input id="website_url">
+        <label for="website_url">Website (optional)</label>
+        <input id="website_url" />
       </fieldset>
 
       <fieldset>
@@ -210,23 +235,26 @@ button:disabled{
       </fieldset>
 
       <fieldset>
-        <label>Anything else we should know?</label>
-        <textarea id="ai_style_notes"></textarea>
+        <label for="ai_style_notes">Anything else we should know?</label>
+        <textarea id="ai_style_notes" placeholder="For example: service area, typical pricing, or how you like to deal with customers"></textarea>
       </fieldset>
 
       <button id="submitBtn">Submit details</button>
       <div id="formNotice" class="notice"></div>
 
+      <div class="footer-note">
+        We’ll review your details and get in touch to finish setting things up.
+      </div>
+
     </form>
   </div>
 </main>
 
-<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* CHANGE THESE TWO LINES ONLY */
 const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
 const supabase = window.supabase.createClient(
   SUPABASE_URL,
@@ -234,8 +262,8 @@ const supabase = window.supabase.createClient(
 );
 
 const form = document.getElementById('signupForm');
-const notice = document.getElementById('formNotice');
 const btn = document.getElementById('submitBtn');
+const notice = document.getElementById('formNotice');
 
 document.querySelectorAll('.chip').forEach(chip=>{
   chip.onclick=()=>chip.classList.toggle('active');
@@ -245,6 +273,7 @@ form.onsubmit = async (e)=>{
   e.preventDefault();
   btn.disabled=true;
   notice.textContent='Submitting…';
+  notice.className='notice';
 
   const focus = [...document.querySelectorAll('.chip.active')]
     .map(c=>c.textContent)
@@ -279,7 +308,7 @@ form.onsubmit = async (e)=>{
     return;
   }
 
-  notice.textContent='Thank you – we’ve received your details. We’ll be in touch shortly.';
+  notice.textContent='Thank you — we’ve received your details. We’ll be in touch shortly.';
   notice.className='notice success';
   form.reset();
   document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
