@@ -1269,129 +1269,122 @@
 
 <!-- SUPABASE JS (via CDN) -->
 <script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
+
 <script>
   // Year in footer
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // 🔑 SUPABASE CONFIG – MUST MATCH YOUR PROJECT
-  // Make sure these two values are copied from:
-  //   Settings → API → Project URL + anon public key
+  // 🔑 SUPABASE CONFIG – PASTE YOUR KEYS HERE
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  // Create Supabase client
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Create Supabase client (UMD build exposes `window.supabase`)
-  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  console.log("Supabase client initialised for", SUPABASE_URL);
-
-  // Helper: show status messages above the form
+  // Simple helper to show status messages above the form
   function setSignupStatus(message, type) {
-    const el = document.getElementById("signup-status");
+    const el = document.getElementById('signup-status');
     if (!el) return;
-
-    el.textContent = message || "";
-    el.classList.remove("signup-status--error", "signup-status--success");
-
-    if (type === "error") el.classList.add("signup-status--error");
-    if (type === "success") el.classList.add("signup-status--success");
+    el.textContent = message || '';
+    el.classList.remove('signup-status--error', 'signup-status--success');
+    if (type === 'error') el.classList.add('signup-status--error');
+    if (type === 'success') el.classList.add('signup-status--success');
   }
 
   async function handleSignupSubmit(event) {
     event.preventDefault();
 
     const form = event.target;
-    const submitBtn = document.getElementById("signup-submit-btn");
+    const submitBtn = document.getElementById('signup-submit-btn');
 
-    // Let browser highlight missing required fields
+    // Basic front-end validation
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
 
-    setSignupStatus("Submitting your details…", null);
+    setSignupStatus('Submitting your details…', null);
     submitBtn.disabled = true;
-    submitBtn.textContent = "Submitting…";
+    submitBtn.textContent = 'Submitting…';
 
-    // Collect fields from the form
-    const contact_name = document.getElementById("contact_name").value.trim();
-    const business_name = document.getElementById("business_name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const whatsapp_number = document.getElementById("whatsapp_number").value.trim();
-    const trade_type = document.getElementById("trade_type").value;
-    const service_area = document.getElementById("service_area").value.trim();
-    const plan = document.getElementById("plan").value;
-    const referrer = document.getElementById("referrer").value.trim();
+    // Collect fields
+    const contact_name = document.getElementById('contact_name').value.trim();
+    const business_name = document.getElementById('business_name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const whatsapp_number = document.getElementById('whatsapp_number').value.trim();
+    const trade_type = document.getElementById('trade_type').value;
+    const service_area = document.getElementById('service_area').value.trim();
+    const plan = document.getElementById('plan').value;
+    const referrer = document.getElementById('referrer').value.trim();
 
-    // Map to DB fields on tradebotpro_signups
+    // Map to DB fields (minimal safe set; trigger will handle business_profiles)
     const payload = {
       business_name,
-      owner_name: contact_name,           // treat contact as owner_name for now
+      owner_name: contact_name,                 // store contact as owner_name for now
       contact_name,
       email,
-      phone: whatsapp_number,            // your DB uses "phone"
+      phone: whatsapp_number,                  // your DB uses "phone"
       trade_type,
-      base_postcode: service_area,       // town / postcode
-      services_summary: "Website signup form",
-      plan_status: plan,                 // e.g. "starter-monthly"
+      base_postcode: service_area,             // town or postcode
+      services_summary: 'Website signup form',
+      plan_status: plan,                       // e.g. "starter-monthly"
       pending_setup: true,
       is_active: false,
-      account_status: "New",
+      account_status: 'New',
       account_status_reason: referrer ? `Referrer: ${referrer}` : null
     };
 
-    console.log("Submitting payload to Supabase:", payload);
+    console.log('Submitting payload to Supabase:', payload);
 
     try {
-      const { data, error } = await supabaseClient
-        .from("tradebotpro_signups")
-        .insert([payload])
-        .select();
+      // ❗ No .select() – avoids SELECT permission issues
+      const { error } = await supabaseClient
+        .from('tradebotpro_signups')
+        .insert([payload]);
 
       if (error) {
-        console.error("Supabase insert error:", error);
-        // Show a slightly more helpful message while still user-friendly
+        console.error('Supabase insert error:', error);
         setSignupStatus(
-          "Something went wrong saving your details. Please try again or email hello@tradebotpro.co.uk.",
-          "error"
+          'Something went wrong saving your details. Please try again or contact us.',
+          'error'
         );
       } else {
-        console.log("Insert OK:", data);
         setSignupStatus(
-          "Thank you – we’ve received your details. We’ll be in touch shortly.",
-          "success"
+          'Thank you – we’ve received your details. We’ll be in touch shortly.',
+          'success'
         );
         form.reset();
       }
     } catch (err) {
-      console.error("Network / unexpected error:", err);
+      console.error('Network / unexpected error:', err);
       setSignupStatus(
-        "Something went wrong saving your details. Please try again or email hello@tradebotpro.co.uk.",
-        "error"
+        'Something went wrong saving your details. Please try again or contact us.',
+        'error'
       );
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = "Join TradeBotPro (no payment yet)";
+      submitBtn.textContent = 'Join TradeBotPro (no payment yet)';
     }
   }
 
   // Wire up form handler
-  const signupForm = document.getElementById("tradebotpro-signup-form");
+  const signupForm = document.getElementById('tradebotpro-signup-form');
   if (signupForm) {
-    signupForm.addEventListener("submit", handleSignupSubmit);
+    signupForm.addEventListener('submit', handleSignupSubmit);
   }
 
-  // Backend demo placeholder – no Render call for now
+  // Backend demo placeholder instead of Render fetch
   function loadMessagesPlaceholder() {
-    const container = document.getElementById("messages");
+    const container = document.getElementById('messages');
     if (!container) return;
-    container.textContent =
-      "Live backend demo will appear here once your admin dashboard is fully wired up.";
+    container.textContent = 'Live backend demo will appear here once your admin dashboard is fully wired up.';
   }
 
-  window.addEventListener("DOMContentLoaded", loadMessagesPlaceholder);
+  window.addEventListener('DOMContentLoaded', loadMessagesPlaceholder);
 </script>
 
 </body>
 </html>
+
 
 
 
