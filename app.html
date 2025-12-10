@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro — Your Dashboard</title>
+  <title>TradeBotPro — Your AI Office Profile</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="Update your TradeBotPro AI office profile so enquiries, pricing and messages are set up correctly for your business."
+  />
   <style>
     :root {
       --primary-blue: #1f4e79;
@@ -11,18 +15,23 @@
       --dark-text: #1b1b1f;
       --light-bg: #f5f7fa;
       --white: #ffffff;
-      --border: #dde1e7;
+      --danger: #b3261e;
+      --success: #146c2e;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       background: var(--light-bg);
       color: var(--dark-text);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
     }
 
     .page {
@@ -32,580 +41,578 @@
     }
 
     header {
-      background: var(--primary-blue);
-      color: var(--white);
-      padding: 1rem 1.5rem;
+      background: #ffffff;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      padding: 0.8rem 1.25rem;
+    }
+
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
     }
 
-    header h1 {
-      font-size: 1.25rem;
-      margin: 0;
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
     }
 
-    header .pill {
-      font-size: 0.8rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      opacity: 0.95;
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
+      background: var(--primary-blue);
+      position: relative;
+    }
+
+    .logo-icon::before,
+    .logo-icon::after {
+      content: "";
+      position: absolute;
+      background: var(--white);
+      border-radius: 3px;
+    }
+
+    .logo-icon::before {
+      width: 10px;
+      height: 15px;
+      left: 6px;
+      top: 6px;
+    }
+
+    .logo-icon::after {
+      width: 5px;
+      height: 10px;
+      right: 6px;
+      top: 9px;
+    }
+
+    .logo-main {
+      font-weight: 700;
+      color: var(--primary-blue);
+      font-size: 1rem;
+    }
+
+    .logo-tag {
+      font-size: 0.72rem;
+      opacity: 0.7;
     }
 
     main {
-      padding: 1.5rem;
-      max-width: 1100px;
-      width: 100%;
-      margin: 0 auto 2rem;
-    }
-
-    .status-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .status-card {
-      background: var(--white);
-      border-radius: 0.75rem;
-      padding: 0.9rem 1rem;
-      border: 1px solid var(--border);
-      min-width: 230px;
       flex: 1;
+      padding: 2.5rem 1.25rem 3rem;
     }
 
-    .status-label {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #6b7280;
-      margin-bottom: 0.25rem;
+    .inner {
+      max-width: 960px;
+      margin: 0 auto;
     }
 
-    .status-value {
-      font-size: 0.95rem;
-      font-weight: 600;
+    h1 {
+      margin: 0 0 0.4rem;
+      font-size: 1.7rem;
+      color: var(--primary-blue);
     }
 
-    .status-error {
-      color: #b91c1c;
-    }
-
-    .status-ok {
-      color: #15803d;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-      gap: 1.25rem;
-      align-items: flex-start;
-    }
-
-    @media (max-width: 800px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
+    .lead {
+      margin: 0 0 1.4rem;
+      font-size: 0.98rem;
+      max-width: 40rem;
     }
 
     .card {
-      background: var(--white);
-      border-radius: 0.75rem;
-      padding: 1.25rem 1.25rem 1.35rem;
-      border: 1px solid var(--border);
+      background: #ffffff;
+      border-radius: 1rem;
+      padding: 1.4rem 1.5rem 1.6rem;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.05);
+      font-size: 0.9rem;
     }
 
-    .card h2 {
-      font-size: 1.05rem;
-      margin: 0 0 0.75rem;
+    .small {
+      font-size: 0.8rem;
+      opacity: 0.8;
     }
 
-    .card p.helper {
-      font-size: 0.85rem;
-      margin: 0 0 1rem;
-      color: #6b7280;
-    }
-
-    .field {
-      margin-bottom: 0.8rem;
-    }
-
-    .field label {
-      display: block;
-      font-size: 0.85rem;
-      margin-bottom: 0.25rem;
-      color: #4b5563;
-    }
-
-    .field input,
-    .field select,
-    .field textarea {
-      width: 100%;
-      padding: 0.5rem 0.55rem;
+    .status {
+      margin-bottom: 1rem;
+      padding: 0.55rem 0.7rem;
       border-radius: 0.5rem;
-      border: 1px solid var(--border);
-      font: inherit;
+      font-size: 0.85rem;
+      display: none;
     }
 
-    .field small {
+    .status--error {
       display: block;
-      font-size: 0.75rem;
-      color: #6b7280;
-      margin-top: 0.15rem;
+      background: #fbeaea;
+      color: var(--danger);
+      border: 1px solid rgba(179,38,30,0.3);
     }
 
-    textarea {
-      min-height: 70px;
-      resize: vertical;
+    .status--success {
+      display: block;
+      background: #e7f3ea;
+      color: var(--success);
+      border: 1px solid rgba(20,108,46,0.3);
+    }
+
+    .status--info {
+      display: block;
+      background: #e7f0fb;
+      color: #1f4e79;
+      border: 1px solid rgba(31,78,121,0.35);
     }
 
     .two-col {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.75rem;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 0.9rem 1.2rem;
     }
 
-    @media (max-width: 600px) {
-      .two-col {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .pill-row {
+    .field {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
-      margin-top: 0.6rem;
+      flex-direction: column;
+      gap: 0.2rem;
     }
 
-    .pill-row span {
-      font-size: 0.73rem;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      padding: 0.15rem 0.5rem;
-      background: #f9fafb;
-      color: #4b5563;
+    .field label {
+      font-size: 0.78rem;
+      font-weight: 500;
     }
 
-    .button-row {
-      margin-top: 1rem;
+    .field span.hint {
+      font-size: 0.75rem;
+      opacity: 0.75;
+    }
+
+    input, select, textarea {
+      border-radius: 0.5rem;
+      border: 1px solid rgba(0,0,0,0.16);
+      padding: 0.5rem 0.6rem;
+      font: inherit;
+      width: 100%;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid rgba(31,78,121,0.45);
+      border-color: transparent;
+    }
+
+    .field--full {
+      grid-column: 1 / -1;
+    }
+
+    .actions {
+      margin-top: 1.2rem;
       display: flex;
-      gap: 0.5rem;
+      gap: 0.7rem;
+      align-items: center;
       flex-wrap: wrap;
     }
 
-    button.primary {
-      background: var(--primary-blue);
-      color: var(--white);
-      border-radius: 999px;
+    button {
       border: none;
-      padding: 0.55rem 1.1rem;
-      font: inherit;
-      cursor: pointer;
-    }
-
-    button.secondary {
-      background: transparent;
-      color: var(--primary-blue);
       border-radius: 999px;
-      border: 1px solid var(--primary-blue);
-      padding: 0.5rem 1rem;
-      font: inherit;
+      padding: 0.7rem 1.4rem;
       cursor: pointer;
+      font: inherit;
     }
 
-    button:disabled {
-      opacity: 0.6;
-      cursor: default;
+    .btn-primary {
+      background: var(--primary-blue);
+      color: #ffffff;
+      font-weight: 600;
     }
 
-    .small-text {
-      font-size: 0.78rem;
-      color: #6b7280;
-      margin-top: 0.6rem;
+    .btn-primary:hover {
+      background: #163857;
     }
 
-    footer {
-      font-size: 0.78rem;
-      text-align: center;
-      color: #9ca3af;
-      padding: 1rem;
-      margin-top: auto;
+    .btn-outline {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.18);
+      color: var(--primary-blue);
+      font-size: 0.85rem;
+    }
+
+    .muted {
+      font-size: 0.8rem;
+      opacity: 0.75;
+    }
+
+    @media (max-width: 720px) {
+      main { padding-top: 2rem; }
+      .two-col {
+        grid-template-columns: minmax(0,1fr);
+      }
     }
   </style>
 </head>
 <body>
 <div class="page">
   <header>
-    <div>
-      <h1>TradeBotPro — Dashboard</h1>
-      <div style="font-size:0.82rem;opacity:0.9;">
-        Manage how your AI office assistant works for your trade business.
+    <div class="header-inner">
+      <div class="logo-wrap">
+        <div class="logo-icon" aria-hidden="true"></div>
+        <div>
+          <div class="logo-main">TradeBotPro</div>
+          <div class="logo-tag">AI office assistant for trades</div>
+        </div>
+      </div>
+      <div class="small">
+        Business profile portal
       </div>
     </div>
-    <div class="pill" id="accountStatusPill">Account status: <span id="accountStatusText">Loading…</span></div>
   </header>
 
   <main>
-    <div class="status-row">
-      <div class="status-card">
-        <div class="status-label">Business</div>
-        <div class="status-value" id="businessName">Loading…</div>
+    <div class="inner">
+      <h1>Your AI Office Profile</h1>
+      <p class="lead">
+        This page lets you update the key details TradeBotPro uses when handling your enquiries
+        — contact details, pricing and how you like to work.
+      </p>
+
+      <div id="status" class="status"></div>
+
+      <div class="card">
+        <form id="profile-form">
+          <div class="two-col">
+            <div class="field">
+              <label for="business_name">Business name</label>
+              <input id="business_name" name="business_name" type="text" autocomplete="organization" />
+            </div>
+
+            <div class="field">
+              <label for="contact_name">Main contact name</label>
+              <input id="contact_name" name="contact_name" type="text" autocomplete="name" />
+            </div>
+
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" autocomplete="email" />
+            </div>
+
+            <div class="field">
+              <label for="whatsapp_number">Mobile / WhatsApp number</label>
+              <span class="hint">This is the main number TradeBotPro will use.</span>
+              <input id="whatsapp_number" name="whatsapp_number" type="tel" />
+            </div>
+
+            <div class="field">
+              <label for="phone">Optional landline</label>
+              <span class="hint">Shown on messages and quotes if you want.</span>
+              <input id="phone" name="phone" type="tel" />
+            </div>
+
+            <div class="field">
+              <label for="trade_type">Trade</label>
+              <select id="trade_type" name="trade_type">
+                <option value="">Select your trade…</option>
+                <option>Plumber</option>
+                <option>Heating Engineer</option>
+                <option>Gas Engineer</option>
+                <option>Electrician</option>
+                <option>Builder</option>
+                <option>Handyman</option>
+                <option>Landscaper / Gardener</option>
+                <option>Cleaner / Carpet Cleaner</option>
+                <option>Pest Control</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="base_postcode">Base postcode</label>
+              <input id="base_postcode" name="base_postcode" type="text" />
+            </div>
+
+            <div class="field">
+              <label for="service_radius">Service radius (miles)</label>
+              <input id="service_radius" name="service_radius" type="number" min="0" step="1" />
+            </div>
+
+            <div class="field field--full">
+              <label for="website_url">Website (optional)</label>
+              <input id="website_url" name="website_url" type="url" placeholder="https://…" />
+            </div>
+
+            <div class="field">
+              <label for="callout_fee">Call-out fee (£)</label>
+              <input id="callout_fee" name="callout_fee" type="number" min="0" step="1" />
+            </div>
+
+            <div class="field">
+              <label for="first_hour_rate">First hour rate (£)</label>
+              <input id="first_hour_rate" name="first_hour_rate" type="number" min="0" step="1" />
+            </div>
+
+            <div class="field">
+              <label for="hourly_rate">Hourly rate after first hour (£)</label>
+              <input id="hourly_rate" name="hourly_rate" type="number" min="0" step="1" />
+            </div>
+
+            <div class="field">
+              <label for="boiler_service_from">Boiler service from (£)</label>
+              <input id="boiler_service_from" name="boiler_service_from" type="number" min="0" step="1" />
+            </div>
+
+            <div class="field">
+              <label for="quote_minimum">Minimum job / quote value (£)</label>
+              <input id="quote_minimum" name="quote_minimum" type="number" min="0" step="1" />
+            </div>
+
+            <div class="field field--full">
+              <label for="services_summary">What services do you offer?</label>
+              <span class="hint">Short bullets are fine — e.g. boiler installs, repairs, landlord certs.</span>
+              <textarea id="services_summary" name="services_summary"></textarea>
+            </div>
+
+            <div class="field field--full">
+              <label for="ai_style_notes">How should your AI office speak to customers?</label>
+              <span class="hint">
+                E.g. “Friendly but professional, no jargon, don’t give fixed prices without photos, 
+                always check parking / access.”
+              </span>
+              <textarea id="ai_style_notes" name="ai_style_notes"></textarea>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn-primary">Save changes</button>
+            <button type="button" id="reset-btn" class="btn-outline">Reset back to last saved</button>
+            <span class="muted" id="last-saved"></span>
+          </div>
+        </form>
       </div>
-      <div class="status-card">
-        <div class="status-label">Trade type</div>
-        <div class="status-value" id="tradeType">Loading…</div>
-      </div>
-      <div class="status-card">
-        <div class="status-label">Plan</div>
-        <div class="status-value" id="planStatus">Trial / Not configured yet</div>
-      </div>
-    </div>
-
-    <div class="grid">
-      <!-- LEFT: Business profile & trade -->
-      <section class="card">
-        <h2>Your business profile</h2>
-        <p class="helper">
-          This is what TradeBotPro uses when talking to your customers and (in future) what we show on any public
-          “find a trusted trade” page.
-        </p>
-
-        <div class="field">
-          <label for="business_name">Business name</label>
-          <input id="business_name" type="text" placeholder="e.g. AG Plumbing & Heating" />
-        </div>
-
-        <div class="two-col">
-          <div class="field">
-            <label for="contact_name">Main contact name</label>
-            <input id="contact_name" type="text" placeholder="e.g. Andy Gifford" />
-          </div>
-          <div class="field">
-            <label for="phone">Primary phone / WhatsApp</label>
-            <input id="phone" type="text" placeholder="e.g. 07123 456789" />
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="postcode">Base postcode (for coverage)</label>
-          <input id="postcode" type="text" placeholder="e.g. HP14 3QF" />
-          <small>This helps us show you on the trade locator map in a later phase.</small>
-        </div>
-
-        <div class="field">
-          <label for="trade_type">Trade type</label>
-          <select id="trade_type">
-            <!-- CORE TRADES (from Supabase) -->
-            <option value="">Select your main trade…</option>
-            <option value="plumbing_heating">Plumbers &amp; Heating Engineers</option>
-            <option value="roofing_guttering">Roofers &amp; Guttering</option>
-            <option value="cleaning_carpets">Cleaners &amp; Carpet Cleaners</option>
-            <option value="electrician">Electricians</option>
-            <option value="pest_control">Pest Control</option>
-            <option value="window_cleaning">Window Cleaners</option>
-            <option value="landscaping_gardening">Landscapers &amp; Gardeners</option>
-            <option value="home_repairs_maintenance">Home Repairs &amp; Maintenance</option>
-            <option value="builders_handymen">Builders &amp; Handymen</option>
-            <option value="painting_decorating">Painters &amp; Decorators</option>
-
-            <!-- EXTRA OPTIONS YOU ASKED TO ADD -->
-            <option value="gas_engineer">Gas Engineer</option>
-            <option value="drainage">Drainage / Blockages</option>
-            <option value="boiler_specialist">Boiler Specialist</option>
-            <option value="bathroom_installer">Bathroom Installer</option>
-            <option value="heat_pump">Heat Pump / Renewables</option>
-            <option value="general_builder">General Builder</option>
-            <option value="locksmith">Locksmith</option>
-          </select>
-          <small>You can only pick one main trade for now. We’ll let you tick extras later.</small>
-        </div>
-
-        <div class="field">
-          <label for="services_summary">What do you want TradeBotPro to tell people you do?</label>
-          <textarea id="services_summary"
-            placeholder="e.g. Boiler breakdowns, emergency leaks, full bathroom installs, annual servicing…"></textarea>
-          <small>We’ll use this to improve how your assistant answers questions.</small>
-        </div>
-
-        <div class="button-row">
-          <button class="primary" id="saveProfileBtn">Save profile</button>
-          <button class="secondary" id="refreshBtn">Refresh from Supabase</button>
-        </div>
-        <div class="small-text" id="profileSaveStatus"></div>
-      </section>
-
-      <!-- RIGHT: Pricing & assistant behaviour -->
-      <section class="card">
-        <h2>Call-out & job pricing (V1)</h2>
-        <p class="helper">
-          These are guidelines for your assistant. It will explain them clearly to customers but not promise exact
-          prices unless you tell it to.
-        </p>
-
-        <div class="two-col">
-          <div class="field">
-            <label for="callout_from">Standard call-out (from)</label>
-            <input id="callout_from" type="number" min="0" step="1" placeholder="e.g. 80" />
-            <small>Base price in £ for a weekday call-out.</small>
-          </div>
-          <div class="field">
-            <label for="hourly_rate">Hourly rate (from)</label>
-            <input id="hourly_rate" type="number" min="0" step="1" placeholder="e.g. 60" />
-            <small>Typical hourly rate used in quotes.</small>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="pricing_notes">Anything else we should say about pricing?</label>
-          <textarea id="pricing_notes"
-            placeholder="e.g. Fixed-price boiler services, no call-out for existing customers, free quotes within 10 miles…"></textarea>
-        </div>
-
-        <div class="field">
-          <label>How cautious should TradeBotPro be?</label>
-          <div class="pill-row">
-            <span>Never promise exact prices</span>
-            <span>Always suggest a site visit if unsure</span>
-            <span>Avoid technical advice that could be unsafe</span>
-          </div>
-          <small>We’ll hard-code these safeguards in the assistant for now to reduce legal risk.</small>
-        </div>
-
-        <div class="button-row">
-          <button class="primary" id="savePricingBtn">Save pricing</button>
-        </div>
-        <div class="small-text" id="pricingSaveStatus"></div>
-
-        <p class="small-text" style="margin-top:1rem;">
-          In a later phase you’ll also see stats here (conversations, leads, bookings) and be able to give
-          feedback to improve how the assistant answers questions.
-        </p>
-      </section>
     </div>
   </main>
-
-  <footer>
-    TradeBotPro — early access dashboard (Phase 3). Data stored in Supabase (EU region).
-  </footer>
 </div>
 
-<!-- Supabase JS -->
-<script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
 <script>
-  // 1) SET YOUR REAL SUPABASE DETAILS HERE
+  // 👇👇👇 IMPORTANT: SET THESE TWO VALUES 👇👇👇
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    // ---------- helper: read user_id from URL ----------
+  function getUserIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('user_id');
+  }
 
-  // 2) INITIALISE CLIENT (typo fixed: createClient, not createClieni)
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // ---------- small helpers for status messages ----------
+  const statusBox = document.getElementById('status');
+  const lastSavedSpan = document.getElementById('last-saved');
 
-  // 3) READ USER ID FROM URL (?user_id=... or ?profile_id=...)
-  const params = new URLSearchParams(window.location.search);
-  const userIdFromUrl = params.get("user_id") || params.get("profile_id");
-
-  const businessNameEl = document.getElementById("businessName");
-  const tradeTypeEl = document.getElementById("tradeType");
-  const planStatusEl = document.getElementById("planStatus");
-  const accountStatusPill = document.getElementById("accountStatusPill");
-  const accountStatusText = document.getElementById("accountStatusText");
-
-  const profileSaveStatusEl = document.getElementById("profileSaveStatus");
-  const pricingSaveStatusEl = document.getElementById("pricingSaveStatus");
-  const saveProfileBtn = document.getElementById("saveProfileBtn");
-  const refreshBtn = document.getElementById("refreshBtn");
-  const savePricingBtn = document.getElementById("savePricingBtn");
-
-  // Form fields
-  const f = {
-    business_name: document.getElementById("business_name"),
-    contact_name: document.getElementById("contact_name"),
-    phone: document.getElementById("phone"),
-    postcode: document.getElementById("postcode"),
-    trade_type: document.getElementById("trade_type"),
-    services_summary: document.getElementById("services_summary"),
-    callout_from: document.getElementById("callout_from"),
-    hourly_rate: document.getElementById("hourly_rate"),
-    pricing_notes: document.getElementById("pricing_notes"),
-  };
-
-  function setAccountStatus(text, isError) {
-    accountStatusText.textContent = text;
-    if (isError) {
-      accountStatusPill.style.background = "#7f1d1d";
+  function setStatus(type, message) {
+    statusBox.className = 'status';
+    if (!message) {
+      statusBox.style.display = 'none';
+      return;
+    }
+    if (type === 'error') {
+      statusBox.classList.add('status--error');
+    } else if (type === 'success') {
+      statusBox.classList.add('status--success');
     } else {
-      accountStatusPill.style.background = "var(--primary-blue)";
+      statusBox.classList.add('status--info');
+    }
+    statusBox.textContent = message;
+    statusBox.style.display = 'block';
+  }
+
+  function updateLastSaved() {
+    lastSavedSpan.textContent = 'Last saved: ' + new Date().toLocaleString();
+  }
+
+  // ---------- Supabase REST calls ----------
+  async function fetchProfile(userId) {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Supabase URL / anon key not set in app.html');
+    }
+
+    const url = supabaseUrl + '/rest/v1/business_profiles'
+      + '?user_id=eq.' + encodeURIComponent(userId)
+      + '&select=*';
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': 'Bearer ' + supabaseAnonKey
+      }
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      console.error('Fetch profile error', res.status, text);
+      throw new Error('Failed to load profile (HTTP ' + res.status + ').');
+    }
+
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) {
+      throw new Error('No profile found for this link. Please contact support.');
+    }
+
+    return rows[0];
+  }
+
+  async function saveProfile(userId, payload) {
+    const url = supabaseUrl + '/rest/v1/business_profiles'
+      + '?user_id=eq.' + encodeURIComponent(userId);
+
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': 'Bearer ' + supabaseAnonKey,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      console.error('Save profile error', res.status, text);
+      throw new Error('Could not save your changes (HTTP ' + res.status + ').');
+    }
+
+    const rows = await res.json();
+    return rows[0] || null;
+  }
+
+  // ---------- form wiring ----------
+  const form = document.getElementById('profile-form');
+  const resetBtn = document.getElementById('reset-btn');
+
+  let currentUserId = null;
+  let lastLoadedProfile = null;
+
+  async function initialise() {
+    try {
+      const userId = getUserIdFromUrl();
+      currentUserId = userId;
+
+      if (!userId) {
+        setStatus('error', 'This link is missing a user id. Please open the full link we sent you, or contact support.');
+        form.style.display = 'none';
+        return;
+      }
+
+      setStatus('info', 'Loading your profile…');
+
+      const profile = await fetchProfile(userId);
+      lastLoadedProfile = profile;
+      populateForm(profile);
+
+      setStatus('info', 'Profile loaded. Update any details below and click “Save changes”.');
+    } catch (err) {
+      console.error(err);
+      setStatus('error', err.message || 'Something went wrong loading your profile.');
     }
   }
 
-  function setStatus(el, message, isError = false) {
-    el.textContent = message || "";
-    el.style.color = isError ? "#b91c1c" : "#6b7280";
+  function populateForm(p) {
+    const fields = [
+      'business_name',
+      'contact_name',
+      'email',
+      'whatsapp_number',
+      'phone',
+      'trade_type',
+      'base_postcode',
+      'service_radius',
+      'website_url',
+      'callout_fee',
+      'first_hour_rate',
+      'hourly_rate',
+      'boiler_service_from',
+      'quote_minimum',
+      'services_summary',
+      'ai_style_notes'
+    ];
+
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const val = p[id];
+
+      if (el.tagName === 'SELECT') {
+        el.value = val ?? '';
+      } else if (el.tagName === 'TEXTAREA') {
+        el.value = val ?? '';
+      } else {
+        el.value = val ?? '';
+      }
+    });
+
+    updateLastSaved();
   }
 
-  function prettyTradeLabel(value) {
-    if (!value) return "Not set yet";
-    const map = {
-      plumbing_heating: "Plumbers & Heating Engineers",
-      roofing_guttering: "Roofers & Guttering",
-      cleaning_carpets: "Cleaners & Carpet Cleaners",
-      electrician: "Electricians",
-      pest_control: "Pest Control",
-      window_cleaning: "Window Cleaners",
-      landscaping_gardening: "Landscapers & Gardeners",
-      home_repairs_maintenance: "Home Repairs & Maintenance",
-      builders_handymen: "Builders & Handymen",
-      painting_decorating: "Painters & Decorators",
-      gas_engineer: "Gas Engineer",
-      drainage: "Drainage / Blockages",
-      boiler_specialist: "Boiler Specialist",
-      bathroom_installer: "Bathroom Installer",
-      heat_pump: "Heat Pump / Renewables",
-      general_builder: "General Builder",
-      locksmith: "Locksmith"
-    };
-    return map[value] || value;
+  function getFormPayload() {
+    const payload = {};
+
+    function val(id) {
+      const el = document.getElementById(id);
+      if (!el) return '';
+      return el.value.trim();
+    }
+
+    payload.business_name     = val('business_name') || null;
+    payload.contact_name      = val('contact_name')  || null;
+    payload.email             = val('email')         || null;
+    payload.whatsapp_number   = val('whatsapp_number') || null;
+    payload.phone             = val('phone')         || null;
+    payload.trade_type        = val('trade_type')    || null;
+    payload.base_postcode     = val('base_postcode') || null;
+    payload.service_radius    = val('service_radius') ? Number(val('service_radius')) : null;
+    payload.website_url       = val('website_url')   || null;
+    payload.callout_fee       = val('callout_fee') ? Number(val('callout_fee')) : null;
+    payload.first_hour_rate   = val('first_hour_rate') ? Number(val('first_hour_rate')) : null;
+    payload.hourly_rate       = val('hourly_rate') ? Number(val('hourly_rate')) : null;
+    payload.boiler_service_from = val('boiler_service_from') ? Number(val('boiler_service_from')) : null;
+    payload.quote_minimum     = val('quote_minimum') ? Number(val('quote_minimum')) : null;
+    payload.services_summary  = val('services_summary') || null;
+    payload.ai_style_notes    = val('ai_style_notes') || null;
+
+    return payload;
   }
 
-  async function loadProfile() {
-    if (!userIdFromUrl) {
-      setAccountStatus("No user ID in URL", true);
-      businessNameEl.textContent = "Unknown — add ?profile_id=UUID to the URL";
-      tradeTypeEl.textContent = "Unknown";
-      return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentUserId) return;
+
+    try {
+      setStatus('info', 'Saving your changes…');
+      const payload = getFormPayload();
+      const updated = await saveProfile(currentUserId, payload);
+      if (updated) {
+        lastLoadedProfile = updated;
+        populateForm(updated);
+      }
+      setStatus('success', 'All saved. Your AI office will now use these details.');
+    } catch (err) {
+      console.error(err);
+      setStatus('error', err.message || 'Something went wrong saving your details.');
     }
+  });
 
-    setAccountStatus("Loading from Supabase…", false);
-    businessNameEl.textContent = "Loading…";
-    tradeTypeEl.textContent = "Loading…";
+  resetBtn.addEventListener('click', () => {
+    if (!lastLoadedProfile) return;
+    populateForm(lastLoadedProfile);
+    setStatus('info', 'Reverted back to last saved values.');
+  });
 
-    // FIRST TRY: business_profiles (this is where your UUID is from)
-    let { data: profile, error } = await supabaseClient
-      .from("business_profiles")
-      .select("*")
-      .eq("id", userIdFromUrl)
-      .maybeSingle();
-
-    // FALLBACK: tradebotpro_signups (in case we wired it that way before)
-    if (!profile && error) {
-      console.warn("business_profiles error, trying tradebotpro_signups:", error.message);
-      const fallback = await supabaseClient
-        .from("tradebotpro_signups")
-        .select("*")
-        .eq("id", userIdFromUrl)
-        .maybeSingle();
-      profile = fallback.data;
-      error = fallback.error;
-    }
-
-    if (error && !profile) {
-      console.error("Supabase error:", error);
-      setAccountStatus("Could not load your details (Supabase error).", true);
-      businessNameEl.textContent = "Error loading profile";
-      tradeTypeEl.textContent = "—";
-      return;
-    }
-
-    if (!profile) {
-      setAccountStatus("No profile found for this ID.", true);
-      businessNameEl.textContent = "Not found";
-      tradeTypeEl.textContent = "—";
-      return;
-    }
-
-    // Update header tiles
-    businessNameEl.textContent = profile.business_name || "Business name not set";
-    tradeTypeEl.textContent = prettyTradeLabel(profile.trade_type);
-    planStatusEl.textContent = profile.plan_status || "Trial / Not configured yet";
-    setAccountStatus("Connected to Supabase", false);
-
-    // Fill form fields (handle both table shapes)
-    f.business_name.value = profile.business_name || "";
-    f.contact_name.value = profile.contact_name || profile.contact || "";
-    f.phone.value = profile.phone || profile.whatsapp_number || "";
-    f.postcode.value = profile.base_postcode || profile.postcode || "";
-    f.trade_type.value = profile.trade_type || "";
-    f.services_summary.value = profile.services_summary || profile.services || "";
-    f.callout_from.value = profile.callout_from || "";
-    f.hourly_rate.value = profile.hourly_rate || "";
-    f.pricing_notes.value = profile.pricing_notes || "";
-  }
-
-  async function saveProfile() {
-    if (!userIdFromUrl) return;
-
-    saveProfileBtn.disabled = true;
-    setStatus(profileSaveStatusEl, "Saving to Supabase…");
-
-    const payload = {
-      business_name: f.business_name.value || null,
-      contact_name: f.contact_name.value || null,
-      phone: f.phone.value || null,
-      base_postcode: f.postcode.value || null,
-      trade_type: f.trade_type.value || null,
-      services_summary: f.services_summary.value || null,
-      // Basic plan info placeholder
-      plan_status: "Trial"
-    };
-
-    // Upsert into business_profiles keyed by id
-    const { data, error } = await supabaseClient
-      .from("business_profiles")
-      .upsert({ id: userIdFromUrl, ...payload })
-      .select("*")
-      .maybeSingle();
-
-    saveProfileBtn.disabled = false;
-
-    if (error) {
-      console.error("Save profile error:", error);
-      setStatus(profileSaveStatusEl, "Could not save profile (" + error.message + ")", true);
-      return;
-    }
-
-    businessNameEl.textContent = data.business_name || "Business name not set";
-    tradeTypeEl.textContent = prettyTradeLabel(data.trade_type);
-    planStatusEl.textContent = data.plan_status || "Trial / Not configured yet";
-    setStatus(profileSaveStatusEl, "Profile saved.", false);
-  }
-
-  async function savePricing() {
-    if (!userIdFromUrl) return;
-
-    savePricingBtn.disabled = true;
-    setStatus(pricingSaveStatusEl, "Saving pricing…");
-
-    const payload = {
-      callout_from: f.callout_from.value ? Number(f.callout_from.value) : null,
-      hourly_rate: f.hourly_rate.value ? Number(f.hourly_rate.value) : null,
-      pricing_notes: f.pricing_notes.value || null
-    };
-
-    const { error } = await supabaseClient
-      .from("business_profiles")
-      .update(payload)
-      .eq("id", userIdFromUrl);
-
-    savePricingBtn.disabled = false;
-
-    if (error) {
-      console.error("Save pricing error:", error);
-      setStatus(pricingSaveStatusEl, "Could not save pricing (" + error.message + ")", true);
-      return;
-    }
-
-    setStatus(pricingSaveStatusEl, "Pricing saved.", false);
-  }
-
-  saveProfileBtn.addEventListener("click", saveProfile);
-  refreshBtn.addEventListener("click", loadProfile);
-  savePricingBtn.addEventListener("click", savePricing);
-
-  // Initial load
-  loadProfile();
+  // kick-off
+  initialise();
 </script>
 </body>
 </html>
