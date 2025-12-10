@@ -398,221 +398,24 @@
 </div>
 
 <script>
-  // 👇👇👇 IMPORTANT: SET THESE TWO VALUES 👇👇👇
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-    // ---------- helper: read user_id from URL ----------
-  function getUserIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('user_id');
-  }
+  // CONFIG FIRST
+  const supabaseUrl = 'https://yaiutswdcbfwkxfqxkzy.supabase.co';
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
 
-  // ---------- small helpers for status messages ----------
-  const statusBox = document.getElementById('status');
-  const lastSavedSpan = document.getElementById('last-saved');
+  // helpers
+  function getUserIdFromUrl() { ... }
 
-  function setStatus(type, message) {
-    statusBox.className = 'status';
-    if (!message) {
-      statusBox.style.display = 'none';
-      return;
-    }
-    if (type === 'error') {
-      statusBox.classList.add('status--error');
-    } else if (type === 'success') {
-      statusBox.classList.add('status--success');
-    } else {
-      statusBox.classList.add('status--info');
-    }
-    statusBox.textContent = message;
-    statusBox.style.display = 'block';
-  }
+  // fetchProfile()
+  async function fetchProfile(userId) { ... }
 
-  function updateLastSaved() {
-    lastSavedSpan.textContent = 'Last saved: ' + new Date().toLocaleString();
-  }
+  // saveProfile()
+  async function saveProfile(userId, payload) { ... }
 
-  // ---------- Supabase REST calls ----------
-  async function fetchProfile(userId) {
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Supabase URL / anon key not set in app.html');
-    }
+  // initialise()
+  async function initialise() { ... }
 
-    const url = supabaseUrl + '/rest/v1/business_profiles'
-      + '?user_id=eq.' + encodeURIComponent(userId)
-      + '&select=*';
-
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'apikey': supabaseAnonKey,
-        'Authorization': 'Bearer ' + supabaseAnonKey
-      }
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      console.error('Fetch profile error', res.status, text);
-      throw new Error('Failed to load profile (HTTP ' + res.status + ').');
-    }
-
-    const rows = await res.json();
-    if (!Array.isArray(rows) || rows.length === 0) {
-      throw new Error('No profile found for this link. Please contact support.');
-    }
-
-    return rows[0];
-  }
-
-  async function saveProfile(userId, payload) {
-    const url = supabaseUrl + '/rest/v1/business_profiles'
-      + '?user_id=eq.' + encodeURIComponent(userId);
-
-    const res = await fetch(url, {
-      method: 'PATCH',
-      headers: {
-        'apikey': supabaseAnonKey,
-        'Authorization': 'Bearer ' + supabaseAnonKey,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      console.error('Save profile error', res.status, text);
-      throw new Error('Could not save your changes (HTTP ' + res.status + ').');
-    }
-
-    const rows = await res.json();
-    return rows[0] || null;
-  }
-
-  // ---------- form wiring ----------
-  const form = document.getElementById('profile-form');
-  const resetBtn = document.getElementById('reset-btn');
-
-  let currentUserId = null;
-  let lastLoadedProfile = null;
-
-  async function initialise() {
-    try {
-      const userId = getUserIdFromUrl();
-      currentUserId = userId;
-
-      if (!userId) {
-        setStatus('error', 'This link is missing a user id. Please open the full link we sent you, or contact support.');
-        form.style.display = 'none';
-        return;
-      }
-
-      setStatus('info', 'Loading your profile…');
-
-      const profile = await fetchProfile(userId);
-      lastLoadedProfile = profile;
-      populateForm(profile);
-
-      setStatus('info', 'Profile loaded. Update any details below and click “Save changes”.');
-    } catch (err) {
-      console.error(err);
-      setStatus('error', err.message || 'Something went wrong loading your profile.');
-    }
-  }
-
-  function populateForm(p) {
-    const fields = [
-      'business_name',
-      'contact_name',
-      'email',
-      'whatsapp_number',
-      'phone',
-      'trade_type',
-      'base_postcode',
-      'service_radius',
-      'website_url',
-      'callout_fee',
-      'first_hour_rate',
-      'hourly_rate',
-      'boiler_service_from',
-      'quote_minimum',
-      'services_summary',
-      'ai_style_notes'
-    ];
-
-    fields.forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const val = p[id];
-
-      if (el.tagName === 'SELECT') {
-        el.value = val ?? '';
-      } else if (el.tagName === 'TEXTAREA') {
-        el.value = val ?? '';
-      } else {
-        el.value = val ?? '';
-      }
-    });
-
-    updateLastSaved();
-  }
-
-  function getFormPayload() {
-    const payload = {};
-
-    function val(id) {
-      const el = document.getElementById(id);
-      if (!el) return '';
-      return el.value.trim();
-    }
-
-    payload.business_name     = val('business_name') || null;
-    payload.contact_name      = val('contact_name')  || null;
-    payload.email             = val('email')         || null;
-    payload.whatsapp_number   = val('whatsapp_number') || null;
-    payload.phone             = val('phone')         || null;
-    payload.trade_type        = val('trade_type')    || null;
-    payload.base_postcode     = val('base_postcode') || null;
-    payload.service_radius    = val('service_radius') ? Number(val('service_radius')) : null;
-    payload.website_url       = val('website_url')   || null;
-    payload.callout_fee       = val('callout_fee') ? Number(val('callout_fee')) : null;
-    payload.first_hour_rate   = val('first_hour_rate') ? Number(val('first_hour_rate')) : null;
-    payload.hourly_rate       = val('hourly_rate') ? Number(val('hourly_rate')) : null;
-    payload.boiler_service_from = val('boiler_service_from') ? Number(val('boiler_service_from')) : null;
-    payload.quote_minimum     = val('quote_minimum') ? Number(val('quote_minimum')) : null;
-    payload.services_summary  = val('services_summary') || null;
-    payload.ai_style_notes    = val('ai_style_notes') || null;
-
-    return payload;
-  }
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!currentUserId) return;
-
-    try {
-      setStatus('info', 'Saving your changes…');
-      const payload = getFormPayload();
-      const updated = await saveProfile(currentUserId, payload);
-      if (updated) {
-        lastLoadedProfile = updated;
-        populateForm(updated);
-      }
-      setStatus('success', 'All saved. Your AI office will now use these details.');
-    } catch (err) {
-      console.error(err);
-      setStatus('error', err.message || 'Something went wrong saving your details.');
-    }
-  });
-
-  resetBtn.addEventListener('click', () => {
-    if (!lastLoadedProfile) return;
-    populateForm(lastLoadedProfile);
-    setStatus('info', 'Reverted back to last saved values.');
-  });
-
-  // kick-off
   initialise();
 </script>
+
 </body>
 </html>
