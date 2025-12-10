@@ -75,8 +75,8 @@
       border-radius: 9px;
       background: var(--primary-blue);
       position: relative;
-      user-select: none;
       -webkit-user-select: none; /* Safari */
+      user-select: none;
     }
 
     .logo-icon::before,
@@ -249,8 +249,8 @@
       background: #f8fafc;
       font-size: 0.8rem;
       cursor: pointer;
-      user-select: none;
       -webkit-user-select: none; /* Safari */
+      user-select: none;
     }
 
     .chip input {
@@ -636,7 +636,7 @@
   // 4) Paste them EXACTLY between the quotes below
   // ------------------------------------------------------------
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
   // ------------------------------------------------------------
   // BASIC DOM HOOKS
@@ -903,6 +903,7 @@
 
     setFormStatus('Saving to Supabase…', 'neutral');
 
+    // Core payload used for business_profiles (full detail)
     const payload = {
       signup_id: signupId,
       business_name: document.getElementById('business_name').value.trim(),
@@ -925,17 +926,52 @@
 
       ai_focus_quick: getQuickPicksForSave(),
       ai_focus_free: document.getElementById('ai_focus_free').value.trim(),
-      services_summary: document.getElementById('ai_focus_free').value.trim(), // mirror
+      services_summary: document.getElementById('ai_focus_free').value.trim(), // mirror into services_summary
       ai_style_notes: document.getElementById('ai_style_notes').value.trim(),
       other_notes: document.getElementById('other_notes').value.trim()
     };
 
+    // Subset payload for tradebotpro_signups (no extra-only fields)
+    const signupUpdatePayload = {
+      business_name: payload.business_name,
+      contact_name: payload.contact_name,
+      email: payload.email,
+      whatsapp_number: payload.whatsapp_number,
+      phone: payload.phone,
+      trade_type: payload.trade_type,
+      base_postcode: payload.base_postcode,
+      website_url: payload.website_url,
+      service_radius: payload.service_radius,
+      callout_from: payload.callout_from,
+      callout_fee: payload.callout_fee,
+      first_hour_rate: payload.first_hour_rate,
+      hourly_rate: payload.hourly_rate,
+      boiler_service_from: payload.boiler_service_from,
+      quote_minimum: payload.quote_minimum,
+      pricing_notes: payload.pricing_notes,
+      services_summary: payload.services_summary,
+      ai_style_notes: payload.ai_style_notes
+    };
+
     try {
+      // 1) Update business_profiles (main profile store for this page)
       await supabaseFetch(
         `business_profiles?signup_id=eq.${encodeURIComponent(signupId)}`,
         {
           method: 'PATCH',
           body: JSON.stringify(payload),
+          headers: {
+            Prefer: 'return=minimal'
+          }
+        }
+      );
+
+      // 2) Mirror key fields back into tradebotpro_signups
+      await supabaseFetch(
+        `tradebotpro_signups?id=eq.${encodeURIComponent(signupId)}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(signupUpdatePayload),
           headers: {
             Prefer: 'return=minimal'
           }
