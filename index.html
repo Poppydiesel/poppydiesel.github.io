@@ -16,8 +16,7 @@
       --dark-text: #1b1b1f;
       --light-bg: #f5f7fa;
       --white: #ffffff;
-      --error-red: #b3261e;
-      --success-green: #0f7b46;
+      --border-radius: 14px;
     }
 
     * {
@@ -42,1349 +41,672 @@
     }
 
     .page {
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
     }
-
-    .inner {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 0 1.25rem;
-    }
-
-    /* HEADER */
 
     header {
       position: sticky;
       top: 0;
-      z-index: 10;
-      background: rgba(245, 247, 250, 0.97);
-      backdrop-filter: blur(6px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      z-index: 20;
+      backdrop-filter: blur(10px);
+      background: rgba(245, 247, 250, 0.9);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.04);
     }
 
-    .nav {
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0.75rem 1.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      padding: 0.75rem 0;
-      font-size: 0.9rem;
     }
 
-    .logo-wrap {
+    .logo {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-    }
-
-    .logo-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 9px;
-      background: var(--primary-blue);
-      position: relative;
-    }
-
-    .logo-icon::before,
-    .logo-icon::after {
-      content: "";
-      position: absolute;
-      background: var(--white);
-      border-radius: 4px;
-    }
-
-    .logo-icon::before {
-      width: 12px;
-      height: 18px;
-      left: 7px;
-      top: 7px;
-    }
-
-    .logo-icon::after {
-      width: 6px;
-      height: 12px;
-      right: 7px;
-      top: 10px;
-    }
-
-    .logo-main {
+      gap: 0.5rem;
       font-weight: 700;
-      font-size: 1.05rem;
+      font-size: 1.1rem;
       color: var(--primary-blue);
     }
 
-    .logo-tag {
-      font-size: 0.7rem;
-      opacity: 0.7;
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 25% 25%, #00a3ff, #1f4e79);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 800;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
     }
 
     .nav-links {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.8rem;
       align-items: center;
+      gap: 1.25rem;
+      font-size: 0.95rem;
     }
 
     .nav-links a {
-      padding: 0.2rem 0.45rem;
-      border-radius: 999px;
+      opacity: 0.85;
     }
 
     .nav-links a:hover {
-      background: rgba(0, 0, 0, 0.05);
+      opacity: 1;
     }
 
-    .nav-cta {
-      background: var(--primary-blue);
-      color: var(--white);
-      padding: 0.4rem 0.9rem;
-      border-radius: 999px;
-      font-weight: 600;
-    }
-
-    .nav-cta:hover {
-      background: #163857;
-    }
-
-    /* HERO */
-
-    .hero {
-      padding: 3rem 0 2.5rem;
-    }
-
-    .hero-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-      gap: 2.5rem;
+    .badge {
+      display: inline-flex;
       align-items: center;
-    }
-
-    .hero-kicker {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--accent-blue);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-
-    .hero h1 {
-      margin: 0 0 0.6rem;
-      font-size: clamp(2.1rem, 4vw, 2.9rem);
-      line-height: 1.1;
+      gap: 0.4rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: rgba(31, 78, 121, 0.06);
       color: var(--primary-blue);
     }
 
-    .hero-tagline {
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 0.55rem 1.2rem;
+      font-size: 0.95rem;
       font-weight: 600;
-      margin-bottom: 0.8rem;
-    }
-
-    .hero p {
-      margin: 0 0 1.3rem;
-      max-width: 34rem;
-    }
-
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-bottom: 1.1rem;
-    }
-
-    .btn-primary,
-    .btn-outline {
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.35rem;
-      padding: 0.75rem 1.4rem;
-      border-radius: 999px;
-      font-size: 0.95rem;
-      cursor: pointer;
-      border: none;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+      white-space: nowrap;
     }
 
     .btn-primary {
-      background: var(--primary-blue);
-      color: var(--white);
-      font-weight: 600;
+      background: linear-gradient(135deg, var(--primary-blue), #102a43);
+      color: white;
+      box-shadow: 0 10px 24px rgba(11, 37, 74, 0.35);
     }
 
     .btn-primary:hover {
-      background: #163857;
+      transform: translateY(-1px);
+      box-shadow: 0 12px 30px rgba(11, 37, 74, 0.4);
     }
 
     .btn-outline {
-      background: var(--white);
-      border: 1px solid rgba(0, 0, 0, 0.15);
+      background: transparent;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      color: var(--dark-text);
+    }
+
+    .btn-outline:hover {
+      background: rgba(15, 23, 42, 0.03);
+    }
+
+    main {
+      flex: 1;
+    }
+
+    .hero {
+      max-width: 1100px;
+      margin: 1.75rem auto 3rem;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 2.5rem;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    .hero-title {
+      font-size: clamp(2.1rem, 3vw, 2.8rem);
+      font-weight: 750;
+      letter-spacing: -0.03em;
+      color: #020617;
+    }
+
+    .hero-title span {
       color: var(--primary-blue);
     }
 
-    .btn-outline .icon {
-      font-size: 1.1rem;
+    .hero-subtitle {
+      font-size: 1rem;
+      max-width: 32rem;
+      opacity: 0.9;
+    }
+
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .hero-pill {
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: white;
+      border: 1px solid rgba(15, 23, 42, 0.06);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .hero-pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent-blue);
+    }
+
+    .hero-cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
     }
 
     .hero-note {
       font-size: 0.8rem;
-      opacity: 0.75;
-    }
-
-    .hero-card {
-      background: var(--white);
-      border-radius: 1rem;
-      padding: 1.3rem;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
-      font-size: 0.8rem;
-    }
-
-    .hero-card-title {
-      font-weight: 600;
-      margin-bottom: 0.9rem;
-      color: var(--primary-blue);
-    }
-
-    .chat-bubbles {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-
-    .bubble {
-      max-width: 92%;
-      padding: 0.55rem 0.7rem;
-      border-radius: 0.8rem;
-    }
-
-    .bubble-label {
-      font-size: 0.68rem;
-      opacity: 0.7;
-      margin-bottom: 0.15rem;
-    }
-
-    .bubble.user {
-      background: #e4eef8;
-      border-bottom-right-radius: 0.25rem;
-      align-self: flex-end;
-    }
-
-    .bubble.ai {
-      background: #f1f5ff;
-      border: 1px solid rgba(31, 78, 121, 0.18);
-      border-bottom-left-radius: 0.25rem;
-      align-self: flex-start;
-    }
-
-    .hero-card-foot {
-      margin-top: 0.9rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.7rem;
-      font-size: 0.75rem;
       opacity: 0.8;
     }
 
-    /* SECTIONS */
-
-    section {
-      padding: 3rem 0;
-    }
-
-    section h2 {
-      font-size: 1.9rem;
-      margin: 0 0 0.7rem;
-      color: var(--primary-blue);
-    }
-
-    .section-lead {
-      max-width: 40rem;
-      margin: 0 0 1.5rem;
-      font-size: 0.98rem;
-    }
-
-    /* WHO */
-
-    .pill-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-    }
-
-    .pill {
-      padding: 0.35rem 0.9rem;
-      border-radius: 999px;
-      background: var(--white);
-      border: 1px solid rgba(0, 0, 0, 0.06);
-      font-size: 0.8rem;
-    }
-
-    /* PROBLEM */
-
-    .problem-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1rem;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-    }
-
-    .problem-card {
-      background: var(--white);
-      border-radius: 0.9rem;
-      padding: 1rem;
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04);
-    }
-
-    .problem-tag {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--accent-blue);
-      margin-bottom: 0.4rem;
-    }
-
-    .highlight-box {
-      margin-top: 1.4rem;
-      padding: 1rem 1.1rem;
-      border-radius: 0.9rem;
-      border: 1px dashed rgba(0, 0, 0, 0.18);
-      background: var(--white);
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    /* HOW */
-
-    .how-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 1.1rem;
-      font-size: 0.9rem;
-    }
-
-    .how-card {
-      background: var(--white);
-      border-radius: 0.9rem;
-      padding: 1.1rem;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.03);
-    }
-
-    .how-step {
-      font-size: 0.76rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--accent-blue);
-      margin-bottom: 0.35rem;
-    }
-
-    .how-card h3 {
-      margin: 0 0 0.35rem;
-      font-size: 1rem;
-      color: var(--primary-blue);
-    }
-
-    /* RESULTS */
-
-    .results-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 1rem;
-      margin-top: 1.2rem;
-      font-size: 0.9rem;
-    }
-
-    .result-box {
-      background: var(--white);
-      border-radius: 0.9rem;
-      padding: 0.9rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
-    }
-
-    .result-number {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--primary-blue);
-      margin-bottom: 0.1rem;
-    }
-
-    .quote-box {
-      margin-top: 1.4rem;
-      padding: 1.1rem 1.2rem;
-      border-radius: 0.8rem;
-      border-left: 4px solid var(--primary-blue);
-      background: var(--white);
-      font-size: 0.9rem;
-      font-style: italic;
-    }
-
-    /* PRICING */
-
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.2rem;
-      margin-top: 1.3rem;
-      font-size: 0.9rem;
-    }
-
-    .plan {
-      background: var(--white);
-      border-radius: 1rem;
-      padding: 1.2rem 1.2rem 1.4rem;
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.04);
-      display: flex;
-      flex-direction: column;
-      gap: 0.7rem;
-    }
-
-    .plan-label {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--accent-blue);
-    }
-
-    .plan h3 {
-      margin: 0.1rem 0 0.2rem;
-      font-size: 1.1rem;
-      color: var(--primary-blue);
-    }
-
-    .plan-price {
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-
-    .plan-period {
-      font-size: 0.8rem;
-      opacity: 0.75;
-      margin-bottom: 0.6rem;
-    }
-
-    .plan ul {
-      list-style: none;
-      margin: 0 0 0.6rem;
-      padding: 0;
-    }
-
-    .plan ul li {
+    .hero-right-card {
+      background: radial-gradient(circle at top left, #ffffff, #e5edf6);
+      border-radius: var(--border-radius);
+      padding: 1.5rem 1.5rem 1.75rem;
+      box-shadow:
+        0 18px 40px rgba(15, 23, 42, 0.18),
+        0 0 0 1px rgba(15, 23, 42, 0.04);
       position: relative;
-      padding-left: 1.05rem;
-      margin-bottom: 0.35rem;
+      overflow: hidden;
     }
 
-    .plan ul li::before {
-      content: "•";
+    .hero-right-card::after {
+      content: "";
       position: absolute;
-      left: 0;
-      top: 0;
-      color: var(--primary-blue);
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(0, 163, 255, 0.15), transparent 55%);
+      pointer-events: none;
     }
 
-    .plan-cta {
-      margin-top: auto;
+    .hero-right-inner {
+      position: relative;
+      z-index: 1;
     }
 
-    .plan-cta a {
-      display: inline-flex;
-      width: 100%;
-      justify-content: center;
-      padding: 0.7rem 1rem;
-      border-radius: 999px;
-      font-size: 0.9rem;
-      text-align: center;
-    }
-
-    .plan--highlight {
-      border: 2px solid var(--primary-blue);
-      transform: translateY(-2px);
-    }
-
-    /* SIGNUP SECTION */
-
-    #signup {
-      background: #e9f0f7;
-    }
-
-    .signup-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
-      gap: 2rem;
-      align-items: flex-start;
-    }
-
-    .signup-copy {
-      font-size: 0.95rem;
-    }
-
-    .signup-copy ul {
-      margin: 0.8rem 0 0;
-      padding-left: 1.1rem;
-      font-size: 0.9rem;
-    }
-
-    .signup-card {
-      background: var(--white);
-      border-radius: 1rem;
-      padding: 1.4rem 1.5rem;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
-      font-size: 0.9rem;
-    }
-
-    .signup-card h3 {
-      margin: 0 0 0.6rem;
+    .card-title {
       font-size: 1.1rem;
-      color: var(--primary-blue);
+      font-weight: 650;
+      margin-bottom: 0.25rem;
     }
 
-    .signup-field {
-      margin-bottom: 0.85rem;
+    .card-subtitle {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      margin-bottom: 1rem;
     }
 
-    .signup-field label {
+    .field-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.75rem;
+    }
+
+    .field-row-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 640px) {
+      .field-row-2 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    label {
       display: block;
       font-size: 0.8rem;
+      font-weight: 600;
       margin-bottom: 0.25rem;
-      font-weight: 500;
+      color: #0f172a;
     }
 
-    .signup-field input,
-    .signup-field select {
+    input,
+    select,
+    textarea {
       width: 100%;
-      padding: 0.55rem 0.65rem;
-      border-radius: 0.5rem;
-      border: 1px solid rgba(0,0,0,0.16);
-      font: inherit;
+      border-radius: 10px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      padding: 0.5rem 0.65rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: rgba(255, 255, 255, 0.95);
+      outline: none;
+      transition: border 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
     }
 
-    .signup-field input:focus,
-    .signup-field select:focus {
-      outline: 2px solid rgba(31, 78, 121, 0.4);
-      border-color: transparent;
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 1px rgba(0, 163, 255, 0.35);
+      background: #ffffff;
     }
 
-    .signup-agree {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.45rem;
-      font-size: 0.8rem;
-      margin: 0.6rem 0 0.7rem;
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+      max-height: 180px;
     }
 
-    .signup-agree input {
+    .helper-text {
+      font-size: 0.75rem;
+      opacity: 0.7;
       margin-top: 0.15rem;
     }
 
-    .signup-note {
-      font-size: 0.78rem;
-      opacity: 0.75;
-      margin-top: 0.4rem;
-    }
-
-    .signup-submit {
-      width: 100%;
-      display: inline-flex;
-      justify-content: center;
+    .form-footer {
+      display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      padding: 0.75rem 1.2rem;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .status-message {
+      font-size: 0.8rem;
+      min-height: 1em;
+    }
+
+    .status-success {
+      color: #16a34a;
+    }
+
+    .status-error {
+      color: #b91c1c;
+    }
+
+    .pill-status {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.45rem;
       border-radius: 999px;
-      border: none;
-      background: var(--primary-blue);
-      color: var(--white);
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
+      background: rgba(15, 23, 42, 0.05);
     }
 
-    .signup-submit:hover {
-      background: #163857;
+    .section {
+      max-width: 1100px;
+      margin: 0 auto 3rem;
+      padding: 0 1.5rem;
     }
 
-    .signup-status {
-      margin-top: 0.6rem;
-      font-size: 0.82rem;
+    .section h2 {
+      font-size: 1.3rem;
+      margin-bottom: 0.75rem;
     }
 
-    .signup-status--error {
-      color: var(--error-red);
-    }
-
-    .signup-status--success {
-      color: var(--success-green);
-    }
-
-    /* DEMO */
-
-    .demo-card {
-      background: var(--white);
-      border-radius: 1rem;
-      padding: 1.2rem 1.3rem;
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.05);
-      font-size: 0.9rem;
-    }
-
-    .demo-label {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--accent-blue);
-      margin-bottom: 0.35rem;
-    }
-
-    /* Live backend demo placeholder */
-    #messages {
-      margin-top: 0.6rem;
-      font-size: 0.85rem;
-      background: #f5f7ff;
-      border-radius: 0.7rem;
-      padding: 0.7rem 0.8rem;
-      border: 1px solid rgba(31, 78, 121, 0.12);
-      min-height: 1.4rem;
-    }
-
-    .message-item {
-      margin-bottom: 0.25rem;
-    }
-
-    /* FAQ */
-
-    .faq-grid {
+    .section-grid-3 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1rem;
-      margin-top: 1.2rem;
+    }
+
+    @media (max-width: 900px) {
+      .section-grid-3 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .tile {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 1rem;
+      border: 1px solid rgba(15, 23, 42, 0.04);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
       font-size: 0.9rem;
     }
 
-    .faq-item {
-      background: var(--white);
-      border-radius: 0.9rem;
-      padding: 0.95rem 1.1rem;
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.03);
-    }
-
-    .faq-item h3 {
-      margin: 0 0 0.35rem;
+    .tile-title {
+      font-weight: 600;
+      margin-bottom: 0.35rem;
       font-size: 0.95rem;
-      color: var(--primary-blue);
     }
-
-    /* FINAL CTA */
-
-    .cta-final {
-      text-align: center;
-      padding: 3rem 0 3.2rem;
-    }
-
-    .cta-final h2 {
-      font-size: 1.9rem;
-      margin: 0 0 0.6rem;
-      color: var(--primary-blue);
-    }
-
-    .cta-final p {
-      max-width: 32rem;
-      margin: 0 auto 1.3rem;
-      font-size: 0.98rem;
-    }
-
-    /* FOOTER */
 
     footer {
-      background: var(--white);
-      border-top: 1px solid rgba(0, 0, 0, 0.06);
+      border-top: 1px solid rgba(15, 23, 42, 0.08);
       font-size: 0.8rem;
+      padding: 1rem 1.5rem;
+      margin-top: auto;
+      background: #f8fafc;
     }
 
     .footer-inner {
-      padding: 1.3rem 1.25rem 1.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .footer-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.7rem;
-    }
-
-    .footer-links a {
-      opacity: 0.8;
-    }
-
-    /* RESPONSIVE */
-
-    @media (max-width: 768px) {
-      .nav {
-        flex-wrap: wrap;
-      }
-
-      .nav-links {
-        width: 100%;
-        justify-content: flex-start;
-      }
-
-      .hero {
-        padding-top: 2.3rem;
-      }
-
-      .hero-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-
-      .hero-card {
-        margin-top: 0.7rem;
-      }
-
-      .signup-layout {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    @media (max-width: 520px) {
-      .hero-actions {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .btn-primary,
-      .btn-outline {
-        width: 100%;
-      }
+      gap: 0.75rem;
+      opacity: 0.75;
     }
   </style>
 </head>
+
 <body>
-<div class="page">
-
-  <!-- HEADER -->
-  <header>
-    <div class="inner">
-      <div class="nav">
-        <div class="logo-wrap">
-          <div class="logo-icon" aria-hidden="true"></div>
-          <div>
-            <div class="logo-main">TradeBotPro</div>
-            <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
-          </div>
+  <div class="page">
+    <header>
+      <div class="nav-inner">
+        <div class="logo">
+          <div class="logo-mark">TB</div>
+          TradeBotPro
         </div>
-        <nav class="nav-links">
-          <a href="#who">Who it’s for</a>
-          <a href="#how">How it works</a>
+        <div class="nav-links">
+          <a href="#how-it-works">How it works</a>
+          <a href="#features">What it does</a>
           <a href="#pricing">Pricing</a>
-          <a href="#signup">Sign up</a>
-          <a href="#faq">FAQ</a>
-          <a href="#demo" class="nav-cta">Book a free demo</a>
-        </nav>
+          <span class="badge">
+            <span class="badge-dot"></span>
+            24/7 AI office for trades
+          </span>
+        </div>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <main>
-    <!-- HERO -->
-    <section class="hero">
-      <div class="inner">
-        <div class="hero-grid">
-          <div>
-            <div class="hero-kicker">24/7 AI office assistant</div>
-            <h1>Never Miss a Job Again.</h1>
-            <div class="hero-tagline">More jobs. Less admin. Powered by AI.</div>
-            <p>
-              TradeBotPro is your always-on office assistant for tradesmen and home
-              service businesses. It replies instantly to enquiries, gathers job
-              details, sends quotes, books work and requests reviews — all automatically — 
-              so you can stay on the tools.
-            </p>
-            <div class="hero-actions">
-              <a href="#demo" class="btn-primary">Book a Free Demo</a>
-              <a href="#demo-preview" class="btn-outline">
-                <span class="icon">▶</span>
-                <span>Watch how it works</span>
-              </a>
+    <main>
+      <!-- HERO -->
+      <section class="hero">
+        <div class="hero-left">
+          <div class="hero-title">
+            More jobs. Less admin.<br />
+            <span>TradeBotPro runs your office 24/7.</span>
+          </div>
+          <p class="hero-subtitle">
+            Turn WhatsApp, missed calls and website enquiries into booked jobs —
+            without hiring a full-time office. Purpose-built AI for plumbers, heating engineers and other trades.
+          </p>
+          <div class="hero-pills">
+            <div class="hero-pill">
+              <span class="hero-pill-dot"></span> Answers leads in seconds
             </div>
+            <div class="hero-pill">
+              <span class="hero-pill-dot"></span> Books jobs into your diary
+            </div>
+            <div class="hero-pill">
+              <span class="hero-pill-dot"></span> Sends quotes & chases payments
+            </div>
+          </div>
+          <div class="hero-cta-row">
+            <button class="btn btn-primary" onclick="document.getElementById('signup-card').scrollIntoView({behavior:'smooth'})">
+              Tell us about your business →
+            </button>
+            <button class="btn btn-outline" onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})">
+              See how it works
+            </button>
             <div class="hero-note">
-              No long-term contract. Setup done for you.
+              No commitment. We’ll set up a personalised demo for your trade.
             </div>
           </div>
+        </div>
 
-          <aside class="hero-card">
-            <div class="hero-card-title">How TradeBotPro handles a real enquiry</div>
-            <div class="chat-bubbles">
-              <div class="bubble user">
-                <div class="bubble-label">Customer • WhatsApp</div>
-                Hi, my boiler is leaking in OX2. Can you come out tomorrow?
-              </div>
-              <div class="bubble ai">
-                <div class="bubble-label">TradeBotPro</div>
-                Hi 👋 you’ve reached <strong>Smith Heating &amp; Plumbing</strong>.<br />
-                I can help with that. What’s your postcode and is it a combi or system boiler?
-              </div>
-              <div class="bubble user">
-                <div class="bubble-label">Customer</div>
-                OX2 7AB, combi boiler. Leak under the kitchen unit.
-              </div>
-              <div class="bubble ai">
-                <div class="bubble-label">TradeBotPro</div>
-                Thanks. Please send a quick photo of the leak if you can.<br />
-                Rough estimate for this type of call-out is <strong>£90–£140</strong> depending on parts.
-                We can be with you <strong>tomorrow between 9–11am</strong>.<br />
-                Does that work for you?
-              </div>
+        <!-- SIGNUP CARD -->
+        <aside class="hero-right-card" id="signup-card">
+          <div class="hero-right-inner">
+            <div class="badge" style="margin-bottom: 0.5rem;">
+              <span class="badge-dot"></span>
+              Step 1 — Tell us about your business
             </div>
-            <div class="hero-card-foot">
-              <span>⚡ Reply time: 3 seconds</span>
-              <span>📅 Job booked straight into engineer’s calendar</span>
-            </div>
-          </aside>
-        </div>
-      </div>
-    </section>
-
-    <!-- WHO -->
-    <section id="who">
-      <div class="inner">
-        <h2>Built for Trades &amp; Home Services</h2>
-        <p class="section-lead">
-          If you work on the tools, you don’t have time to answer messages all day.
-          TradeBotPro makes sure you never miss a customer — ever.
-        </p>
-        <div class="pill-row">
-          <div class="pill">Plumbers &amp; Heating Engineers</div>
-          <div class="pill">Electricians</div>
-          <div class="pill">Roofers &amp; Guttering</div>
-          <div class="pill">Landscapers &amp; Gardeners</div>
-          <div class="pill">Window Cleaners</div>
-          <div class="pill">Cleaners &amp; Carpet Cleaners</div>
-          <div class="pill">Builders &amp; Handymen</div>
-          <div class="pill">Pest Control</div>
-          <div class="pill">Home Repairs &amp; Maintenance</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PROBLEM -->
-    <section id="problem">
-      <div class="inner">
-        <h2>How Many Jobs Are You Missing Each Week?</h2>
-        <p class="section-lead">
-          Most trades businesses lose work every day — not because they’re bad at the job,
-          but because nobody can answer every call and message fast enough.
-        </p>
-
-        <div class="problem-grid">
-          <div class="problem-card">
-            <div class="problem-tag">Missed calls</div>
-            You’re up a ladder, under a sink or driving when the phone rings.
-            The customer doesn’t leave a voicemail — they call the next person on Google.
-          </div>
-          <div class="problem-card">
-            <div class="problem-tag">Slow replies</div>
-            Facebook and WhatsApp messages stack up during the day.
-            By the time you reply, the customer has already booked someone else.
-          </div>
-          <div class="problem-card">
-            <div class="problem-tag">Unsent quotes</div>
-            Quotes are scribbled on paper or half-typed on your phone.
-            Some never get sent, and the job disappears.
-          </div>
-          <div class="problem-card">
-            <div class="problem-tag">No reviews</div>
-            You do great work but rarely ask for a Google review.
-            Your competitors with more reviews get chosen first.
-          </div>
-        </div>
-
-        <div class="highlight-box">
-          Every missed message, slow reply and forgotten quote is money left on the table.
-          TradeBotPro catches them all and turns more enquiries into booked jobs.
-        </div>
-      </div>
-    </section>
-
-    <!-- HOW -->
-    <section id="how">
-      <div class="inner">
-        <h2>Your 24/7 AI Office Assistant</h2>
-        <p class="section-lead">
-          TradeBotPro plugs into the channels you already use — WhatsApp, Facebook, your
-          website and SMS — and handles the first conversation for you, exactly the way
-          you want it. You stay in control. The AI just takes care of the admin.
-        </p>
-
-        <div class="how-grid">
-          <div class="how-card">
-            <div class="how-step">Step 1</div>
-            <h3>Instant Replies</h3>
-            <p>
-              As soon as a customer messages you, TradeBotPro replies in seconds — 
-              even at night or when you’re on a job. It asks smart questions, checks
-              postcode coverage and filters out time-wasters.
+            <h3 class="card-title">Get your AI office set up</h3>
+            <p class="card-subtitle">
+              Fill this in and we’ll configure a TradeBotPro assistant tailored to your trade, pricing and service area.
             </p>
-          </div>
-          <div class="how-card">
-            <div class="how-step">Step 2</div>
-            <h3>Smart Quoting</h3>
-            <p>
-              The AI collects photos, problem details and access notes, then builds
-              a rough estimate based on your pricing rules. You can have it send
-              quotes automatically or hold them for your approval.
-            </p>
-          </div>
-          <div class="how-card">
-            <div class="how-step">Step 3</div>
-            <h3>Automatic Booking</h3>
-            <p>
-              When the customer is ready, TradeBotPro books the job straight into your
-              calendar, sends confirmations and reminders, and gives you a clear job
-              sheet so you know exactly what you’re walking into.
-            </p>
-          </div>
-          <div class="how-card">
-            <div class="how-step">Step 4</div>
-            <h3>Reviews &amp; Repeat Work</h3>
-            <p>
-              After each job, TradeBotPro follows up with a friendly message asking how
-              everything went, sends your Google review link and keeps customers warm
-              for repeat work or annual servicing.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- RESULTS -->
-    <section id="results">
-      <div class="inner">
-        <h2>Real Results for Real Trades</h2>
-        <p class="section-lead">
-          TradeBotPro is designed to pay for itself quickly by converting more of the
-          enquiries you already get — and removing hours of admin from your week.
-        </p>
+            <form id="signup-form">
+              <div class="field-grid">
+                <div>
+                  <label for="business_name">Business name *</label>
+                  <input id="business_name" name="business_name" type="text" required />
+                </div>
 
-        <div class="results-grid">
-          <div class="result-box">
-            <div class="result-number">40–70% ↑</div>
-            More enquiries converted into booked jobs when every message gets an instant reply.
-          </div>
-          <div class="result-box">
-            <div class="result-number">4+ hrs</div>
-            Admin time saved every day on chasing messages, quotes, bookings and reviews.
-          </div>
-          <div class="result-box">
-            <div class="result-number">⭐️⭐️⭐️⭐️⭐️</div>
-            More 5-star Google reviews so you get picked ahead of competitors in your area.
-          </div>
-          <div class="result-box">
-            <div class="result-number">Less stress</div>
-            No more worrying about missed calls, unread messages or forgotten quotes.
-          </div>
-        </div>
+                <div class="field-row-2">
+                  <div>
+                    <label for="owner_name">Owner / main contact *</label>
+                    <input id="owner_name" name="owner_name" type="text" required />
+                  </div>
+                  <div>
+                    <label for="contact_name">Who should we speak to?</label>
+                    <input id="contact_name" name="contact_name" type="text" placeholder="Leave blank if same as owner" />
+                  </div>
+                </div>
 
-        <div class="quote-box">
-          “It’s like having a full-time receptionist who never sleeps, never forgets and
-          never misses a message — but for a fraction of the cost.”
-        </div>
-      </div>
-    </section>
+                <div class="field-row-2">
+                  <div>
+                    <label for="email">Email *</label>
+                    <input id="email" name="email" type="email" required />
+                    <p class="helper-text">We’ll send your setup link here.</p>
+                  </div>
+                  <div>
+                    <label for="phone">Mobile / WhatsApp *</label>
+                    <input id="phone" name="phone" type="tel" required />
+                    <p class="helper-text">Used for WhatsApp assistant & quick questions.</p>
+                  </div>
+                </div>
 
-    <!-- PRICING -->
-    <section id="pricing">
-      <div class="inner">
-        <h2>Simple Monthly Pricing. No Contracts.</h2>
-        <p class="section-lead">
-          Choose the plan that fits your business today. You can upgrade, downgrade or
-          cancel at any time as you grow.
-        </p>
+                <div class="field-row-2">
+                  <div>
+                    <label for="trade_type">Trade *</label>
+                    <select id="trade_type" name="trade_type" required>
+                      <option value="">Select your main trade</option>
+                      <option>Plumbing & Heating</option>
+                      <option>Gas / Boilers</option>
+                      <option>Electrical</option>
+                      <option>Roofing</option>
+                      <option>Landscaping & Fencing</option>
+                      <option>General Building</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="base_postcode">Base postcode *</label>
+                    <input id="base_postcode" name="base_postcode" type="text" required placeholder="e.g. HP14 3QF" />
+                  </div>
+                </div>
 
-        <div class="pricing-grid">
-          <div class="plan">
-            <div class="plan-label">Starter</div>
-            <h3>Solo &amp; Small Teams</h3>
-            <div class="plan-price">£299</div>
-            <div class="plan-period">per month</div>
-            <ul>
-              <li>24/7 instant replies on one channel</li>
-              <li>Basic quoting assistant</li>
-              <li>Job booking into one calendar</li>
-              <li>SMS &amp; email reminders</li>
-              <li>Simple monthly performance report</li>
-            </ul>
-            <div class="plan-cta">
-              <a href="#signup" class="btn-outline">Start with Starter</a>
-            </div>
-          </div>
-
-          <div class="plan plan--highlight">
-            <div class="plan-label">Most popular</div>
-            <h3>Pro</h3>
-            <div class="plan-price">£549</div>
-            <div class="plan-period">per month</div>
-            <ul>
-              <li>Everything in Starter</li>
-              <li>Advanced quoting templates by job type</li>
-              <li>Invoice &amp; receipt automation</li>
-              <li>Multi-channel enquiries (WhatsApp, Facebook &amp; website)</li>
-              <li>Google review booster automation</li>
-              <li>Priority support</li>
-            </ul>
-            <div class="plan-cta">
-              <a href="#signup" class="btn-primary">Choose Pro</a>
-            </div>
-          </div>
-
-          <div class="plan">
-            <div class="plan-label">For growing teams</div>
-            <h3>Premium</h3>
-            <div class="plan-price">£799</div>
-            <div class="plan-period">per month</div>
-            <ul>
-              <li>Everything in Pro</li>
-              <li>Multi-staff scheduling &amp; dispatch</li>
-              <li>Emergency call-out workflows</li>
-              <li>Branded message templates</li>
-              <li>Call-handling AI (voicemail → transcript → reply)</li>
-              <li>Unlimited automations</li>
-            </ul>
-            <div class="plan-cta">
-              <a href="#signup" class="btn-outline">Talk about Premium</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SIGNUP -->
-    <section id="signup">
-      <div class="inner">
-        <h2>Join TradeBotPro</h2>
-        <p class="section-lead">
-          Tell us a few details about your business and the plan you’re interested in.
-          We’ll set everything up with you and confirm payment separately — no card needed today.
-        </p>
-
-        <div class="signup-layout">
-          <div class="signup-copy">
-            <p>
-              Perfect if you’d like to get on the list, see a live setup for your trade,
-              and only switch on payments once you’re happy.
-            </p>
-            <ul>
-              <li>No long-term contract and no card details collected here.</li>
-              <li>We’ll contact you to confirm setup, pricing and start date.</li>
-              <li>You can change plan or cancel before anything goes live.</li>
-            </ul>
-          </div>
-
-          <div class="signup-card">
-            <h3>Tell us about your business</h3>
-
-            <!-- STATUS MESSAGE -->
-            <div id="signup-status" class="signup-status" aria-live="polite"></div>
-
-            <!-- SIGNUP FORM (Supabase-powered) -->
-            <form id="tradebotpro-signup-form" novalidate>
-              <div class="signup-field">
-                <label for="contact_name">Contact name</label>
-                <input id="contact_name" name="contact_name" type="text" required autocomplete="name">
+                <div>
+                  <label for="services_summary">What do you want TradeBotPro to handle?</label>
+                  <textarea
+                    id="services_summary"
+                    name="services_summary"
+                    placeholder="e.g. Boiler services, breakdowns, bathroom installs, powerflushing, landlord certs, emergency callouts…"
+                  ></textarea>
+                  <p class="helper-text">
+                    Bullet points are fine — we’ll turn this into your AI assistant’s playbook.
+                  </p>
+                </div>
               </div>
 
-              <div class="signup-field">
-                <label for="business_name">Business name</label>
-                <input id="business_name" name="business_name" type="text" required autocomplete="organization">
-              </div>
-
-              <div class="signup-field">
-                <label for="email">Email</label>
-                <input id="email" name="email" type="email" required autocomplete="email">
-              </div>
-
-              <div class="signup-field">
-                <label for="whatsapp_number">Mobile / WhatsApp number</label>
-                <input id="whatsapp_number" name="whatsapp_number" type="tel" required autocomplete="tel">
-              </div>
-
-              <div class="signup-field">
-                <label for="trade_type">Trade type</label>
-                <select id="trade_type" name="trade_type" required>
-                  <option value="">Select your trade…</option>
-                  <option>Plumber</option>
-                  <option>Heating Engineer</option>
-                  <option>Gas Engineer</option>
-                  <option>Electrician</option>
-                  <option>Builder</option>
-                  <option>Handyman</option>
-                  <option>Landscaper / Gardener</option>
-                  <option>Cleaner / Carpet Cleaner</option>
-                  <option>Pest Control</option>
-                  <option>Other</option>
-                </select>
-              </div>
-
-              <div class="signup-field">
-                <label for="service_area">Main service area (town or postcode)</label>
-                <input id="service_area" name="service_area" type="text" required autocomplete="postal-code">
-              </div>
-
-              <div class="signup-field">
-                <label for="plan">Choose your plan</label>
-                <select id="plan" name="plan" required>
-                  <option value="">Select a plan…</option>
-                  <option value="starter-monthly">Starter – Monthly</option>
-                  <option value="starter-yearly">Starter – Yearly</option>
-                  <option value="pro-monthly">Pro – Monthly</option>
-                  <option value="pro-yearly">Pro – Yearly</option>
-                  <option value="premium-monthly">Premium – Monthly</option>
-                </select>
-              </div>
-
-              <div class="signup-field">
-                <label for="referrer">How did you hear about TradeBotPro? (optional)</label>
-                <input id="referrer" name="referrer" type="text">
-              </div>
-
-              <div class="signup-agree">
-                <input id="agree" name="agree" type="checkbox" required>
-                <label for="agree">
-                  I agree to the Terms &amp; Conditions and Privacy Policy.
-                </label>
-              </div>
-
-              <button type="submit" class="signup-submit" id="signup-submit-btn">
-                Join TradeBotPro (no payment yet)
-              </button>
-
-              <div class="signup-note">
-                After you submit this form, we’ll review your details and get in touch
-                to confirm setup and payment options.
+              <div class="form-footer">
+                <div>
+                  <button type="submit" class="btn btn-primary" id="submit-btn">
+                    Send enquiry
+                  </button>
+                  <span class="pill-status" id="plan-status-pill">Plan: Pending setup</span>
+                </div>
+                <div class="status-message" id="status-message"></div>
               </div>
             </form>
           </div>
-        </div>
-      </div>
-    </section>
+        </aside>
+      </section>
 
-    <!-- DEMO PREVIEW -->
-    <section id="demo-preview">
-      <div class="inner">
-        <h2>See TradeBotPro In Action</h2>
-        <p class="section-lead">
-          Here’s how TradeBotPro could handle a real enquiry for a typical local trades business.
-          You choose the wording and pricing rules — we set the rest up for you.
-        </p>
-
-        <div class="demo-card">
-          <div class="demo-label">Example • Plumber</div>
-          <p><strong>Customer:</strong> “Hi, I’m in MK4 and my toilet is leaking at the base. Can you take a look this week?”</p>
-          <p><strong>TradeBotPro:</strong> “Hi 👋 you’ve reached <strong>ClearFlow Plumbing</strong>. I can help with that. What’s your full postcode and is it the only toilet in the property?”</p>
-          <p><strong>Customer:</strong> “MK4 3AB, and yes it’s the only one.”</p>
-          <p><strong>TradeBotPro:</strong> “Thanks. Please send a quick photo of the toilet and the floor around it so we can see the leak.”</p>
-          <p><strong>Customer:</strong> *(sends photo)*</p>
-          <p><strong>TradeBotPro:</strong> “Based on similar jobs, a typical repair like this is usually between <strong>£90–£140</strong> depending on parts. We can be with you <strong>Thursday afternoon between 1–3pm</strong>. Would you like to book that slot?”</p>
-        </div>
-
-        <!-- LIVE BACKEND DEMO PLACEHOLDER (no Render fetch now) -->
-        <div class="demo-card" style="margin-top:1.1rem;">
-          <div class="demo-label">Live • TradeBotPro backend</div>
-          <p style="margin-top:0;">
-            Backend dashboard & live stats are handled in your admin panel.
-          </p>
-          <div id="messages">Admin dashboard preview coming soon.</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- FAQ -->
-    <section id="faq">
-      <div class="inner">
-        <h2>Frequently Asked Questions</h2>
-        <p class="section-lead">
-          Still not sure if TradeBotPro is right for you? Here are the answers to some common questions from trades businesses.
-        </p>
-
-        <div class="faq-grid">
-          <div class="faq-item">
-            <h3>Do I need to be good with technology?</h3>
-            <p>No. We set everything up for you and show you exactly how it works. You just see more booked jobs and less admin.</p>
+      <!-- HOW IT WORKS -->
+      <section class="section" id="how-it-works">
+        <h2>How TradeBotPro works for your trade</h2>
+        <div class="section-grid-3">
+          <div class="tile">
+            <div class="tile-title">1. We learn your business</div>
+            You tell us your services, pricing, service area and how you like to work. We build a profile of your business
+            that the AI uses to answer questions like a switched-on office manager.
           </div>
-          <div class="faq-item">
-            <h3>Will it sound like a robot?</h3>
-            <p>No. We customise the AI to match your tone of voice, prices and policies so it feels like a real member of your team.</p>
+          <div class="tile">
+            <div class="tile-title">2. We connect your channels</div>
+            We plug in WhatsApp, website forms and other lead sources. When a customer gets in touch, TradeBotPro responds
+            in seconds — not hours.
           </div>
-          <div class="faq-item">
-            <h3>Can it book jobs straight into my diary?</h3>
-            <p>Yes. TradeBotPro can connect to Google Calendar, Outlook or iPhone calendar and book jobs into agreed time windows.</p>
-          </div>
-          <div class="faq-item">
-            <h3>Can I still speak to customers myself?</h3>
-            <p>Absolutely. TradeBotPro handles the first part of the conversation and the admin. You can step in whenever you want.</p>
-          </div>
-          <div class="faq-item">
-            <h3>How long does setup take?</h3>
-            <p>Most businesses are up and running in a few days once we’ve agreed your pricing rules, service areas and availability.</p>
-          </div>
-          <div class="faq-item">
-            <h3>Is there a contract?</h3>
-            <p>No long-term contract. You pay monthly and can cancel any time. Our aim is to make TradeBotPro pay for itself many times over.</p>
+          <div class="tile">
+            <div class="tile-title">3. Enquiries turn into booked jobs</div>
+            The assistant qualifies the job, captures photos, gives ballpark pricing where appropriate and books the job into
+            your diary or sends it to you for approval.
           </div>
         </div>
+      </section>
+
+      <!-- FEATURES -->
+      <section class="section" id="features">
+        <h2>What TradeBotPro can do for you</h2>
+        <div class="section-grid-3">
+          <div class="tile">
+            <div class="tile-title">Answer leads 24/7</div>
+            No more lost jobs from missed calls. Customers get a friendly, helpful response any time of day, on WhatsApp or via your website.
+          </div>
+          <div class="tile">
+            <div class="tile-title">Qualify and quote</div>
+            Collect photos, describe the issue, check access and give guide prices based on your rules — before you step in.
+          </div>
+          <div class="tile">
+            <div class="tile-title">Book jobs & follow up</div>
+            Confirm appointments, send reminders, chase unpaid invoices and request reviews — without adding more admin to your day.
+          </div>
+        </div>
+      </section>
+
+      <!-- PRICING -->
+      <section class="section" id="pricing">
+        <h2>Pricing</h2>
+        <div class="tile">
+          <div class="tile-title">Simple monthly or yearly plans</div>
+          TradeBotPro is designed to pay for itself in the first few jobs it wins or admin hours it saves.
+          We’ll confirm pricing and options after we’ve seen your business and the volume of leads you handle.
+          <br /><br />
+          <strong>Next step:</strong> fill in the form above and we’ll come back with a tailored recommendation.
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-inner">
+        <div>© <span id="year"></span> TradeBotPro. All rights reserved.</div>
+        <div>AI office assistant for trades &amp; home services.</div>
       </div>
-    </section>
+    </footer>
+  </div>
 
-    <!-- FINAL CTA -->
-    <section class="cta-final" id="demo">
-      <div class="inner">
-        <h2>Ready to Book More Jobs Automatically?</h2>
-        <p>
-          Book a quick, no-pressure demo and we’ll show you exactly how TradeBotPro would
-          work for your business, using examples from your trade and area.
-        </p>
-        <a href="#signup" class="btn-primary">
-          Join TradeBotPro &amp; Request a Demo
-        </a>
-        <p style="margin-top:0.7rem;font-size:0.85rem;opacity:0.75;">
-          Prefer email? You can still reach us at <a href="mailto:hello@tradebotpro.co.uk">hello@tradebotpro.co.uk</a>.
-        </p>
-      </div>
-    </section>
-  </main>
+  <!-- Supabase + form logic -->
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.0";
 
-  <!-- FOOTER -->
-  <footer>
-    <div class="inner footer-inner">
-      <div>&copy; <span id="year"></span> TradeBotPro. All rights reserved.</div>
-      <div class="footer-links">
-        <a href="#top">Back to top</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#signup">Sign up</a>
-        <a href="#demo">Book demo</a>
-      </div>
-    </div>
-  </footer>
-</div>
-
-<!-- SUPABASE JS (via CDN) -->
-<script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
-
-<script>
-  // Year in footer
-  document.getElementById('year').textContent = new Date().getFullYear();
-
-  // 🔑 SUPABASE CONFIG – PASTE YOUR KEYS HERE
-  // Replace ONLY the two strings below with your real project URL + anon key.
- const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    // TODO: replace these with your real values from Supabase Settings → API
+    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-  // Create Supabase client
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // Simple helper to show status messages above the form
-  function setSignupStatus(message, type) {
-    const el = document.getElementById('signup-status');
-    if (!el) return;
-    el.textContent = message || '';
-    el.classList.remove('signup-status--error', 'signup-status--success');
-    if (type === 'error') el.classList.add('signup-status--error');
-    if (type === 'success') el.classList.add('signup-status--success');
-  }
-
-  async function handleSignupSubmit(event) {
-    event.preventDefault();
-
-    const form = event.target;
-    const submitBtn = document.getElementById('signup-submit-btn');
-
-    // Basic front-end validation
-    if (!form.checkValidity()) {
-      // let the browser show which field is missing
-      form.reportValidity();
-      return;
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY ||
+        SUPABASE_URL.includes("YOUR-PROJECT-REF") ||
+        SUPABASE_ANON_KEY.includes("YOUR_ANON_PUBLIC_KEY")) {
+      console.error("Supabase credentials not configured. Please set SUPABASE_URL and SUPABASE_ANON_KEY.");
     }
 
-    setSignupStatus('Submitting your details…', null);
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting…';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Collect fields
-    const contact_name = document.getElementById('contact_name').value.trim();
-    const business_name = document.getElementById('business_name').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const whatsapp_number = document.getElementById('whatsapp_number').value.trim();
-    const trade_type = document.getElementById('trade_type').value;
-    const service_area = document.getElementById('service_area').value.trim();
-    const plan = document.getElementById('plan').value;
-    const referrer = document.getElementById('referrer').value.trim();
+    const form = document.getElementById("signup-form");
+    const statusEl = document.getElementById("status-message");
+    const submitBtn = document.getElementById("submit-btn");
+    const yearEl = document.getElementById("year");
 
-    // Map to DB fields (minimal safe set; trigger will handle business_profiles)
-    const payload = {
-      business_name,
-      owner_name: contact_name,                 // store contact as owner_name for now
-      contact_name,
-      email,
-      phone: whatsapp_number,                  // your DB uses "phone"
-      trade_type,
-      base_postcode: service_area,             // town or postcode
-      services_summary: 'Website signup form',
-      plan_status: plan,                       // e.g. "starter-monthly"
-      pending_setup: true,
-      is_active: false,
-      account_status: 'New',
-      account_status_reason: referrer ? `Referrer: ${referrer}` : null
-    };
+    if (yearEl) {
+      yearEl.textContent = new Date().getFullYear();
+    }
 
-    console.log('Submitting payload to Supabase:', payload);
+    function setStatus(message, type = "neutral") {
+      statusEl.textContent = message || "";
+      statusEl.classList.remove("status-success", "status-error");
+      if (type === "success") statusEl.classList.add("status-success");
+      if (type === "error") statusEl.classList.add("status-error");
+    }
 
-    try {
-      const { data, error } = await supabaseClient
-        .from('tradebotpro_signups')
-        .insert([payload])
-        .select();
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setStatus("");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sending…";
 
-      if (error) {
-        console.error('Supabase insert error:', error);
-        setSignupStatus(
-          'Something went wrong saving your details. Please try again or contact us.',
-          'error'
-        );
-      } else {
-        console.log('Insert OK:', data);
-        setSignupStatus(
-          'Thank you – we’ve received your details. We’ll be in touch shortly.',
-          'success'
-        );
-        form.reset();
+      const formData = new FormData(form);
+
+      const payload = {
+        business_name: formData.get("business_name")?.trim() || null,
+        owner_name: formData.get("owner_name")?.trim() || null,
+        contact_name: formData.get("contact_name")?.trim() || null,
+        email: formData.get("email")?.trim() || null,
+        phone: formData.get("phone")?.trim() || null,
+        trade_type: formData.get("trade_type") || null,
+        base_postcode: formData.get("base_postcode")?.trim() || null,
+        services_summary: formData.get("services_summary")?.trim() || null,
+        plan_status: "Pending setup",
+        pending_setup: true,
+        is_active: false,
+        account_status: "New signup",
+        account_status_reason: "Awaiting onboarding call"
+      };
+
+      try {
+        const { data, error } = await supabase
+          .from("tradebotpro_signups")
+          .insert(payload)
+          .select("*")
+          .single();
+
+        if (error) {
+          console.error("Supabase insert error:", error);
+          setStatus("Sorry, something went wrong. Please try again or message us directly.", "error");
+        } else {
+          console.log("Signup saved:", data);
+          form.reset();
+          setStatus("Enquiry sent successfully. We’ll be in touch shortly.", "success");
+        }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        setStatus("Unexpected error. Please try again.", "error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Send enquiry";
       }
-    } catch (err) {
-      console.error('Network / unexpected error:', err);
-      setSignupStatus(
-        'Something went wrong saving your details. Please try again or contact us.',
-        'error'
-      );
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Join TradeBotPro (no payment yet)';
-    }
-  }
-
-  // Wire up form handler
-  const signupForm = document.getElementById('tradebotpro-signup-form');
-  if (signupForm) {
-    signupForm.addEventListener('submit', handleSignupSubmit);
-  }
-
-  // Backend demo placeholder instead of Render fetch
-  function loadMessagesPlaceholder() {
-    const container = document.getElementById('messages');
-    if (!container) return;
-    container.textContent = 'Live backend demo will appear here once your admin dashboard is fully wired up.';
-  }
-
-  window.addEventListener('DOMContentLoaded', loadMessagesPlaceholder);
-</script>
+    });
+  </script>
 </body>
 </html>
-
