@@ -601,11 +601,14 @@
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const userId =
-      urlParams.get("user_id") ||
-      urlParams.get("id") ||
-      urlParams.get("signup_id"); // fallbacks if you ever change the link
+    // Read user_id from URL
+const params = new URLSearchParams(window.location.search);
+const signupId = params.get('user_id');
+
+if (!signupId) {
+  console.warn('No user_id in URL');
+}
+
 
     const form = document.getElementById("business-form");
     const statusMessage = document.getElementById("status-message");
