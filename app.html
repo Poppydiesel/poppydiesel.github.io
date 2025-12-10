@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro – Setup your AI office</title>
+  <title>TradeBotPro – Set up your AI office</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta
     name="description"
-    content="TradeBotPro – update your pricing and AI style so your 24/7 office works the way you do."
+    content="TradeBotPro business profile setup – update your pricing, service area and AI preferences."
   />
   <style>
     :root {
@@ -15,8 +15,7 @@
       --dark-text: #1b1b1f;
       --light-bg: #f5f7fa;
       --white: #ffffff;
-      --danger: #b3261e;
-      --success: #146c43;
+      --border-subtle: rgba(0,0,0,0.08);
     }
 
     * {
@@ -28,7 +27,7 @@
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       background: var(--light-bg);
       color: var(--dark-text);
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     a {
@@ -44,17 +43,20 @@
 
     header {
       background: var(--white);
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
-    .header-inner {
-      max-width: 1100px;
+    .inner {
+      max-width: 980px;
       margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    .nav {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 1rem;
+      align-items: center;
+      padding: 0.75rem 0;
     }
 
     .logo-wrap {
@@ -64,8 +66,8 @@
     }
 
     .logo-icon {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       border-radius: 9px;
       background: var(--primary-blue);
       position: relative;
@@ -80,684 +82,732 @@
     }
 
     .logo-icon::before {
-      width: 12px;
-      height: 18px;
+      width: 11px;
+      height: 17px;
       left: 7px;
-      top: 7px;
+      top: 6px;
     }
 
     .logo-icon::after {
-      width: 6px;
-      height: 12px;
+      width: 5px;
+      height: 11px;
       right: 7px;
-      top: 10px;
+      top: 9px;
     }
 
     .logo-main {
       font-weight: 700;
-      font-size: 1.05rem;
+      font-size: 1rem;
       color: var(--primary-blue);
     }
 
     .logo-tag {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       opacity: 0.7;
     }
 
     main {
       flex: 1;
-    }
-
-    .inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 1.75rem 1.25rem 2.5rem;
-    }
-
-    h1 {
-      margin: 0 0 0.4rem;
-      font-size: 1.8rem;
-      color: var(--primary-blue);
-    }
-
-    .lead {
-      margin: 0 0 1.4rem;
-      max-width: 40rem;
-      font-size: 0.95rem;
-      opacity: 0.9;
+      padding: 2rem 0 3rem;
     }
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
-      gap: 1.6rem;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 1.75rem;
       align-items: flex-start;
+    }
+
+    @media (max-width: 840px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    h1 {
+      margin: 0 0 0.6rem;
+      font-size: 1.6rem;
+      color: var(--primary-blue);
+    }
+
+    .subheading {
+      margin: 0 0 1.1rem;
+      font-size: 0.98rem;
+      max-width: 32rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.7rem;
+      border-radius: 999px;
+      background: #e4eef8;
+      color: var(--primary-blue);
+      font-size: 0.78rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .status-line {
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: 0.6rem;
+      background: #edf4ff;
+      border: 1px solid rgba(31,78,121,0.18);
+    }
+
+    .status-line.error {
+      background: #fff4f4;
+      border-color: #e68a8a;
+      color: #7d1616;
+    }
+
+    .status-line.ok {
+      background: #ecfdf3;
+      border-color: #68b97a;
+      color: #155724;
     }
 
     .card {
       background: var(--white);
       border-radius: 1rem;
-      padding: 1.25rem 1.3rem 1.4rem;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+      padding: 1.3rem 1.4rem;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.06);
       font-size: 0.9rem;
     }
 
     .card h2 {
-      margin: 0 0 0.75rem;
+      margin: 0 0 0.8rem;
       font-size: 1.15rem;
       color: var(--primary-blue);
     }
 
-    .meta-row {
-      display: grid;
-      grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-      gap: 0.75rem;
-      margin-bottom: 0.6rem;
-    }
-
-    .meta-item {
-      font-size: 0.85rem;
-    }
-
-    .meta-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      opacity: 0.6;
-    }
-
-    .meta-value {
-      font-weight: 500;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.2rem 0.55rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      background: #e4eef8;
-      color: var(--primary-blue);
-      margin-right: 0.3rem;
+    .card + .card {
+      margin-top: 1rem;
     }
 
     form {
-      margin-top: 0.2rem;
+      margin-top: 0.25rem;
     }
 
-    .field {
+    .field-group {
       margin-bottom: 0.85rem;
     }
 
-    .field label {
+    .field-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    @media (max-width: 640px) {
+      .field-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    label {
       display: block;
       font-size: 0.8rem;
       font-weight: 500;
       margin-bottom: 0.25rem;
     }
 
-    .field small {
-      display: block;
-      font-size: 0.7rem;
+    label span.help {
+      font-weight: 400;
       opacity: 0.7;
-      margin-top: 0.15rem;
+      font-size: 0.78rem;
+      margin-left: 0.15rem;
     }
 
-    .field input,
-    .field textarea,
-    .field select {
+    input,
+    select,
+    textarea {
       width: 100%;
-      padding: 0.55rem 0.6rem;
+      padding: 0.55rem 0.65rem;
       border-radius: 0.5rem;
       border: 1px solid rgba(0,0,0,0.16);
       font: inherit;
-      resize: vertical;
-      min-height: 0;
     }
 
-    .field input:focus,
-    .field textarea:focus,
-    .field select:focus {
+    input:focus,
+    select:focus,
+    textarea:focus {
       outline: 2px solid rgba(31,78,121,0.4);
       border-color: transparent;
+    }
+
+    textarea {
+      min-height: 70px;
+      resize: vertical;
     }
 
     .chips-row {
       display: flex;
       flex-wrap: wrap;
       gap: 0.35rem;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.4rem;
     }
 
-    .chip-toggle {
-      display: inline-flex;
-      align-items: center;
+    .chip {
+      padding: 0.25rem 0.6rem;
       border-radius: 999px;
-      border: 1px solid rgba(0,0,0,0.15);
-      padding: 0.25rem 0.65rem;
+      border: 1px solid rgba(0,0,0,0.18);
       font-size: 0.78rem;
       cursor: pointer;
-      background: var(--white);
+      background: #f8fafc;
     }
 
-    .chip-toggle input {
-      display: none;
-    }
-
-    .chip-toggle.active {
-      background: #e4eef8;
-      border-color: var(--primary-blue);
-      color: var(--primary-blue);
-      font-weight: 500;
-    }
-
-    .actions {
-      margin-top: 1.1rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      align-items: center;
+    .chip.selected {
+      background: #1f4e79;
+      color: #fff;
+      border-color: #1f4e79;
     }
 
     .btn-primary {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0.7rem 1.3rem;
+      padding: 0.75rem 1.3rem;
       border-radius: 999px;
       border: none;
       background: var(--primary-blue);
-      color: var(--white);
+      color: #fff;
       font-weight: 600;
-      font-size: 0.92rem;
+      font-size: 0.95rem;
       cursor: pointer;
     }
 
-    .btn-primary:hover {
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .btn-primary:hover:not(:disabled) {
       background: #163857;
     }
 
-    .status-text {
+    .small {
       font-size: 0.8rem;
-      opacity: 0.85;
-    }
-
-    .status-text.success {
-      color: var(--success);
-      opacity: 1;
-    }
-
-    .status-text.error {
-      color: var(--danger);
-      opacity: 1;
-    }
-
-    .notice {
-      font-size: 0.78rem;
       opacity: 0.75;
-      margin-top: 0.7rem;
-    }
-
-    .error-box {
-      margin-top: 0.7rem;
-      padding: 0.55rem 0.7rem;
-      border-radius: 0.5rem;
-      background: #fef2f2;
-      color: #b3261e;
-      font-size: 0.8rem;
-      border: 1px solid rgba(179,38,30,0.3);
+      margin-top: 0.5rem;
     }
 
     footer {
-      padding: 1rem 1.25rem;
-      font-size: 0.78rem;
-      text-align: center;
-      color: rgba(0,0,0,0.6);
+      border-top: 1px solid var(--border-subtle);
+      background: var(--white);
+      font-size: 0.8rem;
     }
 
-    @media (max-width: 800px) {
-      .layout {
-        grid-template-columns: minmax(0, 1fr);
-      }
+    .footer-inner {
+      padding: 1.1rem 1.25rem 1.3rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .muted {
+      opacity: 0.7;
     }
   </style>
 </head>
 <body>
 <div class="page">
   <header>
-    <div class="header-inner">
-      <div class="logo-wrap">
-        <div class="logo-icon" aria-hidden="true"></div>
-        <div>
-          <div class="logo-main">TradeBotPro</div>
-          <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
+    <div class="inner">
+      <div class="nav">
+        <div class="logo-wrap">
+          <div class="logo-icon" aria-hidden="true"></div>
+          <div>
+            <div class="logo-main">TradeBotPro</div>
+            <div class="logo-tag">AI office assistant for trades</div>
+          </div>
         </div>
-      </div>
-      <div style="font-size:0.8rem; opacity:0.8;">
-        Secure setup link – keep this page to yourself.
+        <div class="muted" style="font-size:0.8rem;">
+          Profile link ID: <span id="debug-user-id">—</span>
+        </div>
       </div>
     </div>
   </header>
 
   <main>
     <div class="inner">
-      <h1>Set up your AI office</h1>
-      <p class="lead">
-        Check your business details, add your pricing and tell the AI how you like to work.
-        This helps TradeBotPro sound like you and quote jobs the way you would.
-      </p>
-
-      <div id="global-error" class="error-box" style="display:none;"></div>
-
       <div class="layout">
-        <!-- LEFT: business summary -->
-        <section class="card" aria-labelledby="summary-heading">
-          <h2 id="summary-heading">Your business details</h2>
-
-          <p style="font-size:0.84rem; margin-top:0;">
-            These come from the form you filled in when you joined TradeBotPro.
-            If something looks wrong, just update it and hit save.
+        <div>
+          <div class="pill">Step 1 · Business profile</div>
+          <h1>Tell TradeBotPro how your business runs</h1>
+          <p class="subheading">
+            This page lets you update the key details your AI office will use for
+            quoting, call-outs and messages. You can change this any time.
           </p>
 
-          <div class="meta-row" style="margin-top:0.9rem;">
-            <div class="meta-item">
-              <div class="meta-label">Business name</div>
-              <div class="meta-value" id="summary-business">–</div>
-            </div>
-            <div class="meta-item">
-              <div class="meta-label">Contact name</div>
-              <div class="meta-value" id="summary-contact">–</div>
-            </div>
+          <div id="status" class="status-line">
+            Loading your details…
           </div>
 
-          <div class="meta-row">
-            <div class="meta-item">
-              <div class="meta-label">Email</div>
-              <div class="meta-value" id="summary-email">–</div>
-            </div>
-            <div class="meta-item">
-              <div class="meta-label">Phone / WhatsApp</div>
-              <div class="meta-value" id="summary-phone">–</div>
-            </div>
-          </div>
-
-          <div class="meta-row">
-            <div class="meta-item">
-              <div class="meta-label">Trade</div>
-              <div class="meta-value" id="summary-trade">–</div>
-            </div>
-            <div class="meta-item">
-              <div class="meta-label">Base postcode / area</div>
-              <div class="meta-value" id="summary-postcode">–</div>
-            </div>
-          </div>
-
-          <div class="meta-row">
-            <div class="meta-item">
-              <div class="meta-label">Website</div>
-              <div class="meta-value" id="summary-website">–</div>
-            </div>
-            <div class="meta-item">
-              <div class="meta-label">Plan</div>
-              <div class="meta-value" id="summary-plan">–</div>
-            </div>
-          </div>
-
-          <p class="notice">
-            Your setup link is tied to this account. If you lose it, just ask the TradeBotPro team
-            and we’ll send a new one.
-          </p>
-        </section>
-
-        <!-- RIGHT: editable profile -->
-        <section class="card" aria-labelledby="profile-heading">
-          <h2 id="profile-heading">Pricing & AI profile</h2>
-
-          <form id="profile-form">
-            <div class="field">
-              <label for="callout_fee">Standard call-out fee (£)</label>
-              <input type="number" step="1" min="0" id="callout_fee" name="callout_fee" />
-              <small>What you normally charge just to attend (before parts).</small>
-            </div>
-
-            <div class="field">
-              <label for="first_hour_rate">Typical first hour (labour) (£)</label>
-              <input type="number" step="1" min="0" id="first_hour_rate" name="first_hour_rate" />
-              <small>For standard daytime jobs in your main area.</small>
-            </div>
-
-            <div class="field">
-              <label for="hourly_rate">Hourly rate after first hour (£)</label>
-              <input type="number" step="1" min="0" id="hourly_rate" name="hourly_rate" />
-            </div>
-
-            <div class="field">
-              <label for="boiler_service_from">Boiler / system service from (£)</label>
-              <input type="number" step="1" min="0" id="boiler_service_from" name="boiler_service_from" />
-            </div>
-
-            <div class="field">
-              <label for="quote_minimum">Minimum job value you want to attend (£)</label>
-              <input type="number" step="1" min="0" id="quote_minimum" name="quote_minimum" />
-              <small>For example, £80–£100 if you don’t want lots of tiny jobs.</small>
-            </div>
-
-            <div class="field">
-              <label>What should your AI office focus on?</label>
-              <div class="chips-row" id="focus-chips">
-                <button type="button" class="chip-toggle" data-value="24/7 enquiry response">
-                  24/7 enquiry response
-                </button>
-                <button type="button" class="chip-toggle" data-value="Booking more jobs">
-                  Booking more jobs
-                </button>
-                <button type="button" class="chip-toggle" data-value="Better quality leads">
-                  Better quality leads
-                </button>
-                <button type="button" class="chip-toggle" data-value="Chasing quotes & follow-ups">
-                  Chasing quotes &amp; follow-ups
-                </button>
-                <button type="button" class="chip-toggle" data-value="Getting more Google reviews">
-                  Getting more Google reviews
-                </button>
+          <div class="card">
+            <h2>Business & contact details</h2>
+            <form id="profile-form">
+              <div class="field-group field-row">
+                <div>
+                  <label for="business_name">Business name</label>
+                  <input id="business_name" name="business_name" type="text" autocomplete="organization" />
+                </div>
+                <div>
+                  <label for="contact_name">Main contact name</label>
+                  <input id="contact_name" name="contact_name" type="text" autocomplete="name" />
+                </div>
               </div>
-              <input
-                type="hidden"
-                id="services_summary"
-                name="services_summary"
-              />
-              <small>
-                Pick as many as you like. We’ll use this to tune the AI’s priorities.
-              </small>
-            </div>
 
-            <div class="field">
-              <label for="ai_style_notes">Anything else we should know about how you work?</label>
-              <textarea
-                id="ai_style_notes"
-                name="ai_style_notes"
-                rows="4"
-                placeholder="Examples: We don’t do oil or solid-fuel. We offer genuine 24/7 emergency cover within 15 miles of HP14. We prefer WhatsApp over calls when possible."
-              ></textarea>
-              <small>
-                This is where you can add tone of voice, “red lines”, areas you avoid, rough pricing rules – anything that makes TradeBotPro feel like a real member of your team.
-              </small>
-            </div>
+              <div class="field-group field-row">
+                <div>
+                  <label for="email">Email</label>
+                  <input id="email" name="email" type="email" autocomplete="email" />
+                </div>
+                <div>
+                  <label for="whatsapp_number">Mobile / WhatsApp</label>
+                  <input id="whatsapp_number" name="whatsapp_number" type="tel" autocomplete="tel" />
+                </div>
+              </div>
 
-            <div class="actions">
-              <button type="submit" class="btn-primary">Save my settings</button>
-              <span id="save-status" class="status-text"></span>
-            </div>
-          </form>
+              <div class="field-group">
+                <label for="phone">Optional landline</label>
+                <input id="phone" name="phone" type="tel" autocomplete="tel" />
+              </div>
 
-          <p class="notice">
-            You can come back and tweak this anytime. Changes you make here will be picked up by your
-            TradeBotPro assistant for future conversations.
-          </p>
-        </section>
+              <div class="field-group field-row">
+                <div>
+                  <label for="trade_type">Trade</label>
+                  <select id="trade_type" name="trade_type">
+                    <option value="">Select your trade…</option>
+                    <option>Plumber</option>
+                    <option>Heating Engineer</option>
+                    <option>Gas Engineer</option>
+                    <option>Electrician</option>
+                    <option>Builder</option>
+                    <option>Handyman</option>
+                    <option>Landscaper / Gardener</option>
+                    <option>Cleaner / Carpet Cleaner</option>
+                    <option>Pest Control</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="base_postcode">Base postcode</label>
+                  <input id="base_postcode" name="base_postcode" type="text" />
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="website_url">Website (if you have one)</label>
+                <input id="website_url" name="website_url" type="url" />
+              </div>
+
+              <div class="field-group field-row">
+                <div>
+                  <label for="service_radius">
+                    Service radius
+                    <span class="help">(e.g. “15 miles from OX2”)</span>
+                  </label>
+                  <input id="service_radius" name="service_radius" type="text" />
+                </div>
+                <div>
+                  <label for="callout_from">
+                    Call-out from
+                    <span class="help">(usual starting town / depot)</span>
+                  </label>
+                  <input id="callout_from" name="callout_from" type="text" />
+                </div>
+              </div>
+
+              <div class="card">
+                <h2>Pricing basics</h2>
+                <div class="field-group field-row">
+                  <div>
+                    <label for="callout_fee">Standard call-out fee (£)</label>
+                    <input id="callout_fee" name="callout_fee" type="number" step="0.01" />
+                  </div>
+                  <div>
+                    <label for="first_hour_rate">First hour rate (£)</label>
+                    <input id="first_hour_rate" name="first_hour_rate" type="number" step="0.01" />
+                  </div>
+                </div>
+
+                <div class="field-group field-row">
+                  <div>
+                    <label for="hourly_rate">Hourly rate after first hour (£)</label>
+                    <input id="hourly_rate" name="hourly_rate" type="number" step="0.01" />
+                  </div>
+                  <div>
+                    <label for="boiler_service_from">Boiler service from (£)</label>
+                    <input id="boiler_service_from" name="boiler_service_from" type="number" step="0.01" />
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label for="quote_minimum">Minimum job value / quote (£)</label>
+                  <input id="quote_minimum" name="quote_minimum" type="number" step="0.01" />
+                </div>
+
+                <div class="field-group">
+                  <label for="pricing_notes">
+                    Pricing notes
+                    <span class="help">(anything your AI should know about evenings, weekends, emergencies)</span>
+                  </label>
+                  <textarea id="pricing_notes" name="pricing_notes"></textarea>
+                </div>
+              </div>
+
+              <div class="card">
+                <h2>What should your AI office focus on?</h2>
+
+                <div class="field-group">
+                  <label>
+                    Quick picks
+                    <span class="help">(choose as many as you like)</span>
+                  </label>
+                  <div id="focus-chips" class="chips-row">
+                    <button type="button" class="chip" data-value="New enquiries & first response">
+                      New enquiries & first response
+                    </button>
+                    <button type="button" class="chip" data-value="Quoting & rough estimates">
+                      Quoting & rough estimates
+                    </button>
+                    <button type="button" class="chip" data-value="Booking jobs into the diary">
+                      Booking jobs into the diary
+                    </button>
+                    <button type="button" class="chip" data-value="Out-of-hours & weekend cover">
+                      Out-of-hours & weekend cover
+                    </button>
+                    <button type="button" class="chip" data-value="Chasing reviews & follow-ups">
+                      Chasing reviews & follow-ups
+                    </button>
+                    <button type="button" class="chip" data-value="Filtering time-wasters / bad jobs">
+                      Filtering time-wasters / bad jobs
+                    </button>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label for="services_summary">
+                    In your own words
+                    <span class="help">(a sentence or two is fine)</span>
+                  </label>
+                  <textarea
+                    id="services_summary"
+                    name="services_summary"
+                    placeholder="e.g. “Prioritise emergency leaks and boiler breakdowns in OX postcodes. Keep quotes sensible so I don’t work for free.”"
+                  ></textarea>
+                </div>
+
+                <div class="field-group">
+                  <label for="ai_style_notes">
+                    How should TradeBotPro sound?
+                    <span class="help">(tone of voice, things to avoid, etc.)</span>
+                  </label>
+                  <textarea
+                    id="ai_style_notes"
+                    name="ai_style_notes"
+                    placeholder="Friendly but professional, no slang, don’t promise exact arrival times, always confirm if it’s an emergency."
+                  ></textarea>
+                </div>
+
+                <div class="field-group">
+                  <label for="callout_notes">
+                    Any other important notes?
+                    <span class="help">(parking, access, pets, special jobs you do or don’t do)</span>
+                  </label>
+                  <textarea id="callout_notes" name="callout_notes"></textarea>
+                </div>
+              </div>
+
+              <div style="margin-top:1.1rem;">
+                <button type="submit" class="btn-primary" id="save-btn">
+                  Save my settings
+                </button>
+                <div class="small">
+                  Changes update your profile in TradeBotPro instantly. You can come back to this link any time.
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <aside>
+          <div class="card">
+            <h2>What this page controls</h2>
+            <p>
+              Your answers here tell TradeBotPro how to:
+            </p>
+            <ul style="padding-left:1.1rem;margin:0.4rem 0 0;">
+              <li>Reply to customers with the right prices and areas.</li>
+              <li>Decide which jobs to prioritise or turn away.</li>
+              <li>Sound like a real member of your team.</li>
+            </ul>
+            <p style="margin-top:0.8rem;">
+              If you’re not sure on any numbers yet, leave them blank or rough –
+              we can tidy them up with you later.
+            </p>
+          </div>
+
+          <div class="card">
+            <h2>Need help?</h2>
+            <p style="margin-bottom:0.4rem;">
+              If anything on this page doesn’t make sense or doesn’t save properly,
+              just email <a href="mailto:hello@tradebotpro.co.uk">hello@tradebotpro.co.uk</a>
+              with your business name and we’ll sort it.
+            </p>
+            <p class="small">
+              Tip: keep this page open while you test WhatsApp or web chat so you can tweak
+              wording and prices as you go.
+            </p>
+          </div>
+        </aside>
       </div>
     </div>
   </main>
 
   <footer>
-    &copy; <span id="year"></span> TradeBotPro. All rights reserved.
+    <div class="inner footer-inner">
+      <div>&copy; <span id="year"></span> TradeBotPro. All rights reserved.</div>
+      <div class="muted">Admin profile setup</div>
+    </div>
   </footer>
 </div>
 
 <script>
-  // ---------------------------------------------------------------------------
-  // 🔑 SUPABASE CONFIG – ANDY, THIS IS THE BIT YOU CARE ABOUT
-  // ---------------------------------------------------------------------------
-  // Leave the URL as it is (that's your project).
-  // Replace the anon key with your real anon public key from:
-  //   Supabase > Settings > API > "anon public"
-  // Same key you used on the main signup form.
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // ============================
+  // STEP 1 — PASTE YOUR SUPABASE DETAILS HERE
+  // ============================
+  // Replace ONLY the two lines below with your real values from Supabase Settings → API.
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-  // ---------------------------------------------------------------------------
-  // UTILITIES
-  // ---------------------------------------------------------------------------
-  function getUserIdFromQuery() {
+  // ============================
+  // No changes needed below this line
+  // ============================
+
+  function getUserIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
-    const id = params.get('user_id') || '';
-    return id.trim();
+    return params.get('user_id');
   }
 
-  function setText(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value || '–';
-  }
-
-  function showGlobalError(message) {
-    const box = document.getElementById('global-error');
-    if (!box) return;
-    if (!message) {
-      box.style.display = 'none';
-      box.textContent = '';
-    } else {
-      box.style.display = 'block';
-      box.textContent = message;
+  function setStatus(message, type) {
+    var statusEl = document.getElementById('status');
+    statusEl.textContent = message;
+    statusEl.classList.remove('error', 'ok');
+    if (type === 'error') {
+      statusEl.classList.add('error');
+    } else if (type === 'ok') {
+      statusEl.classList.add('ok');
     }
   }
 
-  function setSaveStatus(message, type) {
-    const el = document.getElementById('save-status');
+  function getFieldValue(id) {
+    var el = document.getElementById(id);
+    if (!el) return '';
+    return el.value == null ? '' : el.value;
+  }
+
+  function setFieldValue(id, value) {
+    var el = document.getElementById(id);
     if (!el) return;
-    el.textContent = message || '';
-    el.className = 'status-text ' + (type || '');
+    el.value = value == null ? '' : value;
   }
 
-  // ---------------------------------------------------------------------------
-  // FOCUS CHIPS HANDLING
-  // ---------------------------------------------------------------------------
-  function initFocusChips() {
-    const container = document.getElementById('focus-chips');
-    const hidden = document.getElementById('services_summary');
-    if (!container || !hidden) return;
-
-    function syncHidden() {
-      const active = Array.from(container.querySelectorAll('.chip-toggle.active'))
-        .map(btn => btn.getAttribute('data-value'));
-      hidden.value = active.join(', ');
-    }
-
-    container.addEventListener('click', function (e) {
-      const btn = e.target.closest('.chip-toggle');
-      if (!btn) return;
-      btn.classList.toggle('active');
-      syncHidden();
-    });
-
-    // expose a helper to pre-populate from existing values
-    container._setInitialFromString = function (value) {
-      const current = (value || '').split(',').map(v => v.trim()).filter(Boolean);
-      Array.from(container.querySelectorAll('.chip-toggle')).forEach(btn => {
-        const v = btn.getAttribute('data-value');
-        if (current.includes(v)) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-      syncHidden();
-    };
-  }
-
-  // ---------------------------------------------------------------------------
-  // FETCH & SAVE PROFILE (business_profiles table)
-  // ---------------------------------------------------------------------------
-  async function fetchProfile(userId) {
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Supabase config missing – check supabaseUrl / supabaseAnonKey.');
-    }
-
-    const url = supabaseUrl +
-      '/rest/v1/business_profiles?id=eq.' +
-      encodeURIComponent(userId) +
-      '&select=*';
-
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        apikey: supabaseAnonKey,
-        Authorization: 'Bearer ' + supabaseAnonKey,
-        Accept: 'application/json'
-      }
-    });
-
+  async function fetchJson(url, options) {
+    const res = await fetch(url, options);
     if (!res.ok) {
       const text = await res.text();
       throw new Error('Fetch failed: ' + res.status + ' ' + text);
     }
-
-    const data = await res.json();
-    if (!data || !data.length) {
-      return null;
-    }
-    return data[0];
+    return res.json();
   }
 
-  async function saveProfile(userId, currentProfile, form) {
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Supabase config missing – check supabaseUrl / supabaseAnonKey.');
-    }
+  function initFocusChips() {
+    var chipsContainer = document.getElementById('focus-chips');
+    var chips = chipsContainer.querySelectorAll('.chip');
+    var servicesSummary = document.getElementById('services_summary');
 
-    // Start from the row we loaded from the DB so we don't accidentally
-    // drop any columns that exist but we don't show in the form.
-    const payload = currentProfile ? JSON.parse(JSON.stringify(currentProfile)) : {};
-
-    function numValue(name) {
-      const val = form[name]?.value ?? '';
-      if (val === '') return null;
-      const n = Number(val);
-      return isNaN(n) ? null : n;
-    }
-
-    function textValue(name) {
-      const val = form[name]?.value ?? '';
-      const trimmed = val.trim();
-      return trimmed === '' ? null : trimmed;
-    }
-
-    payload.callout_fee = numValue('callout_fee');
-    payload.first_hour_rate = numValue('first_hour_rate');
-    payload.hourly_rate = numValue('hourly_rate');
-    payload.boiler_service_from = numValue('boiler_service_from');
-    payload.quote_minimum = numValue('quote_minimum');
-    payload.services_summary = textValue('services_summary');
-    payload.ai_style_notes = textValue('ai_style_notes');
-
-    const url = supabaseUrl +
-      '/rest/v1/business_profiles?id=eq.' +
-      encodeURIComponent(userId);
-
-    const res = await fetch(url, {
-      method: 'PATCH',
-      headers: {
-        apikey: supabaseAnonKey,
-        Authorization: 'Bearer ' + supabaseAnonKey,
-        'Content-Type': 'application/json',
-        Prefer: 'return=representation'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error('Save failed: ' + res.status + ' ' + text);
-    }
-
-    const data = await res.json();
-    return data && data.length ? data[0] : payload;
-  }
-
-  // ---------------------------------------------------------------------------
-  // INITIALISE
-  // ---------------------------------------------------------------------------
-  (function initialise() {
-    document.getElementById('year').textContent = new Date().getFullYear();
-    initFocusChips();
-
-    const userId = getUserIdFromQuery();
-    let currentProfile = null;
-
-    if (!userId) {
-      showGlobalError('This page needs a ?user_id=… in the URL. Please use the secure setup link sent to you.');
-      return;
-    }
-
-    // Load profile
-    (async function () {
-      try {
-        showGlobalError('');
-        setSaveStatus('Loading your profile…', '');
-
-        const profile = await fetchProfile(userId);
-        if (!profile) {
-          setSaveStatus('', '');
-          showGlobalError('We couldn’t find a profile for this link. Please contact TradeBotPro support.');
-          return;
-        }
-
-        currentProfile = profile;
-
-        // Fill summary block
-        setText('summary-business', profile.business_name || '');
-        setText('summary-contact', profile.contact_name || '');
-        setText('summary-email', profile.email || '');
-        setText('summary-phone', profile.phone || profile.whatsapp_number || '');
-        setText('summary-trade', profile.trade_type || '');
-        setText('summary-postcode', profile.base_postcode || '');
-        setText('summary-website', profile.website_url || '');
-        setText('summary-plan', profile.plan_status || '');
-
-        // Fill editable fields
-        const form = document.getElementById('profile-form');
-        if (form) {
-          if (profile.callout_fee != null) form.callout_fee.value = profile.callout_fee;
-          if (profile.first_hour_rate != null) form.first_hour_rate.value = profile.first_hour_rate;
-          if (profile.hourly_rate != null) form.hourly_rate.value = profile.hourly_rate;
-          if (profile.boiler_service_from != null) form.boiler_service_from.value = profile.boiler_service_from;
-          if (profile.quote_minimum != null) form.quote_minimum.value = profile.quote_minimum;
-          if (profile.services_summary) {
-            form.services_summary.value = profile.services_summary;
-            const chipsContainer = document.getElementById('focus-chips');
-            if (chipsContainer && typeof chipsContainer._setInitialFromString === 'function') {
-              chipsContainer._setInitialFromString(profile.services_summary);
-            }
-          }
-          if (profile.ai_style_notes) form.ai_style_notes.value = profile.ai_style_notes;
-        }
-
-        setSaveStatus('', '');
-      } catch (err) {
-        console.error('Fetch profile error:', err);
-        setSaveStatus('', '');
-        showGlobalError('There was a problem loading your profile. Please refresh the page or contact TradeBotPro.');
-      }
-    })();
-
-    // Handle save
-    const form = document.getElementById('profile-form');
-    if (form) {
-      form.addEventListener('submit', async function (e) {
-        e.preventDefault();
-        setSaveStatus('Saving…', '');
-        showGlobalError('');
-
-        try {
-          const updated = await saveProfile(userId, currentProfile, form);
-          currentProfile = updated;
-          setSaveStatus('Saved. Your AI office will use these settings from now on.', 'success');
-        } catch (err) {
-          console.error('Save profile error:', err);
-          setSaveStatus('Something went wrong saving your settings.', 'error');
-          showGlobalError('We couldn’t save your changes. Please check your connection and try again. If it keeps happening, send a screenshot to TradeBotPro support.');
+    function syncFromText() {
+      var current = servicesSummary.value || '';
+      chips.forEach(function (chip) {
+        var value = chip.getAttribute('data-value');
+        if (current.indexOf(value) !== -1) {
+          chip.classList.add('selected');
+        } else {
+          chip.classList.remove('selected');
         }
       });
     }
-  })();
+
+    chips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var value = chip.getAttribute('data-value');
+        var current = servicesSummary.value || '';
+
+        if (chip.classList.contains('selected')) {
+          chip.classList.remove('selected');
+          var replaced = current.replace(value, '').replace('  ', ' ').trim();
+          servicesSummary.value = replaced;
+        } else {
+          chip.classList.add('selected');
+          if (!current) {
+            servicesSummary.value = value;
+          } else if (current.indexOf(value) === -1) {
+            servicesSummary.value = current + (current.slice(-1) === '.' ? ' ' : ' • ') + value;
+          }
+        }
+      });
+    });
+
+    servicesSummary.addEventListener('input', syncFromText);
+  }
+
+  async function loadProfile(userId) {
+    if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.indexOf('supabase.co') === -1) {
+      setStatus('Supabase details are not configured. Please add supabaseUrl and supabaseAnonKey.', 'error');
+      return;
+    }
+
+    setStatus('Loading your details…', null);
+
+    try {
+      var url = supabaseUrl +
+        '/rest/v1/business_profiles' +
+        '?id=eq.' + encodeURIComponent(userId) +
+        '&select=*';
+
+      var data = await fetchJson(url, {
+        method: 'GET',
+        headers: {
+          apikey: supabaseAnonKey,
+          Authorization: 'Bearer ' + supabaseAnonKey
+        }
+      });
+
+      if (!data || !data.length) {
+        setStatus('We could not find your profile. Please contact TradeBotPro.', 'error');
+        return;
+      }
+
+      var profile = data[0];
+
+      setFieldValue('business_name', profile.business_name);
+      setFieldValue('contact_name', profile.contact_name);
+      setFieldValue('email', profile.email);
+      setFieldValue('whatsapp_number', profile.whatsapp_number);
+      setFieldValue('phone', profile.phone);
+      setFieldValue('trade_type', profile.trade_type);
+      setFieldValue('base_postcode', profile.base_postcode);
+      setFieldValue('website_url', profile.website_url);
+      setFieldValue('service_radius', profile.service_radius);
+      setFieldValue('callout_from', profile.callout_from);
+      setFieldValue('callout_fee', profile.callout_fee);
+      setFieldValue('first_hour_rate', profile.first_hour_rate);
+      setFieldValue('hourly_rate', profile.hourly_rate);
+      setFieldValue('boiler_service_from', profile.boiler_service_from);
+      setFieldValue('quote_minimum', profile.quote_minimum);
+      setFieldValue('pricing_notes', profile.pricing_notes);
+      setFieldValue('services_summary', profile.services_summary);
+      setFieldValue('ai_style_notes', profile.ai_style_notes);
+      setFieldValue('callout_notes', profile.callout_notes);
+
+      setStatus('Loaded. You can now review and update your details.', 'ok');
+    } catch (err) {
+      console.error('Fetch profile error:', err);
+      setStatus('Something went wrong loading your details. Please refresh or contact us.', 'error');
+    }
+  }
+
+  async function saveProfile(userId, event) {
+    event.preventDefault();
+
+    if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.indexOf('supabase.co') === -1) {
+      setStatus('Supabase details are not configured. Please add supabaseUrl and supabaseAnonKey.', 'error');
+      return;
+    }
+
+    var saveBtn = document.getElementById('save-btn');
+    saveBtn.disabled = true;
+    setStatus('Saving your changes…', null);
+
+    var payload = {
+      business_name: getFieldValue('business_name'),
+      contact_name: getFieldValue('contact_name'),
+      email: getFieldValue('email'),
+      whatsapp_number: getFieldValue('whatsapp_number'),
+      phone: getFieldValue('phone'),
+      trade_type: getFieldValue('trade_type'),
+      base_postcode: getFieldValue('base_postcode'),
+      website_url: getFieldValue('website_url'),
+      service_radius: getFieldValue('service_radius'),
+      callout_from: getFieldValue('callout_from'),
+      callout_fee: getFieldValue('callout_fee'),
+      first_hour_rate: getFieldValue('first_hour_rate'),
+      hourly_rate: getFieldValue('hourly_rate'),
+      boiler_service_from: getFieldValue('boiler_service_from'),
+      quote_minimum: getFieldValue('quote_minimum'),
+      pricing_notes: getFieldValue('pricing_notes'),
+      services_summary: getFieldValue('services_summary'),
+      ai_style_notes: getFieldValue('ai_style_notes'),
+      callout_notes: getFieldValue('callout_notes')
+    };
+
+    try {
+      var url = supabaseUrl +
+        '/rest/v1/business_profiles' +
+        '?id=eq.' + encodeURIComponent(userId);
+
+      await fetchJson(url, {
+        method: 'PATCH',
+        headers: {
+          apikey: supabaseAnonKey,
+          Authorization: 'Bearer ' + supabaseAnonKey,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      setStatus('Saved. Your AI office will now use these settings.', 'ok');
+    } catch (err) {
+      console.error('Save profile error:', err);
+      setStatus('There was a problem saving your changes. Please try again or contact us.', 'error');
+    } finally {
+      saveBtn.disabled = false;
+    }
+  }
+
+  function initialise() {
+    var userId = getUserIdFromUrl();
+    document.getElementById('debug-user-id').textContent = userId || 'missing';
+
+    initFocusChips();
+
+    if (!userId) {
+      setStatus('This link is missing a user ID. Please use the full link we sent you.', 'error');
+      var form = document.getElementById('profile-form');
+      form.querySelectorAll('input, select, textarea, button').forEach(function (el) {
+        el.disabled = true;
+      });
+      return;
+    }
+
+    loadProfile(userId);
+
+    var formEl = document.getElementById('profile-form');
+    formEl.addEventListener('submit', function (e) {
+      saveProfile(userId, e);
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', initialise);
 </script>
 </body>
 </html>
