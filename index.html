@@ -1268,18 +1268,25 @@
 </div>
 
 <!-- SUPABASE JS (via CDN) -->
+<!-- SUPABASE JS (via CDN) -->
 <script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
 
 <script>
   // Year in footer
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // 🔑 SUPABASE CONFIG – already set correctly
+  // 🔑 SUPABASE CONFIG – already set up
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
+  // Create Supabase client
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // Read signup_id or user_id from the URL (for editing existing record)
+  const urlParams = new URLSearchParams(window.location.search);
+  let currentSignupId = urlParams.get('signup_id') || urlParams.get('user_id') || null;
+
+  // Simple helper to show status messages above the form
   function setSignupStatus(message, type) {
     const el = document.getElementById('signup-status');
     if (!el) return;
@@ -1289,29 +1296,78 @@
     if (type === 'success') el.classList.add('signup-status--success');
   }
 
+  // If we have a signup_id/user_id in the URL, fetch that signup and prefill the form
+  async function prefillSignupFormIfEditing() {
+    if (!currentSignupId) return;
+
+    const form = document.getElementById('tradebotpro-signup-form');
+    if (!form) return;
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('tradebotpro_signups')
+        .select('business_name, owner_name, contact_name, email, phone, trade_type, base_postcode, services_summary, plan_status, account_status, account_status_reason')
+        .eq('id', currentSignupId)
+        .single();
+
+      if (error || !data) {
+        console.warn('Could not load existing signup for editing:', error || 'no data');
+        // If we can’t find it, just fall back to “new signup” mode
+        currentSignupId = null;
+        return;
+      }
+
+      // Prefill fields
+      const contactNameInput = document.getElementById('contact_name');
+      const businessNameInput = document.getElementById('business_name');
+      const emailInput = document.getElementById('email');
+      const whatsappInput = document.getElementById('whatsapp_number');
+      const tradeTypeSelect = document.getElementById('trade_type');
+      const serviceAreaInput = document.getElementById('service_area');
+      const planSelect = document.getElementById('plan');
+      const referrerInput = document.getElementById('referrer');
+
+      if (contactNameInput) contactNameInput.value = data.contact_name || data.owner_name || '';
+      if (businessNameInput) businessNameInput.value = data.business_name || '';
+      if (emailInput) emailInput.value = data.email || '';
+      if (whatsappInput) whatsappInput.value = data.phone || '';
+      if (tradeTypeSelect && data.trade_type) tradeTypeSelect.value = data.trade_type;
+      if (serviceAreaInput) serviceAreaInput.value = data.base_postcode || '';
+      if (planSelect && data.plan_status) planSelect.value = data.plan_status;
+
+      // Try to recover referrer from account_status_reason if it starts with "Referrer:"
+      if (referrerInput && data.account_status_reason && data.account_status_reason.startsWith('Referrer:')) {
+        referrerInput.value = data.account_status_reason.replace('Referrer:', '').trim();
+      }
+
+      setSignupStatus('You are updating your existing TradeBotPro details.', 'success');
+    } catch (err) {
+      console.error('Error pre-filling signup form:', err);
+      currentSignupId = null; // fall back to insert mode
+    }
+  }
+
   async function handleSignupSubmit(event) {
     event.preventDefault();
 
     const form = event.target;
     const submitBtn = document.getElementById('signup-submit-btn');
 
+    // Basic front-end validation
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
 
-    setSignupStatus('Submitting your details…', null);
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting…';
-
-    const contact_name    = document.getElementById('contact_name').value.trim();
-    const business_name   = document.getElementById('business_name').value.trim();
-    const email           = document.getElementById('email').value.trim();
+    // Collect fields
+    const contact_name = document.getElementById('contact_name').value.trim();
+    const business_name = document.getElementById('business_name').value.trim();
+    const email = document.getElementById('email').value.trim();
     const whatsapp_number = document.getElementById('whatsapp_number').value.trim();
-    const trade_type      = document.getElementById('trade_type').value;
-    const service_area    = document.getElementById('service_area').value.trim();
-    const plan            = document.getElementById('plan').value;
-    const referrer        = document.getElementById('referrer').value.trim();
+    const trade_type = document.getElementById('trade_type').value;
+    const service_area = document.getElementById('service_area').value.trim();
+    const plan = document.getElementById('plan').value;
+    const referrer = document.getElementById('referrer').value.trim();
 
     const payload = {
       business_name,
@@ -1329,27 +1385,52 @@
       account_status_reason: referrer ? `Referrer: ${referrer}` : null
     };
 
-    console.log('Submitting payload to Supabase:', payload);
+    console.log('Submitting payload to Supabase:', payload, 'currentSignupId:', currentSignupId);
+
+    setSignupStatus('Submitting your details…', null);
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
 
     try {
-      const { data, error } = await supabaseClient
-        .from('tradebotpro_signups')
-        .insert([payload])
-        .select();
+      let data, error;
+
+      if (currentSignupId) {
+        // 🔁 UPDATE existing signup
+        ({ data, error } = await supabaseClient
+          .from('tradebotpro_signups')
+          .update(payload)
+          .eq('id', currentSignupId)
+          .select());
+      } else {
+        // ➕ INSERT new signup
+        ({ data, error } = await supabaseClient
+          .from('tradebotpro_signups')
+          .insert([payload])
+          .select());
+
+        // If insert worked, remember this id so subsequent submissions update
+        if (data && data.length > 0 && data[0].id) {
+          currentSignupId = data[0].id;
+        }
+      }
 
       if (error) {
-        console.error('Supabase insert error:', error);
+        console.error('Supabase upsert error:', error);
         setSignupStatus(
           'Something went wrong saving your details. Please try again or contact us.',
           'error'
         );
       } else {
-        console.log('Insert OK:', data);
+        console.log('Upsert OK:', data);
         setSignupStatus(
-          'Thank you – we’ve received your details. We’ll be in touch shortly.',
+          currentSignupId
+            ? 'Thank you – your details have been updated.'
+            : 'Thank you – we’ve received your details. We’ll be in touch shortly.',
           'success'
         );
         form.reset();
+
+        // If we’re in update mode and you don’t want fields cleared, remove form.reset() above.
       }
     } catch (err) {
       console.error('Network / unexpected error:', err);
@@ -1363,21 +1444,26 @@
     }
   }
 
-  const signupForm = document.getElementById('tradebotpro-signup-form');
-  if (signupForm) {
-    signupForm.addEventListener('submit', handleSignupSubmit);
-  }
-
+  // Backend demo placeholder instead of Render fetch
   function loadMessagesPlaceholder() {
     const container = document.getElementById('messages');
     if (!container) return;
     container.textContent = 'Live backend demo will appear here once your admin dashboard is fully wired up.';
   }
 
-  window.addEventListener('DOMContentLoaded', loadMessagesPlaceholder);
+  window.addEventListener('DOMContentLoaded', () => {
+    loadMessagesPlaceholder();
+    prefillSignupFormIfEditing();
+
+    const signupForm = document.getElementById('tradebotpro-signup-form');
+    if (signupForm) {
+      signupForm.addEventListener('submit', handleSignupSubmit);
+    }
+  });
 </script>
 
 </body>
 </html>
+
 
 
