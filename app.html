@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro – Step 1 · Business profile</title>
+  <title>TradeBotPro — Setup your profile</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="TradeBotPro setup wizard — get your AI office assistant ready to go live."
+  />
 
   <style>
     :root {
@@ -12,20 +16,27 @@
       --dark-text: #1b1b1f;
       --light-bg: #f5f7fa;
       --white: #ffffff;
-      --border-subtle: rgba(0,0,0,0.12);
+      --border-soft: rgba(0, 0, 0, 0.08);
+      --error-red: #b3261e;
+      --success-green: #0f7b46;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       background: var(--light-bg);
       color: var(--dark-text);
-      line-height: 1.6;
+      line-height: 1.5;
     }
 
-    a { color: inherit; text-decoration: none; }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
     .page {
       min-height: 100vh;
@@ -33,30 +44,31 @@
       flex-direction: column;
     }
 
-    header {
-      background: var(--white);
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-    }
-
     .inner {
-      max-width: 1100px;
+      max-width: 1040px;
       margin: 0 auto;
-      padding: 0 1.25rem;
+      padding: 1.5rem 1.25rem 2.5rem;
     }
 
-    .nav {
+    /* HEADER */
+
+    header {
+      border-bottom: 1px solid var(--border-soft);
+      background: #ffffff;
+    }
+
+    .header-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      padding: 0.75rem 0;
-      font-size: 0.9rem;
+      padding: 0.85rem 0;
     }
 
     .logo-wrap {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.7rem;
     }
 
     .logo-icon {
@@ -96,284 +108,465 @@
     }
 
     .logo-tag {
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       opacity: 0.7;
     }
 
-    .muted {
-      font-size: 0.8rem;
-      opacity: 0.75;
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.25rem;
+      font-size: 0.78rem;
     }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      justify-content: flex-end;
+    }
+
+    .status-pill {
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: #f5f7fb;
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .status-pill--internal {
+      opacity: 0.8;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #fbbf24;
+    }
+
+    .status-dot--live {
+      background: #22c55e;
+    }
+
+    .profile-id {
+      opacity: 0.7;
+    }
+
+    /* MAIN LAYOUT */
 
     main {
-      padding: 2rem 0 3rem;
+      flex: 1;
     }
 
-    .layout {
+    .wizard-shell {
+      margin-top: 1.5rem;
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
-      gap: 2rem;
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.25fr);
+      gap: 1.8rem;
       align-items: flex-start;
     }
 
-    /* INTRO SIDE */
-
-    .intro-kicker {
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--accent-blue);
-      margin-bottom: 0.25rem;
+    @media (max-width: 900px) {
+      .wizard-shell {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
 
-    .intro h1 {
-      margin: 0 0 0.4rem;
-      font-size: 1.9rem;
+    .wizard-main-card {
+      background: #ffffff;
+      border-radius: 1rem;
+      padding: 1.5rem 1.6rem 1.4rem;
+      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+      border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+
+    .wizard-side-card {
+      background: #ffffff;
+      border-radius: 1rem;
+      padding: 1.2rem 1.3rem 1.3rem;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+      border: 1px solid rgba(15, 23, 42, 0.05);
+      font-size: 0.86rem;
+    }
+
+    .wizard-title {
+      font-size: 1.4rem;
+      font-weight: 650;
       color: var(--primary-blue);
+      margin: 0 0 0.3rem;
     }
 
-    .intro p {
-      margin: 0.2rem 0 0.8rem;
-      font-size: 0.95rem;
+    .wizard-subtitle {
+      font-size: 0.9rem;
+      opacity: 0.85;
+      margin-bottom: 1rem;
     }
 
-    .pill-row {
+    /* STEP HEADER / PROGRESS */
+
+    .wizard-progress {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-top: 0.6rem;
-    }
-
-    .pill {
-      padding: 0.25rem 0.7rem;
-      border-radius: 999px;
-      border: 1px solid rgba(0,0,0,0.1);
-      font-size: 0.75rem;
-      background: var(--white);
-    }
-
-    .badge {
-      display: inline-flex;
       align-items: center;
-      gap: 0.25rem;
-      padding: 0.15rem 0.55rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      background: #e4eef8;
-      color: var(--primary-blue);
-      margin-top: 1rem;
-    }
-
-    .status-line {
-      margin-top: 0.4rem;
+      gap: 0.75rem;
+      margin-bottom: 1.2rem;
       font-size: 0.82rem;
     }
 
-    .status-ok { color: #137333; }
-    .status-error { color: #b31412; }
-    .status-neutral { color: #5f6368; }
-
-    .info-block {
-      margin-top: 1.4rem;
-      padding: 0.9rem 1rem;
-      border-radius: 0.8rem;
-      border: 1px dashed rgba(0,0,0,0.12);
-      background: var(--white);
-      font-size: 0.85rem;
+    .wizard-steps {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
     }
 
-    .info-block h3 {
-      margin: 0 0 0.4rem;
-      font-size: 0.9rem;
-      color: var(--primary-blue);
-    }
-
-    /* FORM CARD */
-
-    .card {
-      background: var(--white);
-      border-radius: 1rem;
-      padding: 1.25rem 1.4rem;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.06);
-      font-size: 0.9rem;
-    }
-
-    .card h2 {
-      margin: 0 0 0.8rem;
-      font-size: 1.25rem;
-      color: var(--primary-blue);
-    }
-
-    .section-label {
+    .wizard-step-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: #f8fafc;
       font-size: 0.78rem;
+      opacity: 0.7;
+    }
+
+    .wizard-step-badge span.step-number {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      background: #e5edf7;
+      color: var(--primary-blue);
       font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--accent-blue);
-      margin-top: 1.1rem;
+    }
+
+    .wizard-step-badge.active {
+      opacity: 1;
+      background: #e0ebf9;
+      border-color: rgba(31, 78, 121, 0.4);
+    }
+
+    .wizard-step-badge.active span.step-number {
+      background: var(--primary-blue);
+      color: #ffffff;
+    }
+
+    .wizard-step-badge.complete span.step-number {
+      background: #22c55e;
+      color: #ffffff;
+    }
+
+    .progress-bar-track {
+      flex: 1;
+      height: 4px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--primary-blue), var(--accent-blue));
+      transition: width 0.25s ease-out;
+    }
+
+    /* FORM ELEMENTS */
+
+    form {
+      margin: 0;
+    }
+
+    .step {
+      display: none;
+    }
+
+    .step.active {
+      display: block;
+    }
+
+    .step-title {
+      font-size: 1.02rem;
+      font-weight: 600;
+      color: var(--primary-blue);
       margin-bottom: 0.35rem;
     }
 
-    form {
-      margin-top: 0.3rem;
-    }
-
-    .field-group {
-      margin-bottom: 0.9rem;
+    .step-lead {
+      font-size: 0.86rem;
+      opacity: 0.85;
+      margin-bottom: 1rem;
     }
 
     .field-row {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.9rem;
+      gap: 0.8rem 1rem;
+      margin-bottom: 0.4rem;
     }
 
-    .field-group label {
+    @media (max-width: 640px) {
+      .field-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .field {
+      margin-bottom: 0.75rem;
+    }
+
+    .field label {
       display: block;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-weight: 500;
       margin-bottom: 0.25rem;
     }
 
-    .field-group input,
-    .field-group select,
-    .field-group textarea {
-      width: 100%;
-      padding: 0.55rem 0.65rem;
-      border-radius: 0.45rem;
-      border: 1px solid var(--border-subtle);
-      font: inherit;
+    .field small {
+      display: block;
+      font-size: 0.75rem;
+      opacity: 0.75;
+      margin-top: 0.15rem;
     }
 
-    .field-group input:focus,
-    .field-group select:focus,
-    .field-group textarea:focus {
-      outline: 2px solid rgba(31,78,121,0.4);
-      border-color: transparent;
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.55rem 0.6rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      font: inherit;
+      font-size: 0.9rem;
+      background: #ffffff;
     }
 
     textarea {
-      min-height: 80px;
       resize: vertical;
+      min-height: 80px;
     }
 
-    /* QUICK PICK CHIPS */
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: 2px solid rgba(31, 78, 121, 0.5);
+      border-color: transparent;
+    }
 
-    .chips-row {
+    .pill-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-bottom: 0.5rem;
+      gap: 0.45rem;
+      margin-top: 0.25rem;
     }
 
-    .chip {
-      padding: 0.3rem 0.75rem;
+    .pill-option {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.7rem;
       border-radius: 999px;
-      border: 1px solid rgba(0,0,0,0.18);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #f9fafb;
       font-size: 0.78rem;
-      background: #ffffff;
       cursor: pointer;
       user-select: none;
     }
 
-    .chip.selected {
-      background: #e4eef8;
+    .pill-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .pill-check {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      background: #ffffff;
+    }
+
+    .pill-option.selected {
+      background: #e0ebf9;
       border-color: var(--primary-blue);
       color: var(--primary-blue);
-      font-weight: 600;
     }
 
-    .helper-text {
-      font-size: 0.78rem;
-      opacity: 0.8;
-      margin-top: 0.1rem;
+    .pill-option.selected .pill-check {
+      background: var(--primary-blue);
+      border-color: var(--primary-blue);
     }
 
-    /* ACTIONS */
-
-    .actions {
-      margin-top: 1.1rem;
+    .inline-choice-group {
       display: flex;
       flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 0.25rem;
+      font-size: 0.84rem;
+    }
+
+    .inline-choice {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .inline-choice input {
+      margin: 0;
+    }
+
+    /* NAV BUTTONS */
+
+    .wizard-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.1rem;
       gap: 0.7rem;
+    }
+
+    .nav-left,
+    .nav-right {
+      display: flex;
+      gap: 0.6rem;
       align-items: center;
     }
 
-    .btn-primary {
+    .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0.7rem 1.4rem;
+      padding: 0.6rem 1.1rem;
       border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 500;
       border: none;
-      background: var(--primary-blue);
-      color: var(--white);
-      font-weight: 600;
-      font-size: 0.95rem;
       cursor: pointer;
+      gap: 0.4rem;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn-secondary:hover {
+      background: #d4d4d8;
+    }
+
+    .btn-primary {
+      background: var(--primary-blue);
+      color: #ffffff;
     }
 
     .btn-primary:hover {
       background: #163857;
     }
 
-    .btn-ghost {
-      border-radius: 999px;
-      border: 1px solid rgba(0,0,0,0.12);
-      background: var(--white);
-      padding: 0.55rem 1.1rem;
-      font-size: 0.85rem;
-      cursor: pointer;
+    .btn-quiet {
+      background: transparent;
+      color: #4b5563;
+      padding-inline: 0;
+      padding-block: 0.3rem;
     }
 
-    .small-note {
+    .btn-quiet:hover {
+      text-decoration: underline;
+    }
+
+    .wizard-status {
+      margin-top: 0.7rem;
+      font-size: 0.8rem;
+    }
+
+    .wizard-status.success {
+      color: var(--success-green);
+    }
+
+    .wizard-status.error {
+      color: var(--error-red);
+    }
+
+    /* SIDE PANEL CONTENT */
+
+    .side-heading {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--primary-blue);
+      margin-bottom: 0.3rem;
+    }
+
+    .side-block {
+      margin-bottom: 0.9rem;
+    }
+
+    .side-list {
+      margin: 0.25rem 0 0;
+      padding-left: 1.1rem;
+      font-size: 0.83rem;
+    }
+
+    .side-tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.4rem;
+    }
+
+    .side-tag {
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: #eff6ff;
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      font-size: 0.75rem;
+    }
+
+    .side-note {
       font-size: 0.78rem;
       opacity: 0.8;
     }
 
-    footer {
-      margin-top: auto;
-      border-top: 1px solid rgba(0,0,0,0.06);
-      background: var(--white);
-      font-size: 0.8rem;
-    }
-
-    .footer-inner {
-      padding: 1rem 1.25rem 1.2rem;
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    @media (max-width: 860px) {
-      .layout {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    @media (max-width: 520px) {
-      .field-row { grid-template-columns: minmax(0, 1fr); }
-    }
   </style>
 </head>
 <body>
 <div class="page">
-
   <header>
-    <div class="inner">
-      <div class="nav">
-        <div class="logo-wrap">
-          <div class="logo-icon" aria-hidden="true"></div>
-          <div>
-            <div class="logo-main">TradeBotPro</div>
-            <div class="logo-tag">AI office assistant for trades.</div>
+    <div class="inner header-bar">
+      <div class="logo-wrap">
+        <div class="logo-icon" aria-hidden="true"></div>
+        <div>
+          <div class="logo-main">TradeBotPro</div>
+          <div class="logo-tag">Setup wizard • get your AI ready</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="status-row">
+          <!-- Client should NOT edit these: purely display / internal -->
+          <div class="status-pill status-pill--internal">
+            <span class="status-dot"></span>
+            <span id="setup-status-label">Setup status: In progress</span>
+          </div>
+          <div class="status-pill status-pill--internal">
+            <span class="status-dot"></span>
+            <span id="live-status-label">Profile: Not live yet</span>
           </div>
         </div>
-        <div class="muted">
-          Step 1 · Business profile
+        <div class="profile-id" id="profile-id-label">
+          Profile ID: (not linked yet)
         </div>
       </div>
     </div>
@@ -381,588 +574,676 @@
 
   <main>
     <div class="inner">
-      <div class="layout">
-        <!-- LEFT / INTRO -->
-        <section class="intro">
-          <div class="intro-kicker">Step 1 · Business profile</div>
-          <h1>Tell TradeBotPro how your business runs</h1>
-          <p>
-            This page lets you update the key details your AI office will use for quoting,
-            call-outs and messages. You can change this any time.
-          </p>
-          <p class="muted">
-            The link you clicked is unique to your signup. If you lose it, just ask us to resend your secure profile link.
+      <div class="wizard-shell">
+        <!-- MAIN CARD -->
+        <div class="wizard-main-card">
+          <h1 class="wizard-title">Set up your TradeBotPro profile</h1>
+          <p class="wizard-subtitle">
+            These 4 quick steps tell the AI how your business works — so it can quote,
+            book jobs and talk to customers the way you want.
           </p>
 
-          <div class="pill-row">
-            <div class="pill">Reply with the right prices &amp; areas</div>
-            <div class="pill">Decide which jobs to prioritise</div>
-            <div class="pill">Sound like a real member of your team</div>
-          </div>
-
-          <div>
-            <div class="badge" id="link-status">
-              <span>●</span>
-              <span>Loading your details…</span>
+          <!-- Step badges + progress bar -->
+          <div class="wizard-progress">
+            <div class="wizard-steps">
+              <div class="wizard-step-badge active" data-step-indicator="1">
+                <span class="step-number">1</span>
+                Basics
+              </div>
+              <div class="wizard-step-badge" data-step-indicator="2">
+                <span class="step-number">2</span>
+                Services & areas
+              </div>
+              <div class="wizard-step-badge" data-step-indicator="3">
+                <span class="step-number">3</span>
+                Pricing
+              </div>
+              <div class="wizard-step-badge" data-step-indicator="4">
+                <span class="step-number">4</span>
+                Tone & rules
+              </div>
             </div>
-            <div class="status-line status-neutral" id="status-line">
-              Please wait while we load your profile.
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="progress-fill"></div>
             </div>
           </div>
 
-          <div class="info-block">
-            <h3>What this page controls</h3>
-            <p>
-              Your answers here tell TradeBotPro how to:
-            </p>
-            <ul style="margin:0.3rem 0 0.6rem 1.05rem;padding:0;">
-              <li>Reply to customers with the right prices and areas.</li>
-              <li>Decide which jobs to prioritise or turn away.</li>
-              <li>Sound like a real member of your team.</li>
-            </ul>
-            <p class="small-note" style="margin:0.4rem 0 0;">
-              If you’re not sure on any numbers yet, leave them blank or rough – we can tidy them up with you later.
-            </p>
-          </div>
+          <form id="setup-form" novalidate>
+            <!-- STEP 1: BASICS -->
+            <div class="step active" data-step="1">
+              <div class="step-title">Business basics</div>
+              <div class="step-lead">
+                We’ll use this to introduce your business and send confirmations to the right place.
+              </div>
 
-          <div style="margin-top:1.2rem;" class="small-note">
-            <strong>Need help?</strong><br />
-            If anything on this page doesn’t make sense or doesn’t save properly,
-            just email <a href="mailto:hello@tradebotpro.co.uk">hello@tradebotpro.co.uk</a>
-            with your business name and we’ll sort it.<br /><br />
-            Tip: keep this page open while you test WhatsApp or web chat so you can
-            tweak wording and prices as you go.
-          </div>
-        </section>
-
-        <!-- RIGHT / FORM -->
-        <section class="card">
-          <h2>Business &amp; contact details</h2>
-          <p class="muted" style="margin-top:0;">
-            Make changes and hit “Save my settings”. Your TradeBotPro profile updates instantly.
-          </p>
-
-          <form id="profile-form">
-            <!-- Business & contact details -->
-            <div class="field-group">
               <div class="field-row">
-                <div class="field-group">
+                <div class="field">
+                  <label for="contact_name">Contact name</label>
+                  <input id="contact_name" name="contact_name" type="text" required autocomplete="name"
+                         placeholder="e.g. Andy Gifford">
+                  <small>This is who TradeBotPro says the customer is speaking to.</small>
+                </div>
+                <div class="field">
                   <label for="business_name">Business name</label>
-                  <input id="business_name" name="business_name" type="text" autocomplete="organization">
-                </div>
-                <div class="field-group">
-                  <label for="contact_name">Main contact name</label>
-                  <input id="contact_name" name="contact_name" type="text" autocomplete="name">
+                  <input id="business_name" name="business_name" type="text" required autocomplete="organization"
+                         placeholder="e.g. ClearFlow Plumbing & Heating">
                 </div>
               </div>
-            </div>
 
-            <div class="field-row">
-              <div class="field-group">
-                <label for="email">Email</label>
-                <input id="email" name="email" type="email" autocomplete="email">
+              <div class="field-row">
+                <div class="field">
+                  <label for="email">Email for confirmations</label>
+                  <input id="email" name="email" type="email" required autocomplete="email"
+                         placeholder="e.g. bookings@yourbusiness.co.uk">
+                  <small>Booking confirmations and daily summaries can go here.</small>
+                </div>
+                <div class="field">
+                  <label for="phone">Mobile / WhatsApp number</label>
+                  <input id="phone" name="phone" type="tel" required autocomplete="tel"
+                         placeholder="e.g. 07…">
+                  <small>This is the number linked to your WhatsApp / SMS.</small>
+                </div>
               </div>
-              <div class="field-group">
-                <label for="whatsapp_number">Mobile / WhatsApp</label>
-                <input id="whatsapp_number" name="whatsapp_number" type="tel" autocomplete="tel">
-              </div>
-            </div>
 
-            <div class="field-row">
-              <div class="field-group">
-                <label for="phone">Optional landline</label>
-                <input id="phone" name="phone" type="tel" autocomplete="tel">
+              <div class="field-row">
+                <div class="field">
+                  <label for="base_postcode">Base postcode</label>
+                  <input id="base_postcode" name="base_postcode" type="text" required
+                         placeholder="e.g. HP14 3QF">
+                  <small>Must be a postcode, not a town. Used for travel distance & call-out rules.</small>
+                </div>
+                <div class="field">
+                  <label>Business size</label>
+                  <div class="pill-group" data-pill-group="business_size">
+                    <label class="pill-option">
+                      <input type="radio" name="business_size" value="solo">
+                      <span class="pill-check"></span>
+                      Solo / one van
+                    </label>
+                    <label class="pill-option">
+                      <input type="radio" name="business_size" value="small-team">
+                      <span class="pill-check"></span>
+                      Small team (2–5)
+                    </label>
+                    <label class="pill-option">
+                      <input type="radio" name="business_size" value="larger-team">
+                      <span class="pill-check"></span>
+                      Larger team (6+)
+                    </label>
+                  </div>
+                  <small>This helps with how we talk about availability (“we” vs “I”).</small>
+                </div>
               </div>
-              <div class="field-group">
-                <label for="trade_type">Trade</label>
-                <select id="trade_type" name="trade_type">
-                  <option value="">Select your trade…</option>
-                  <option>Plumber</option>
-                  <option>Heating Engineer</option>
-                  <option>Gas Engineer</option>
-                  <option>Electrician</option>
-                  <option>Builder</option>
-                  <option>Handyman</option>
-                  <option>Landscaper / Gardener</option>
-                  <option>Cleaner / Carpet Cleaner</option>
-                  <option>Pest Control</option>
-                  <option>Other</option>
-                </select>
-              </div>
-            </div>
 
-            <div class="field-row">
-              <div class="field-group">
-                <label for="base_postcode">Base postcode</label>
-                <input id="base_postcode" name="base_postcode" type="text" placeholder="e.g. OX2 7AA">
-              </div>
-              <div class="field-group">
-                <label for="website_url">Website (if you have one)</label>
-                <input id="website_url" name="website_url" type="url" placeholder="https://">
-              </div>
-            </div>
-
-            <div class="field-row">
-              <div class="field-group">
-                <label for="service_radius">Service radius (e.g. “15 miles from OX2”)</label>
-                <input id="service_radius" name="service_radius" type="text">
-              </div>
-              <div class="field-group">
-                <label for="callout_from">Call-out from (usual starting town / depot)</label>
-                <input id="callout_from" name="callout_from" type="text" placeholder="e.g. Oxford, Reading…">
-              </div>
-            </div>
-
-            <!-- Pricing basics -->
-            <div class="section-label">Pricing basics</div>
-
-            <div class="field-row">
-              <div class="field-group">
-                <label for="callout_fee">Standard call-out fee (£)</label>
-                <input id="callout_fee" name="callout_fee" type="number" min="0" step="1">
-              </div>
-              <div class="field-group">
-                <label for="first_hour_rate">First hour rate (£)</label>
-                <input id="first_hour_rate" name="first_hour_rate" type="number" min="0" step="1">
-              </div>
-            </div>
-
-            <div class="field-row">
-              <div class="field-group">
-                <label for="hourly_rate">Hourly rate after first hour (£)</label>
-                <input id="hourly_rate" name="hourly_rate" type="number" min="0" step="1">
-              </div>
-              <div class="field-group">
-                <label for="boiler_service_from">Boiler service from (£)</label>
-                <input id="boiler_service_from" name="boiler_service_from" type="number" min="0" step="1">
+              <div class="field">
+                <label>Main trade</label>
+                <div class="pill-group" data-pill-group="primary_trade">
+                  <label class="pill-option">
+                    <input type="radio" name="primary_trade" value="plumber">
+                    <span class="pill-check"></span>
+                    Plumber
+                  </label>
+                  <label class="pill-option">
+                    <input type="radio" name="primary_trade" value="heating-engineer">
+                    <span class="pill-check"></span>
+                    Heating / gas engineer
+                  </label>
+                  <label class="pill-option">
+                    <input type="radio" name="primary_trade" value="electrician">
+                    <span class="pill-check"></span>
+                    Electrician
+                  </label>
+                  <label class="pill-option">
+                    <input type="radio" name="primary_trade" value="builder-handyman">
+                    <span class="pill-check"></span>
+                    Builder / handyman
+                  </label>
+                  <label class="pill-option">
+                    <input type="radio" name="primary_trade" value="other">
+                    <span class="pill-check"></span>
+                    Other
+                  </label>
+                </div>
               </div>
             </div>
 
-            <div class="field-group">
-              <label for="quote_minimum">Minimum job value / quote (£)</label>
-              <input id="quote_minimum" name="quote_minimum" type="number" min="0" step="1">
-            </div>
+            <!-- STEP 2: SERVICES & AREAS -->
+            <div class="step" data-step="2">
+              <div class="step-title">Services & areas</div>
+              <div class="step-lead">
+                Tell TradeBotPro which jobs you actually want and how far you’re happy to travel.
+              </div>
 
-            <div class="field-group">
-              <label for="pricing_notes">Pricing notes (anything your AI should know about evenings, weekends, emergencies)</label>
-              <textarea id="pricing_notes" name="pricing_notes"></textarea>
-            </div>
+              <div class="field">
+                <label>What kind of jobs should TradeBotPro say “yes” to?</label>
+                <div class="pill-group" data-pill-group="job_types">
+                  <label class="pill-option">
+                    <input type="checkbox" name="job_types" value="emergencies">
+                    <span class="pill-check"></span>
+                    Emergencies / same-day
+                  </label>
+                  <label class="pill-option">
+                    <input type="checkbox" name="job_types" value="small-jobs">
+                    <span class="pill-check"></span>
+                    Small jobs under ~£150
+                  </label>
+                  <label class="pill-option">
+                    <input type="checkbox" name="job_types" value="larger-projects">
+                    <span class="pill-check"></span>
+                    Larger installs / projects
+                  </label>
+                  <label class="pill-option">
+                    <input type="checkbox" name="job_types" value="servicing">
+                    <span class="pill-check"></span>
+                    Annual servicing
+                  </label>
+                  <label class="pill-option">
+                    <input type="checkbox" name="job_types" value="landlord">
+                    <span class="pill-check"></span>
+                    Landlord / certificates
+                  </label>
+                  <label class="pill-option">
+                    <input type="checkbox" name="job_types" value="other">
+                    <span class="pill-check"></span>
+                    Other jobs
+                  </label>
+                </div>
+                <small>We’ll use this to filter out work you don’t want.</small>
+              </div>
 
-            <!-- AI focus -->
-            <div class="section-label">What should your AI office focus on?</div>
+              <div class="field-row">
+                <div class="field">
+                  <label>How far from your base postcode do you usually travel?</label>
+                  <div class="pill-group" data-pill-group="travel_radius">
+                    <label class="pill-option">
+                      <input type="radio" name="travel_radius" value="10">
+                      <span class="pill-check"></span>
+                      Up to 10 miles
+                    </label>
+                    <label class="pill-option">
+                      <input type="radio" name="travel_radius" value="15">
+                      <span class="pill-check"></span>
+                      Up to 15 miles
+                    </label>
+                    <label class="pill-option">
+                      <input type="radio" name="travel_radius" value="20">
+                      <span class="pill-check"></span>
+                      Up to 20 miles
+                    </label>
+                    <label class="pill-option">
+                      <input type="radio" name="travel_radius" value="25plus">
+                      <span class="pill-check"></span>
+                      25+ miles / depends on job
+                    </label>
+                  </div>
+                </div>
 
-            <div class="field-group">
-              <label>Quick picks (choose as many as you like)</label>
-              <div class="chips-row" id="ai-focus-chips">
-                <div class="chip" data-value="New enquiries & first response">New enquiries &amp; first response</div>
-                <div class="chip" data-value="Quoting & rough estimates">Quoting &amp; rough estimates</div>
-                <div class="chip" data-value="Booking jobs into the diary">Booking jobs into the diary</div>
-                <div class="chip" data-value="Out-of-hours & weekend cover">Out-of-hours &amp; weekend cover</div>
-                <div class="chip" data-value="Chasing reviews & follow-ups">Chasing reviews &amp; follow-ups</div>
-                <div class="chip" data-value="Filtering time-wasters / bad jobs">Filtering time-wasters / bad jobs</div>
+                <div class="field">
+                  <label for="key_areas">Any key postcodes or areas to mention? (optional)</label>
+                  <input id="key_areas" name="key_areas" type="text"
+                         placeholder="e.g. OX1–OX5, HP11–HP15, MK4">
+                  <small>We’ll phrase this nicely for customers.</small>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>When are you normally happy to work?</label>
+                <div class="pill-group" data-pill-group="working_hours">
+                  <label class="pill-option">
+                    <input type="checkbox" name="working_hours" value="weekday-days">
+                    <span class="pill-check"></span>
+                    Weekdays — daytime
+                  </label>
+                  <label class="pill-option">
+                    <input type="checkbox" name="working_hours" value="weekday-evenings">
+                    <span class="pill-check"></span>
+                    Weekday evenings
+                  </label>
+                  <label class="pill-option">
+                    <input type="checkbox" name="working_hours" value="weekends">
+                    <span class="pill-check"></span>
+                    Weekends by arrangement
+                  </label>
+                  <label class="pill-option">
+                    <input type="checkbox" name="working_hours" value="emergency-out-of-hours">
+                    <span class="pill-check"></span>
+                    Emergency out-of-hours only
+                  </label>
+                </div>
               </div>
             </div>
 
-            <div class="field-group">
-              <label for="ai_focus_notes">In your own words (a sentence or two is fine)</label>
-              <textarea id="ai_focus_notes" name="ai_focus_notes"
-                placeholder="e.g. “Prioritise emergency leaks and boiler breakdowns in OX postcodes. Keep quotes sensible so I don’t work for free.”"></textarea>
+            <!-- STEP 3: PRICING -->
+            <div class="step" data-step="3">
+              <div class="step-title">Pricing & call-out rules</div>
+              <div class="step-lead">
+                TradeBotPro won’t promise fixed prices — it will use these as sensible
+                guide ranges when talking to customers.
+              </div>
+
+              <div class="field">
+                <label>How should the AI talk about price by default?</label>
+                <div class="inline-choice-group">
+                  <label class="inline-choice">
+                    <input type="radio" name="pricing_style" value="rough-range" checked>
+                    <span>“Typical jobs like this are between £X–£Y”</span>
+                  </label>
+                  <label class="inline-choice">
+                    <input type="radio" name="pricing_style" value="from-price">
+                    <span>“Most jobs start from around £X”</span>
+                  </label>
+                  <label class="inline-choice">
+                    <input type="radio" name="pricing_style" value="no-price">
+                    <span>“We’ll confirm price after a quick look / photo”</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="callout_fee">Standard call-out fee (daytime)</label>
+                  <input id="callout_fee" name="callout_fee" type="number" min="0" step="1"
+                         placeholder="e.g. 90">
+                  <small>Leave blank if you don’t charge a call-out as such.</small>
+                </div>
+                <div class="field">
+                  <label for="first_hour_rate">First hour rate</label>
+                  <input id="first_hour_rate" name="first_hour_rate" type="number" min="0" step="1"
+                         placeholder="e.g. 90">
+                  <small>Typical labour for the first hour on site.</small>
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="hourly_rate">Hourly rate after first hour</label>
+                  <input id="hourly_rate" name="hourly_rate" type="number" min="0" step="1"
+                         placeholder="e.g. 70">
+                </div>
+                <div class="field">
+                  <label for="minimum_job">Minimum charge for any job</label>
+                  <input id="minimum_job" name="minimum_job" type="number" min="0" step="1"
+                         placeholder="e.g. 90">
+                  <small>Use this if you don’t go out for very small jobs.</small>
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="boiler_service_from">Boiler service “from” price (if relevant)</label>
+                  <input id="boiler_service_from" name="boiler_service_from" type="number" min="0" step="1"
+                         placeholder="e.g. 80">
+                </div>
+                <div class="field">
+                  <label>Out-of-hours pricing</label>
+                  <div class="pill-group" data-pill-group="ooh_pricing">
+                    <label class="pill-option">
+                      <input type="checkbox" name="ooh_pricing" value="same-rate">
+                      <span class="pill-check"></span>
+                      Same rates most of the time
+                    </label>
+                    <label class="pill-option">
+                      <input type="checkbox" name="ooh_pricing" value="higher-evenings">
+                      <span class="pill-check"></span>
+                      Higher rates evenings / weekends
+                    </label>
+                    <label class="pill-option">
+                      <input type="checkbox" name="ooh_pricing" value="case-by-case">
+                      <span class="pill-check"></span>
+                      Decide case-by-case
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="pricing_notes">Anything we should be careful about on price? (optional)</label>
+                <textarea id="pricing_notes" name="pricing_notes"
+                          placeholder="e.g. Don’t give ranges for full bathroom refits, always tell them we’ll visit and quote. No fixed prices for leaks until we’ve seen it."></textarea>
+              </div>
             </div>
 
-            <!-- Tone of voice -->
-            <div class="section-label">Tone of voice &amp; other notes</div>
+            <!-- STEP 4: TONE & RULES -->
+            <div class="step" data-step="4">
+              <div class="step-title">Tone of voice & rules</div>
+              <div class="step-lead">
+                This is where you decide how “chatty” TradeBotPro should be and any golden rules
+                you want it to follow.
+              </div>
 
-            <div class="field-group">
-              <label for="ai_style_notes">How should TradeBotPro sound? (tone of voice, things to avoid, etc.)</label>
-              <textarea id="ai_style_notes" name="ai_style_notes"
-                placeholder="Friendly but professional, no slang, don’t promise exact arrival times, always confirm if it’s an emergency."></textarea>
+              <div class="field">
+                <label>How should TradeBotPro sound?</label>
+                <div class="pill-group" data-pill-group="tone">
+                  <label class="pill-option">
+                    <input type="checkbox" name="tone" value="friendly">
+                    <span class="pill-check"></span>
+                    Friendly & relaxed
+                  </label>
+                  <label class="pill-option">
+                    <input type="checkbox" name="tone" value="professional">
+                    <span class="pill-check"></span>
+                    Professional & straight to the point
+                  </label>
+                  <label class="pill-option">
+                    <input type="checkbox" name="tone" value="no-jargon">
+                    <span class="pill-check"></span>
+                    No jargon — plain English
+                  </label>
+                  <label class="pill-option">
+                    <input type="checkbox" name="tone" value="reassuring">
+                    <span class="pill-check"></span>
+                    Reassuring with nervous customers
+                  </label>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Booking & quoting rules</label>
+                <div class="inline-choice-group">
+                  <label class="inline-choice">
+                    <input type="checkbox" name="rule_photos" value="true">
+                    <span>Ask for photos where helpful (leaks, boilers, outside jobs).</span>
+                  </label>
+                  <label class="inline-choice">
+                    <input type="checkbox" name="rule_confirm_window" value="true">
+                    <span>Always confirm a time window before calling it “booked”.</span>
+                  </label>
+                  <label class="inline-choice">
+                    <input type="checkbox" name="rule_no_free_advice" value="true">
+                    <span>Avoid long “DIY advice” messages.</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="ai_limit_amount">
+                    OK for TradeBotPro to give a firm quote up to… (optional)
+                  </label>
+                  <input id="ai_limit_amount" name="ai_limit_amount" type="number" min="0" step="1"
+                         placeholder="e.g. 250">
+                  <small>Above this, it will say you’ll confirm personally.</small>
+                </div>
+                <div class="field">
+                  <label for="ai_style_notes">Anything else the AI should know about your style? (optional)</label>
+                  <textarea id="ai_style_notes" name="ai_style_notes"
+                            placeholder="e.g. We don’t upsell. We’re very punctual. Avoid American spellings."></textarea>
+                </div>
+              </div>
             </div>
 
-            <div class="field-group">
-              <label for="callout_notes">Any other important notes? (parking, access, pets, special jobs you do or don’t do)</label>
-              <textarea id="callout_notes" name="callout_notes"></textarea>
+            <!-- NAVIGATION -->
+            <div class="wizard-nav">
+              <div class="nav-left">
+                <button type="button" class="btn btn-secondary" id="btn-prev">
+                  ← Back
+                </button>
+                <button type="button" class="btn btn-quiet" id="btn-save-draft">
+                  Save draft in this browser
+                </button>
+              </div>
+              <div class="nav-right">
+                <button type="button" class="btn btn-primary" id="btn-next">
+                  Next step →
+                </button>
+                <button type="submit" class="btn btn-primary" id="btn-finish" style="display:none;">
+                  Finish & review
+                </button>
+              </div>
             </div>
 
-            <div class="actions">
-              <button type="submit" class="btn-primary">Save my settings</button>
-              <button type="button" class="btn-ghost" id="refresh-btn">Reload from server</button>
-              <span class="small-note" id="last-saved"></span>
-            </div>
-
-            <div class="status-line status-neutral" id="form-status" style="margin-top:0.7rem;">
-              Waiting to load profile…
-            </div>
+            <div class="wizard-status" id="wizard-status"></div>
           </form>
-        </section>
+        </div>
+
+        <!-- SIDE CARD -->
+        <aside class="wizard-side-card">
+          <div class="side-block">
+            <div class="side-heading">What your customer will see</div>
+            <p class="side-note">
+              TradeBotPro will use this profile to:
+            </p>
+            <ul class="side-list">
+              <li>Introduce your business correctly.</li>
+              <li>Check if the postcode is in your area.</li>
+              <li>Give sensible guide prices without over-promising.</li>
+              <li>Offer appointment windows that match how you actually work.</li>
+            </ul>
+          </div>
+
+          <div class="side-block">
+            <div class="side-heading">Internal only fields</div>
+            <p class="side-note">
+              <strong>Profile active / ready to go live</strong> and
+              <strong>setup status</strong> are internal. Your clients won’t see or edit them.
+            </p>
+            <div class="side-tag-row">
+              <span class="side-tag">Profile status: Draft</span>
+              <span class="side-tag">Setup: In progress</span>
+            </div>
+          </div>
+
+          <div class="side-block">
+            <div class="side-heading">Postcode-based logic</div>
+            <p class="side-note">
+              We always anchor everything to your <strong>base postcode</strong> — not a town
+              name — so the AI can be precise about distance, travel time and call-out rules.
+            </p>
+          </div>
+
+          <div class="side-block">
+            <div class="side-heading">What happens next?</div>
+            <p class="side-note">
+              For now, this wizard just keeps your answers safely in your browser. When we wire
+              it into Supabase, these same fields will feed your <strong>tradebotpro_signups</strong>
+              and <strong>business_profiles</strong> records automatically.
+            </p>
+          </div>
+        </aside>
       </div>
     </div>
   </main>
-
-  <footer>
-    <div class="inner footer-inner">
-      <div>&copy; <span id="year"></span> TradeBotPro.</div>
-      <div class="muted">
-        If anything looks wrong, just email <a href="mailto:hello@tradebotpro.co.uk">hello@tradebotpro.co.uk</a>.
-      </div>
-    </div>
-  </footer>
 </div>
 
 <script>
-  // 🔴🔴🔴 SUPABASE DETAILS (already filled in with your project) 🔴🔴🔴
-  //
-  // If you ever rotate keys:
-  // 1) Supabase → Project Settings → API
-  // 2) Copy "Project URL" into SUPABASE_URL
-  // 3) Copy "anon public" key into SUPABASE_ANON_KEY
+  // Simple 4-step wizard with localStorage draft saving.
+  (function () {
+    const TOTAL_STEPS = 4;
+    let currentStep = 1;
 
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    const form = document.getElementById('setup-form');
+    const statusEl = document.getElementById('wizard-status');
+    const progressFill = document.getElementById('progress-fill');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const btnFinish = document.getElementById('btn-finish');
+    const btnSaveDraft = document.getElementById('btn-save-draft');
+    const stepIndicators = document.querySelectorAll('[data-step-indicator]');
+    const steps = document.querySelectorAll('.step');
+    const DRAFT_KEY = 'tradebotpro_setup_draft_v1';
 
-  // ------------------------------------------------------------------//
-  // DOM HOOKS
-  // ------------------------------------------------------------------//
-
-  const yearSpan = document.getElementById('year');
-  if (yearSpan) yearSpan.textContent = new Date().getFullYear();
-
-  const linkStatusEl = document.getElementById('link-status');
-  const statusLineEl = document.getElementById('status-line');
-  const formStatusEl = document.getElementById('form-status');
-  const lastSavedEl = document.getElementById('last-saved');
-  const profileForm = document.getElementById('profile-form');
-  const refreshBtn = document.getElementById('refresh-btn');
-  const chipsContainer = document.getElementById('ai-focus-chips');
-
-  // ------------------------------------------------------------------//
-  // HELPERS
-  // ------------------------------------------------------------------//
-
-  function setLinkStatus(text, type = 'neutral') {
-    if (!linkStatusEl) return;
-    const dot = linkStatusEl.querySelector('span');
-    const label = linkStatusEl.querySelectorAll('span')[1];
-    if (label) label.textContent = text;
-
-    if (type === 'ok') {
-      linkStatusEl.style.background = '#e6f4ea';
-      linkStatusEl.style.color = '#137333';
-      if (dot) dot.textContent = '●';
-    } else if (type === 'error') {
-      linkStatusEl.style.background = '#fce8e6';
-      linkStatusEl.style.color = '#b31412';
-      if (dot) dot.textContent = '●';
-    } else {
-      linkStatusEl.style.background = '#e4eef8';
-      linkStatusEl.style.color = '#1f4e79';
-      if (dot) dot.textContent = '●';
-    }
-  }
-
-  function setFormStatus(msg, type = 'neutral') {
-    if (!formStatusEl) return;
-    formStatusEl.textContent = msg;
-    formStatusEl.classList.remove('status-ok', 'status-error', 'status-neutral');
-    if (type === 'ok') formStatusEl.classList.add('status-ok');
-    else if (type === 'error') formStatusEl.classList.add('status-error');
-    else formStatusEl.classList.add('status-neutral');
-  }
-
-  function getUserIdFromUrl() {
+    // Show profile ID from URL if present (read-only, no backend wiring yet)
     const params = new URLSearchParams(window.location.search);
-    return params.get('user_id') || '';
-  }
-
-  function getSupabaseHeaders() {
-    return {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    };
-  }
-
-  async function supabaseFetch(path, options = {}) {
-    const url = `${SUPABASE_URL}/rest/v1/${path}`;
-    const headers = {
-      ...getSupabaseHeaders(),
-      ...(options.headers || {})
-    };
-
-    const res = await fetch(url, { ...options, headers });
-
-    let data = null;
-    try {
-      data = await res.json();
-    } catch (e) {
-      // no JSON body
+    const userId = params.get('user_id');
+    const profileLabel = document.getElementById('profile-id-label');
+    if (userId && profileLabel) {
+      profileLabel.textContent = 'Profile ID: ' + userId;
     }
 
-    if (!res.ok) {
-      console.error('Fetch failed:', res.status, data || res.statusText);
-      const err = new Error(`Fetch failed: ${res.status} ${res.statusText}`);
-      err.status = res.status;
-      err.details = data;
-      throw err;
+    function updateProgressUI() {
+      const percent = (currentStep - 1) / (TOTAL_STEPS - 1) * 100;
+      progressFill.style.width = percent + '%';
+
+      steps.forEach(step => {
+        const stepNum = Number(step.getAttribute('data-step'));
+        step.classList.toggle('active', stepNum === currentStep);
+      });
+
+      stepIndicators.forEach(ind => {
+        const stepNum = Number(ind.getAttribute('data-step-indicator'));
+        ind.classList.remove('active', 'complete');
+        if (stepNum === currentStep) {
+          ind.classList.add('active');
+        } else if (stepNum < currentStep) {
+          ind.classList.add('complete');
+        }
+      });
+
+      btnPrev.disabled = currentStep === 1;
+      btnNext.style.display = currentStep === TOTAL_STEPS ? 'none' : 'inline-flex';
+      btnFinish.style.display = currentStep === TOTAL_STEPS ? 'inline-flex' : 'none';
     }
 
-    return data;
-  }
+    function showMessage(msg, type) {
+      if (!statusEl) return;
+      statusEl.textContent = msg || '';
+      statusEl.classList.remove('success', 'error');
+      if (type === 'success') statusEl.classList.add('success');
+      if (type === 'error') statusEl.classList.add('error');
+    }
 
-  // ------------------------------------------------------------------//
-  // QUICK PICK CHIPS
-  // ------------------------------------------------------------------//
+    function saveDraftToLocalStorage() {
+      const formData = new FormData(form);
+      const draft = {};
+      for (const [key, value] of formData.entries()) {
+        if (draft[key]) {
+          if (!Array.isArray(draft[key])) draft[key] = [draft[key]];
+          draft[key].push(value);
+        } else {
+          draft[key] = value;
+        }
+      }
+      // Also remember which step they were on
+      draft._currentStep = currentStep;
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        showMessage('Draft saved in this browser. We’ll wire this to your account later.', 'success');
+      } catch (e) {
+        console.error('Error saving draft:', e);
+        showMessage('Could not save draft (browser storage issue).', 'error');
+      }
+    }
 
-  function initChips() {
-    if (!chipsContainer) return;
-    chipsContainer.addEventListener('click', (e) => {
-      const chip = e.target.closest('.chip');
-      if (!chip) return;
-      chip.classList.toggle('selected');
+    function loadDraftFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+        const draft = JSON.parse(raw);
+
+        // Fill simple inputs
+        Array.from(form.elements).forEach(el => {
+          if (!el.name) return;
+          const key = el.name;
+          const val = draft[key];
+          if (val == null) return;
+
+          if (el.type === 'checkbox' || el.type === 'radio') {
+            if (Array.isArray(val)) {
+              el.checked = val.includes(el.value);
+            } else {
+              el.checked = String(val) === String(el.value);
+            }
+          } else {
+            el.value = val;
+          }
+        });
+
+        // Restore step if valid
+        if (draft._currentStep && draft._currentStep >= 1 && draft._currentStep <= TOTAL_STEPS) {
+          currentStep = draft._currentStep;
+        }
+
+        // Update pill visual states
+        refreshPillVisuals();
+
+        showMessage('Draft loaded from this browser.', 'success');
+      } catch (e) {
+        console.error('Error loading draft:', e);
+      }
+    }
+
+    function refreshPillVisuals() {
+      document.querySelectorAll('.pill-group').forEach(group => {
+        const options = group.querySelectorAll('.pill-option');
+        options.forEach(opt => {
+          const input = opt.querySelector('input');
+          opt.classList.toggle('selected', !!input && input.checked);
+        });
+      });
+    }
+
+    // Navigation events
+    btnPrev.addEventListener('click', () => {
+      if (currentStep > 1) {
+        currentStep -= 1;
+        updateProgressUI();
+        showMessage('');
+      }
     });
-  }
 
-  function getSelectedChips() {
-    if (!chipsContainer) return [];
-    return Array.from(chipsContainer.querySelectorAll('.chip.selected'))
-      .map(el => el.getAttribute('data-value') || el.textContent.trim());
-  }
+    btnNext.addEventListener('click', () => {
+      // Simple HTML5 validation for the current step only
+      const currentStepEl = document.querySelector('.step[data-step="' + currentStep + '"]');
+      if (currentStepEl) {
+        const inputs = currentStepEl.querySelectorAll('input, select, textarea');
+        for (const input of inputs) {
+          if (input.hasAttribute('required') && !input.value.trim()) {
+            input.reportValidity();
+            return;
+          }
+        }
+      }
+      if (currentStep < TOTAL_STEPS) {
+        currentStep += 1;
+        updateProgressUI();
+        showMessage('');
+      }
+    });
 
-  // ------------------------------------------------------------------//
-  // LOAD + SAVE PROFILE
-  // ------------------------------------------------------------------//
+    btnSaveDraft.addEventListener('click', () => {
+      saveDraftToLocalStorage();
+    });
 
-  let signupRow = null;
-  let profileRow = null;
-  let signupId = null; // from ?user_id=
+    // Form submit (finish)
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
 
-  function fillFormFromProfile() {
-    const p = profileRow || {};
-    const s = signupRow || {};
-
-    function setVal(id, value) {
-      const el = document.getElementById(id);
-      if (el) el.value = value ?? '';
-    }
-
-    setVal('business_name', p.business_name ?? s.business_name ?? '');
-    setVal('contact_name', p.contact_name ?? s.contact_name ?? '');
-    setVal('email', p.email ?? s.email ?? '');
-    setVal('whatsapp_number', p.whatsapp_number ?? s.whatsapp_number ?? '');
-    setVal('phone', p.phone ?? s.phone ?? '');
-    setVal('trade_type', p.trade_type ?? s.trade_type ?? '');
-    setVal('base_postcode', p.base_postcode ?? s.base_postcode ?? s.service_area ?? '');
-    setVal('website_url', p.website_url ?? s.website_url ?? '');
-    setVal('service_radius', p.service_radius ?? (s.service_radius ?? ''));
-    setVal('callout_from', p.callout_from ?? s.callout_from ?? '');
-
-    setVal('callout_fee', p.callout_fee ?? '');
-    setVal('first_hour_rate', p.first_hour_rate ?? '');
-    setVal('hourly_rate', p.hourly_rate ?? '');
-    setVal('boiler_service_from', p.boiler_service_from ?? '');
-    setVal('quote_minimum', p.quote_minimum ?? '');
-    setVal('pricing_notes', p.pricing_notes ?? '');
-
-    // For AI focus, we just drop the existing services_summary into the free-text box.
-    setVal('ai_focus_notes', p.services_summary ?? s.services_summary ?? '');
-
-    setVal('ai_style_notes', p.ai_style_notes ?? s.ai_style_notes ?? '');
-    setVal('callout_notes', p.callout_notes ?? s.callout_notes ?? '');
-  }
-
-  async function loadProfile() {
-    signupId = getUserIdFromUrl();
-
-    if (!signupId) {
-      setLinkStatus('This link is missing a user_id.', 'error');
-      if (statusLineEl) statusLineEl.textContent = 'Ask TradeBotPro to resend your secure profile link.';
-      setFormStatus('Cannot load profile without a valid link.', 'error');
-      if (profileForm) profileForm.style.display = 'none';
-      return;
-    }
-
-    setLinkStatus('Link looks valid. Loading your details…', 'neutral');
-    setFormStatus('Loading from Supabase…', 'neutral');
-
-    try {
-      // 1) Get signup row (id = user_id from URL)
-      const signups = await supabaseFetch(
-        `tradebotpro_signups?id=eq.${encodeURIComponent(signupId)}&select=*`
-      );
-
-      if (!Array.isArray(signups) || !signups.length) {
-        setLinkStatus('We could not find a signup for this link.', 'error');
-        setFormStatus('No signup found. Please contact support.', 'error');
+      // Final basic validation for all required fields across steps
+      if (!form.checkValidity()) {
+        form.reportValidity();
         return;
       }
 
-      signupRow = signups[0];
+      saveDraftToLocalStorage();
 
-      // 2) Get or create business_profile row for this signup_id
-      const profiles = await supabaseFetch(
-        `business_profiles?signup_id=eq.${encodeURIComponent(signupId)}&select=*`
-      );
-
-      if (Array.isArray(profiles) && profiles.length) {
-        profileRow = profiles[0];
-      } else {
-        const payload = {
-          signup_id: signupId,
-          contact_name: signupRow.contact_name || '',
-          business_name: signupRow.business_name || '',
-          email: signupRow.email || '',
-          whatsapp_number: signupRow.whatsapp_number || '',
-          phone: signupRow.phone || '',
-          trade_type: signupRow.trade_type || '',
-          base_postcode: signupRow.base_postcode || signupRow.service_area || '',
-          website_url: signupRow.website_url || '',
-          callout_from: signupRow.callout_from || '',
-          service_radius: signupRow.service_radius || null,
-          callout_fee: signupRow.callout_fee || null,
-          first_hour_rate: signupRow.first_hour_rate || null,
-          hourly_rate: signupRow.hourly_rate || null,
-          boiler_service_from: signupRow.boiler_service_from || null,
-          quote_minimum: signupRow.quote_minimum || null,
-          pricing_notes: signupRow.pricing_notes || '',
-          services_summary: signupRow.services_summary || '',
-          ai_style_notes: signupRow.ai_style_notes || '',
-          callout_notes: signupRow.callout_notes || '',
-          plan_status: signupRow.plan_status || 'Lead only',
-          pending_setup: signupRow.pending_setup ?? true,
-          is_active: signupRow.is_active ?? false,
-          account_status: signupRow.account_status || '',
-          account_status_reason: signupRow.account_status_reason || ''
-        };
-
-        const created = await supabaseFetch(
-          'business_profiles',
-          {
-            method: 'POST',
-            body: JSON.stringify(payload),
-            headers: {
-              Prefer: 'return=representation'
-            }
-          }
-        );
-
-        profileRow = Array.isArray(created) && created.length ? created[0] : null;
-      }
-
-      fillFormFromProfile();
-
-      setLinkStatus('Profile loaded for your signup.', 'ok');
-      setFormStatus('Profile loaded. Make changes and click “Save my settings”.', 'ok');
-      if (statusLineEl) {
-        statusLineEl.textContent = 'Your link is working. You can update your business profile below.';
-        statusLineEl.classList.remove('status-neutral');
-        statusLineEl.classList.add('status-ok');
-      }
-
-    } catch (err) {
-      console.error('Fetch profile error:', err);
-      setLinkStatus('Error loading your profile.', 'error');
-      setFormStatus('Something went wrong loading from Supabase.', 'error');
-    }
-  }
-
-  async function saveProfile(event) {
-    event.preventDefault();
-    if (!signupId) {
-      setFormStatus('Missing signup id in the URL – cannot save.', 'error');
-      return;
-    }
-
-    setFormStatus('Saving to Supabase…', 'neutral');
-
-    const chipValues = getSelectedChips();
-    const focusFreeText = (document.getElementById('ai_focus_notes').value || '').trim();
-
-    let servicesSummary = '';
-    if (chipValues.length) {
-      servicesSummary += 'Quick picks: ' + chipValues.join(', ');
-    }
-    if (focusFreeText) {
-      servicesSummary += (servicesSummary ? '\n\n' : '') + focusFreeText;
-    }
-
-    const payload = {
-      signup_id: signupId,
-      business_name: document.getElementById('business_name').value.trim(),
-      contact_name: document.getElementById('contact_name').value.trim(),
-      email: document.getElementById('email').value.trim(),
-      whatsapp_number: document.getElementById('whatsapp_number').value.trim(),
-      phone: document.getElementById('phone').value.trim(),
-      trade_type: document.getElementById('trade_type').value,
-      base_postcode: document.getElementById('base_postcode').value.trim(),
-      website_url: document.getElementById('website_url').value.trim(),
-      service_radius: document.getElementById('service_radius').value.trim() || null,
-      callout_from: document.getElementById('callout_from').value.trim(),
-
-      callout_fee: document.getElementById('callout_fee').value || null,
-      first_hour_rate: document.getElementById('first_hour_rate').value || null,
-      hourly_rate: document.getElementById('hourly_rate').value || null,
-      boiler_service_from: document.getElementById('boiler_service_from').value || null,
-      quote_minimum: document.getElementById('quote_minimum').value || null,
-      pricing_notes: document.getElementById('pricing_notes').value.trim(),
-
-      services_summary: servicesSummary,
-      ai_style_notes: document.getElementById('ai_style_notes').value.trim(),
-      callout_notes: document.getElementById('callout_notes').value.trim()
-      // plan_status / account_status / pending_setup / is_active left as-is on this page
-    };
-
-    try {
-      await supabaseFetch(
-        `business_profiles?signup_id=eq.${encodeURIComponent(signupId)}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify(payload),
-          headers: {
-            Prefer: 'return=minimal'
-          }
-        }
-      );
-
-      setFormStatus('Saved. Your AI will use these details going forward.', 'ok');
-      const now = new Date();
-      if (lastSavedEl) {
-        lastSavedEl.textContent = 'Last saved at ' +
-          now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      }
-
-    } catch (err) {
-      console.error('Save profile error:', err);
-      setFormStatus('Error saving profile to Supabase. Check console for details.', 'error');
-    }
-  }
-
-  // ------------------------------------------------------------------//
-  // INIT
-  // ------------------------------------------------------------------//
-
-  async function initialise() {
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY ||
-        SUPABASE_URL.includes('PASTE') || SUPABASE_ANON_KEY.includes('PASTE')) {
-      setLinkStatus('Supabase keys not configured.', 'error');
-      setFormStatus('Please paste SUPABASE_URL and SUPABASE_ANON_KEY at the top of this file.', 'error');
-      return;
-    }
-
-    initChips();
-    await loadProfile();
-  }
-
-  if (profileForm) {
-    profileForm.addEventListener('submit', saveProfile);
-  }
-  if (refreshBtn) {
-    refreshBtn.addEventListener('click', function () {
-      setFormStatus('Reloading from server…', 'neutral');
-      loadProfile();
+      // For now we just keep it local and show a friendly message.
+      showMessage('All steps complete. Your profile details are saved in this browser. Backend wiring comes next.', 'success');
     });
-  }
 
-  window.addEventListener('DOMContentLoaded', initialise);
+    // Pill selection behaviour
+    document.addEventListener('click', (e) => {
+      const pill = e.target.closest('.pill-option');
+      if (!pill) return;
+      const input = pill.querySelector('input');
+      if (!input) return;
+
+      if (input.type === 'radio') {
+        // Unselect siblings in same group
+        const group = pill.closest('.pill-group');
+        if (group) {
+          group.querySelectorAll('.pill-option').forEach(opt => opt.classList.remove('selected'));
+        }
+        pill.classList.add('selected');
+      } else if (input.type === 'checkbox') {
+        // Toggle visual state; input.checked updates automatically
+        pill.classList.toggle('selected');
+      }
+    });
+
+    // Initial setup
+    updateProgressUI();
+    loadDraftFromLocalStorage();
+  })();
 </script>
 </body>
 </html>
