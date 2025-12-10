@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro — Your AI Office Profile</title>
+  <title>TradeBotPro — Set up your AI office</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta
     name="description"
-    content="Update your TradeBotPro AI office profile so enquiries, pricing and messages are set up correctly for your business."
+    content="TradeBotPro — quick setup form so we can tune your AI office assistant to your business."
   />
+
   <style>
     :root {
       --primary-blue: #1f4e79;
@@ -15,18 +16,19 @@
       --dark-text: #1b1b1f;
       --light-bg: #f5f7fa;
       --white: #ffffff;
-      --danger: #b3261e;
-      --success: #146c2e;
+      --border-subtle: rgba(0, 0, 0, 0.08);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       background: var(--light-bg);
       color: var(--dark-text);
-      line-height: 1.6;
+      line-height: 1.5;
     }
 
     a {
@@ -41,18 +43,22 @@
     }
 
     header {
-      background: #ffffff;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-      padding: 0.8rem 1.25rem;
+      background: var(--white);
+      border-bottom: 1px solid var(--border-subtle);
     }
 
-    .header-inner {
+    .inner {
       max-width: 960px;
       margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    .nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
+      padding: 0.75rem 0;
     }
 
     .logo-wrap {
@@ -62,8 +68,8 @@
     }
 
     .logo-icon {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       border-radius: 9px;
       background: var(--primary-blue);
       position: relative;
@@ -74,184 +80,187 @@
       content: "";
       position: absolute;
       background: var(--white);
-      border-radius: 3px;
+      border-radius: 4px;
     }
 
     .logo-icon::before {
-      width: 10px;
-      height: 15px;
-      left: 6px;
-      top: 6px;
+      width: 12px;
+      height: 18px;
+      left: 7px;
+      top: 7px;
     }
 
     .logo-icon::after {
-      width: 5px;
-      height: 10px;
-      right: 6px;
-      top: 9px;
+      width: 6px;
+      height: 12px;
+      right: 7px;
+      top: 10px;
     }
 
     .logo-main {
       font-weight: 700;
+      font-size: 1.05rem;
       color: var(--primary-blue);
-      font-size: 1rem;
     }
 
     .logo-tag {
-      font-size: 0.72rem;
-      opacity: 0.7;
+      font-size: 0.7rem;
+      opacity: 0.75;
     }
 
     main {
       flex: 1;
-      padding: 2.5rem 1.25rem 3rem;
+      padding: 2rem 0 2.5rem;
     }
 
-    .inner {
-      max-width: 960px;
-      margin: 0 auto;
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 2rem;
+      align-items: flex-start;
     }
 
-    h1 {
+    .intro h1 {
       margin: 0 0 0.4rem;
-      font-size: 1.7rem;
+      font-size: clamp(1.8rem, 3vw, 2.2rem);
       color: var(--primary-blue);
     }
 
-    .lead {
-      margin: 0 0 1.4rem;
-      font-size: 0.98rem;
-      max-width: 40rem;
+    .intro p {
+      margin: 0.4rem 0;
+      font-size: 0.95rem;
     }
 
-    .card {
-      background: #ffffff;
-      border-radius: 1rem;
-      padding: 1.4rem 1.5rem 1.6rem;
-      box-shadow: 0 10px 26px rgba(0,0,0,0.05);
+    .intro ul {
+      margin: 0.8rem 0 0;
+      padding-left: 1.1rem;
       font-size: 0.9rem;
     }
 
-    .small {
-      font-size: 0.8rem;
-      opacity: 0.8;
+    .card {
+      background: var(--white);
+      border-radius: 1rem;
+      padding: 1.4rem 1.5rem;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.05);
+      font-size: 0.9rem;
     }
 
-    .status {
-      margin-bottom: 1rem;
-      padding: 0.55rem 0.7rem;
-      border-radius: 0.5rem;
-      font-size: 0.85rem;
+    .card h2 {
+      margin: 0 0 0.6rem;
+      font-size: 1.2rem;
+      color: var(--primary-blue);
+    }
+
+    .status-banner {
+      margin-bottom: 0.7rem;
+      padding: 0.5rem 0.7rem;
+      border-radius: 0.6rem;
+      font-size: 0.8rem;
+      background: #f1f5ff;
+      border: 1px solid rgba(31, 78, 121, 0.15);
       display: none;
     }
 
-    .status--error {
-      display: block;
-      background: #fbeaea;
-      color: var(--danger);
-      border: 1px solid rgba(179,38,30,0.3);
+    .status-banner--error {
+      background: #fff4f2;
+      border-color: #f3b0a4;
     }
 
-    .status--success {
-      display: block;
-      background: #e7f3ea;
-      color: var(--success);
-      border: 1px solid rgba(20,108,46,0.3);
+    form {
+      margin-top: 0.3rem;
     }
 
-    .status--info {
-      display: block;
-      background: #e7f0fb;
-      color: #1f4e79;
-      border: 1px solid rgba(31,78,121,0.35);
+    .field-group {
+      margin-bottom: 0.9rem;
     }
 
-    .two-col {
+    .field-row {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 0.9rem 1.2rem;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.75rem;
     }
 
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
-    }
-
-    .field label {
-      font-size: 0.78rem;
+    label {
+      display: block;
+      font-size: 0.8rem;
       font-weight: 500;
+      margin-bottom: 0.25rem;
     }
 
-    .field span.hint {
-      font-size: 0.75rem;
-      opacity: 0.75;
-    }
-
-    input, select, textarea {
-      border-radius: 0.5rem;
-      border: 1px solid rgba(0,0,0,0.16);
-      padding: 0.5rem 0.6rem;
-      font: inherit;
+    input,
+    select,
+    textarea {
       width: 100%;
+      padding: 0.55rem 0.65rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(0, 0, 0, 0.18);
+      font: inherit;
     }
 
     textarea {
-      min-height: 90px;
+      min-height: 70px;
       resize: vertical;
     }
 
-    input:focus, select:focus, textarea:focus {
-      outline: 2px solid rgba(31,78,121,0.45);
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 2px solid rgba(31, 78, 121, 0.4);
       border-color: transparent;
     }
 
-    .field--full {
-      grid-column: 1 / -1;
+    .help-text {
+      font-size: 0.78rem;
+      opacity: 0.75;
+      margin-top: 0.2rem;
     }
 
     .actions {
-      margin-top: 1.2rem;
+      margin-top: 1rem;
       display: flex;
-      gap: 0.7rem;
       align-items: center;
+      gap: 0.75rem;
       flex-wrap: wrap;
     }
 
-    button {
+    .btn-primary {
       border: none;
       border-radius: 999px;
-      padding: 0.7rem 1.4rem;
-      cursor: pointer;
-      font: inherit;
-    }
-
-    .btn-primary {
+      padding: 0.75rem 1.4rem;
       background: var(--primary-blue);
-      color: #ffffff;
+      color: var(--white);
       font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
     }
 
     .btn-primary:hover {
       background: #163857;
     }
 
-    .btn-outline {
-      background: #ffffff;
-      border: 1px solid rgba(0,0,0,0.18);
-      color: var(--primary-blue);
-      font-size: 0.85rem;
-    }
-
-    .muted {
+    .small-note {
       font-size: 0.8rem;
       opacity: 0.75;
     }
 
-    @media (max-width: 720px) {
-      main { padding-top: 2rem; }
-      .two-col {
-        grid-template-columns: minmax(0,1fr);
+    footer {
+      background: var(--white);
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.8rem;
+    }
+
+    .footer-inner {
+      padding: 1rem 1.25rem 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    @media (max-width: 780px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
       }
     }
   </style>
@@ -259,163 +268,353 @@
 <body>
 <div class="page">
   <header>
-    <div class="header-inner">
-      <div class="logo-wrap">
-        <div class="logo-icon" aria-hidden="true"></div>
-        <div>
-          <div class="logo-main">TradeBotPro</div>
-          <div class="logo-tag">AI office assistant for trades</div>
+    <div class="inner">
+      <div class="nav">
+        <div class="logo-wrap">
+          <div class="logo-icon" aria-hidden="true"></div>
+          <div>
+            <div class="logo-main">TradeBotPro</div>
+            <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
+          </div>
         </div>
-      </div>
-      <div class="small">
-        Business profile portal
       </div>
     </div>
   </header>
 
   <main>
     <div class="inner">
-      <h1>Your AI Office Profile</h1>
-      <p class="lead">
-        This page lets you update the key details TradeBotPro uses when handling your enquiries
-        — contact details, pricing and how you like to work.
-      </p>
+      <div class="layout">
+        <section class="intro">
+          <h1>Set up your AI office</h1>
+          <p>
+            This quick form tells us how your business works so we can tune your
+            TradeBotPro assistant to sound like you and quote correctly.
+          </p>
+          <p>
+            It should take <strong>2–3 minutes</strong>. You can always tweak it later.
+          </p>
+          <ul>
+            <li>We’ll use this for your quotes, replies and booking scripts.</li>
+            <li>Nothing here changes your public website.</li>
+            <li>If you’re not sure on exact prices, rough ranges are fine.</li>
+          </ul>
+        </section>
 
-      <div id="status" class="status"></div>
+        <section class="card">
+          <h2>Your business details</h2>
 
-      <div class="card">
-        <form id="profile-form">
-          <div class="two-col">
-            <div class="field">
+          <div id="status" class="status-banner"></div>
+
+          <form id="profile-form">
+            <!-- BASIC CONTACT -->
+            <div class="field-group">
+              <div class="field-row">
+                <div>
+                  <label for="contact_name">Contact name</label>
+                  <input id="contact_name" name="contact_name" type="text" autocomplete="name" />
+                </div>
+                <div>
+                  <label for="owner_name">Owner name (if different)</label>
+                  <input id="owner_name" name="owner_name" type="text" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group">
               <label for="business_name">Business name</label>
-              <input id="business_name" name="business_name" type="text" autocomplete="organization" />
+              <input id="business_name" name="business_name" type="text" />
             </div>
 
-            <div class="field">
-              <label for="contact_name">Main contact name</label>
-              <input id="contact_name" name="contact_name" type="text" autocomplete="name" />
+            <div class="field-group">
+              <div class="field-row">
+                <div>
+                  <label for="email">Contact email</label>
+                  <input id="email" name="email" type="email" autocomplete="email" />
+                </div>
+                <div>
+                  <label for="phone">Mobile / WhatsApp</label>
+                  <input id="phone" name="phone" type="tel" autocomplete="tel" />
+                  <div class="help-text">The main number your customers message.</div>
+                </div>
+              </div>
             </div>
 
-            <div class="field">
-              <label for="email">Email</label>
-              <input id="email" name="email" type="email" autocomplete="email" />
+            <!-- TRADE + AREA -->
+            <div class="field-group">
+              <div class="field-row">
+                <div>
+                  <label for="trade_type">Trade</label>
+                  <select id="trade_type" name="trade_type">
+                    <option value="">Select your trade…</option>
+                    <option>Plumber</option>
+                    <option>Heating Engineer</option>
+                    <option>Gas Engineer</option>
+                    <option>Electrician</option>
+                    <option>Builder</option>
+                    <option>Handyman</option>
+                    <option>Landscaper / Gardener</option>
+                    <option>Cleaner / Carpet Cleaner</option>
+                    <option>Pest Control</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="base_postcode">Base postcode / main area</label>
+                  <input id="base_postcode" name="base_postcode" type="text" />
+                </div>
+              </div>
             </div>
 
-            <div class="field">
-              <label for="whatsapp_number">Mobile / WhatsApp number</label>
-              <span class="hint">This is the main number TradeBotPro will use.</span>
-              <input id="whatsapp_number" name="whatsapp_number" type="tel" />
-            </div>
-
-            <div class="field">
-              <label for="phone">Optional landline</label>
-              <span class="hint">Shown on messages and quotes if you want.</span>
-              <input id="phone" name="phone" type="tel" />
-            </div>
-
-            <div class="field">
-              <label for="trade_type">Trade</label>
-              <select id="trade_type" name="trade_type">
-                <option value="">Select your trade…</option>
-                <option>Plumber</option>
-                <option>Heating Engineer</option>
-                <option>Gas Engineer</option>
-                <option>Electrician</option>
-                <option>Builder</option>
-                <option>Handyman</option>
-                <option>Landscaper / Gardener</option>
-                <option>Cleaner / Carpet Cleaner</option>
-                <option>Pest Control</option>
-                <option>Other</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="base_postcode">Base postcode</label>
-              <input id="base_postcode" name="base_postcode" type="text" />
-            </div>
-
-            <div class="field">
-              <label for="service_radius">Service radius (miles)</label>
-              <input id="service_radius" name="service_radius" type="number" min="0" step="1" />
-            </div>
-
-            <div class="field field--full">
-              <label for="website_url">Website (optional)</label>
+            <div class="field-group">
+              <label for="website_url">Website (if you have one)</label>
               <input id="website_url" name="website_url" type="url" placeholder="https://…" />
             </div>
 
-            <div class="field">
-              <label for="callout_fee">Call-out fee (£)</label>
-              <input id="callout_fee" name="callout_fee" type="number" min="0" step="1" />
+            <!-- PRICING -->
+            <hr style="border:none;border-top:1px solid rgba(0,0,0,0.06);margin:1.1rem 0;" />
+
+            <div class="field-group">
+              <div class="field-row">
+                <div>
+                  <label for="callout_fee">Call-out fee (£)</label>
+                  <input id="callout_fee" name="callout_fee" type="text" />
+                </div>
+                <div>
+                  <label for="first_hour_rate">First hour rate (£)</label>
+                  <input id="first_hour_rate" name="first_hour_rate" type="text" />
+                </div>
+                <div>
+                  <label for="hourly_rate">Hourly rate after first hour (£)</label>
+                  <input id="hourly_rate" name="hourly_rate" type="text" />
+                </div>
+              </div>
+              <div class="help-text">
+                Rough figures are fine — we use these for estimated price ranges in chats.
+              </div>
             </div>
 
-            <div class="field">
-              <label for="first_hour_rate">First hour rate (£)</label>
-              <input id="first_hour_rate" name="first_hour_rate" type="number" min="0" step="1" />
+            <div class="field-group">
+              <div class="field-row">
+                <div>
+                  <label for="boiler_service_from">Boiler service from (£)</label>
+                  <input id="boiler_service_from" name="boiler_service_from" type="text" />
+                </div>
+                <div>
+                  <label for="quote_minimum">Minimum quote / small job minimum (£)</label>
+                  <input id="quote_minimum" name="quote_minimum" type="text" />
+                </div>
+              </div>
             </div>
 
-            <div class="field">
-              <label for="hourly_rate">Hourly rate after first hour (£)</label>
-              <input id="hourly_rate" name="hourly_rate" type="number" min="0" step="1" />
+            <!-- COPY / STYLE -->
+            <hr style="border:none;border-top:1px solid rgba(0,0,0,0.06);margin:1.1rem 0;" />
+
+            <div class="field-group">
+              <label for="services_summary">What services do you want us to talk about?</label>
+              <textarea
+                id="services_summary"
+                name="services_summary"
+                placeholder="E.g. boiler breakdowns, boiler installs, annual servicing, landlord gas safety, power flushing…"
+              ></textarea>
+              <div class="help-text">
+                Short list is fine. This powers your “We can help with…” sentences.
+              </div>
             </div>
 
-            <div class="field">
-              <label for="boiler_service_from">Boiler service from (£)</label>
-              <input id="boiler_service_from" name="boiler_service_from" type="number" min="0" step="1" />
+            <div class="field-group">
+              <label for="ai_style_notes">How should your AI office sound?</label>
+              <textarea
+                id="ai_style_notes"
+                name="ai_style_notes"
+                placeholder="E.g. friendly and down-to-earth, no hard selling, keep it short and clear, always mention we’re Gas Safe registered…"
+              ></textarea>
+              <div class="help-text">
+                Anything about tone of voice, things to always mention, or things to avoid.
+              </div>
             </div>
 
-            <div class="field">
-              <label for="quote_minimum">Minimum job / quote value (£)</label>
-              <input id="quote_minimum" name="quote_minimum" type="number" min="0" step="1" />
+            <div class="actions">
+              <button type="submit" class="btn-primary">Save my setup</button>
+              <div class="small-note">
+                We’ll confirm once everything is saved. You can close this page afterwards.
+              </div>
             </div>
-
-            <div class="field field--full">
-              <label for="services_summary">What services do you offer?</label>
-              <span class="hint">Short bullets are fine — e.g. boiler installs, repairs, landlord certs.</span>
-              <textarea id="services_summary" name="services_summary"></textarea>
-            </div>
-
-            <div class="field field--full">
-              <label for="ai_style_notes">How should your AI office speak to customers?</label>
-              <span class="hint">
-                E.g. “Friendly but professional, no jargon, don’t give fixed prices without photos, 
-                always check parking / access.”
-              </span>
-              <textarea id="ai_style_notes" name="ai_style_notes"></textarea>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button type="submit" class="btn-primary">Save changes</button>
-            <button type="button" id="reset-btn" class="btn-outline">Reset back to last saved</button>
-            <span class="muted" id="last-saved"></span>
-          </div>
-        </form>
+          </form>
+        </section>
       </div>
     </div>
   </main>
+
+  <footer>
+    <div class="inner footer-inner">
+      <div>&copy; <span id="year"></span> TradeBotPro.</div>
+      <div>Built for trades &amp; home services.</div>
+    </div>
+  </footer>
 </div>
 
 <script>
-  // CONFIG FIRST
-  const supabaseUrl = 'https://yaiutswdcbfwkxfqxkzy.supabase.co';
-  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+  // 1) UPDATE THESE TWO LINES WITH YOUR SUPABASE PROJECT DETAILS
+  //    Copy them from: Supabase Dashboard → Project Settings → API → URL & anon public key
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-  // helpers
-  function getUserIdFromUrl() { ... }
+  // ------------------------------------------------------------
+  // Nothing below this line needs to be edited
+  // ------------------------------------------------------------
 
-  // fetchProfile()
-  async function fetchProfile(userId) { ... }
+  document.getElementById('year').textContent = new Date().getFullYear();
 
-  // saveProfile()
-  async function saveProfile(userId, payload) { ... }
+  var FIELD_IDS = [
+    'contact_name',
+    'owner_name',
+    'business_name',
+    'email',
+    'phone',
+    'trade_type',
+    'base_postcode',
+    'website_url',
+    'callout_fee',
+    'first_hour_rate',
+    'hourly_rate',
+    'boiler_service_from',
+    'quote_minimum',
+    'services_summary',
+    'ai_style_notes'
+  ];
 
-  // initialise()
-  async function initialise() { ... }
+  function getUserIdFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var id = params.get('user_id');
+    return id ? id.trim() : '';
+  }
 
-  initialise();
+  function setStatus(message, isError) {
+    var el = document.getElementById('status');
+    if (!el) return;
+    el.style.display = message ? 'block' : 'none';
+    el.textContent = message || '';
+    if (isError) {
+      el.classList.add('status-banner--error');
+    } else {
+      el.classList.remove('status-banner--error');
+    }
+  }
+
+  function getHeaders(includePreferReturn) {
+    var headers = {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+    };
+    if (includePreferReturn) {
+      headers['Prefer'] = 'return=representation';
+    }
+    return headers;
+  }
+
+  function fillForm(profile) {
+    if (!profile) return;
+    for (var i = 0; i < FIELD_IDS.length; i++) {
+      var id = FIELD_IDS[i];
+      var el = document.getElementById(id);
+      if (!el) continue;
+      if (profile[id] === undefined || profile[id] === null) continue;
+      el.value = String(profile[id]);
+    }
+  }
+
+  function collectFormData() {
+    var data = {};
+    for (var i = 0; i < FIELD_IDS.length; i++) {
+      var id = FIELD_IDS[i];
+      var el = document.getElementById(id);
+      if (!el) continue;
+      data[id] = el.value.trim();
+    }
+    return data;
+  }
+
+  function init() {
+    var userId = getUserIdFromUrl();
+    if (!SUPABASE_URL || SUPABASE_URL.indexOf('YOUR-PROJECT-REF') !== -1) {
+      setStatus('Supabase URL and key are not set yet. Please update them at the bottom of this page source.', true);
+      return;
+    }
+    if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.indexOf('YOUR-ANON-ANON-PUBLIC-KEY-HERE') !== -1) {
+      setStatus('Supabase anon key is not set yet. Please update it at the bottom of this page source.', true);
+      return;
+    }
+    if (!userId) {
+      setStatus('Missing user ID in the link. Please use the full link we sent you.', true);
+      return;
+    }
+
+    setStatus('Loading your details…', false);
+
+    // Fetch profile for this user_id
+    var url = SUPABASE_URL + '/rest/v1/business_profiles?user_id=eq.' +
+      encodeURIComponent(userId) + '&select=*';
+
+    fetch(url, { headers: getHeaders(false) })
+      .then(function (res) {
+        if (!res.ok) {
+          return res.text().then(function (text) {
+            throw new Error('Fetch failed: ' + res.status + ' ' + text);
+          });
+        }
+        return res.json();
+      })
+      .then(function (rows) {
+        if (!rows || !rows.length) {
+          setStatus('We couldn’t find your details. Please contact support.', true);
+          return;
+        }
+        fillForm(rows[0]);
+        setStatus('Loaded your latest details. Make changes and hit Save.', false);
+      })
+      .catch(function (err) {
+        console.error('Fetch profile error:', err);
+        setStatus('There was a problem loading your details. Please try again or contact support.', true);
+      });
+
+    // Handle form submit
+    var form = document.getElementById('profile-form');
+    if (!form) return;
+
+    form.addEventListener('submit', function (evt) {
+      evt.preventDefault();
+      setStatus('Saving your changes…', false);
+
+      var payload = collectFormData();
+
+      var updateUrl = SUPABASE_URL + '/rest/v1/business_profiles?user_id=eq.' +
+        encodeURIComponent(userId);
+
+      fetch(updateUrl, {
+        method: 'PATCH',
+        headers: getHeaders(true),
+        body: JSON.stringify(payload)
+      })
+        .then(function (res) {
+          if (!res.ok) {
+            return res.text().then(function (text) {
+              throw new Error('Save failed: ' + res.status + ' ' + text);
+            });
+          }
+          return res.json();
+        })
+        .then(function () {
+          setStatus('Saved ✅ Your setup has been updated.', false);
+        })
+        .catch(function (err) {
+          console.error('Save profile error:', err);
+          setStatus('Something went wrong saving your details. Please try again or contact us.', true);
+        });
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', init);
 </script>
-
 </body>
 </html>
