@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -549,15 +548,10 @@
 </div>
 
 <script>
-  // 🔴🔴🔴 IMPORTANT: PASTE YOUR SUPABASE DETAILS HERE 🔴🔴🔴
-  //
-  // 1) Log in to Supabase → Project Settings → API
-  // 2) Copy the "Project URL" (starts with https://....supabase.co)
-  // 3) Copy the "anon public" key
-  // 4) Paste them below between the quotes:
+  // 🔴🔴🔴 IMPORTANT: SUPABASE DETAILS (you've already filled these) 🔴🔴🔴
 
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
   // ------------------------------------------------------------------//
   // HELPER FUNCTIONS
@@ -667,7 +661,7 @@
     setFormStatus('Loading from Supabase…', 'neutral');
 
     try {
-      // 1) Get signup row
+      // 1) Get signup row (id column = the user_id in the URL)
       const signups = await supabaseFetch(
         `tradebotpro_signups?id=eq.${encodeURIComponent(signupId)}&select=*`
       );
@@ -680,7 +674,7 @@
 
       signupRow = signups[0];
 
-      // 2) Get existing profile row for this signup_id (NOT user_id)
+      // 2) Get existing profile row for this signup_id
       const profiles = await supabaseFetch(
         `business_profiles?signup_id=eq.${encodeURIComponent(signupId)}&select=*`
       );
@@ -813,7 +807,7 @@
     };
 
     try {
-      // PATCH the row where signup_id matches (NOT user_id)
+      // PATCH the row where signup_id matches
       await supabaseFetch(
         `business_profiles?signup_id=eq.${encodeURIComponent(signupId)}`,
         {
