@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro — Setup your profile</title>
+  <title>TradeBotPro – Setup Wizard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta
     name="description"
-    content="TradeBotPro setup wizard — get your AI office assistant ready to go live."
+    content="TradeBotPro setup wizard – tell us about your business so your AI office assistant can be personalised."
   />
-
   <style>
     :root {
       --primary-blue: #1f4e79;
@@ -16,21 +15,18 @@
       --dark-text: #1b1b1f;
       --light-bg: #f5f7fa;
       --white: #ffffff;
-      --border-soft: rgba(0, 0, 0, 0.08);
+      --border-subtle: rgba(0,0,0,0.08);
       --error-red: #b3261e;
       --success-green: #0f7b46;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       background: var(--light-bg);
       color: var(--dark-text);
-      line-height: 1.5;
     }
 
     a {
@@ -44,31 +40,28 @@
       flex-direction: column;
     }
 
-    .inner {
-      max-width: 1040px;
-      margin: 0 auto;
-      padding: 1.5rem 1.25rem 2.5rem;
-    }
-
-    /* HEADER */
-
     header {
-      border-bottom: 1px solid var(--border-soft);
-      background: #ffffff;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      background: var(--white);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
-    .header-bar {
+    .header-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0.75rem 1.25rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      padding: 0.85rem 0;
     }
 
     .logo-wrap {
       display: flex;
       align-items: center;
-      gap: 0.7rem;
+      gap: 0.6rem;
     }
 
     .logo-icon {
@@ -78,7 +71,6 @@
       background: var(--primary-blue);
       position: relative;
     }
-
     .logo-icon::before,
     .logo-icon::after {
       content: "";
@@ -86,14 +78,12 @@
       background: var(--white);
       border-radius: 4px;
     }
-
     .logo-icon::before {
       width: 12px;
       height: 18px;
       left: 7px;
       top: 7px;
     }
-
     .logo-icon::after {
       width: 6px;
       height: 12px;
@@ -108,66 +98,26 @@
     }
 
     .logo-tag {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       opacity: 0.7;
     }
 
     .header-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.25rem;
-      font-size: 0.78rem;
-    }
-
-    .status-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
-      justify-content: flex-end;
-    }
-
-    .status-pill {
-      padding: 0.2rem 0.6rem;
-      border-radius: 999px;
-      border: 1px solid var(--border-soft);
-      background: #f5f7fb;
-      font-size: 0.75rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-
-    .status-pill--internal {
+      font-size: 0.8rem;
       opacity: 0.8;
     }
 
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: #fbbf24;
-    }
-
-    .status-dot--live {
-      background: #22c55e;
-    }
-
-    .profile-id {
-      opacity: 0.7;
-    }
-
-    /* MAIN LAYOUT */
-
     main {
       flex: 1;
+      padding: 2rem 1.25rem 3rem;
     }
 
     .wizard-shell {
-      margin-top: 1.5rem;
+      max-width: 1120px;
+      margin: 0 auto;
       display: grid;
-      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.25fr);
-      gap: 1.8rem;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 1.75rem;
       align-items: flex-start;
     }
 
@@ -177,1073 +127,908 @@
       }
     }
 
-    .wizard-main-card {
-      background: #ffffff;
+    .wizard-sidebar {
+      background: var(--white);
       border-radius: 1rem;
-      padding: 1.5rem 1.6rem 1.4rem;
-      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
-      border: 1px solid rgba(15, 23, 42, 0.06);
-    }
-
-    .wizard-side-card {
-      background: #ffffff;
-      border-radius: 1rem;
-      padding: 1.2rem 1.3rem 1.3rem;
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
-      border: 1px solid rgba(15, 23, 42, 0.05);
-      font-size: 0.86rem;
+      padding: 1.25rem 1.3rem;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+      font-size: 0.85rem;
     }
 
     .wizard-title {
-      font-size: 1.4rem;
-      font-weight: 650;
-      color: var(--primary-blue);
-      margin: 0 0 0.3rem;
-    }
-
-    .wizard-subtitle {
-      font-size: 0.9rem;
-      opacity: 0.85;
-      margin-bottom: 1rem;
-    }
-
-    /* STEP HEADER / PROGRESS */
-
-    .wizard-progress {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1.2rem;
-      font-size: 0.82rem;
-    }
-
-    .wizard-steps {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-
-    .wizard-step-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.35rem 0.7rem;
-      border-radius: 999px;
-      border: 1px solid var(--border-soft);
-      background: #f8fafc;
-      font-size: 0.78rem;
-      opacity: 0.7;
-    }
-
-    .wizard-step-badge span.step-number {
-      width: 18px;
-      height: 18px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      background: #e5edf7;
-      color: var(--primary-blue);
-      font-weight: 600;
-    }
-
-    .wizard-step-badge.active {
-      opacity: 1;
-      background: #e0ebf9;
-      border-color: rgba(31, 78, 121, 0.4);
-    }
-
-    .wizard-step-badge.active span.step-number {
-      background: var(--primary-blue);
-      color: #ffffff;
-    }
-
-    .wizard-step-badge.complete span.step-number {
-      background: #22c55e;
-      color: #ffffff;
-    }
-
-    .progress-bar-track {
-      flex: 1;
-      height: 4px;
-      border-radius: 999px;
-      background: #e5e7eb;
-      overflow: hidden;
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      width: 0%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--primary-blue), var(--accent-blue));
-      transition: width 0.25s ease-out;
-    }
-
-    /* FORM ELEMENTS */
-
-    form {
-      margin: 0;
-    }
-
-    .step {
-      display: none;
-    }
-
-    .step.active {
-      display: block;
-    }
-
-    .step-title {
-      font-size: 1.02rem;
+      font-size: 1.1rem;
       font-weight: 600;
       color: var(--primary-blue);
-      margin-bottom: 0.35rem;
-    }
-
-    .step-lead {
-      font-size: 0.86rem;
-      opacity: 0.85;
-      margin-bottom: 1rem;
-    }
-
-    .field-row {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.8rem 1rem;
       margin-bottom: 0.4rem;
     }
 
-    @media (max-width: 640px) {
-      .field-row {
-        grid-template-columns: minmax(0, 1fr);
-      }
+    .wizard-subtitle {
+      font-size: 0.85rem;
+      opacity: 0.85;
+      margin-bottom: 1rem;
+    }
+
+    .steps-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .steps-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.4rem;
+      border-radius: 0.6rem;
+    }
+
+    .steps-list li.active {
+      background: #e6eff9;
+    }
+
+    .steps-list li.completed {
+      opacity: 0.8;
+    }
+
+    .step-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      border: 2px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+    }
+
+    .steps-list li.active .step-circle {
+      border-color: var(--primary-blue);
+      background: var(--primary-blue);
+      color: var(--white);
+    }
+
+    .steps-list li.completed .step-circle {
+      border-color: var(--success-green);
+      background: var(--success-green);
+      color: var(--white);
+    }
+
+    .step-label-main {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .step-label-sub {
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+
+    .wizard-main {
+      background: var(--white);
+      border-radius: 1rem;
+      padding: 1.6rem 1.7rem 1.5rem;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+      font-size: 0.9rem;
+    }
+
+    .step-heading {
+      font-size: 1.25rem;
+      margin: 0 0 0.25rem;
+      color: var(--primary-blue);
+    }
+
+    .step-lead {
+      margin: 0 0 1rem;
+      font-size: 0.9rem;
+      opacity: 0.85;
+      max-width: 40rem;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
     }
 
     .field {
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.8rem;
     }
 
     .field label {
       display: block;
       font-size: 0.8rem;
-      font-weight: 500;
       margin-bottom: 0.25rem;
+      font-weight: 500;
     }
 
-    .field small {
-      display: block;
-      font-size: 0.75rem;
-      opacity: 0.75;
-      margin-top: 0.15rem;
-    }
-
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"],
-    input[type="number"],
-    textarea,
-    select {
+    .field input,
+    .field select,
+    .field textarea {
       width: 100%;
-      padding: 0.55rem 0.6rem;
+      padding: 0.55rem 0.65rem;
       border-radius: 0.5rem;
-      border: 1px solid rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(0,0,0,0.16);
       font: inherit;
-      font-size: 0.9rem;
-      background: #ffffff;
     }
 
-    textarea {
+    .field textarea {
+      min-height: 70px;
       resize: vertical;
-      min-height: 80px;
     }
 
-    input:focus,
-    textarea:focus,
-    select:focus {
-      outline: 2px solid rgba(31, 78, 121, 0.5);
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline: 2px solid rgba(31,78,121,0.3);
       border-color: transparent;
     }
 
-    .pill-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.45rem;
+    .help-text {
+      font-size: 0.75rem;
+      opacity: 0.7;
       margin-top: 0.25rem;
     }
 
-    .pill-option {
-      position: relative;
+    .checkbox-group,
+    .pill-checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 0.7rem;
+      margin-top: 0.3rem;
+    }
+
+    .pill-checkbox {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.35rem;
       padding: 0.35rem 0.7rem;
       border-radius: 999px;
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      background: #f9fafb;
-      font-size: 0.78rem;
+      border: 1px solid rgba(0,0,0,0.12);
+      font-size: 0.8rem;
       cursor: pointer;
-      user-select: none;
+      background: #f9fafb;
     }
 
-    .pill-option input {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .pill-check {
-      width: 12px;
-      height: 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(0, 0, 0, 0.25);
-      background: #ffffff;
-    }
-
-    .pill-option.selected {
-      background: #e0ebf9;
-      border-color: var(--primary-blue);
-      color: var(--primary-blue);
-    }
-
-    .pill-option.selected .pill-check {
-      background: var(--primary-blue);
-      border-color: var(--primary-blue);
-    }
-
-    .inline-choice-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      margin-top: 0.25rem;
-      font-size: 0.84rem;
-    }
-
-    .inline-choice {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-
-    .inline-choice input {
+    .pill-checkbox input {
       margin: 0;
     }
 
-    /* NAV BUTTONS */
+    .inline-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.8rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 999px;
+      background: #f7f7f9;
+    }
 
-    .wizard-nav {
+    .wizard-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 1.1rem;
-      gap: 0.7rem;
+      gap: 1rem;
+      margin-top: 1.4rem;
+      flex-wrap: wrap;
     }
 
-    .nav-left,
-    .nav-right {
-      display: flex;
-      gap: 0.6rem;
-      align-items: center;
-    }
-
-    .btn {
+    .btn-primary,
+    .btn-secondary {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0.6rem 1.1rem;
+      gap: 0.35rem;
+      padding: 0.7rem 1.2rem;
       border-radius: 999px;
-      font-size: 0.9rem;
-      font-weight: 500;
       border: none;
       cursor: pointer;
-      gap: 0.4rem;
-    }
-
-    .btn-secondary {
-      background: #e5e7eb;
-      color: #111827;
-    }
-
-    .btn-secondary:hover {
-      background: #d4d4d8;
+      font-size: 0.9rem;
     }
 
     .btn-primary {
       background: var(--primary-blue);
-      color: #ffffff;
+      color: var(--white);
+      font-weight: 600;
     }
 
     .btn-primary:hover {
       background: #163857;
     }
 
-    .btn-quiet {
-      background: transparent;
-      color: #4b5563;
-      padding-inline: 0;
-      padding-block: 0.3rem;
+    .btn-secondary {
+      background: #f3f3f7;
+      color: #333;
     }
 
-    .btn-quiet:hover {
-      text-decoration: underline;
+    .btn-secondary:hover {
+      background: #e4e4ec;
     }
 
     .wizard-status {
-      margin-top: 0.7rem;
       font-size: 0.8rem;
-    }
-
-    .wizard-status.success {
-      color: var(--success-green);
-    }
-
-    .wizard-status.error {
-      color: var(--error-red);
-    }
-
-    /* SIDE PANEL CONTENT */
-
-    .side-heading {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--primary-blue);
-      margin-bottom: 0.3rem;
-    }
-
-    .side-block {
-      margin-bottom: 0.9rem;
-    }
-
-    .side-list {
-      margin: 0.25rem 0 0;
-      padding-left: 1.1rem;
-      font-size: 0.83rem;
-    }
-
-    .side-tag-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
-      margin-top: 0.4rem;
-    }
-
-    .side-tag {
-      padding: 0.15rem 0.5rem;
-      border-radius: 999px;
-      background: #eff6ff;
-      border: 1px solid rgba(37, 99, 235, 0.2);
-      font-size: 0.75rem;
-    }
-
-    .side-note {
-      font-size: 0.78rem;
       opacity: 0.8;
     }
 
+    .status-error {
+      color: var(--error-red);
+      opacity: 1;
+    }
+
+    .status-success {
+      color: var(--success-green);
+      opacity: 1;
+    }
+
+    .summary-box {
+      border-radius: 0.8rem;
+      border: 1px solid rgba(0,0,0,0.08);
+      padding: 0.9rem 1rem;
+      background: #f8fafc;
+      font-size: 0.85rem;
+      margin-top: 0.8rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1.5rem;
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .summary-label {
+      font-weight: 500;
+      min-width: 140px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.75rem;
+      background: #eef2ff;
+      color: var(--primary-blue);
+    }
+
+    footer {
+      font-size: 0.8rem;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      background: var(--white);
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0.9rem 1.25rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 600px) {
+      main {
+        padding-top: 1.3rem;
+      }
+      .wizard-main {
+        padding: 1.2rem 1.25rem 1.3rem;
+      }
+    }
   </style>
 </head>
 <body>
 <div class="page">
   <header>
-    <div class="inner header-bar">
+    <div class="header-inner">
       <div class="logo-wrap">
         <div class="logo-icon" aria-hidden="true"></div>
         <div>
           <div class="logo-main">TradeBotPro</div>
-          <div class="logo-tag">Setup wizard • get your AI ready</div>
+          <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
         </div>
       </div>
       <div class="header-right">
-        <div class="status-row">
-          <!-- Client should NOT edit these: purely display / internal -->
-          <div class="status-pill status-pill--internal">
-            <span class="status-dot"></span>
-            <span id="setup-status-label">Setup status: In progress</span>
-          </div>
-          <div class="status-pill status-pill--internal">
-            <span class="status-dot"></span>
-            <span id="live-status-label">Profile: Not live yet</span>
-          </div>
-        </div>
-        <div class="profile-id" id="profile-id-label">
-          Profile ID: (not linked yet)
-        </div>
+        Setup wizard • <span id="header-status-label">Draft profile</span>
       </div>
     </div>
   </header>
 
   <main>
-    <div class="inner">
-      <div class="wizard-shell">
-        <!-- MAIN CARD -->
-        <div class="wizard-main-card">
-          <h1 class="wizard-title">Set up your TradeBotPro profile</h1>
-          <p class="wizard-subtitle">
-            These 4 quick steps tell the AI how your business works — so it can quote,
-            book jobs and talk to customers the way you want.
-          </p>
-
-          <!-- Step badges + progress bar -->
-          <div class="wizard-progress">
-            <div class="wizard-steps">
-              <div class="wizard-step-badge active" data-step-indicator="1">
-                <span class="step-number">1</span>
-                Basics
-              </div>
-              <div class="wizard-step-badge" data-step-indicator="2">
-                <span class="step-number">2</span>
-                Services & areas
-              </div>
-              <div class="wizard-step-badge" data-step-indicator="3">
-                <span class="step-number">3</span>
-                Pricing
-              </div>
-              <div class="wizard-step-badge" data-step-indicator="4">
-                <span class="step-number">4</span>
-                Tone & rules
-              </div>
-            </div>
-            <div class="progress-bar-track">
-              <div class="progress-bar-fill" id="progress-fill"></div>
-            </div>
-          </div>
-
-          <form id="setup-form" novalidate>
-            <!-- STEP 1: BASICS -->
-            <div class="step active" data-step="1">
-              <div class="step-title">Business basics</div>
-              <div class="step-lead">
-                We’ll use this to introduce your business and send confirmations to the right place.
-              </div>
-
-              <div class="field-row">
-                <div class="field">
-                  <label for="contact_name">Contact name</label>
-                  <input id="contact_name" name="contact_name" type="text" required autocomplete="name"
-                         placeholder="e.g. Andy Gifford">
-                  <small>This is who TradeBotPro says the customer is speaking to.</small>
-                </div>
-                <div class="field">
-                  <label for="business_name">Business name</label>
-                  <input id="business_name" name="business_name" type="text" required autocomplete="organization"
-                         placeholder="e.g. ClearFlow Plumbing & Heating">
-                </div>
-              </div>
-
-              <div class="field-row">
-                <div class="field">
-                  <label for="email">Email for confirmations</label>
-                  <input id="email" name="email" type="email" required autocomplete="email"
-                         placeholder="e.g. bookings@yourbusiness.co.uk">
-                  <small>Booking confirmations and daily summaries can go here.</small>
-                </div>
-                <div class="field">
-                  <label for="phone">Mobile / WhatsApp number</label>
-                  <input id="phone" name="phone" type="tel" required autocomplete="tel"
-                         placeholder="e.g. 07…">
-                  <small>This is the number linked to your WhatsApp / SMS.</small>
-                </div>
-              </div>
-
-              <div class="field-row">
-                <div class="field">
-                  <label for="base_postcode">Base postcode</label>
-                  <input id="base_postcode" name="base_postcode" type="text" required
-                         placeholder="e.g. HP14 3QF">
-                  <small>Must be a postcode, not a town. Used for travel distance & call-out rules.</small>
-                </div>
-                <div class="field">
-                  <label>Business size</label>
-                  <div class="pill-group" data-pill-group="business_size">
-                    <label class="pill-option">
-                      <input type="radio" name="business_size" value="solo">
-                      <span class="pill-check"></span>
-                      Solo / one van
-                    </label>
-                    <label class="pill-option">
-                      <input type="radio" name="business_size" value="small-team">
-                      <span class="pill-check"></span>
-                      Small team (2–5)
-                    </label>
-                    <label class="pill-option">
-                      <input type="radio" name="business_size" value="larger-team">
-                      <span class="pill-check"></span>
-                      Larger team (6+)
-                    </label>
-                  </div>
-                  <small>This helps with how we talk about availability (“we” vs “I”).</small>
-                </div>
-              </div>
-
-              <div class="field">
-                <label>Main trade</label>
-                <div class="pill-group" data-pill-group="primary_trade">
-                  <label class="pill-option">
-                    <input type="radio" name="primary_trade" value="plumber">
-                    <span class="pill-check"></span>
-                    Plumber
-                  </label>
-                  <label class="pill-option">
-                    <input type="radio" name="primary_trade" value="heating-engineer">
-                    <span class="pill-check"></span>
-                    Heating / gas engineer
-                  </label>
-                  <label class="pill-option">
-                    <input type="radio" name="primary_trade" value="electrician">
-                    <span class="pill-check"></span>
-                    Electrician
-                  </label>
-                  <label class="pill-option">
-                    <input type="radio" name="primary_trade" value="builder-handyman">
-                    <span class="pill-check"></span>
-                    Builder / handyman
-                  </label>
-                  <label class="pill-option">
-                    <input type="radio" name="primary_trade" value="other">
-                    <span class="pill-check"></span>
-                    Other
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- STEP 2: SERVICES & AREAS -->
-            <div class="step" data-step="2">
-              <div class="step-title">Services & areas</div>
-              <div class="step-lead">
-                Tell TradeBotPro which jobs you actually want and how far you’re happy to travel.
-              </div>
-
-              <div class="field">
-                <label>What kind of jobs should TradeBotPro say “yes” to?</label>
-                <div class="pill-group" data-pill-group="job_types">
-                  <label class="pill-option">
-                    <input type="checkbox" name="job_types" value="emergencies">
-                    <span class="pill-check"></span>
-                    Emergencies / same-day
-                  </label>
-                  <label class="pill-option">
-                    <input type="checkbox" name="job_types" value="small-jobs">
-                    <span class="pill-check"></span>
-                    Small jobs under ~£150
-                  </label>
-                  <label class="pill-option">
-                    <input type="checkbox" name="job_types" value="larger-projects">
-                    <span class="pill-check"></span>
-                    Larger installs / projects
-                  </label>
-                  <label class="pill-option">
-                    <input type="checkbox" name="job_types" value="servicing">
-                    <span class="pill-check"></span>
-                    Annual servicing
-                  </label>
-                  <label class="pill-option">
-                    <input type="checkbox" name="job_types" value="landlord">
-                    <span class="pill-check"></span>
-                    Landlord / certificates
-                  </label>
-                  <label class="pill-option">
-                    <input type="checkbox" name="job_types" value="other">
-                    <span class="pill-check"></span>
-                    Other jobs
-                  </label>
-                </div>
-                <small>We’ll use this to filter out work you don’t want.</small>
-              </div>
-
-              <div class="field-row">
-                <div class="field">
-                  <label>How far from your base postcode do you usually travel?</label>
-                  <div class="pill-group" data-pill-group="travel_radius">
-                    <label class="pill-option">
-                      <input type="radio" name="travel_radius" value="10">
-                      <span class="pill-check"></span>
-                      Up to 10 miles
-                    </label>
-                    <label class="pill-option">
-                      <input type="radio" name="travel_radius" value="15">
-                      <span class="pill-check"></span>
-                      Up to 15 miles
-                    </label>
-                    <label class="pill-option">
-                      <input type="radio" name="travel_radius" value="20">
-                      <span class="pill-check"></span>
-                      Up to 20 miles
-                    </label>
-                    <label class="pill-option">
-                      <input type="radio" name="travel_radius" value="25plus">
-                      <span class="pill-check"></span>
-                      25+ miles / depends on job
-                    </label>
-                  </div>
-                </div>
-
-                <div class="field">
-                  <label for="key_areas">Any key postcodes or areas to mention? (optional)</label>
-                  <input id="key_areas" name="key_areas" type="text"
-                         placeholder="e.g. OX1–OX5, HP11–HP15, MK4">
-                  <small>We’ll phrase this nicely for customers.</small>
-                </div>
-              </div>
-
-              <div class="field">
-                <label>When are you normally happy to work?</label>
-                <div class="pill-group" data-pill-group="working_hours">
-                  <label class="pill-option">
-                    <input type="checkbox" name="working_hours" value="weekday-days">
-                    <span class="pill-check"></span>
-                    Weekdays — daytime
-                  </label>
-                  <label class="pill-option">
-                    <input type="checkbox" name="working_hours" value="weekday-evenings">
-                    <span class="pill-check"></span>
-                    Weekday evenings
-                  </label>
-                  <label class="pill-option">
-                    <input type="checkbox" name="working_hours" value="weekends">
-                    <span class="pill-check"></span>
-                    Weekends by arrangement
-                  </label>
-                  <label class="pill-option">
-                    <input type="checkbox" name="working_hours" value="emergency-out-of-hours">
-                    <span class="pill-check"></span>
-                    Emergency out-of-hours only
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- STEP 3: PRICING -->
-            <div class="step" data-step="3">
-              <div class="step-title">Pricing & call-out rules</div>
-              <div class="step-lead">
-                TradeBotPro won’t promise fixed prices — it will use these as sensible
-                guide ranges when talking to customers.
-              </div>
-
-              <div class="field">
-                <label>How should the AI talk about price by default?</label>
-                <div class="inline-choice-group">
-                  <label class="inline-choice">
-                    <input type="radio" name="pricing_style" value="rough-range" checked>
-                    <span>“Typical jobs like this are between £X–£Y”</span>
-                  </label>
-                  <label class="inline-choice">
-                    <input type="radio" name="pricing_style" value="from-price">
-                    <span>“Most jobs start from around £X”</span>
-                  </label>
-                  <label class="inline-choice">
-                    <input type="radio" name="pricing_style" value="no-price">
-                    <span>“We’ll confirm price after a quick look / photo”</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="field-row">
-                <div class="field">
-                  <label for="callout_fee">Standard call-out fee (daytime)</label>
-                  <input id="callout_fee" name="callout_fee" type="number" min="0" step="1"
-                         placeholder="e.g. 90">
-                  <small>Leave blank if you don’t charge a call-out as such.</small>
-                </div>
-                <div class="field">
-                  <label for="first_hour_rate">First hour rate</label>
-                  <input id="first_hour_rate" name="first_hour_rate" type="number" min="0" step="1"
-                         placeholder="e.g. 90">
-                  <small>Typical labour for the first hour on site.</small>
-                </div>
-              </div>
-
-              <div class="field-row">
-                <div class="field">
-                  <label for="hourly_rate">Hourly rate after first hour</label>
-                  <input id="hourly_rate" name="hourly_rate" type="number" min="0" step="1"
-                         placeholder="e.g. 70">
-                </div>
-                <div class="field">
-                  <label for="minimum_job">Minimum charge for any job</label>
-                  <input id="minimum_job" name="minimum_job" type="number" min="0" step="1"
-                         placeholder="e.g. 90">
-                  <small>Use this if you don’t go out for very small jobs.</small>
-                </div>
-              </div>
-
-              <div class="field-row">
-                <div class="field">
-                  <label for="boiler_service_from">Boiler service “from” price (if relevant)</label>
-                  <input id="boiler_service_from" name="boiler_service_from" type="number" min="0" step="1"
-                         placeholder="e.g. 80">
-                </div>
-                <div class="field">
-                  <label>Out-of-hours pricing</label>
-                  <div class="pill-group" data-pill-group="ooh_pricing">
-                    <label class="pill-option">
-                      <input type="checkbox" name="ooh_pricing" value="same-rate">
-                      <span class="pill-check"></span>
-                      Same rates most of the time
-                    </label>
-                    <label class="pill-option">
-                      <input type="checkbox" name="ooh_pricing" value="higher-evenings">
-                      <span class="pill-check"></span>
-                      Higher rates evenings / weekends
-                    </label>
-                    <label class="pill-option">
-                      <input type="checkbox" name="ooh_pricing" value="case-by-case">
-                      <span class="pill-check"></span>
-                      Decide case-by-case
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div class="field">
-                <label for="pricing_notes">Anything we should be careful about on price? (optional)</label>
-                <textarea id="pricing_notes" name="pricing_notes"
-                          placeholder="e.g. Don’t give ranges for full bathroom refits, always tell them we’ll visit and quote. No fixed prices for leaks until we’ve seen it."></textarea>
-              </div>
-            </div>
-
-            <!-- STEP 4: TONE & RULES -->
-            <div class="step" data-step="4">
-              <div class="step-title">Tone of voice & rules</div>
-              <div class="step-lead">
-                This is where you decide how “chatty” TradeBotPro should be and any golden rules
-                you want it to follow.
-              </div>
-
-              <div class="field">
-                <label>How should TradeBotPro sound?</label>
-                <div class="pill-group" data-pill-group="tone">
-                  <label class="pill-option">
-                    <input type="checkbox" name="tone" value="friendly">
-                    <span class="pill-check"></span>
-                    Friendly & relaxed
-                  </label>
-                  <label class="pill-option">
-                    <input type="checkbox" name="tone" value="professional">
-                    <span class="pill-check"></span>
-                    Professional & straight to the point
-                  </label>
-                  <label class="pill-option">
-                    <input type="checkbox" name="tone" value="no-jargon">
-                    <span class="pill-check"></span>
-                    No jargon — plain English
-                  </label>
-                  <label class="pill-option">
-                    <input type="checkbox" name="tone" value="reassuring">
-                    <span class="pill-check"></span>
-                    Reassuring with nervous customers
-                  </label>
-                </div>
-              </div>
-
-              <div class="field">
-                <label>Booking & quoting rules</label>
-                <div class="inline-choice-group">
-                  <label class="inline-choice">
-                    <input type="checkbox" name="rule_photos" value="true">
-                    <span>Ask for photos where helpful (leaks, boilers, outside jobs).</span>
-                  </label>
-                  <label class="inline-choice">
-                    <input type="checkbox" name="rule_confirm_window" value="true">
-                    <span>Always confirm a time window before calling it “booked”.</span>
-                  </label>
-                  <label class="inline-choice">
-                    <input type="checkbox" name="rule_no_free_advice" value="true">
-                    <span>Avoid long “DIY advice” messages.</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="field-row">
-                <div class="field">
-                  <label for="ai_limit_amount">
-                    OK for TradeBotPro to give a firm quote up to… (optional)
-                  </label>
-                  <input id="ai_limit_amount" name="ai_limit_amount" type="number" min="0" step="1"
-                         placeholder="e.g. 250">
-                  <small>Above this, it will say you’ll confirm personally.</small>
-                </div>
-                <div class="field">
-                  <label for="ai_style_notes">Anything else the AI should know about your style? (optional)</label>
-                  <textarea id="ai_style_notes" name="ai_style_notes"
-                            placeholder="e.g. We don’t upsell. We’re very punctual. Avoid American spellings."></textarea>
-                </div>
-              </div>
-            </div>
-
-            <!-- NAVIGATION -->
-            <div class="wizard-nav">
-              <div class="nav-left">
-                <button type="button" class="btn btn-secondary" id="btn-prev">
-                  ← Back
-                </button>
-                <button type="button" class="btn btn-quiet" id="btn-save-draft">
-                  Save draft in this browser
-                </button>
-              </div>
-              <div class="nav-right">
-                <button type="button" class="btn btn-primary" id="btn-next">
-                  Next step →
-                </button>
-                <button type="submit" class="btn btn-primary" id="btn-finish" style="display:none;">
-                  Finish & review
-                </button>
-              </div>
-            </div>
-
-            <div class="wizard-status" id="wizard-status"></div>
-          </form>
+    <div class="wizard-shell">
+      <!-- SIDEBAR -->
+      <aside class="wizard-sidebar">
+        <div class="wizard-title">Let’s set up your AI assistant</div>
+        <div class="wizard-subtitle">
+          4 short steps. You can come back and change anything later.
         </div>
 
-        <!-- SIDE CARD -->
-        <aside class="wizard-side-card">
-          <div class="side-block">
-            <div class="side-heading">What your customer will see</div>
-            <p class="side-note">
-              TradeBotPro will use this profile to:
-            </p>
-            <ul class="side-list">
-              <li>Introduce your business correctly.</li>
-              <li>Check if the postcode is in your area.</li>
-              <li>Give sensible guide prices without over-promising.</li>
-              <li>Offer appointment windows that match how you actually work.</li>
-            </ul>
-          </div>
+        <ol class="steps-list" id="steps-list">
+          <li data-step="1" class="active">
+            <div class="step-circle">1</div>
+            <div>
+              <div class="step-label-main">Business basics</div>
+              <div class="step-label-sub">Who you are & how to contact you</div>
+            </div>
+          </li>
+          <li data-step="2">
+            <div class="step-circle">2</div>
+            <div>
+              <div class="step-label-main">Services & pricing</div>
+              <div class="step-label-sub">What you do & rough prices</div>
+            </div>
+          </li>
+          <li data-step="3">
+            <div class="step-circle">3</div>
+            <div>
+              <div class="step-label-main">Area & availability</div>
+              <div class="step-label-sub">Base postcode & travel radius</div>
+            </div>
+          </li>
+          <li data-step="4">
+            <div class="step-circle">4</div>
+            <div>
+              <div class="step-label-main">Review & confirm</div>
+              <div class="step-label-sub">Check details before going live</div>
+            </div>
+          </li>
+        </ol>
 
-          <div class="side-block">
-            <div class="side-heading">Internal only fields</div>
-            <p class="side-note">
-              <strong>Profile active / ready to go live</strong> and
-              <strong>setup status</strong> are internal. Your clients won’t see or edit them.
-            </p>
-            <div class="side-tag-row">
-              <span class="side-tag">Profile status: Draft</span>
-              <span class="side-tag">Setup: In progress</span>
+        <div style="margin-top:1.25rem; padding-top:0.8rem; border-top:1px solid var(--border-subtle);">
+          <div style="font-size:0.78rem; opacity:0.8;">
+            <strong>Internal status</strong><br />
+            Profile status and “ready to go live” controls are handled on your admin dashboard –
+            not on this page.
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN PANEL -->
+      <section class="wizard-main">
+        <div id="wizard-status" class="wizard-status" aria-live="polite"></div>
+
+        <!-- STEP 1 -->
+        <div class="wizard-step" data-step="1">
+          <h1 class="step-heading">Business basics</h1>
+          <p class="step-lead">
+            Tell us who you are and how customers should see your business name.
+            This is what TradeBotPro will use in messages and on quotes.
+          </p>
+
+          <div class="form-grid-2">
+            <div class="field">
+              <label for="business_name">Business name</label>
+              <input id="business_name" type="text" autocomplete="organization" required />
+              <div class="help-text">Exactly how you’d like it to appear to customers.</div>
+            </div>
+            <div class="field">
+              <label for="contact_name">Main contact name</label>
+              <input id="contact_name" type="text" autocomplete="name" required />
+              <div class="help-text">The person TradeBotPro is “speaking for”.</div>
             </div>
           </div>
 
-          <div class="side-block">
-            <div class="side-heading">Postcode-based logic</div>
-            <p class="side-note">
-              We always anchor everything to your <strong>base postcode</strong> — not a town
-              name — so the AI can be precise about distance, travel time and call-out rules.
-            </p>
+          <div class="form-grid-2">
+            <div class="field">
+              <label for="email">Best email for bookings & quotes</label>
+              <input id="email" type="email" autocomplete="email" required />
+              <div class="help-text">We’ll send confirmations and job details here.</div>
+            </div>
+            <div class="field">
+              <label for="phone">Mobile / WhatsApp number</label>
+              <input id="phone" type="tel" autocomplete="tel" required />
+              <div class="help-text">Where you want WhatsApp enquiries to come in.</div>
+            </div>
           </div>
 
-          <div class="side-block">
-            <div class="side-heading">What happens next?</div>
-            <p class="side-note">
-              For now, this wizard just keeps your answers safely in your browser. When we wire
-              it into Supabase, these same fields will feed your <strong>tradebotpro_signups</strong>
-              and <strong>business_profiles</strong> records automatically.
-            </p>
+          <div class="field">
+            <label>Main trade</label>
+            <div class="pill-checkbox-group">
+              <label class="pill-checkbox">
+                <input type="radio" name="main_trade" value="Plumber" /> Plumber
+              </label>
+              <label class="pill-checkbox">
+                <input type="radio" name="main_trade" value="Heating engineer" /> Heating engineer
+              </label>
+              <label class="pill-checkbox">
+                <input type="radio" name="main_trade" value="Gas engineer" /> Gas engineer
+              </label>
+              <label class="pill-checkbox">
+                <input type="radio" name="main_trade" value="Electrician" /> Electrician
+              </label>
+              <label class="pill-checkbox">
+                <input type="radio" name="main_trade" value="Builder" /> Builder
+              </label>
+              <label class="pill-checkbox">
+                <input type="radio" name="main_trade" value="Handyman" /> Handyman
+              </label>
+              <label class="pill-checkbox">
+                <input type="radio" name="main_trade" value="Other" /> Other
+              </label>
+            </div>
+            <div class="help-text">Pick the closest match – we can fine-tune later.</div>
           </div>
-        </aside>
-      </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="wizard-step" data-step="2" style="display:none;">
+          <h1 class="step-heading">Services & pricing</h1>
+          <p class="step-lead">
+            This helps TradeBotPro talk confidently about what you do and give sensible
+            rough prices – without you needing to type essays.
+          </p>
+
+          <div class="field">
+            <label>What type of work do you want TradeBotPro to book?</label>
+            <div class="pill-checkbox-group">
+              <label class="pill-checkbox">
+                <input type="checkbox" name="services" value="Boiler servicing" /> Boiler servicing
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="services" value="Breakdowns / leaks" /> Breakdowns / leaks
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="services" value="New boiler installs" /> New boiler installs
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="services" value="Bathrooms" /> Bathrooms
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="services" value="General plumbing" /> General plumbing
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="services" value="Drain unblocking" /> Drain unblocking
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="services" value="Landlord certificates" /> Landlord certificates
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="services" value="Emergency call-outs" /> Emergency call-outs
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="services" value="Other" /> Other
+              </label>
+            </div>
+            <div class="help-text">
+              You can tick as many as you like – we’ll keep the wording simple for customers.
+            </div>
+          </div>
+
+          <div class="field">
+            <label>How do you usually charge?</label>
+            <div class="pill-checkbox-group">
+              <label class="pill-checkbox">
+                <input type="checkbox" name="pricing_style" value="Call-out fee" /> Call-out fee
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="pricing_style" value="First hour rate" /> First hour rate
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="pricing_style" value="Hourly rate after first hour" />
+                Hourly rate after first hour
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="pricing_style" value="Fixed price jobs" /> Fixed price jobs
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="pricing_style" value="Day rate" /> Day rate
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="pricing_style" value="Evening / weekend premium" />
+                Evening / weekend premium
+              </label>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="field">
+              <label for="callout_fee">Typical call-out fee (if any)</label>
+              <input id="callout_fee" type="text" placeholder="e.g. £0 or £60" />
+            </div>
+            <div class="field">
+              <label for="first_hour_rate">Typical first hour rate</label>
+              <input id="first_hour_rate" type="text" placeholder="e.g. £90" />
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="field">
+              <label for="hourly_rate">Hourly rate after first hour</label>
+              <input id="hourly_rate" type="text" placeholder="e.g. £60" />
+            </div>
+            <div class="field">
+              <label for="pricing_notes">Anything we should know about your pricing? (optional)</label>
+              <input id="pricing_notes" type="text" placeholder="e.g. extra for evenings / weekends" />
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="wizard-step" data-step="3" style="display:none;">
+          <h1 class="step-heading">Area & availability</h1>
+          <p class="step-lead">
+            We’ll use your base postcode and rough travel distance so TradeBotPro
+            can say yes or no to jobs in the right areas.
+          </p>
+
+          <div class="form-grid-2">
+            <div class="field">
+              <label for="base_postcode">Base postcode (required)</label>
+              <input id="base_postcode" type="text" placeholder="e.g. OX4 2AB" required />
+              <div class="help-text">
+                Must be a postcode, not just a town – we use this as your starting point.
+              </div>
+            </div>
+            <div class="field">
+              <label for="travel_radius">How far will you travel from this postcode?</label>
+              <select id="travel_radius">
+                <option value="">Select an option…</option>
+                <option value="10">Up to 10 miles</option>
+                <option value="15">Up to 15 miles</option>
+                <option value="20">Up to 20 miles</option>
+                <option value="25">Up to 25 miles</option>
+                <option value="30">Up to 30 miles</option>
+                <option value="custom">It depends / custom</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Which channels should TradeBotPro answer?</label>
+            <div class="pill-checkbox-group">
+              <label class="pill-checkbox">
+                <input type="checkbox" name="channels" value="WhatsApp" /> WhatsApp
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="channels" value="Facebook messages" /> Facebook messages
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="channels" value="Instagram DMs" /> Instagram DMs
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="channels" value="Website chat" /> Website chat
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="channels" value="SMS" /> SMS
+              </label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>When are you usually happy for us to book jobs?</label>
+            <div class="pill-checkbox-group">
+              <label class="pill-checkbox">
+                <input type="checkbox" name="booking_windows" value="Weekdays 9–5" /> Weekdays 9–5
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="booking_windows" value="Weekday evenings" /> Weekday evenings
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="booking_windows" value="Saturday" /> Saturday
+              </label>
+              <label class="pill-checkbox">
+                <input type="checkbox" name="booking_windows" value="Emergency only at night" />
+                Emergency only at night
+              </label>
+            </div>
+            <div class="help-text">
+              We’ll keep it simple in messages – this just guides the AI.
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="availability_notes">Anything else about areas or times? (optional)</label>
+            <textarea id="availability_notes" placeholder="e.g. no parking restrictions, no city centre jobs after 5pm"></textarea>
+          </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="wizard-step" data-step="4" style="display:none;">
+          <h1 class="step-heading">Review & confirm</h1>
+          <p class="step-lead">
+            Check everything looks right. When you save, we’ll use this as the basis
+            for your TradeBotPro messages and pricing logic.
+          </p>
+
+          <div class="summary-box" id="summary-box">
+            <!-- Filled in dynamically -->
+          </div>
+
+          <div style="margin-top:0.8rem; font-size:0.8rem; opacity:0.8;">
+            <span class="badge">Internal status: Draft profile</span>
+            <span style="margin-left:0.5rem;">
+              “Profile active / ready to go live” is controlled by your internal admin,
+              not on this page.
+            </span>
+          </div>
+        </div>
+
+        <!-- FOOTER (NAV BUTTONS) -->
+        <div class="wizard-footer">
+          <div>
+            <button type="button" class="btn-secondary" id="btn-prev" disabled>
+              ← Back
+            </button>
+          </div>
+          <div>
+            <span id="save-status" class="wizard-status"></span>
+          </div>
+          <div>
+            <button type="button" class="btn-primary" id="btn-next">
+              Next step →
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div>© <span id="year"></span> TradeBotPro. All rights reserved.</div>
+      <div>Need help? Email <a href="mailto:hello@tradebotpro.co.uk">hello@tradebotpro.co.uk</a></div>
+    </div>
+  </footer>
 </div>
 
 <script>
-  // Simple 4-step wizard with localStorage draft saving.
-  (function () {
-    const TOTAL_STEPS = 4;
-    let currentStep = 1;
+  // Simple state object – front-end only for now
+  const profileState = {
+    business_name: "",
+    contact_name: "",
+    email: "",
+    phone: "",
+    main_trade: "",
+    services: [],
+    pricing_style: [],
+    callout_fee: "",
+    first_hour_rate: "",
+    hourly_rate: "",
+    pricing_notes: "",
+    base_postcode: "",
+    travel_radius: "",
+    channels: [],
+    booking_windows: [],
+    availability_notes: ""
+  };
 
-    const form = document.getElementById('setup-form');
-    const statusEl = document.getElementById('wizard-status');
-    const progressFill = document.getElementById('progress-fill');
-    const btnPrev = document.getElementById('btn-prev');
-    const btnNext = document.getElementById('btn-next');
-    const btnFinish = document.getElementById('btn-finish');
-    const btnSaveDraft = document.getElementById('btn-save-draft');
-    const stepIndicators = document.querySelectorAll('[data-step-indicator]');
-    const steps = document.querySelectorAll('.step');
-    const DRAFT_KEY = 'tradebotpro_setup_draft_v1';
+  let currentStep = 1;
+  const maxStep = 4;
 
-    // Show profile ID from URL if present (read-only, no backend wiring yet)
-    const params = new URLSearchParams(window.location.search);
-    const userId = params.get('user_id');
-    const profileLabel = document.getElementById('profile-id-label');
-    if (userId && profileLabel) {
-      profileLabel.textContent = 'Profile ID: ' + userId;
-    }
+  const stepsListEl = document.getElementById("steps-list");
+  const wizardStatusEl = document.getElementById("wizard-status");
+  const saveStatusEl = document.getElementById("save-status");
+  const headerStatusLabelEl = document.getElementById("header-status-label");
 
-    function updateProgressUI() {
-      const percent = (currentStep - 1) / (TOTAL_STEPS - 1) * 100;
-      progressFill.style.width = percent + '%';
+  const btnPrev = document.getElementById("btn-prev");
+  const btnNext = document.getElementById("btn-next");
 
-      steps.forEach(step => {
-        const stepNum = Number(step.getAttribute('data-step'));
-        step.classList.toggle('active', stepNum === currentStep);
-      });
+  const yearEl = document.getElementById("year");
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-      stepIndicators.forEach(ind => {
-        const stepNum = Number(ind.getAttribute('data-step-indicator'));
-        ind.classList.remove('active', 'complete');
-        if (stepNum === currentStep) {
-          ind.classList.add('active');
-        } else if (stepNum < currentStep) {
-          ind.classList.add('complete');
-        }
-      });
+  function setWizardStatus(msg, type) {
+    wizardStatusEl.textContent = msg || "";
+    wizardStatusEl.classList.remove("status-error", "status-success");
+    if (type === "error") wizardStatusEl.classList.add("status-error");
+    if (type === "success") wizardStatusEl.classList.add("status-success");
+  }
 
-      btnPrev.disabled = currentStep === 1;
-      btnNext.style.display = currentStep === TOTAL_STEPS ? 'none' : 'inline-flex';
-      btnFinish.style.display = currentStep === TOTAL_STEPS ? 'inline-flex' : 'none';
-    }
+  function setSaveStatus(msg, type) {
+    saveStatusEl.textContent = msg || "";
+    saveStatusEl.classList.remove("status-error", "status-success");
+    if (type === "error") saveStatusEl.classList.add("status-error");
+    if (type === "success") saveStatusEl.classList.add("status-success");
+  }
 
-    function showMessage(msg, type) {
-      if (!statusEl) return;
-      statusEl.textContent = msg || '';
-      statusEl.classList.remove('success', 'error');
-      if (type === 'success') statusEl.classList.add('success');
-      if (type === 'error') statusEl.classList.add('error');
-    }
+  function showStep(step) {
+    currentStep = step;
 
-    function saveDraftToLocalStorage() {
-      const formData = new FormData(form);
-      const draft = {};
-      for (const [key, value] of formData.entries()) {
-        if (draft[key]) {
-          if (!Array.isArray(draft[key])) draft[key] = [draft[key]];
-          draft[key].push(value);
-        } else {
-          draft[key] = value;
-        }
-      }
-      // Also remember which step they were on
-      draft._currentStep = currentStep;
-      try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-        showMessage('Draft saved in this browser. We’ll wire this to your account later.', 'success');
-      } catch (e) {
-        console.error('Error saving draft:', e);
-        showMessage('Could not save draft (browser storage issue).', 'error');
-      }
-    }
-
-    function loadDraftFromLocalStorage() {
-      try {
-        const raw = localStorage.getItem(DRAFT_KEY);
-        if (!raw) return;
-        const draft = JSON.parse(raw);
-
-        // Fill simple inputs
-        Array.from(form.elements).forEach(el => {
-          if (!el.name) return;
-          const key = el.name;
-          const val = draft[key];
-          if (val == null) return;
-
-          if (el.type === 'checkbox' || el.type === 'radio') {
-            if (Array.isArray(val)) {
-              el.checked = val.includes(el.value);
-            } else {
-              el.checked = String(val) === String(el.value);
-            }
-          } else {
-            el.value = val;
-          }
-        });
-
-        // Restore step if valid
-        if (draft._currentStep && draft._currentStep >= 1 && draft._currentStep <= TOTAL_STEPS) {
-          currentStep = draft._currentStep;
-        }
-
-        // Update pill visual states
-        refreshPillVisuals();
-
-        showMessage('Draft loaded from this browser.', 'success');
-      } catch (e) {
-        console.error('Error loading draft:', e);
-      }
-    }
-
-    function refreshPillVisuals() {
-      document.querySelectorAll('.pill-group').forEach(group => {
-        const options = group.querySelectorAll('.pill-option');
-        options.forEach(opt => {
-          const input = opt.querySelector('input');
-          opt.classList.toggle('selected', !!input && input.checked);
-        });
-      });
-    }
-
-    // Navigation events
-    btnPrev.addEventListener('click', () => {
-      if (currentStep > 1) {
-        currentStep -= 1;
-        updateProgressUI();
-        showMessage('');
-      }
+    // Show / hide step panels
+    document.querySelectorAll(".wizard-step").forEach((el) => {
+      const s = parseInt(el.getAttribute("data-step"), 10);
+      el.style.display = s === step ? "" : "none";
     });
 
-    btnNext.addEventListener('click', () => {
-      // Simple HTML5 validation for the current step only
-      const currentStepEl = document.querySelector('.step[data-step="' + currentStep + '"]');
-      if (currentStepEl) {
-        const inputs = currentStepEl.querySelectorAll('input, select, textarea');
-        for (const input of inputs) {
-          if (input.hasAttribute('required') && !input.value.trim()) {
-            input.reportValidity();
-            return;
-          }
-        }
-      }
-      if (currentStep < TOTAL_STEPS) {
-        currentStep += 1;
-        updateProgressUI();
-        showMessage('');
-      }
+    // Update sidebar
+    document.querySelectorAll("#steps-list li").forEach((li) => {
+      const s = parseInt(li.getAttribute("data-step"), 10);
+      li.classList.remove("active", "completed");
+      if (s === step) li.classList.add("active");
+      if (s < step) li.classList.add("completed");
     });
 
-    btnSaveDraft.addEventListener('click', () => {
-      saveDraftToLocalStorage();
-    });
+    // Buttons
+    btnPrev.disabled = step === 1;
+    btnNext.textContent = step === maxStep ? "Save profile" : "Next step →";
 
-    // Form submit (finish)
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
+    // Clear status
+    setWizardStatus("");
+    setSaveStatus("");
 
-      // Final basic validation for all required fields across steps
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
+    if (step === 4) {
+      buildSummary();
+    }
+  }
+
+  function collectStepValues(step) {
+    if (step === 1) {
+      profileState.business_name = document.getElementById("business_name").value.trim();
+      profileState.contact_name = document.getElementById("contact_name").value.trim();
+      profileState.email = document.getElementById("email").value.trim();
+      profileState.phone = document.getElementById("phone").value.trim();
+      const mainTradeRadio = document.querySelector('input[name="main_trade"]:checked');
+      profileState.main_trade = mainTradeRadio ? mainTradeRadio.value : "";
+    }
+
+    if (step === 2) {
+      profileState.services = Array.from(
+        document.querySelectorAll('input[name="services"]:checked')
+      ).map((i) => i.value);
+
+      profileState.pricing_style = Array.from(
+        document.querySelectorAll('input[name="pricing_style"]:checked')
+      ).map((i) => i.value);
+
+      profileState.callout_fee = document.getElementById("callout_fee").value.trim();
+      profileState.first_hour_rate = document.getElementById("first_hour_rate").value.trim();
+      profileState.hourly_rate = document.getElementById("hourly_rate").value.trim();
+      profileState.pricing_notes = document.getElementById("pricing_notes").value.trim();
+    }
+
+    if (step === 3) {
+      profileState.base_postcode = document.getElementById("base_postcode").value.trim();
+      profileState.travel_radius = document.getElementById("travel_radius").value;
+
+      profileState.channels = Array.from(
+        document.querySelectorAll('input[name="channels"]:checked')
+      ).map((i) => i.value);
+
+      profileState.booking_windows = Array.from(
+        document.querySelectorAll('input[name="booking_windows"]:checked')
+      ).map((i) => i.value);
+
+      profileState.availability_notes = document.getElementById("availability_notes").value.trim();
+    }
+  }
+
+  function validateStep(step) {
+    if (step === 1) {
+      if (!profileState.business_name) return "Please enter your business name.";
+      if (!profileState.contact_name) return "Please enter a contact name.";
+      if (!profileState.email) return "Please enter an email address.";
+      if (!profileState.phone) return "Please enter a mobile / WhatsApp number.";
+      if (!profileState.main_trade) return "Please choose your main trade.";
+    }
+
+    if (step === 3) {
+      if (!profileState.base_postcode) {
+        return "Please enter your base postcode – not just a town.";
       }
+    }
 
-      saveDraftToLocalStorage();
+    return null;
+  }
 
-      // For now we just keep it local and show a friendly message.
-      showMessage('All steps complete. Your profile details are saved in this browser. Backend wiring comes next.', 'success');
-    });
+  function buildSummary() {
+    const box = document.getElementById("summary-box");
+    if (!box) return;
 
-    // Pill selection behaviour
-    document.addEventListener('click', (e) => {
-      const pill = e.target.closest('.pill-option');
-      if (!pill) return;
-      const input = pill.querySelector('input');
-      if (!input) return;
+    const joinOrDash = (arr) => (arr && arr.length ? arr.join(", ") : "—");
+    const orDash = (val) => (val ? val : "—");
 
-      if (input.type === 'radio') {
-        // Unselect siblings in same group
-        const group = pill.closest('.pill-group');
-        if (group) {
-          group.querySelectorAll('.pill-option').forEach(opt => opt.classList.remove('selected'));
-        }
-        pill.classList.add('selected');
-      } else if (input.type === 'checkbox') {
-        // Toggle visual state; input.checked updates automatically
-        pill.classList.toggle('selected');
-      }
-    });
+    box.innerHTML = `
+      <div class="summary-row">
+        <div class="summary-label">Business name</div>
+        <div>${orDash(profileState.business_name)}</div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-label">Main contact</div>
+        <div>${orDash(profileState.contact_name)}</div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-label">Email / phone</div>
+        <div>${orDash(profileState.email)}<br>${orDash(profileState.phone)}</div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-label">Main trade</div>
+        <div>${orDash(profileState.main_trade)}</div>
+      </div>
+      <hr style="border:none;border-top:1px solid rgba(0,0,0,0.08);margin:0.6rem 0;">
+      <div class="summary-row">
+        <div class="summary-label">Services to book</div>
+        <div>${joinOrDash(profileState.services)}</div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-label">How you charge</div>
+        <div>${joinOrDash(profileState.pricing_style)}</div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-label">Typical rates</div>
+        <div>
+          Call-out: ${orDash(profileState.callout_fee)}<br>
+          First hour: ${orDash(profileState.first_hour_rate)}<br>
+          After first hour: ${orDash(profileState.hourly_rate)}
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-label">Pricing notes</div>
+        <div>${orDash(profileState.pricing_notes)}</div>
+      </div>
+      <hr style="border:none;border-top:1px solid rgba(0,0,0,0.08);margin:0.6rem 0;">
+      <div class="summary-row">
+        <div class="summary-label">Base postcode</div>
+        <div>${orDash(profileState.base_postcode)}</div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-label">Travel radius</div>
+        <div>${profileState.travel_radius ? "Up to " + profileState.travel_radius + " miles" : "—"}</div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-label">Channels</div>
+        <div>${joinOrDash(profileState.channels)}</div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-label">Booking windows</div>
+        <div>${joinOrDash(profileState.booking_windows)}</div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-label">Area / availability notes</div>
+        <div>${orDash(profileState.availability_notes)}</div>
+      </div>
+    `;
+  }
 
-    // Initial setup
-    updateProgressUI();
-    loadDraftFromLocalStorage();
-  })();
+  async function handleNextClick() {
+    // Collect values from current step
+    collectStepValues(currentStep);
+
+    // Validate current step
+    const error = validateStep(currentStep);
+    if (error) {
+      setWizardStatus(error, "error");
+      return;
+    }
+
+    if (currentStep < maxStep) {
+      showStep(currentStep + 1);
+      return;
+    }
+
+    // Last step – pretend to save (front-end only)
+    try {
+      setSaveStatus("Saving profile (front-end only demo)…", null);
+
+      // This is where we will later plug in Supabase / backend.
+      console.log("Profile ready to save:", profileState);
+
+      // Simulated delay
+      await new Promise((resolve) => setTimeout(resolve, 400));
+
+      setSaveStatus("Profile details captured. Backend save to be wired next.", "success");
+      headerStatusLabelEl.textContent = "Draft profile saved (local only)";
+    } catch (err) {
+      console.error(err);
+      setSaveStatus("Something went wrong saving your profile.", "error");
+    }
+  }
+
+  function handlePrevClick() {
+    if (currentStep > 1) {
+      showStep(currentStep - 1);
+    }
+  }
+
+  btnNext.addEventListener("click", handleNextClick);
+  btnPrev.addEventListener("click", handlePrevClick);
+
+  // Start on step 1
+  showStep(1);
 </script>
 </body>
 </html>
