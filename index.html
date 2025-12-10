@@ -16,6 +16,8 @@
       --dark-text: #1b1b1f;
       --light-bg: #f5f7fa;
       --white: #ffffff;
+      --error-red: #b3261e;
+      --success-green: #0f7b46;
     }
 
     * {
@@ -549,8 +551,7 @@
     }
 
     .signup-field input,
-    .signup-field select,
-    .signup-field textarea {
+    .signup-field select {
       width: 100%;
       padding: 0.55rem 0.65rem;
       border-radius: 0.5rem;
@@ -558,38 +559,10 @@
       font: inherit;
     }
 
-    .signup-field textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
-
     .signup-field input:focus,
-    .signup-field select:focus,
-    .signup-field textarea:focus {
+    .signup-field select:focus {
       outline: 2px solid rgba(31, 78, 121, 0.4);
       border-color: transparent;
-    }
-
-    .chips-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-bottom: 0.4rem;
-    }
-
-    .chip {
-      padding: 0.3rem 0.7rem;
-      border-radius: 999px;
-      border: 1px solid rgba(0,0,0,0.16);
-      font-size: 0.78rem;
-      cursor: pointer;
-      background: #f7f9fc;
-    }
-
-    .chip.chip--selected {
-      background: var(--primary-blue);
-      color: var(--white);
-      border-color: var(--primary-blue);
     }
 
     .signup-agree {
@@ -597,7 +570,7 @@
       align-items: flex-start;
       gap: 0.45rem;
       font-size: 0.8rem;
-      margin: 0.6rem 0 1rem;
+      margin: 0.6rem 0 0.7rem;
     }
 
     .signup-agree input {
@@ -631,15 +604,15 @@
 
     .signup-status {
       margin-top: 0.6rem;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
     }
 
     .signup-status--error {
-      color: #b3261e;
+      color: var(--error-red);
     }
 
     .signup-status--success {
-      color: #0b6b32;
+      color: var(--success-green);
     }
 
     /* DEMO */
@@ -658,6 +631,21 @@
       letter-spacing: 0.14em;
       color: var(--accent-blue);
       margin-bottom: 0.35rem;
+    }
+
+    /* Live backend demo placeholder */
+    #messages {
+      margin-top: 0.6rem;
+      font-size: 0.85rem;
+      background: #f5f7ff;
+      border-radius: 0.7rem;
+      padding: 0.7rem 0.8rem;
+      border: 1px solid rgba(31, 78, 121, 0.12);
+      min-height: 1.4rem;
+    }
+
+    .message-item {
+      margin-bottom: 0.25rem;
     }
 
     /* FAQ */
@@ -1070,12 +1058,12 @@
       </div>
     </section>
 
-    <!-- SIGNUP (Supabase) -->
+    <!-- SIGNUP -->
     <section id="signup">
       <div class="inner">
         <h2>Join TradeBotPro</h2>
         <p class="section-lead">
-          Tell us a few details about your business and how you work.
+          Tell us a few details about your business and the plan you’re interested in.
           We’ll set everything up with you and confirm payment separately — no card needed today.
         </p>
 
@@ -1088,31 +1076,36 @@
             <ul>
               <li>No long-term contract and no card details collected here.</li>
               <li>We’ll contact you to confirm setup, pricing and start date.</li>
-              <li>You can change plan or pause / cancel before anything goes live.</li>
+              <li>You can change plan or cancel before anything goes live.</li>
             </ul>
           </div>
 
           <div class="signup-card">
             <h3>Tell us about your business</h3>
-            <form id="signup-form">
+
+            <!-- STATUS MESSAGE -->
+            <div id="signup-status" class="signup-status" aria-live="polite"></div>
+
+            <!-- SIGNUP FORM (Supabase-powered) -->
+            <form id="tradebotpro-signup-form" novalidate>
               <div class="signup-field">
                 <label for="contact_name">Contact name</label>
-                <input id="contact_name" name="contact_name" type="text" required>
+                <input id="contact_name" name="contact_name" type="text" required autocomplete="name">
               </div>
 
               <div class="signup-field">
                 <label for="business_name">Business name</label>
-                <input id="business_name" name="business_name" type="text" required>
+                <input id="business_name" name="business_name" type="text" required autocomplete="organization">
               </div>
 
               <div class="signup-field">
                 <label for="email">Email</label>
-                <input id="email" name="email" type="email" required>
+                <input id="email" name="email" type="email" required autocomplete="email">
               </div>
 
               <div class="signup-field">
-                <label for="phone">Mobile / WhatsApp number</label>
-                <input id="phone" name="phone" type="tel" required>
+                <label for="whatsapp_number">Mobile / WhatsApp number</label>
+                <input id="whatsapp_number" name="whatsapp_number" type="tel" required autocomplete="tel">
               </div>
 
               <div class="signup-field">
@@ -1133,73 +1126,25 @@
               </div>
 
               <div class="signup-field">
-                <label for="base_postcode">Main service area (postcode)</label>
-                <input id="base_postcode" name="base_postcode" type="text" required>
+                <label for="service_area">Main service area (town or postcode)</label>
+                <input id="service_area" name="service_area" type="text" required autocomplete="postal-code">
               </div>
 
               <div class="signup-field">
-                <label for="website_url">Website (optional)</label>
-                <input id="website_url" name="website_url" type="url" placeholder="https://">
+                <label for="plan">Choose your plan</label>
+                <select id="plan" name="plan" required>
+                  <option value="">Select a plan…</option>
+                  <option value="starter-monthly">Starter – Monthly</option>
+                  <option value="starter-yearly">Starter – Yearly</option>
+                  <option value="pro-monthly">Pro – Monthly</option>
+                  <option value="pro-yearly">Pro – Yearly</option>
+                  <option value="premium-monthly">Premium – Monthly</option>
+                </select>
               </div>
 
               <div class="signup-field">
-                <label for="callout_fee">Call-out fee (if any)</label>
-                <input id="callout_fee" name="callout_fee" type="text" placeholder="e.g. £90 call-out">
-              </div>
-
-              <div class="signup-field">
-                <label for="first_hour_rate">First hour rate</label>
-                <input id="first_hour_rate" name="first_hour_rate" type="text" placeholder="e.g. £110 first hour">
-              </div>
-
-              <div class="signup-field">
-                <label for="hourly_rate">Hourly rate after first hour</label>
-                <input id="hourly_rate" name="hourly_rate" type="text" placeholder="e.g. £85 per hour">
-              </div>
-
-              <div class="signup-field">
-                <label for="boiler_service_from">Boiler service from (optional)</label>
-                <input id="boiler_service_from" name="boiler_service_from" type="text" placeholder="e.g. From £90">
-              </div>
-
-              <div class="signup-field">
-                <label for="quote_minimum">Minimum job / quote value (optional)</label>
-                <input id="quote_minimum" name="quote_minimum" type="text" placeholder="e.g. £80 minimum">
-              </div>
-
-              <div class="signup-field">
-                <label>What should your AI office focus on?</label>
-                <div class="chips-row" id="ai-focus-chips">
-                  <button type="button" class="chip" data-value="More booked jobs">
-                    More booked jobs
-                  </button>
-                  <button type="button" class="chip" data-value="Faster replies to leads">
-                    Faster replies to leads
-                  </button>
-                  <button type="button" class="chip" data-value="Better quality enquiries">
-                    Better quality enquiries
-                  </button>
-                  <button type="button" class="chip" data-value="Chasing quotes & invoices">
-                    Chasing quotes & invoices
-                  </button>
-                  <button type="button" class="chip" data-value="Reviews & repeat work">
-                    Reviews & repeat work
-                  </button>
-                </div>
-                <textarea
-                  id="ai_style_notes"
-                  name="ai_style_notes"
-                  placeholder="Anything else we should know about how you like to work or talk to customers?"
-                ></textarea>
-              </div>
-
-              <div class="signup-field">
-                <label for="services_summary">What services do you want TradeBotPro to handle first?</label>
-                <textarea
-                  id="services_summary"
-                  name="services_summary"
-                  placeholder="e.g. boiler breakdowns, boiler servicing, emergency leaks, landlord certificates…"
-                ></textarea>
+                <label for="referrer">How did you hear about TradeBotPro? (optional)</label>
+                <input id="referrer" name="referrer" type="text">
               </div>
 
               <div class="signup-agree">
@@ -1209,11 +1154,9 @@
                 </label>
               </div>
 
-              <button type="submit" class="signup-submit" id="signup-submit">
+              <button type="submit" class="signup-submit" id="signup-submit-btn">
                 Join TradeBotPro (no payment yet)
               </button>
-
-              <div id="signup-status" class="signup-status" aria-live="polite"></div>
 
               <div class="signup-note">
                 After you submit this form, we’ll review your details and get in touch
@@ -1242,6 +1185,15 @@
           <p><strong>TradeBotPro:</strong> “Thanks. Please send a quick photo of the toilet and the floor around it so we can see the leak.”</p>
           <p><strong>Customer:</strong> *(sends photo)*</p>
           <p><strong>TradeBotPro:</strong> “Based on similar jobs, a typical repair like this is usually between <strong>£90–£140</strong> depending on parts. We can be with you <strong>Thursday afternoon between 1–3pm</strong>. Would you like to book that slot?”</p>
+        </div>
+
+        <!-- LIVE BACKEND DEMO PLACEHOLDER (no Render fetch now) -->
+        <div class="demo-card" style="margin-top:1.1rem;">
+          <div class="demo-label">Live • TradeBotPro backend</div>
+          <p style="margin-top:0;">
+            Backend dashboard & live stats are handled in your admin panel.
+          </p>
+          <div id="messages">Admin dashboard preview coming soon.</div>
         </div>
       </div>
     </section>
@@ -1315,135 +1267,123 @@
   </footer>
 </div>
 
+<!-- SUPABASE JS (via CDN) -->
+<script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
+
 <script>
   // Year in footer
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // --- Supabase config (PUBLIC anon key) ---
-  // IMPORTANT:
-  // 1) Leave the URL as-is (that's your project).
-  // 2) Replace SUPABASE_ANON_KEY with your real anon key from Supabase.
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  // 🔑 SUPABASE CONFIG – PASTE YOUR KEYS HERE
+  // Replace ONLY the two strings below with your real project URL + anon key.
+ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-  // Chip multi-select → ai_style_notes helper
-  (function setupChips() {
-    const chipsContainer = document.getElementById('ai-focus-chips');
-    if (!chipsContainer) return;
+  // Create Supabase client
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const textarea = document.getElementById('ai_style_notes');
-    chipsContainer.addEventListener('click', (e) => {
-      const chip = e.target.closest('.chip');
-      if (!chip) return;
-      chip.classList.toggle('chip--selected');
+  // Simple helper to show status messages above the form
+  function setSignupStatus(message, type) {
+    const el = document.getElementById('signup-status');
+    if (!el) return;
+    el.textContent = message || '';
+    el.classList.remove('signup-status--error', 'signup-status--success');
+    if (type === 'error') el.classList.add('signup-status--error');
+    if (type === 'success') el.classList.add('signup-status--success');
+  }
 
-      const selected = Array.from(
-        chipsContainer.querySelectorAll('.chip.chip--selected')
-      ).map(c => c.getAttribute('data-value'));
-
-      const currentFreeText = textarea.value.trim();
-      const chipText = selected.length
-        ? 'Focus areas: ' + selected.join(', ')
-        : '';
-
-      if (chipText && currentFreeText) {
-        textarea.value = chipText + '\n\n' + currentFreeText;
-      } else if (chipText) {
-        textarea.value = chipText;
-      } else {
-        textarea.value = currentFreeText;
-      }
-    });
-  })();
-
-  // Signup form → Supabase
-  const signupForm = document.getElementById('signup-form');
-  const signupStatus = document.getElementById('signup-status');
-  const signupSubmitBtn = document.getElementById('signup-submit');
-
-  async function submitToSupabase(event) {
+  async function handleSignupSubmit(event) {
     event.preventDefault();
-    if (!signupForm) return;
 
-    signupStatus.textContent = '';
-    signupStatus.className = 'signup-status';
-    signupSubmitBtn.disabled = true;
-    signupSubmitBtn.textContent = 'Submitting…';
+    const form = event.target;
+    const submitBtn = document.getElementById('signup-submit-btn');
 
-    const formData = new FormData(signupForm);
+    // Basic front-end validation
+    if (!form.checkValidity()) {
+      // let the browser show which field is missing
+      form.reportValidity();
+      return;
+    }
 
-    // Map form → tradebotpro_signups columns
+    setSignupStatus('Submitting your details…', null);
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+
+    // Collect fields
+    const contact_name = document.getElementById('contact_name').value.trim();
+    const business_name = document.getElementById('business_name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const whatsapp_number = document.getElementById('whatsapp_number').value.trim();
+    const trade_type = document.getElementById('trade_type').value;
+    const service_area = document.getElementById('service_area').value.trim();
+    const plan = document.getElementById('plan').value;
+    const referrer = document.getElementById('referrer').value.trim();
+
+    // Map to DB fields (minimal safe set; trigger will handle business_profiles)
     const payload = {
-      business_name: formData.get('business_name') || '',
-      owner_name: formData.get('contact_name') || '', // simple mapping
-      contact_name: formData.get('contact_name') || '',
-      email: formData.get('email') || '',
-      phone: formData.get('phone') || '',
-      trade_type: formData.get('trade_type') || '',
-      base_postcode: formData.get('base_postcode') || '',
-      website_url: formData.get('website_url') || '',
-      callout_fee: formData.get('callout_fee') || '',
-      first_hour_rate: formData.get('first_hour_rate') || '',
-      hourly_rate: formData.get('hourly_rate') || '',
-      boiler_service_from: formData.get('boiler_service_from') || '',
-      quote_minimum: formData.get('quote_minimum') || '',
-      services_summary: formData.get('services_summary') || '',
-      ai_style_notes: formData.get('ai_style_notes') || '',
-      // rely on SQL defaults for:
-      // plan_status, pending_setup, is_active, account_status, account_status_reason
+      business_name,
+      owner_name: contact_name,                 // store contact as owner_name for now
+      contact_name,
+      email,
+      phone: whatsapp_number,                  // your DB uses "phone"
+      trade_type,
+      base_postcode: service_area,             // town or postcode
+      services_summary: 'Website signup form',
+      plan_status: plan,                       // e.g. "starter-monthly"
+      pending_setup: true,
+      is_active: false,
+      account_status: 'New',
+      account_status_reason: referrer ? `Referrer: ${referrer}` : null
     };
 
     console.log('Submitting payload to Supabase:', payload);
 
     try {
-      if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('PASTE_')) {
-        throw new Error('Supabase config missing (URL or anon key).');
+      const { data, error } = await supabaseClient
+        .from('tradebotpro_signups')
+        .insert([payload])
+        .select();
+
+      if (error) {
+        console.error('Supabase insert error:', error);
+        setSignupStatus(
+          'Something went wrong saving your details. Please try again or contact us.',
+          'error'
+        );
+      } else {
+        console.log('Insert OK:', data);
+        setSignupStatus(
+          'Thank you – we’ve received your details. We’ll be in touch shortly.',
+          'success'
+        );
+        form.reset();
       }
-
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/tradebotpro_signups?select=*`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        let details = '';
-        try {
-          const errJson = await res.json();
-          console.error('Supabase insert error:', errJson);
-          details = errJson.message || JSON.stringify(errJson);
-        } catch (_) {
-          console.error('Supabase insert error (no JSON body)');
-        }
-        signupStatus.textContent = 'Something went wrong saving your details. Please try again or contact us.';
-        signupStatus.classList.add('signup-status--error');
-        return;
-      }
-
-      const rows = await res.json();
-      console.log('Supabase insert OK:', rows);
-
-      signupForm.reset();
-      signupStatus.textContent = 'Thank you – we’ve received your details. We’ll be in touch shortly.';
-      signupStatus.classList.add('signup-status--success');
     } catch (err) {
-      console.error('Network / fetch error:', err);
-      signupStatus.textContent = 'Something went wrong saving your details. Please try again or contact us.';
-      signupStatus.classList.add('signup-status--error');
+      console.error('Network / unexpected error:', err);
+      setSignupStatus(
+        'Something went wrong saving your details. Please try again or contact us.',
+        'error'
+      );
     } finally {
-      signupSubmitBtn.disabled = false;
-      signupSubmitBtn.textContent = 'Join TradeBotPro (no payment yet)';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Join TradeBotPro (no payment yet)';
     }
   }
 
+  // Wire up form handler
+  const signupForm = document.getElementById('tradebotpro-signup-form');
   if (signupForm) {
-    signupForm.addEventListener('submit', submitToSupabase);
+    signupForm.addEventListener('submit', handleSignupSubmit);
   }
+
+  // Backend demo placeholder instead of Render fetch
+  function loadMessagesPlaceholder() {
+    const container = document.getElementById('messages');
+    if (!container) return;
+    container.textContent = 'Live backend demo will appear here once your admin dashboard is fully wired up.';
+  }
+
+  window.addEventListener('DOMContentLoaded', loadMessagesPlaceholder);
 </script>
 </body>
 </html>
