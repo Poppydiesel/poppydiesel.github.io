@@ -1274,13 +1274,12 @@
   // Year in footer
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // 🔑 SUPABASE CONFIG – PASTE YOUR KEYS HERE
+  // 🔑 SUPABASE CONFIG – already set correctly
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-    // Create Supabase client
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Simple helper to show status messages above the form
   function setSignupStatus(message, type) {
     const el = document.getElementById('signup-status');
     if (!el) return;
@@ -1296,7 +1295,6 @@
     const form = event.target;
     const submitBtn = document.getElementById('signup-submit-btn');
 
-    // Basic front-end validation
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
@@ -1306,27 +1304,25 @@
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting…';
 
-    // Collect fields
-    const contact_name = document.getElementById('contact_name').value.trim();
-    const business_name = document.getElementById('business_name').value.trim();
-    const email = document.getElementById('email').value.trim();
+    const contact_name    = document.getElementById('contact_name').value.trim();
+    const business_name   = document.getElementById('business_name').value.trim();
+    const email           = document.getElementById('email').value.trim();
     const whatsapp_number = document.getElementById('whatsapp_number').value.trim();
-    const trade_type = document.getElementById('trade_type').value;
-    const service_area = document.getElementById('service_area').value.trim();
-    const plan = document.getElementById('plan').value;
-    const referrer = document.getElementById('referrer').value.trim();
+    const trade_type      = document.getElementById('trade_type').value;
+    const service_area    = document.getElementById('service_area').value.trim();
+    const plan            = document.getElementById('plan').value;
+    const referrer        = document.getElementById('referrer').value.trim();
 
-    // Map to DB fields (minimal safe set; trigger will handle business_profiles)
     const payload = {
       business_name,
-      owner_name: contact_name,                 // store contact as owner_name for now
+      owner_name: contact_name,
       contact_name,
       email,
-      phone: whatsapp_number,                  // your DB uses "phone"
+      phone: whatsapp_number,
       trade_type,
-      base_postcode: service_area,             // town or postcode
+      base_postcode: service_area,
       services_summary: 'Website signup form',
-      plan_status: plan,                       // e.g. "starter-monthly"
+      plan_status: plan,
       pending_setup: true,
       is_active: false,
       account_status: 'New',
@@ -1336,10 +1332,10 @@
     console.log('Submitting payload to Supabase:', payload);
 
     try {
-      // ❗ No .select() – avoids SELECT permission issues
-      const { error } = await supabaseClient
+      const { data, error } = await supabaseClient
         .from('tradebotpro_signups')
-        .insert([payload]);
+        .insert([payload])
+        .select();
 
       if (error) {
         console.error('Supabase insert error:', error);
@@ -1348,6 +1344,7 @@
           'error'
         );
       } else {
+        console.log('Insert OK:', data);
         setSignupStatus(
           'Thank you – we’ve received your details. We’ll be in touch shortly.',
           'success'
@@ -1366,13 +1363,11 @@
     }
   }
 
-  // Wire up form handler
   const signupForm = document.getElementById('tradebotpro-signup-form');
   if (signupForm) {
     signupForm.addEventListener('submit', handleSignupSubmit);
   }
 
-  // Backend demo placeholder instead of Render fetch
   function loadMessagesPlaceholder() {
     const container = document.getElementById('messages');
     if (!container) return;
@@ -1384,3 +1379,4 @@
 
 </body>
 </html>
+
