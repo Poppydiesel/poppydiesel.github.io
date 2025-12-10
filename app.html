@@ -628,12 +628,8 @@
 
 <script>
   // ------------------------------------------------------------
-  // 🔴🔴🔴 PASTE YOUR SUPABASE DETAILS HERE 🔴🔴🔴
-  //
-  // 1) In Supabase: Project Settings → API
-  // 2) Copy the "Project URL" (starts with https://...supabase.co)
-  // 3) Copy the "anon public" key
-  // 4) Paste them EXACTLY between the quotes below
+  // 🔴🔴🔴 SUPABASE DETAILS 🔴🔴🔴
+  // (you've already pasted these, leaving them exactly as-is)
   // ------------------------------------------------------------
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
@@ -689,10 +685,10 @@
 
   function getSupabaseHeaders() {
     return {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      Accept: 'application/json'
     };
   }
 
@@ -724,39 +720,16 @@
   }
 
   // ------------------------------------------------------------
-  // PROFILE LOADING / SAVING
+  // QUICK PICK HELPERS (for UX)
   // ------------------------------------------------------------
-  let signupRow = null;
-  let profileRow = null;
-  let signupId = null;
-
-  function readQuickPicksFromProfile(p) {
-    const raw = (p.ai_focus_quick || '').split('|').map(s => s.trim()).filter(Boolean);
-    const set = new Set(raw);
-
-    const map = {
-      focus_new_enquiries: "New enquiries & first response",
-      focus_quoting: "Quoting & rough estimates",
-      focus_booking: "Booking jobs into the diary",
-      focus_out_of_hours: "Out-of-hours & weekend cover",
-      focus_reviews: "Chasing reviews & follow-ups",
-      focus_filtering: "Filtering time-wasters / bad jobs"
-    };
-
-    Object.entries(map).forEach(([id, label]) => {
-      const el = document.getElementById(id);
-      if (el) el.checked = set.has(label);
-    });
-  }
-
   function getQuickPicksForSave() {
     const map = [
       { id: 'focus_new_enquiries', label: "New enquiries & first response" },
-      { id: 'focus_quoting', label: "Quoting & rough estimates" },
-      { id: 'focus_booking', label: "Booking jobs into the diary" },
-      { id: 'focus_out_of_hours', label: "Out-of-hours & weekend cover" },
-      { id: 'focus_reviews', label: "Chasing reviews & follow-ups" },
-      { id: 'focus_filtering', label: "Filtering time-wasters / bad jobs" }
+      { id: 'focus_quoting',       label: "Quoting & rough estimates" },
+      { id: 'focus_booking',       label: "Booking jobs into the diary" },
+      { id: 'focus_out_of_hours',  label: "Out-of-hours & weekend cover" },
+      { id: 'focus_reviews',       label: "Chasing reviews & follow-ups" },
+      { id: 'focus_filtering',     label: "Filtering time-wasters / bad jobs" }
     ];
 
     const picked = [];
@@ -767,6 +740,13 @@
     return picked.join(' | ');
   }
 
+  // ------------------------------------------------------------
+  // PROFILE LOADING / SAVING
+  // ------------------------------------------------------------
+  let signupRow = null;
+  let profileRow = null;
+  let signupId = null;
+
   function fillFormFromProfile() {
     const p = profileRow || {};
     const s = signupRow || {};
@@ -776,29 +756,28 @@
       if (el) el.value = value ?? '';
     }
 
-    setVal('business_name', p.business_name ?? s.business_name ?? '');
-    setVal('contact_name', p.contact_name ?? s.contact_name ?? '');
-    setVal('email', p.email ?? s.email ?? '');
-    setVal('whatsapp_number', p.whatsapp_number ?? s.whatsapp_number ?? '');
-    setVal('phone', p.phone ?? s.phone ?? '');
-    setVal('trade_type', p.trade_type ?? s.trade_type ?? '');
-    setVal('base_postcode', p.base_postcode ?? s.base_postcode ?? s.service_area ?? '');
-    setVal('website_url', p.website_url ?? s.website_url ?? '');
-    setVal('service_radius', p.service_radius ?? '');
-    setVal('callout_from', p.callout_from ?? '');
+    setVal('business_name',    p.business_name   ?? s.business_name   ?? '');
+    setVal('contact_name',     p.contact_name    ?? s.contact_name    ?? '');
+    setVal('email',            p.email           ?? s.email           ?? '');
+    setVal('whatsapp_number',  p.whatsapp_number ?? s.whatsapp_number ?? '');
+    setVal('phone',            p.phone           ?? s.phone           ?? '');
+    setVal('trade_type',       p.trade_type      ?? s.trade_type      ?? '');
+    setVal('base_postcode',    p.base_postcode   ?? s.base_postcode   ?? s.service_area ?? '');
+    setVal('website_url',      p.website_url     ?? s.website_url     ?? '');
+    setVal('service_radius',   p.service_radius  ?? s.service_radius  ?? '');
+    setVal('callout_from',     p.callout_from    ?? s.callout_from    ?? '');
 
-    setVal('callout_fee', p.callout_fee ?? '');
-    setVal('first_hour_rate', p.first_hour_rate ?? '');
-    setVal('hourly_rate', p.hourly_rate ?? '');
-    setVal('boiler_service_from', p.boiler_service_from ?? '');
-    setVal('quote_minimum', p.quote_minimum ?? '');
-    setVal('pricing_notes', p.pricing_notes ?? '');
+    setVal('callout_fee',        p.callout_fee        ?? s.callout_fee        ?? '');
+    setVal('first_hour_rate',    p.first_hour_rate    ?? s.first_hour_rate    ?? '');
+    setVal('hourly_rate',        p.hourly_rate        ?? s.hourly_rate        ?? '');
+    setVal('boiler_service_from',p.boiler_service_from?? s.boiler_service_from?? '');
+    setVal('quote_minimum',      p.quote_minimum      ?? s.quote_minimum      ?? '');
+    setVal('pricing_notes',      p.pricing_notes      ?? s.pricing_notes      ?? '');
 
-    setVal('ai_focus_free', p.ai_focus_free ?? p.services_summary ?? '');
-    setVal('ai_style_notes', p.ai_style_notes ?? '');
-    setVal('other_notes', p.other_notes ?? '');
-
-    readQuickPicksFromProfile(p);
+    // Focus / style / notes
+    setVal('ai_focus_free',  p.services_summary ?? s.services_summary ?? '');
+    setVal('ai_style_notes', p.ai_style_notes   ?? s.ai_style_notes   ?? '');
+    setVal('other_notes',    p.other_notes      ?? s.notes            ?? '');
   }
 
   async function loadProfile() {
@@ -844,6 +823,7 @@
       if (Array.isArray(profiles) && profiles.length) {
         profileRow = profiles[0];
       } else {
+        // Create a new profile seeded from signup
         const payload = {
           signup_id: signupId,
           contact_name: signupRow.contact_name || '',
@@ -854,6 +834,7 @@
           trade_type: signupRow.trade_type || '',
           base_postcode: signupRow.base_postcode || signupRow.service_area || '',
           website_url: signupRow.website_url || '',
+          service_radius: signupRow.service_radius || null,
           callout_fee: signupRow.callout_fee || null,
           first_hour_rate: signupRow.first_hour_rate || null,
           hourly_rate: signupRow.hourly_rate || null,
@@ -861,11 +842,7 @@
           quote_minimum: signupRow.quote_minimum || null,
           pricing_notes: signupRow.pricing_notes || '',
           services_summary: signupRow.services_summary || '',
-          ai_style_notes: signupRow.ai_style_notes || '',
-          callout_from: signupRow.callout_from || '',
-          ai_focus_quick: '',
-          ai_focus_free: '',
-          other_notes: ''
+          ai_style_notes: signupRow.ai_style_notes || ''
         };
 
         const created = await supabaseFetch(
@@ -903,8 +880,13 @@
 
     setFormStatus('Saving to Supabase…', 'neutral');
 
-    // Core payload used for business_profiles (full detail)
-    const payload = {
+    // Build combined "focus" text for services_summary
+    const quickPicks = getQuickPicksForSave();
+    const freeText = document.getElementById('ai_focus_free').value.trim();
+    const servicesSummaryCombined = [quickPicks, freeText].filter(Boolean).join(' | ');
+
+    // 1) Payload for business_profiles (only columns we’re confident exist)
+    const businessPayload = {
       signup_id: signupId,
       business_name: document.getElementById('business_name').value.trim(),
       contact_name: document.getElementById('contact_name').value.trim(),
@@ -914,9 +896,8 @@
       trade_type: document.getElementById('trade_type').value,
       base_postcode: document.getElementById('base_postcode').value.trim(),
       website_url: document.getElementById('website_url').value.trim(),
-      service_radius: document.getElementById('service_radius').value || null,
-      callout_from: document.getElementById('callout_from').value.trim(),
 
+      service_radius: document.getElementById('service_radius').value || null,
       callout_fee: document.getElementById('callout_fee').value || null,
       first_hour_rate: document.getElementById('first_hour_rate').value || null,
       hourly_rate: document.getElementById('hourly_rate').value || null,
@@ -924,64 +905,71 @@
       quote_minimum: document.getElementById('quote_minimum').value || null,
       pricing_notes: document.getElementById('pricing_notes').value.trim(),
 
-      ai_focus_quick: getQuickPicksForSave(),
-      ai_focus_free: document.getElementById('ai_focus_free').value.trim(),
-      services_summary: document.getElementById('ai_focus_free').value.trim(), // mirror into services_summary
-      ai_style_notes: document.getElementById('ai_style_notes').value.trim(),
-      other_notes: document.getElementById('other_notes').value.trim()
-    };
-
-    // Subset payload for tradebotpro_signups (no extra-only fields)
-    const signupUpdatePayload = {
-      business_name: payload.business_name,
-      contact_name: payload.contact_name,
-      email: payload.email,
-      whatsapp_number: payload.whatsapp_number,
-      phone: payload.phone,
-      trade_type: payload.trade_type,
-      base_postcode: payload.base_postcode,
-      website_url: payload.website_url,
-      service_radius: payload.service_radius,
-      callout_from: payload.callout_from,
-      callout_fee: payload.callout_fee,
-      first_hour_rate: payload.first_hour_rate,
-      hourly_rate: payload.hourly_rate,
-      boiler_service_from: payload.boiler_service_from,
-      quote_minimum: payload.quote_minimum,
-      pricing_notes: payload.pricing_notes,
-      services_summary: payload.services_summary,
-      ai_style_notes: payload.ai_style_notes
+      services_summary: servicesSummaryCombined,
+      ai_style_notes: document.getElementById('ai_style_notes').value.trim()
+      // NOTE: other_notes & ai_focus_quick are *not* sent here
+      // to avoid 400s if those columns don’t exist yet.
     };
 
     try {
-      // 1) Update business_profiles (main profile store for this page)
+      // 1) PATCH the business_profiles row
       await supabaseFetch(
         `business_profiles?signup_id=eq.${encodeURIComponent(signupId)}`,
         {
           method: 'PATCH',
-          body: JSON.stringify(payload),
+          body: JSON.stringify(businessPayload),
           headers: {
             Prefer: 'return=minimal'
           }
         }
       );
 
-      // 2) Mirror key fields back into tradebotpro_signups
-      await supabaseFetch(
-        `tradebotpro_signups?id=eq.${encodeURIComponent(signupId)}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify(signupUpdatePayload),
-          headers: {
-            Prefer: 'return=minimal'
+      // 2) Best-effort sync back to tradebotpro_signups (so your “master” row stays in step)
+      const signupPayload = {
+        business_name:  businessPayload.business_name,
+        contact_name:   businessPayload.contact_name,
+        email:          businessPayload.email,
+        phone:          businessPayload.phone,
+        whatsapp_number:businessPayload.whatsapp_number,
+        trade_type:     businessPayload.trade_type,
+        base_postcode:  businessPayload.base_postcode,
+        website_url:    businessPayload.website_url,
+        service_radius: businessPayload.service_radius,
+        callout_from:   document.getElementById('callout_from').value.trim(),
+
+        callout_fee:        businessPayload.callout_fee,
+        first_hour_rate:    businessPayload.first_hour_rate,
+        hourly_rate:        businessPayload.hourly_rate,
+        boiler_service_from:businessPayload.boiler_service_from,
+        quote_minimum:      businessPayload.quote_minimum,
+        pricing_notes:      businessPayload.pricing_notes,
+
+        services_summary: servicesSummaryCombined,
+        ai_style_notes:   businessPayload.ai_style_notes,
+        notes:            document.getElementById('other_notes').value.trim()
+      };
+
+      try {
+        await supabaseFetch(
+          `tradebotpro_signups?id=eq.${encodeURIComponent(signupId)}`,
+          {
+            method: 'PATCH',
+            body: JSON.stringify(signupPayload),
+            headers: {
+              Prefer: 'return=minimal'
+            }
           }
-        }
-      );
+        );
+      } catch (syncErr) {
+        console.warn('Signup sync failed (business_profiles still saved):', syncErr);
+        // Don’t block the “Saved” message if sync fails – it’s internal.
+      }
 
       setFormStatus('Saved. Your AI will use these details going forward.', 'ok');
       const now = new Date();
       if (lastSavedEl) {
-        lastSavedEl.textContent = 'Last saved at ' +
+        lastSavedEl.textContent =
+          'Last saved at ' +
           now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       }
     } catch (err) {
