@@ -454,167 +454,228 @@
 </div>
 
 <script>
-  // 1) UPDATE THESE TWO LINES WITH YOUR SUPABASE PROJECT DETAILS
-  //    Copy them from: Supabase Dashboard → Project Settings → API → URL & anon public key
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  // ----------------------------------------------------
+  // 1. SUPABASE SETTINGS – EDIT THESE TWO LINES ONLY
+  // ----------------------------------------------------
+  const SUPABASE_URL = 'https://yaiutswdcbfwkxfqxkzy.supabase.co';
+  const SUPABASE_ANON_KEY = 'PASTE_YOUR_ANON_KEY_HERE';
+  // (Find this in Supabase: Project Settings → API → anon public key)
 
-  // ------------------------------------------------------------
-  // Nothing below this line needs to be edited
-  // ------------------------------------------------------------
+  const TABLE_NAME = 'business_profiles';
 
-  document.getElementById('year').textContent = new Date().getFullYear();
-
-  var FIELD_IDS = [
+  // ----------------------------------------------------
+  // 2. FIELD LIST – IDs MUST MATCH YOUR INPUT IDs
+  //    (Only include fields that really exist in the DB)
+  // ----------------------------------------------------
+  const FIELD_IDS = [
+    'business_name',
     'contact_name',
     'owner_name',
-    'business_name',
     'email',
     'phone',
+    'whatsapp_number',
     'trade_type',
     'base_postcode',
+    'service_radius',
     'website_url',
+    'callout_from',
     'callout_fee',
     'first_hour_rate',
+    'hourly_rate_from',
     'hourly_rate',
     'boiler_service_from',
     'quote_minimum',
     'services_summary',
-    'ai_style_notes'
+    'pricing_notes',
+    'ai_style_notes',
+    'plan_status',
+    'pending_setup',
+    'is_active',
+    'account_status',
+    'account_status_reason',
+    'callout_notes'
   ];
 
+  // ----------------------------------------------------
+  // 3. SMALL HELPERS
+  // ----------------------------------------------------
   function getUserIdFromUrl() {
     var params = new URLSearchParams(window.location.search);
-    var id = params.get('user_id');
-    return id ? id.trim() : '';
+    return params.get('user_id');
   }
 
-  function setStatus(message, isError) {
-    var el = document.getElementById('status');
-    if (!el) return;
-    el.style.display = message ? 'block' : 'none';
-    el.textContent = message || '';
-    if (isError) {
-      el.classList.add('status-banner--error');
+  function getElement(id) {
+    return document.getElementById(id);
+  }
+
+  function showError(message) {
+    var box = getElement('app-error');
+    if (box) {
+      box.textContent = message;
+      box.style.display = 'block';
     } else {
-      el.classList.remove('status-banner--error');
+      alert(message);
     }
   }
 
-  function getHeaders(includePreferReturn) {
+  function showSuccess(message) {
+    var box = getElement('app-success');
+    if (box) {
+      box.textContent = message;
+      box.style.display = 'block';
+    } else {
+      alert(message);
+    }
+  }
+
+  function clearMessages() {
+    var err = getElement('app-error');
+    var ok = getElement('app-success');
+    if (err) err.style.display = 'none';
+    if (ok) ok.style.display = 'none';
+  }
+
+  // Fill form fields from a row object
+  function setFormValues(row) {
+    for (var i = 0; i < FIELD_IDS.length; i++) {
+      var field = FIELD_IDS[i];
+      var el = getElement(field);
+      if (!el) continue;
+      if (!row.hasOwnProperty(field)) continue;
+
+      if (el.type === 'checkbox') {
+        el.checked = !!row[field];
+      } else {
+        el.value = row[field] == null ? '' : String(row[field]);
+      }
+    }
+  }
+
+  // Collect form values into a payload object
+  function getFormValues() {
+    var payload = {};
+    for (var i = 0; i < FIELD_IDS.length; i++) {
+      var field = FIELD_IDS[i];
+      var el = getElement(field);
+      if (!el) continue;
+
+      if (el.type === 'checkbox') {
+        payload[field] = el.checked;
+      } else {
+        payload[field] = el.value.trim();
+      }
+    }
+    return payload;
+  }
+
+  // ----------------------------------------------------
+  // 4. SUPABASE FETCH HELPERS (REST API)
+  // ----------------------------------------------------
+  function supabaseHeaders(json) {
     var headers = {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: 'Bearer ' + SUPABASE_ANON_KEY
     };
-    if (includePreferReturn) {
+    if (json) {
+      headers['Content-Type'] = 'application/json';
       headers['Prefer'] = 'return=representation';
     }
     return headers;
   }
 
-  function fillForm(profile) {
-    if (!profile) return;
-    for (var i = 0; i < FIELD_IDS.length; i++) {
-      var id = FIELD_IDS[i];
-      var el = document.getElementById(id);
-      if (!el) continue;
-      if (profile[id] === undefined || profile[id] === null) continue;
-      el.value = String(profile[id]);
+  async function fetchProfile(userId) {
+    var url =
+      SUPABASE_URL +
+      '/rest/v1/' +
+      TABLE_NAME +
+      '?id=eq.' +
+      encodeURIComponent(userId) +
+      '&select=*';
+
+    var res = await fetch(url, {
+      headers: supabaseHeaders(false)
+    });
+
+    if (!res.ok) {
+      var text = await res.text();
+      console.error('Fetch profile failed:', res.status, text);
+      throw new Error('Fetch failed: ' + res.status + ' ' + text);
     }
+
+    var rows = await res.json();
+    if (!rows || rows.length === 0) {
+      throw new Error('No profile found for this link.');
+    }
+
+    return rows[0];
   }
 
-  function collectFormData() {
-    var data = {};
-    for (var i = 0; i < FIELD_IDS.length; i++) {
-      var id = FIELD_IDS[i];
-      var el = document.getElementById(id);
-      if (!el) continue;
-      data[id] = el.value.trim();
+  async function saveProfile(userId, payload) {
+    var url =
+      SUPABASE_URL +
+      '/rest/v1/' +
+      TABLE_NAME +
+      '?id=eq.' +
+      encodeURIComponent(userId);
+
+    var res = await fetch(url, {
+      method: 'PATCH',
+      headers: supabaseHeaders(true),
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      var text = await res.text();
+      console.error('Save profile failed:', res.status, text);
+      throw new Error('Save failed: ' + res.status + ' ' + text);
     }
-    return data;
+
+    var rows = await res.json();
+    return rows && rows[0] ? rows[0] : null;
   }
 
-  function init() {
+  // ----------------------------------------------------
+  // 5. INITIALISE PAGE
+  // ----------------------------------------------------
+  async function initialise() {
+    var form = getElement('profile-form'); // your main form element
+    clearMessages();
+
     var userId = getUserIdFromUrl();
-    if (!SUPABASE_URL || SUPABASE_URL.indexOf('YOUR-PROJECT-REF') !== -1) {
-      setStatus('Supabase URL and key are not set yet. Please update them at the bottom of this page source.', true);
-      return;
-    }
-    if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.indexOf('YOUR-ANON-ANON-PUBLIC-KEY-HERE') !== -1) {
-      setStatus('Supabase anon key is not set yet. Please update it at the bottom of this page source.', true);
-      return;
-    }
     if (!userId) {
-      setStatus('Missing user ID in the link. Please use the full link we sent you.', true);
+      showError('This link is missing a user ID. Please use the link we sent you.');
+      if (form) form.style.display = 'none';
       return;
     }
 
-    setStatus('Loading your details…', false);
+    try {
+      var row = await fetchProfile(userId);
+      setFormValues(row);
+    } catch (err) {
+      console.error('Fetch profile error:', err);
+      showError(err.message || 'Could not load your profile from TradeBotPro.');
+    }
 
-    // Fetch profile for this user_id
-    var url = SUPABASE_URL + '/rest/v1/business_profiles?user_id=eq.' +
-      encodeURIComponent(userId) + '&select=*';
-
-    fetch(url, { headers: getHeaders(false) })
-      .then(function (res) {
-        if (!res.ok) {
-          return res.text().then(function (text) {
-            throw new Error('Fetch failed: ' + res.status + ' ' + text);
-          });
-        }
-        return res.json();
-      })
-      .then(function (rows) {
-        if (!rows || !rows.length) {
-          setStatus('We couldn’t find your details. Please contact support.', true);
-          return;
-        }
-        fillForm(rows[0]);
-        setStatus('Loaded your latest details. Make changes and hit Save.', false);
-      })
-      .catch(function (err) {
-        console.error('Fetch profile error:', err);
-        setStatus('There was a problem loading your details. Please try again or contact support.', true);
-      });
-
-    // Handle form submit
-    var form = document.getElementById('profile-form');
     if (!form) return;
 
-    form.addEventListener('submit', function (evt) {
-      evt.preventDefault();
-      setStatus('Saving your changes…', false);
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      clearMessages();
 
-      var payload = collectFormData();
+      var payload = getFormValues();
 
-      var updateUrl = SUPABASE_URL + '/rest/v1/business_profiles?user_id=eq.' +
-        encodeURIComponent(userId);
-
-      fetch(updateUrl, {
-        method: 'PATCH',
-        headers: getHeaders(true),
-        body: JSON.stringify(payload)
-      })
-        .then(function (res) {
-          if (!res.ok) {
-            return res.text().then(function (text) {
-              throw new Error('Save failed: ' + res.status + ' ' + text);
-            });
-          }
-          return res.json();
-        })
-        .then(function () {
-          setStatus('Saved ✅ Your setup has been updated.', false);
-        })
-        .catch(function (err) {
-          console.error('Save profile error:', err);
-          setStatus('Something went wrong saving your details. Please try again or contact us.', true);
-        });
+      try {
+        await saveProfile(userId, payload);
+        showSuccess('Thanks – your details have been updated.');
+      } catch (err) {
+        console.error('Save profile error:', err);
+        showError('There was a problem saving your changes. Please try again.');
+      }
     });
   }
 
-  window.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', initialise);
 </script>
+
 </body>
 </html>
