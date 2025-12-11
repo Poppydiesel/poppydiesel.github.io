@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -142,6 +142,28 @@ button.secondary{
   font-size:13px;
   margin-bottom:10px;
 }
+
+/* NEW: client status strip */
+.status-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  margin-bottom:8px;
+}
+.status-row label{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  margin:0;
+}
+.status-message{
+  font-size:11px;
+  margin-left:8px;
+}
+.status-message.success{color:#15803d;}
+.status-message.error{color:#b91c1c;}
+.status-message.saving{color:#4b5563;}
 </style>
 </head>
 
@@ -149,7 +171,7 @@ button.secondary{
 
 <header>
   <h1>TradeBotPro Admin</h1>
-  <span>Internal · COPY-ONLY messages</span>
+  <span>Internal · COPY-ONLY messages + client status</span>
 </header>
 
 <main>
@@ -195,25 +217,70 @@ button.secondary{
       placeholder="Choose a template or write freely…"></textarea>
 
     <button onclick="copyMessage()">Copy message</button>
+
+    <!-- NEW: CLIENT STATUS SECTION -->
+    <hr style="margin:14px 0;border:none;border-top:1px solid #e5e7eb;">
+
+    <h3>Client status</h3>
+    <div id="statusInfo" class="small" style="margin-bottom:8px;">
+      Select a signup on the left to load its business profile.
+    </div>
+
+    <label for="planStatusSelect">Plan status</label>
+    <select id="planStatusSelect" aria-label="Plan status">
+      <option value="">(none)</option>
+      <option value="Trial">Trial</option>
+      <option value="Paid">Paid</option>
+      <option value="Cancelled">Cancelled</option>
+    </select>
+
+    <div class="status-row">
+      <label>
+        <input type="checkbox" id="pendingSetupCheckbox">
+        Pending setup
+      </label>
+      <label>
+        <input type="checkbox" id="isActiveCheckbox">
+        Active
+      </label>
+      <span id="statusSaveMessage" class="status-message small"></span>
+    </div>
+
+    <label for="accountReasonBox">Account status reason</label>
+    <textarea id="accountReasonBox"
+      aria-label="Account status reason"
+      placeholder="Optional note e.g. 'Paused for summer', 'Card failed', etc."></textarea>
+
+    <button class="secondary" id="saveStatusButton">Save status</button>
   </div>
 
 </main>
 
 <script src="https://esm.sh/@supabase/supabase-js@2"></script>
 <script>
-/* ⛔ CHANGE ONLY THESE TWO LINES */
+/* ⛔ CHANGE ONLY THESE TWO LINES IF NEEDED */
 const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
 const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let allRows = [];
 let selected = null;
+let selectedProfile = null; // NEW: business_profiles row for this signup
 
 const rowsEl = document.getElementById('rows');
 const selectedInfo = document.getElementById('selectedInfo');
 const templateSelect = document.getElementById('templateSelect');
 const messageBox = document.getElementById('messageBox');
+
+// NEW status elements
+const statusInfo = document.getElementById('statusInfo');
+const planStatusSelect = document.getElementById('planStatusSelect');
+const pendingSetupCheckbox = document.getElementById('pendingSetupCheckbox');
+const isActiveCheckbox = document.getElementById('isActiveCheckbox');
+const accountReasonBox = document.getElementById('accountReasonBox');
+const saveStatusButton = document.getElementById('saveStatusButton');
+const statusSaveMessage = document.getElementById('statusSaveMessage');
 
 async function load(){
   const { data, error } = await supabase
@@ -223,6 +290,7 @@ async function load(){
 
   if(error){
     rowsEl.innerHTML='<tr><td colspan="4">Error loading</td></tr>';
+    console.error("Error loading signups", error);
     return;
   }
   allRows=data;
@@ -244,16 +312,69 @@ function render(){
     tr.onclick=()=>selectRow(r);
     rowsEl.appendChild(tr);
   });
+
+  if(!allRows.length){
+    rowsEl.innerHTML='<tr><td colspan="4" class="small">No signups yet</td></tr>';
+  }
 }
 
 function selectRow(r){
   selected=r;
-  selectedInfo.textContent=`Selected: ${r.business_name}`;
-  document.querySelectorAll('tr').forEach(tr=>tr.classList.remove('selected'));
+  selectedProfile=null;
+  selectedInfo.textContent=`Selected: ${r.business_name||'(no business name)'}`;
+
+  // highlight
+  document.querySelectorAll('#rows tr').forEach(tr=>tr.classList.remove('selected'));
   const row=[...rowsEl.children].find(x=>x.dataset.id==r.id);
   if(row) row.classList.add('selected');
+
+  // reset messaging
   templateSelect.value='';
   messageBox.value='';
+
+  // reset status UI & load profile
+  planStatusSelect.value='';
+  pendingSetupCheckbox.checked=false;
+  isActiveCheckbox.checked=false;
+  accountReasonBox.value='';
+  statusSaveMessage.textContent='';
+  statusSaveMessage.className='status-message small';
+  statusInfo.textContent='Loading linked business profile…';
+
+  loadProfileForSelected(r);
+}
+
+// NEW: load linked business_profiles row via signup_id
+async function loadProfileForSelected(signup){
+  const { data, error } = await supabase
+    .from('business_profiles')
+    .select('*')
+    .eq('signup_id', signup.id)
+    .maybeSingle();
+
+  if(error){
+    console.error("Error loading business profile", error);
+    statusInfo.textContent='Could not load business profile for this signup.';
+    return;
+  }
+
+  if(!data){
+    statusInfo.textContent='No business profile row yet for this signup.';
+    selectedProfile=null;
+    planStatusSelect.value='';
+    pendingSetupCheckbox.checked=false;
+    isActiveCheckbox.checked=false;
+    accountReasonBox.value='';
+    return;
+  }
+
+  selectedProfile=data;
+  statusInfo.textContent='Profile loaded. Changes here update business_profiles.';
+
+  planStatusSelect.value = data.plan_status || '';
+  pendingSetupCheckbox.checked = !!data.pending_setup;
+  isActiveCheckbox.checked = !!data.is_active;
+  accountReasonBox.value = data.account_status_reason || '';
 }
 
 templateSelect.onchange=()=>{
@@ -288,6 +409,79 @@ function copyMessage(){
   navigator.clipboard.writeText(messageBox.value);
   alert('Copied to clipboard');
 }
+
+// NEW: save client status back to business_profiles
+async function saveStatus(){
+  if(!selected){
+    alert('Select a customer first');
+    return;
+  }
+
+  statusSaveMessage.textContent='Saving…';
+  statusSaveMessage.className='status-message small saving';
+
+  const payload = {
+    plan_status: planStatusSelect.value || null,
+    pending_setup: pendingSetupCheckbox.checked,
+    is_active: isActiveCheckbox.checked,
+    account_status_reason: accountReasonBox.value || null
+  };
+
+  // If there is no business_profile yet (older signups), create one minimal
+  if(!selectedProfile){
+    const newPayload = {
+      signup_id: selected.id,
+      business_name: selected.business_name || null,
+      owner_name: selected.owner_name || null,
+      contact_name: selected.contact_name || null,
+      email: selected.email || null,
+      phone: selected.phone || null,
+      trade_type: selected.trade_type || null,
+      base_postcode: selected.base_postcode || null,
+      services_summary: selected.services_summary || null,
+      ...payload
+    };
+
+    const { data, error } = await supabase
+      .from('business_profiles')
+      .insert(newPayload)
+      .select()
+      .maybeSingle();
+
+    if(error){
+      console.error("Error creating business profile", error);
+      statusSaveMessage.textContent='Error saving status.';
+      statusSaveMessage.className='status-message small error';
+      return;
+    }
+
+    selectedProfile = data;
+    statusSaveMessage.textContent='Status saved (new profile created).';
+    statusSaveMessage.className='status-message small success';
+    return;
+  }
+
+  // Update existing business_profile
+  const { data, error } = await supabase
+    .from('business_profiles')
+    .update(payload)
+    .eq('id', selectedProfile.id)
+    .select()
+    .maybeSingle();
+
+  if(error){
+    console.error("Error updating business profile", error);
+    statusSaveMessage.textContent='Error saving status.';
+    statusSaveMessage.className='status-message small error';
+    return;
+  }
+
+  selectedProfile = data;
+  statusSaveMessage.textContent='Status saved.';
+  statusSaveMessage.className='status-message small success';
+}
+
+saveStatusButton.onclick = saveStatus;
 
 load();
 </script>
