@@ -1109,23 +1109,25 @@
     };
 
     // --------------------------------------------
-    // CHIP VISUAL HELPERS (FORCE HIGHLIGHT)
+    // CHIP VISUAL HELPERS (FORCE HIGHLIGHT, !IMPORTANT)
     // --------------------------------------------
     function clearChipVisual(chip) {
+      console.log("clearChipVisual", chip.textContent.trim());
       chip.classList.remove("is-active");
-      chip.style.backgroundColor = "";
-      chip.style.borderColor = "";
-      chip.style.color = "";
-      chip.style.boxShadow = "";
+      chip.style.setProperty("background-color", "", "important");
+      chip.style.setProperty("border-color", "", "important");
+      chip.style.setProperty("color", "", "important");
+      chip.style.setProperty("box-shadow", "", "important");
       chip.dataset.active = "0";
     }
 
     function setChipActiveVisual(chip) {
+      console.log("setChipActiveVisual", chip.textContent.trim());
       chip.classList.add("is-active");
-      chip.style.backgroundColor = "#e8f0fa";
-      chip.style.borderColor = "#1f4e79";
-      chip.style.color = "#1f4e79";
-      chip.style.boxShadow = "0 0 0 2px rgba(31, 78, 121, 0.2)";
+      chip.style.setProperty("background-color", "#e8f0fa", "important");
+      chip.style.setProperty("border-color", "#1f4e79", "important");
+      chip.style.setProperty("color", "#1f4e79", "important");
+      chip.style.setProperty("box-shadow", "0 0 0 2px rgba(31, 78, 121, 0.2)", "important");
       chip.dataset.active = "1";
     }
 
@@ -1462,7 +1464,6 @@
     loadDraftFromBrowser();
   });
 </script>
-
 
   
 </body>
