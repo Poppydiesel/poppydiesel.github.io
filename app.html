@@ -990,13 +990,6 @@
   window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";               // <--- YOUR KEY in quotes
   // ⬆️ DO NOT REMOVE THE QUOTES. Key must stay as one line string. ⬆️
 
-  <!-- 🔐 SUPABASE CONFIG – must be before the wizard script -->
-<script>
-  // ⬇️ REPLACE THESE TWO LINES ONLY – KEEP THE QUOTES ⬇️
-  window.SUPABASE_URL = "https://YOURPROJECTID.supabase.co";  // <--- YOUR URL in quotes
-  window.SUPABASE_KEY = "YOUR_PUBLIC_ANON_KEY";               // <--- YOUR KEY in quotes
-  // ⬆️ DO NOT REMOVE THE QUOTES. Key must stay as one line string. ⬆️
-
   async function supabaseFetch(path, options = {}) {
     // Fail fast if not configured properly
     if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
@@ -1391,14 +1384,89 @@
       // SUPABASE SAVE (business_profiles only)
       // -------------------------
 
-      async function saveWizardToBusinessProfile() {
-        // If Supabase helper is missing, just show local success and stop
-        if (typeof supabaseFetch !== "function") {
-          statusMessage.textContent =
-            "Form sent successfully (saved locally). We’ll link this to your account during onboarding.";
-          statusMessage.className = "wizard-status-message wizard-status-message--success";
+          // -------------------------
+    // SUPABASE SAVE (business_profiles only)
+    // -------------------------
+
+    async function saveWizardToBusinessProfile() {
+      // Build a minimal, safe payload – only columns we’re confident exist.
+      const payload = {
+        contact_name: state.contact_name || null,
+        business_name: state.business_name || null,
+        email: state.contact_email || null,
+        phone: state.contact_mobile || null,
+        base_postcode: state.base_postcode || null,
+        service_radius: state.coverage_radius || null,
+        notes: state.extra_notes || null,
+        services_summary:
+          state.preferred_jobs && state.preferred_jobs.length
+            ? state.preferred_jobs.join(", ")
+            : null
+      };
+
+      console.log("Saving wizard payload:", payload, "userId:", userId);
+
+      // CASE A: No user_id → INSERT new business_profiles row (new enquiry)
+      if (!userId) {
+        statusMessage.textContent = "Saving…";
+        statusMessage.className = "wizard-status-message wizard-status-message--saving";
+
+        const { data, error } = await supabaseFetch(
+          `/business_profiles`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Prefer: "return=representation"
+            },
+            body: JSON.stringify(payload)
+          }
+        );
+
+        if (error) {
+          console.error("Insert profile error:", error);
+          statusMessage.textContent = "There was a problem sending your form. Please try again.";
+          statusMessage.className = "wizard-status-message wizard-status-message--error";
           return;
         }
+
+        console.log("New business profile created:", data);
+        statusMessage.textContent = "Form sent successfully.";
+        statusMessage.className = "wizard-status-message wizard-status-message--success";
+
+        // Clear the form for the next enquiry
+        resetWizard();
+        return;
+      }
+
+      // CASE B: user_id present → PATCH existing row
+      statusMessage.textContent = "Saving…";
+      statusMessage.className = "wizard-status-message wizard-status-message--saving";
+
+      const { data, error } = await supabaseFetch(
+        `/business_profiles?id=eq.${encodeURIComponent(userId)}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      if (error) {
+        console.error("Save profile error:", error);
+        statusMessage.textContent = "There was a problem sending your form. Please try again.";
+        statusMessage.className = "wizard-status-message wizard-status-message--error";
+        return;
+      }
+
+      console.log("Business profile updated:", data);
+      statusMessage.textContent = "Form sent successfully.";
+      statusMessage.className = "wizard-status-message wizard-status-message--success";
+    }
+
 
         // Build a minimal, safe payload – only columns we’re confident exist.
         const payload = {
