@@ -355,6 +355,17 @@
       font-weight: 600;
     }
 
+    .chip-row.mini {
+      margin-top: 0.2rem;
+      margin-bottom: 0.25rem;
+      gap: 6px;
+    }
+
+    .chip.mini {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.72rem;
+    }
+
     .filter-bar {
       display: flex;
       flex-direction: column;
@@ -536,6 +547,74 @@
       border-color: #facc15;
     }
 
+    .client-controls-block {
+      margin-top: 0.25rem;
+      border-radius: 0.65rem;
+      padding: 0.45rem 0.55rem;
+      background: #f9fafb;
+      border: 1px dashed rgba(148, 163, 184, 0.6);
+    }
+
+    .client-controls-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 0.45rem;
+    }
+
+    @media (max-width: 900px) {
+      .client-controls-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .mini-select {
+      width: 100%;
+      padding: 0.3rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      font-size: 0.75rem;
+      background: #ffffff;
+      color: #374151;
+    }
+
+    .mini-select:focus {
+      outline: 0;
+      border-color: rgba(37, 99, 235, 0.7);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+    }
+
+    .notes-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .notes-textarea {
+      width: 100%;
+      min-height: 52px;
+      resize: vertical;
+      padding: 0.35rem 0.5rem;
+      border-radius: 0.6rem;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      font-size: 0.76rem;
+      font-family: inherit;
+      background: #ffffff;
+    }
+
+    .notes-textarea:focus {
+      outline: 0;
+      border-color: rgba(37, 99, 235, 0.7);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+    }
+
+    .notes-hint {
+      font-size: 0.7rem;
+      color: #9ca3af;
+    }
+
     .client-actions-row {
       display: flex;
       justify-content: flex-end;
@@ -590,13 +669,6 @@
       font-size: 0.85rem;
       color: var(--muted-text);
       padding: 0.5rem 0;
-    }
-
-    .small-mono {
-      font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono",
-        "Courier New", monospace;
-      font-size: 0.72rem;
-      color: #6b7280;
     }
 
     #dashboard-status-message {
@@ -659,8 +731,7 @@
         </div>
       </div>
       <div class="header-note">
-        Shows every client with a <strong>business profile</strong> – whether they self-signed up
-        or were added manually.
+        Shows every client with a <strong>business profile</strong> – plus demo, trial &amp; upsell notes.
       </div>
     </div>
   </header>
@@ -698,13 +769,13 @@
 
         <div class="dash-note">
           <strong>How to use this screen:</strong> Filter by onboarding stage, search by business
-          or postcode and click <em>Open in wizard</em> to tune their AI setup. The small tag on
-          each card shows whether they <strong>self-signed up</strong> or were
-          <strong>added manually</strong>.
+          or postcode and use the controls on each card to set <strong>Demo / Free trial</strong>,
+          what level they’re comfortable with and whether they want
+          <strong>more areas later</strong>.
         </div>
 
         <div class="dash-legend">
-          <div class="small-label">Onboarding legend</div>
+          <div class="small-label">Onboarding legend (system view)</div>
           <div class="legend-row">
             <div class="legend-pill">
               <span class="legend-dot needs-setup"></span>
@@ -719,7 +790,7 @@
               <span>Full plan live</span>
             </div>
             <div class="legend-pill">
-              <span class="legend-dot.paused"></span>
+              <span class="legend-dot paused"></span>
               <span>Paused / inactive</span>
             </div>
           </div>
@@ -915,26 +986,70 @@
         return { label: "Profile only", cls: "origin-profile-only" };
       }
 
-      // If we have both timestamps, use time difference
       const profileTime = client.created_at ? new Date(client.created_at) : null;
       const signupTime = signupRow.created_at ? new Date(signupRow.created_at) : null;
 
       if (profileTime && signupTime && !isNaN(profileTime) && !isNaN(signupTime)) {
         const diffMs = Math.abs(profileTime.getTime() - signupTime.getTime());
 
-        // If created within 15s of each other, treat as "Added manually"
         if (diffMs <= 15000) {
           return { label: "Added manually", cls: "origin-manual" };
         }
 
-        // Otherwise, signup existed first → they came through the homepage
         if (signupTime < profileTime) {
           return { label: "Self-signup", cls: "origin-self" };
         }
       }
 
-      // Fallback if dates are weird
       return { label: "Self-signup", cls: "origin-self" };
+    }
+
+    // ---- PATCH helper ----
+    async function patchBusinessProfile(id, payload, onSuccess) {
+      if (!id) return;
+      const { data, error } = await supabaseFetch(
+        `/business_profiles?id=eq.${encodeURIComponent(id)}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      if (error) {
+        console.error("Error updating business_profile:", error);
+        if (statusMessageEl) {
+          statusMessageEl.textContent = "Save failed – please try again.";
+          statusMessageEl.className = "status-error";
+        }
+        return;
+      }
+
+      if (Array.isArray(data) && data.length) {
+        const updated = data[0];
+        const idx = allClients.findIndex((c) => c.id === id);
+        if (idx !== -1) {
+          allClients[idx] = { ...allClients[idx], ...updated };
+        }
+      }
+
+      if (onSuccess) onSuccess();
+
+      if (statusMessageEl) {
+        statusMessageEl.textContent = "Saved.";
+        statusMessageEl.className = "status-success";
+        setTimeout(() => {
+          if (statusMessageEl.textContent === "Saved.") {
+            statusMessageEl.textContent = "";
+            statusMessageEl.className = "";
+          }
+        }, 1500);
+      }
+
+      render();
     }
 
     // ---- Rendering ----
@@ -968,7 +1083,10 @@
             client.email,
             client.phone,
             client.base_postcode,
-            client.services_summary
+            client.services_summary,
+            client.account_status,
+            client.pricing_notes,
+            client.callout_notes
           ]
             .filter(Boolean)
             .join(" | ")
@@ -1010,29 +1128,28 @@
 
           const origin = computeOrigin(client);
 
-          // Derive link to wizard:
-          // Prefer signup_id → app.html?signup_id=...
-          // Otherwise use profile id → app.html?profile_id=...
           const signupId = client.signup_id || null;
           const profileId = client.id;
           const wizardUrl = signupId
             ? `app.html?signup_id=${encodeURIComponent(signupId)}`
             : `app.html?profile_id=${encodeURIComponent(profileId)}`;
 
-          // Build tags from services_summary (simple split)
           const tags = servicesSummary
             .split(",")
             .map((s) => s.trim())
             .filter(Boolean);
+
+          const onboardingStatus = client.account_status || "New lead";
+          const comfort = client.pricing_notes || "Not discussed yet";
+          const areasNotes = client.callout_notes || "Not discussed yet";
+          const notes = client.notes || "";
 
           card.innerHTML = `
             <div class="client-header-row">
               <div>
                 <div class="client-name">${client.business_name || "Unnamed business"}</div>
                 <div class="client-sub">
-                  ${client.contact_name ? client.contact_name + " · " : ""}${
-            client.email || "No email yet"
-          }
+                  ${client.contact_name ? client.contact_name + " · " : ""}${client.email || "No email yet"}
                 </div>
               </div>
               <div>
@@ -1078,12 +1195,68 @@
                             .replace("Small jobs / quick wins", "Small jobs")
                             .replace("Bigger projects / installs", "Big projects")
                             .replace("Maintenance / servicing", "Servicing")
-                            .replace("Landlords / repeat clients", "Landlords")
-                          }</span>`
+                            .replace("Landlords / repeat clients", "Landlords")}</span>`
                       )
                       .join("")
                   : ""
               }
+            </div>
+
+            <div class="client-controls-block" data-profile-id="${profileId}">
+              <div class="client-controls-row">
+                <div>
+                  <div class="small-label">Onboarding status</div>
+                  <select class="mini-select status-select">
+                    <option value="New lead"${onboardingStatus === "New lead" ? " selected" : ""}>New lead</option>
+                    <option value="Demo booked"${onboardingStatus === "Demo booked" ? " selected" : ""}>Demo booked</option>
+                    <option value="Demo complete"${onboardingStatus === "Demo complete" ? " selected" : ""}>Demo complete</option>
+                    <option value="Free trial"${onboardingStatus === "Free trial" ? " selected" : ""}>Free trial</option>
+                    <option value="Live – Starter"${onboardingStatus === "Live – Starter" ? " selected" : ""}>Live – Starter</option>
+                    <option value="Live – Pro"${onboardingStatus === "Live – Pro" ? " selected" : ""}>Live – Pro</option>
+                    <option value="Paused / on hold"${onboardingStatus === "Paused / on hold" ? " selected" : ""}>Paused / on hold</option>
+                    <option value="Not interested"${onboardingStatus === "Not interested" ? " selected" : ""}>Not interested</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="small-label">Comfortable subscription level</div>
+                  <select class="mini-select comfort-select">
+                    <option value="Not discussed yet"${comfort === "Not discussed yet" ? " selected" : ""}>Not discussed yet</option>
+                    <option value="Leaning to Free trial only"${comfort === "Leaning to Free trial only" ? " selected" : ""}>Leaning to Free trial only</option>
+                    <option value="Happy with Starter"${comfort === "Happy with Starter" ? " selected" : ""}>Happy with Starter</option>
+                    <option value="Happy with Pro"${comfort === "Happy with Pro" ? " selected" : ""}>Happy with Pro</option>
+                    <option value="Wants cheapest option"${comfort === "Wants cheapest option" ? " selected" : ""}>Wants cheapest option</option>
+                    <option value="Open to anything with ROI"${comfort === "Open to anything with ROI" ? " selected" : ""}>Open to anything with ROI</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="small-label">More areas interest</div>
+                  <div class="chip-row mini areas-chips">
+                    <button type="button" class="chip mini ${
+                      areasNotes === "Not discussed yet" ? "is-active" : ""
+                    }" data-value="Not discussed yet">Not discussed yet</button>
+                    <button type="button" class="chip mini ${
+                      areasNotes === "Core area only" ? "is-active" : ""
+                    }" data-value="Core area only">Core area only</button>
+                    <button type="button" class="chip mini ${
+                      areasNotes === "Open to more later" ? "is-active" : ""
+                    }" data-value="Open to more later">Open to more later</button>
+                    <button type="button" class="chip mini ${
+                      areasNotes === "Definitely wants more areas" ? "is-active" : ""
+                    }" data-value="Definitely wants more areas">Definitely wants more areas</button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="notes-label-row">
+                  <div class="small-label">Follow-up &amp; next steps (internal)</div>
+                  <div class="notes-hint">e.g. "Call after demo, offer Pro + extra areas"</div>
+                </div>
+                <textarea class="notes-textarea notes-input">${notes.replace(
+                  /&/g,
+                  "&amp;"
+                ).replace(/</g, "&lt;").replace(/>/g, "&gt;")}</textarea>
+              </div>
             </div>
 
             <div class="client-actions-row">
@@ -1100,7 +1273,6 @@
         });
       }
 
-      // Summary counts
       const total = allClients.length;
       const liveCount = allClients.filter((c) => {
         const stage = computeStageKey(c);
@@ -1120,7 +1292,6 @@
         statusMessageEl.className = "";
       }
 
-      // 1) Load business_profiles
       const { data, error } = await supabaseFetch(
         "/business_profiles?select=*&order=created_at.desc",
         { method: "GET" }
@@ -1139,7 +1310,6 @@
       allClients = Array.isArray(data) ? data : [];
       console.log("Loaded business_profiles for dashboard:", allClients);
 
-      // 2) Load matching tradebotpro_signups for any signup_ids
       const signupIds = Array.from(
         new Set(
           allClients
@@ -1203,22 +1373,69 @@
     if (clientsListEl) {
       clientsListEl.addEventListener("click", (evt) => {
         const btn = evt.target.closest("button[data-action]");
-        if (!btn) return;
-        const action = btn.getAttribute("data-action");
-        if (action === "open-wizard") {
-          const href = btn.getAttribute("data-href");
-          if (href) {
-            window.open(href, "_blank");
+        if (btn) {
+          const action = btn.getAttribute("data-action");
+          if (action === "open-wizard") {
+            const href = btn.getAttribute("data-href");
+            if (href) {
+              window.open(href, "_blank");
+            }
+            return;
           }
-        } else if (action === "open-messages") {
-          const id = btn.getAttribute("data-id");
-          // Placeholder – later this can open a dedicated CRM/messages view
-          alert("Messages/CRM view coming soon for profile id: " + id);
+          if (action === "open-messages") {
+            const id = btn.getAttribute("data-id");
+            alert("Messages/CRM view coming soon for profile id: " + id);
+            return;
+          }
+        }
+
+        const chip = evt.target.closest(".areas-chips .chip");
+        if (chip) {
+          const block = chip.closest(".client-controls-block");
+          if (!block) return;
+          const profileId = block.getAttribute("data-profile-id");
+          const value = chip.getAttribute("data-value");
+          if (!profileId || !value) return;
+
+          const row = chip.parentElement;
+          row.querySelectorAll(".chip").forEach((c) => c.classList.remove("is-active"));
+          chip.classList.add("is-active");
+
+          patchBusinessProfile(profileId, { callout_notes: value });
         }
       });
+
+      clientsListEl.addEventListener("change", (evt) => {
+        const target = evt.target;
+        const block = target.closest(".client-controls-block");
+        if (!block) return;
+        const profileId = block.getAttribute("data-profile-id");
+        if (!profileId) return;
+
+        if (target.classList.contains("status-select")) {
+          const value = target.value;
+          patchBusinessProfile(profileId, { account_status: value });
+        }
+
+        if (target.classList.contains("comfort-select")) {
+          const value = target.value;
+          patchBusinessProfile(profileId, { pricing_notes: value });
+        }
+      });
+
+      clientsListEl.addEventListener("blur", (evt) => {
+        const target = evt.target;
+        if (!target.classList.contains("notes-input")) return;
+        const block = target.closest(".client-controls-block");
+        if (!block) return;
+        const profileId = block.getAttribute("data-profile-id");
+        if (!profileId) return;
+
+        const value = target.value || "";
+        patchBusinessProfile(profileId, { notes: value });
+      }, true);
     }
 
-    // Init
     loadClients();
   });
 </script>
