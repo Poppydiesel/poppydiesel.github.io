@@ -1320,57 +1320,158 @@
       return true;
     }
 
-    // --------------------------------------------
-    // SUPABASE SAVE (insert or update)
-    // --------------------------------------------
-    async function saveWizardToBusinessProfile() {
-      const payload = {
-        business_name: state.business_name || null,
-        contact_name: state.contact_name || null,
-        email: state.contact_email || null,
-        phone: state.contact_mobile || null,
-        base_postcode: state.base_postcode || null,
-        services_summary:
-          state.preferred_jobs && state.preferred_jobs.length
-            ? state.preferred_jobs.join(", ")
-            : null,
-        plan_status: "Trial",
-        pending_setup: true,
-        is_active: false
+// --------------------------------------------
+// SUPABASE SAVE – tradebotpro_signups + business_profiles
+// --------------------------------------------
+async function saveWizardToBusinessProfile() {
+  if (!statusMessage) return;
+
+  // Base fields reused for both tables
+  const servicesSummary =
+    state.preferred_jobs && state.preferred_jobs.length
+      ? state.preferred_jobs.join(", ")
+      : null;
+
+  const commonFields = {
+    business_name: state.business_name || null,
+    contact_name: state.contact_name || null,
+    email: state.contact_email || null,
+    phone: state.contact_mobile || null,
+    base_postcode: state.base_postcode || null,
+    services_summary: servicesSummary,
+    plan_status: "Trial",
+    pending_setup: true,
+    is_active: false
+  };
+
+  statusMessage.textContent = "Saving…";
+  statusMessage.className = "wizard-status-message wizard-status-message--saving";
+
+  try {
+    let signupId = null;
+
+    // ------------------------------------------------
+    // CASE 1: NEW SIGNUP (no user_id in URL)
+    // ------------------------------------------------
+    if (!userId) {
+      const signupPayload = {
+        ...commonFields,
+        // If you want to tag the main trade into signups, do it here:
+        trade_type: state.main_trade || null
       };
 
-      console.log("Saving wizard payload:", payload, "userId:", userId);
-
-      if (!statusMessage) return;
-
-      statusMessage.textContent = "Saving…";
-      statusMessage.className = "wizard-status-message wizard-status-message--saving";
-
-      const { data, error } = await supabaseFetch(
-        userId
-          ? `/business_profiles?id=eq.${encodeURIComponent(userId)}`
-          : `/business_profiles`,
+      // 1) Insert into tradebotpro_signups first
+      const { data: signupData, error: signupError } = await supabaseFetch(
+        `/tradebotpro_signups`,
         {
-          method: userId ? "PATCH" : "POST",
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
             Prefer: "return=representation"
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(signupPayload)
         }
       );
 
-      if (error) {
-        console.error("Save profile error:", error);
-        statusMessage.textContent = "There was a problem saving your form. Please try again.";
+      if (signupError || !signupData || !signupData.length) {
+        console.error("Insert tradebotpro_signups error:", signupError || signupData);
+        statusMessage.textContent =
+          "There was a problem saving your signup. Please try again.";
         statusMessage.className = "wizard-status-message wizard-status-message--error";
         return;
       }
 
-      console.log("Business profile saved:", data);
-      statusMessage.textContent = "Form sent successfully.";
+      signupId = signupData[0].id;
+      console.log("New signup created:", signupData[0]);
+
+      // 2) Insert into business_profiles, linked to that signup_id
+      const businessPayload = {
+        ...commonFields,
+        signup_id: signupId
+      };
+
+      const { data: bpData, error: bpError } = await supabaseFetch(
+        `/business_profiles`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify(businessPayload)
+        }
+      );
+
+      if (bpError || !bpData || !bpData.length) {
+        console.error("Insert business_profiles error:", bpError || bpData);
+        statusMessage.textContent =
+          "Signup saved but linking business profile failed. We’ll fix this manually.";
+        statusMessage.className = "wizard-status-message wizard-status-message--error";
+        return;
+      }
+
+      console.log("New business profile created:", bpData[0]);
+
+      statusMessage.textContent = "Business details sent successfully.";
       statusMessage.className = "wizard-status-message wizard-status-message--success";
+
+      // Optional: clear the form for the next enquiry
+      Object.keys(state).forEach((key) => (state[key] = Array.isArray(state[key]) ? [] : ""));
+      Object.values(textInputs).forEach((el) => {
+        if (el) el.value = "";
+      });
+      const chipRows = document.querySelectorAll(".chip-row");
+      chipRows.forEach((row) => {
+        row.querySelectorAll(".chip").forEach((chip) => {
+          chip.classList.remove("is-active");
+        });
+      });
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
     }
+
+    // ------------------------------------------------
+    // CASE 2: EXISTING CLIENT / ONBOARDING (user_id present)
+    // Only update business_profiles row with id = user_id
+    // ------------------------------------------------
+    const businessUpdatePayload = {
+      ...commonFields
+      // Do NOT touch signup_id here – it should already be set
+    };
+
+    const { data: updateData, error: updateError } = await supabaseFetch(
+      `/business_profiles?id=eq.${encodeURIComponent(userId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify(businessUpdatePayload)
+      }
+    );
+
+    if (updateError || !updateData || !updateData.length) {
+      console.error("Update business_profiles error:", updateError || updateData);
+      statusMessage.textContent =
+        "There was a problem updating your business details. Please try again.";
+      statusMessage.className = "wizard-status-message wizard-status-message--error";
+      return;
+    }
+
+    console.log("Business profile updated:", updateData[0]);
+    statusMessage.textContent = "Business details updated successfully.";
+    statusMessage.className = "wizard-status-message wizard-status-message--success";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (err) {
+    console.error("Unexpected save error:", err);
+    statusMessage.textContent =
+      "Unexpected error while saving your details. Please try again.";
+    statusMessage.className = "wizard-status-message wizard-status-message--error";
+  }
+}
+
 
     // --------------------------------------------
     // BUTTON EVENTS
