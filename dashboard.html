@@ -2,614 +2,1173 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro — Client Dashboard</title>
+  <title>TradeBotPro – Client Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta
     name="description"
-    content="TradeBotPro dashboard to manage clients, see onboarding status and open the setup wizard."
+    content="Internal dashboard for managing TradeBotPro clients and onboarding."
   />
 
   <style>
     :root {
       --primary-blue: #1f4e79;
       --accent-blue: #00a3ff;
-      --dark-text: #1b1b1f;
-      --muted-text: #666a73;
-      --light-bg: #f5f7fa;
-      --card-bg: #ffffff;
-      --border-subtle: #e0e3eb;
-      --radius-lg: 16px;
-      --danger: #d9534f;
+      --dark-text: #151820;
+      --muted-text: #6b7280;
+      --light-bg: #f3f4f9;
+      --white: #ffffff;
+      --border-subtle: rgba(15, 23, 42, 0.12);
+      --success-green: #0f7b46;
+      --error-red: #b3261e;
+      --warning-amber: #b45309;
+      --pill-bg: #e5edff;
     }
 
     * {
       box-sizing: border-box;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: var(--light-bg);
+      background: radial-gradient(circle at top left, #e0ebff 0, #f3f4f9 40%, #fdfdfd 100%);
       color: var(--dark-text);
       line-height: 1.5;
     }
 
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* PAGE LAYOUT – mirror wizard */
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
     header {
-      background: var(--card-bg);
-      border-bottom: 1px solid var(--border-subtle);
-      padding: 12px 24px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      background: rgba(248, 250, 252, 0.96);
+      backdrop-filter: blur(6px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0.6rem 1.25rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      gap: 0.75rem;
     }
 
-    .brand {
+    .logo-wrap {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 0.6rem;
     }
 
-    .brand-mark {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, var(--accent-blue), var(--primary-blue));
+    .logo-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: var(--primary-blue);
+      position: relative;
     }
 
-    .brand-title {
+    .logo-icon::before,
+    .logo-icon::after {
+      content: "";
+      position: absolute;
+      background: var(--white);
+      border-radius: 4px;
+    }
+
+    .logo-icon::before {
+      width: 11px;
+      height: 17px;
+      left: 7px;
+      top: 6px;
+    }
+
+    .logo-icon::after {
+      width: 6px;
+      height: 11px;
+      right: 7px;
+      top: 9px;
+    }
+
+    .logo-main {
+      font-weight: 700;
       font-size: 1rem;
-      font-weight: 600;
+      color: var(--primary-blue);
     }
 
-    .brand-subtitle {
-      font-size: 0.8rem;
+    .logo-tag {
+      font-size: 0.75rem;
       color: var(--muted-text);
+    }
+
+    .header-note {
+      font-size: 0.75rem;
+      color: var(--muted-text);
+    }
+
+    .header-note strong {
+      color: var(--primary-blue);
+      font-weight: 600;
     }
 
     main {
-      max-width: 1200px;
-      margin: 16px auto 32px;
-      padding: 0 16px;
-    }
-
-    .top-row {
+      flex: 1;
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
+      justify-content: center;
+      padding: 2.5rem 1.25rem 3rem;
     }
 
-    h1 {
-      margin: 0;
-      font-size: 1.4rem;
-    }
-
-    .filters {
-      background: var(--card-bg);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-subtle);
-      padding: 10px 12px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px 16px;
-      align-items: flex-end;
-      margin-bottom: 16px;
-    }
-
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 140px;
-      font-size: 0.85rem;
-    }
-
-    label {
-      font-size: 0.8rem;
-      font-weight: 500;
-    }
-
-    select,
-    input[type="text"] {
-      border-radius: 999px;
-      border: 1px solid var(--border-subtle);
-      padding: 6px 10px;
-      font-size: 0.85rem;
-      font-family: inherit;
-      outline: none;
-      background: #fff;
-    }
-
-    select:focus,
-    input[type="text"]:focus {
-      border-color: var(--accent-blue);
-      box-shadow: 0 0 0 2px rgba(0, 163, 255, 0.15);
-    }
-
-    .filter-inline {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-    }
-
-    .summary-bar {
-      font-size: 0.85rem;
-      color: var(--muted-text);
-      margin-bottom: 10px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border-radius: 999px;
-      padding: 3px 8px;
-      font-size: 0.8rem;
-      border: 1px solid var(--border-subtle);
-      background: #f9fafc;
-      color: var(--muted-text);
-    }
-
-    .badge-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--accent-blue);
-    }
-
-    .clients-grid {
+    .wizard-shell {
+      width: 100%;
+      max-width: 1100px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 12px;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.6fr);
+      gap: 1.75rem;
+      align-items: flex-start;
     }
 
-    .client-card {
-      background: var(--card-bg);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-subtle);
-      padding: 12px 14px 14px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    .wizard-left {
+      padding: 1.5rem 1.6rem;
+      border-radius: 1.2rem;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow:
+        0 24px 60px rgba(15, 23, 42, 0.15),
+        0 0 0 1px rgba(15, 23, 42, 0.03);
+    }
+
+    .wizard-right {
+      padding: 1.5rem 1.6rem;
+      border-radius: 1.2rem;
+      background: rgba(248, 250, 252, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      backdrop-filter: blur(4px);
+    }
+
+    /* LEFT PANEL – overview */
+
+    .wizard-title-kicker {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-blue);
+      margin-bottom: 0.35rem;
+    }
+
+    .wizard-title {
+      margin: 0 0 0.4rem;
+      font-size: 1.6rem;
+      color: var(--primary-blue);
+    }
+
+    .wizard-subtitle {
+      margin: 0 0 0.85rem;
+      font-size: 0.92rem;
+      color: var(--muted-text);
+    }
+
+    .wizard-benefits {
+      margin: 0 0 1rem;
+      padding: 0;
+      list-style: none;
+      font-size: 0.86rem;
+      color: var(--dark-text);
+    }
+
+    .wizard-benefits li {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      gap: 0.4rem;
+      margin-bottom: 0.35rem;
     }
 
-    .client-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
+    .wizard-benefits li span:first-child {
+      font-size: 0.9rem;
     }
 
-    .client-name {
-      font-size: 0.98rem;
+    .wizard-note {
+      margin-top: 0.9rem;
+      font-size: 0.8rem;
+      color: var(--muted-text);
+      border-radius: 0.7rem;
+      padding: 0.7rem 0.8rem;
+      background: #f1f5f9;
+    }
+
+    .wizard-note strong {
+      color: var(--primary-blue);
       font-weight: 600;
-      margin: 0;
     }
 
-    .client-trade {
-      font-size: 0.85rem;
+    /* Mini pipeline strip (reusing the 'progress' idea but for counts) */
+
+    .pipeline-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin: 1.2rem 0 0.6rem;
+    }
+
+    .pipeline-card {
+      border-radius: 0.8rem;
+      background: #f9fafb;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 0.6rem 0.7rem;
+      font-size: 0.8rem;
+    }
+
+    .pipeline-label {
       color: var(--muted-text);
+      margin-bottom: 0.15rem;
     }
 
-    .client-meta {
+    .pipeline-value {
+      font-weight: 600;
+      color: var(--primary-blue);
+      font-size: 1rem;
+    }
+
+    .pipeline-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      border-radius: 999px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.7rem;
+      background: #ecfdf5;
+      color: #166534;
+      margin-top: 0.3rem;
+    }
+
+    /* RIGHT PANEL – filters & list */
+
+    .wizard-right-header {
+      margin-bottom: 0.9rem;
+    }
+
+    .wizard-step-label {
       font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--accent-blue);
+      margin-bottom: 0.25rem;
+    }
+
+    .wizard-step-title {
+      margin: 0 0 0.25rem;
+      font-size: 1.2rem;
+      color: var(--primary-blue);
+    }
+
+    .wizard-step-subtitle {
+      margin: 0;
+      font-size: 0.88rem;
       color: var(--muted-text);
     }
+
+    /* CHIPS – same look/feel as wizard */
 
     .chip-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 4px;
+      gap: 8px;
+      margin-bottom: 14px;
     }
 
     .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.9rem;
       border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 0.75rem;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #ffffff;
+      font-size: 0.8rem;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+
+    .chip:hover {
+      border-color: #1f4e79;
+      background: rgba(31, 78, 121, 0.06);
+    }
+
+    .chip.is-active {
+      background: #e8f0fa !important;
+      border-color: #1f4e79 !important;
+      color: #1f4e79 !important;
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2) !important;
+      font-weight: 600;
+    }
+
+    /* Search row */
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin: 0.7rem 0 0.4rem;
+      align-items: center;
+    }
+
+    .filter-search {
+      flex: 1 1 180px;
+    }
+
+    .filter-search input {
+      width: 100%;
+      padding: 0.5rem 0.8rem;
+      border-radius: 999px;
       border: 1px solid var(--border-subtle);
-      background: #f1f3fa;
+      font-size: 0.85rem;
+      background: #ffffff;
+    }
+
+    .filter-search input:focus {
+      outline: 0;
+      border-color: rgba(37, 99, 235, 0.7);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+    }
+
+    .filter-badge {
+      font-size: 0.75rem;
       color: var(--muted-text);
     }
 
-    .plan-chip {
-      border-color: var(--accent-blue);
+    /* Client list */
+
+    .client-list {
+      margin-top: 0.7rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .client-card {
+      border-radius: 0.9rem;
+      background: #ffffff;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 0.8rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    .client-card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      align-items: baseline;
+    }
+
+    .client-title {
+      font-size: 0.98rem;
+      font-weight: 600;
       color: var(--primary-blue);
-      background: #edf5ff;
+      margin: 0;
     }
 
-    .stage-chip {
-      border-color: #d2c6ff;
-      background: #f3efff;
-      color: #5b4bb5;
+    .client-subtitle {
+      font-size: 0.8rem;
+      color: var(--muted-text);
+      margin: 0.15rem 0 0;
     }
 
-    .trial-chip {
-      border-color: #ffd27f;
-      background: #fff7e6;
-      color: #a16207;
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: #f9fafb;
+      color: var(--dark-text);
+      white-space: nowrap;
+      gap: 0.25rem;
     }
+
+    .status-pill--lead {
+      background: #eff6ff;
+      border-color: rgba(37, 99, 235, 0.4);
+      color: #1d4ed8;
+    }
+
+    .status-pill--demo {
+      background: #fef3c7;
+      border-color: rgba(234, 179, 8, 0.5);
+      color: var(--warning-amber);
+    }
+
+    .status-pill--trial {
+      background: #ecfdf5;
+      border-color: rgba(34, 197, 94, 0.6);
+      color: #15803d;
+    }
+
+    .status-pill--live {
+      background: #dcfce7;
+      border-color: rgba(22, 163, 74, 0.8);
+      color: #166534;
+    }
+
+    .status-pill--paused {
+      background: #f3f4f6;
+      border-color: rgba(107, 114, 128, 0.6);
+      color: #4b5563;
+    }
+
+    .status-pill--cancelled {
+      background: #fef2f2;
+      border-color: rgba(248, 113, 113, 0.7);
+      color: #b91c1c;
+    }
+
+    .client-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: var(--muted-text);
+    }
+
+    .client-meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.22rem;
+    }
+
+    .client-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      margin-top: 0.2rem;
+    }
+
+    .tag-pill {
+      border-radius: 999px;
+      padding: 0.15rem 0.45rem;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: #f9fafb;
+      white-space: nowrap;
+    }
+
+    .tag-pill--plan {
+      background: #e5edff;
+      border-color: rgba(37, 99, 235, 0.5);
+      color: #1d4ed8;
+    }
+
+    .tag-pill--area {
+      background: #ecfdf5;
+      border-color: rgba(16, 185, 129, 0.5);
+      color: #047857;
+    }
+
+    .tag-pill--channel {
+      background: #f3e8ff;
+      border-color: rgba(168, 85, 247, 0.5);
+      color: #6b21a8;
+    }
+
+    .client-card-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .client-footer-note {
+      font-size: 0.74rem;
+      color: var(--muted-text);
+    }
+
+    /* BUTTONS – same style as wizard */
 
     .btn {
       border-radius: 999px;
-      border: none;
-      padding: 6px 12px;
-      font-size: 0.8rem;
+      border: 1px solid transparent;
+      padding: 0.45rem 1rem;
+      font-size: 0.82rem;
       font-weight: 500;
       cursor: pointer;
-      font-family: inherit;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 0.35rem;
+      background: transparent;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--accent-blue);
+      outline-offset: 2px;
     }
 
     .btn-secondary {
-      background: #f5f7fa;
+      border-color: var(--border-subtle);
+      background: #f9fafb;
       color: var(--dark-text);
-      border: 1px solid var(--border-subtle);
     }
 
     .btn-secondary:hover {
-      background: #eef1f7;
+      background: #e5e7eb;
     }
 
-    .status-text {
-      font-size: 0.85rem;
-      min-height: 18px;
-      margin-top: 8px;
-    }
-
-    .status-text .error {
-      color: var(--danger);
-    }
-
-    .status-text .ok {
-      color: var(--primary-blue);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 30px 10px;
-      font-size: 0.9rem;
+    .btn-ghost {
+      border-color: transparent;
+      background: transparent;
       color: var(--muted-text);
     }
 
-    @media (max-width: 700px) {
-      .filters {
+    .btn-ghost:hover {
+      color: var(--primary-blue);
+    }
+
+    .wizard-status-message {
+      margin-top: 0.7rem;
+      font-size: 0.8rem;
+      min-height: 1.2em;
+    }
+
+    .wizard-status-message--success {
+      color: var(--success-green);
+    }
+
+    .wizard-status-message--error {
+      color: var(--error-red);
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 900px) {
+      main {
+        padding-top: 1.5rem;
+      }
+
+      .wizard-shell {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .wizard-left {
+        order: -1;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .header-inner {
         flex-direction: column;
-        align-items: stretch;
+        align-items: flex-start;
+      }
+
+      .wizard-left,
+      .wizard-right {
+        padding: 1.1rem 1.1rem;
       }
     }
   </style>
 </head>
 <body>
+<div class="page">
+  <!-- HEADER -->
   <header>
-    <div class="brand">
-      <div class="brand-mark"></div>
-      <div>
-        <div class="brand-title">TradeBotPro — Client Dashboard</div>
-        <div class="brand-subtitle">See who’s where in onboarding and open the setup wizard in one click.</div>
+    <div class="header-inner">
+      <div class="logo-wrap">
+        <div class="logo-icon" aria-hidden="true"></div>
+        <div>
+          <div class="logo-main">TradeBotPro</div>
+          <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
+        </div>
+      </div>
+      <div class="header-note">
+        Dashboard: see who’s <strong>ready for demo, trial or go-live</strong> at a glance.
       </div>
     </div>
   </header>
 
+  <!-- MAIN -->
   <main>
-    <div class="top-row">
-      <h1>Clients</h1>
-      <div class="badge">
-        <span class="badge-dot"></span>
-        <span>Live Supabase data</span>
-      </div>
-    </div>
+    <div class="wizard-shell">
 
-    <section class="filters">
-      <div class="filter-group">
-        <label for="filter_search">Search</label>
-        <input id="filter_search" type="text" placeholder="Business, contact or postcode…" />
-      </div>
+      <!-- LEFT PANEL: OVERVIEW -->
+      <aside class="wizard-left">
+        <div class="wizard-title-kicker">Client pipeline</div>
+        <h1 class="wizard-title">Onboarding overview</h1>
+        <p class="wizard-subtitle">
+          Quick view of who’s a new lead, who has a demo booked, who’s on a free trial and
+          who’s already live on a paid plan.
+        </p>
 
-      <div class="filter-group">
-        <label for="filter_trade">Trade</label>
-        <select id="filter_trade">
-          <option value="">All trades</option>
-        </select>
-      </div>
+        <ul class="wizard-benefits">
+          <li>
+            <span>👀</span>
+            <span><strong>At-a-glance statuses</strong> for every client – no more hunting through spreadsheets.</span>
+          </li>
+          <li>
+            <span>🧪</span>
+            <span><strong>Free trial visibility</strong> so you can chase upgrades at the right time.</span>
+          </li>
+          <li>
+            <span>📅</span>
+            <span><strong>Demo → trial → live</strong> pipeline in one place.</span>
+          </li>
+        </ul>
 
-      <div class="filter-group">
-        <label for="filter_plan">Plan</label>
-        <select id="filter_plan">
-          <option value="">All plans</option>
-          <option value="Free trial">Free trial</option>
-          <option value="Starter">Starter</option>
-          <option value="Pro">Pro</option>
-          <option value="Agency / Custom">Agency / Custom</option>
-          <option value="No plan chosen yet">No plan chosen yet</option>
-          <option value="Demo only">Demo only</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label for="filter_stage">Stage</label>
-        <select id="filter_stage">
-          <option value="">All stages</option>
-          <option value="Lead – New">Lead – New</option>
-          <option value="Lead – Contacted">Lead – Contacted</option>
-          <option value="Demo booked">Demo booked</option>
-          <option value="Demo completed">Demo completed</option>
-          <option value="Free trial – Active">Free trial – Active</option>
-          <option value="Free trial – Ended">Free trial – Ended</option>
-          <option value="Subscribed – Live">Subscribed – Live</option>
-          <option value="Offer upgrade to additional areas">Offer upgrade to additional areas</option>
-          <option value="Subscribed – Paused">Subscribed – Paused</option>
-          <option value="Cancelled">Cancelled</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label>&nbsp;</label>
-        <div class="filter-inline">
-          <input id="filter_trial_only" type="checkbox" />
-          <span>Free trial only</span>
+        <div class="pipeline-strip">
+          <div class="pipeline-card">
+            <div class="pipeline-label">New & warm leads</div>
+            <div class="pipeline-value" id="metric-leads">–</div>
+            <div class="pipeline-pill">
+              <span>Inbox to-do</span>
+            </div>
+          </div>
+          <div class="pipeline-card">
+            <div class="pipeline-label">Demos / trials</div>
+            <div class="pipeline-value" id="metric-demos-trials">–</div>
+            <div class="pipeline-pill">
+              <span>Make an impression</span>
+            </div>
+          </div>
+          <div class="pipeline-card">
+            <div class="pipeline-label">Live paying clients</div>
+            <div class="pipeline-value" id="metric-live">–</div>
+            <div class="pipeline-pill">
+              <span>Revenue</span>
+            </div>
+          </div>
         </div>
-      </div>
-    </section>
 
-    <div class="summary-bar">
-      <div id="summary-left">Loading clients…</div>
-      <div id="summary-right"></div>
+        <div class="wizard-note">
+          <strong>Tip:</strong> Use the filters on the right to work a specific slice –
+          for example, “Trials” → sort by date → ring the ones you want to upgrade.<br /><br />
+          The <strong>“Open in wizard”</strong> button lets you open their setup wizard
+          prefilled, so you can tweak TradeBotPro while you’re on the phone with them.
+        </div>
+      </aside>
+
+      <!-- RIGHT PANEL: FILTERS & LIST -->
+      <section class="wizard-right" aria-live="polite">
+        <div class="wizard-right-header">
+          <div class="wizard-step-label">Client list</div>
+          <h2 class="wizard-step-title">Dashboard</h2>
+          <p class="wizard-step-subtitle">
+            Filter by plan, onboarding status or search by name, email or postcode.
+          </p>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-row">
+          <div class="filter-search">
+            <input
+              id="search-input"
+              type="text"
+              placeholder="Search by business, contact, email or postcode…"
+              autocomplete="off"
+            />
+          </div>
+          <div class="filter-badge">
+            <span id="result-count-label">Loading clients…</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row" style="margin-top: 0.4rem;">
+            <label>Plan filter</label>
+            <span class="field-hint">Free trials vs paid plans.</span>
+          </div>
+          <div class="chip-row" id="plan-filter-row">
+            <button type="button" class="chip is-active" data-plan-filter="all">
+              All plans
+            </button>
+            <button type="button" class="chip" data-plan-filter="trial">
+              Trials
+            </button>
+            <button type="button" class="chip" data-plan-filter="monthly">
+              Paid – monthly
+            </button>
+            <button type="button" class="chip" data-plan-filter="annual">
+              Paid – annual
+            </button>
+            <button type="button" class="chip" data-plan-filter="none">
+              No plan yet
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label>Onboarding status</label>
+            <span class="field-hint">Where they are in the journey.</span>
+          </div>
+          <div class="chip-row" id="status-filter-row">
+            <button type="button" class="chip is-active" data-status-filter="all">
+              All statuses
+            </button>
+            <button type="button" class="chip" data-status-filter="lead">
+              New leads
+            </button>
+            <button type="button" class="chip" data-status-filter="demo">
+              Demo booked
+            </button>
+            <button type="button" class="chip" data-status-filter="trial">
+              Trial live
+            </button>
+            <button type="button" class="chip" data-status-filter="live">
+              Live / paying
+            </button>
+            <button type="button" class="chip" data-status-filter="paused">
+              Paused / cancelled
+            </button>
+          </div>
+        </div>
+
+        <!-- Client list -->
+        <div id="client-list" class="client-list"></div>
+
+        <div id="dashboard-status-message" class="wizard-status-message"></div>
+      </section>
     </div>
-
-    <section id="clients-section">
-      <div id="clients-grid" class="clients-grid"></div>
-      <div id="empty-state" class="empty-state" style="display:none;">
-        No clients match your filters yet.
-      </div>
-      <div id="dashboard-status" class="status-text"></div>
-    </section>
   </main>
+</div>
 
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.0";
+<script>
+  // Same Supabase config style as app.html
+  window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-  window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co"; 
-  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";  
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const state = {
-      clients: [],
-      filtered: [],
-    };
-
-    document.addEventListener("DOMContentLoaded", () => {
-      setupFilters();
-      loadClients();
-    });
-
-    function setupFilters() {
-      const search = document.getElementById("filter_search");
-      const trade = document.getElementById("filter_trade");
-      const plan = document.getElementById("filter_plan");
-      const stage = document.getElementById("filter_stage");
-      const trial = document.getElementById("filter_trial_only");
-
-      [search, trade, plan, stage, trial].forEach((el) => {
-        el.addEventListener("input", applyFilters);
-        el.addEventListener("change", applyFilters);
-      });
+  async function supabaseFetch(path, options = {}) {
+    if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
+      console.error("Supabase is not configured. Check SUPABASE_URL and SUPABASE_KEY.");
+      return {
+        data: null,
+        error: { status: 0, statusText: "Supabase config missing", details: null }
+      };
     }
 
-    async function loadClients() {
-      setDashboardStatus("Loading clients…", false);
+    const res = await fetch(`${window.SUPABASE_URL}/rest/v1${path}`, {
+      ...options,
+      headers: {
+        apikey: window.SUPABASE_KEY,
+        Authorization: `Bearer ${window.SUPABASE_KEY}`,
+        ...(options.headers || {})
+      }
+    });
 
-      try {
-        const { data, error } = await supabase
-          .from("tradebotpro_signups")
-          .select("*")
-          .order("created_at", { ascending: false });
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (e) {
+      // no JSON body
+    }
 
-        if (error) {
-          console.error("Error loading clients:", error);
-          setDashboardStatus("Error loading clients from Supabase.", true);
-          return;
+    if (!res.ok) {
+      console.error("Supabase HTTP error", res.status, res.statusText, data);
+      return {
+        data: null,
+        error: {
+          status: res.status,
+          statusText: res.statusText,
+          details: data
         }
+      };
+    }
 
-        state.clients = data || [];
-        buildTradeFilterOptions();
-        applyFilters();
-        setDashboardStatus("Clients loaded.", false, "ok");
-      } catch (err) {
-        console.error("Unexpected error:", err);
-        setDashboardStatus("Unexpected error loading clients.", true);
+    return { data, error: null };
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const clientListEl = document.getElementById("client-list");
+    const statusMessageEl = document.getElementById("dashboard-status-message");
+    const resultCountLabel = document.getElementById("result-count-label");
+
+    const metricLeadsEl = document.getElementById("metric-leads");
+    const metricDemosTrialsEl = document.getElementById("metric-demos-trials");
+    const metricLiveEl = document.getElementById("metric-live");
+
+    const searchInput = document.getElementById("search-input");
+    const planFilterRow = document.getElementById("plan-filter-row");
+    const statusFilterRow = document.getElementById("status-filter-row");
+
+    const state = {
+      allClients: [],
+      filters: {
+        search: "",
+        planCategory: "all",
+        statusCategory: "all"
+      }
+    };
+
+    function normalise(text) {
+      return (text || "").toString().toLowerCase();
+    }
+
+    // --- categorisation helpers ---
+
+    function getPlanCategory(planStatusRaw) {
+      const s = normalise(planStatusRaw);
+      if (!s) return "none";
+      if (s.includes("trial")) return "trial";
+      if (s.includes("month")) return "monthly";
+      if (s.includes("annual") || s.includes("year")) return "annual";
+      return "other";
+    }
+
+    function getStatusCategory(accountStatusRaw, planStatusRaw, isActive) {
+      const status = normalise(accountStatusRaw);
+      const plan = normalise(planStatusRaw);
+      const active = !!isActive;
+
+      if (status.includes("cancel") || status.includes("churn")) return "paused";
+      if (status.includes("pause")) return "paused";
+
+      if (active && !plan.includes("trial")) return "live";
+      if (plan.includes("trial") || status.includes("trial")) return "trial";
+
+      if (status.includes("demo")) return "demo";
+      if (status.includes("lead") || status.includes("new") || status.includes("enquiry")) {
+        return "lead";
+      }
+
+      return "other";
+    }
+
+    function getStatusPillClass(category) {
+      switch (category) {
+        case "lead": return "status-pill status-pill--lead";
+        case "demo": return "status-pill status-pill--demo";
+        case "trial": return "status-pill status-pill--trial";
+        case "live": return "status-pill status-pill--live";
+        case "paused": return "status-pill status-pill--paused";
+        default: return "status-pill";
       }
     }
 
-    function buildTradeFilterOptions() {
-      const tradeSelect = document.getElementById("filter_trade");
-      const trades = new Set();
-
-      state.clients.forEach((c) => {
-        if (c.trade_type) trades.add(c.trade_type);
-      });
-
-      tradeSelect.innerHTML = '<option value="">All trades</option>';
-      Array.from(trades)
-        .sort((a, b) => a.localeCompare(b))
-        .forEach((t) => {
-          const opt = document.createElement("option");
-          opt.value = t;
-          opt.textContent = t;
-          tradeSelect.appendChild(opt);
-        });
+    function formatDate(iso) {
+      if (!iso) return "";
+      try {
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return "";
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+      } catch (e) {
+        return "";
+      }
     }
 
+    // --- rendering ---
+
     function applyFilters() {
-      const search = document.getElementById("filter_search").value.trim().toLowerCase();
-      const trade = document.getElementById("filter_trade").value;
-      const plan = document.getElementById("filter_plan").value;
-      const stage = document.getElementById("filter_stage").value;
-      const trialOnly = document.getElementById("filter_trial_only").checked;
+      const { search, planCategory, statusCategory } = state.filters;
+      const searchTerm = normalise(search);
 
-      let filtered = state.clients.slice();
+      const filtered = state.allClients.filter((row) => {
+        const {
+          business_name,
+          contact_name,
+          owner_name,
+          email,
+          phone,
+          whatsapp_number,
+          base_postcode,
+          plan_status,
+          account_status,
+          is_active
+        } = row;
 
-      filtered = filtered.filter((c) => {
-        if (search) {
+        // Search match
+        if (searchTerm) {
           const haystack = [
-            c.business_name,
-            c.contact_name,
-            c.email,
-            c.phone,
-            c.base_postcode,
-            c.primary_service_area,
+            business_name,
+            contact_name,
+            owner_name,
+            email,
+            phone,
+            whatsapp_number,
+            base_postcode
           ]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase();
-          if (!haystack.includes(search)) return false;
+            .map((v) => normalise(v))
+            .join(" ");
+
+          if (!haystack.includes(searchTerm)) return false;
         }
 
-        if (trade && c.trade_type !== trade) return false;
-        if (plan && c.plan_status !== plan) return false;
-        if (stage && c.account_status !== stage) return false;
-        if (trialOnly && !c.wants_free_trial) return false;
+        // Plan category
+        const rowPlanCategory = getPlanCategory(plan_status);
+        if (planCategory !== "all") {
+          if (planCategory === "none") {
+            if (rowPlanCategory !== "none") return false;
+          } else if (planCategory === "monthly") {
+            if (rowPlanCategory !== "monthly") return false;
+          } else if (planCategory === "annual") {
+            if (rowPlanCategory !== "annual") return false;
+          } else if (planCategory === "trial") {
+            if (rowPlanCategory !== "trial") return false;
+          } else {
+            if (rowPlanCategory !== planCategory) return false;
+          }
+        }
+
+        // Status category
+        const rowStatusCategory = getStatusCategory(account_status, plan_status, is_active);
+        if (statusCategory !== "all" && rowStatusCategory !== statusCategory) {
+          if (!(statusCategory === "paused" && rowStatusCategory === "cancelled")) {
+            return false;
+          }
+        }
 
         return true;
       });
 
-      state.filtered = filtered;
-      renderClients();
-      updateSummary();
+      renderClientList(filtered);
+      updateMetrics(state.allClients);
+      updateResultCount(filtered.length, state.allClients.length);
     }
 
-    function renderClients() {
-      const grid = document.getElementById("clients-grid");
-      const empty = document.getElementById("empty-state");
-
-      grid.innerHTML = "";
-
-      if (!state.filtered.length) {
-        empty.style.display = "block";
-        return;
+    function updateResultCount(showing, total) {
+      if (!resultCountLabel) return;
+      if (!total) {
+        resultCountLabel.textContent = "No clients yet.";
+      } else if (showing === total) {
+        resultCountLabel.textContent = `Showing all ${total} clients`;
       } else {
-        empty.style.display = "none";
+        resultCountLabel.textContent = `Showing ${showing} of ${total} clients`;
+      }
+    }
+
+    function updateMetrics(allRows) {
+      const total = allRows.length;
+      let leads = 0;
+      let demosTrials = 0;
+      let live = 0;
+
+      allRows.forEach((row) => {
+        const cat = getStatusCategory(row.account_status, row.plan_status, row.is_active);
+        if (cat === "lead") leads += 1;
+        else if (cat === "demo" || cat === "trial") demosTrials += 1;
+        else if (cat === "live") live += 1;
+      });
+
+      if (metricLeadsEl) metricLeadsEl.textContent = total ? leads : "–";
+      if (metricDemosTrialsEl) metricDemosTrialsEl.textContent = total ? demosTrials : "–";
+      if (metricLiveEl) metricLiveEl.textContent = total ? live : "–";
+    }
+
+    function renderClientList(rows) {
+      if (!clientListEl) return;
+      if (!rows || !rows.length) {
+        clientListEl.innerHTML = `
+          <div class="client-card">
+            <div class="client-card-header">
+              <h3 class="client-title">No clients match your filters</h3>
+            </div>
+            <p class="client-subtitle">
+              Try clearing the filters or search to see everyone again.
+            </p>
+          </div>
+        `;
+        return;
       }
 
-      state.filtered.forEach((c) => {
-        const card = document.createElement("div");
-        card.className = "client-card";
+      const cards = rows.map((row) => {
+        const id = row.id;
+        const businessName = row.business_name || "(No business name)";
+        const contactName = row.contact_name || row.owner_name || "";
+        const email = row.email || "";
+        const phone = row.whatsapp_number || row.phone || "";
+        const basePostcode = row.base_postcode || row.callout_from || "";
+        const trade = row.trade_type || row.services_summary || "";
+        const createdAt = formatDate(row.created_at);
 
-        const headerRow = document.createElement("div");
-        headerRow.className = "client-header-row";
+        const planStatusRaw = row.plan_status || "";
+        const accountStatusRaw = row.account_status || "";
+        const statusCategory = getStatusCategory(accountStatusRaw, planStatusRaw, row.is_active);
+        const planCategory = getPlanCategory(planStatusRaw);
 
-        const left = document.createElement("div");
-        const nameEl = document.createElement("p");
-        nameEl.className = "client-name";
-        nameEl.textContent = c.business_name || "(No business name)";
+        const planStatusLabel = planStatusRaw || "No plan yet";
+        const accountStatusLabel = accountStatusRaw || "Lead – New";
 
-        const tradeEl = document.createElement("div");
-        tradeEl.className = "client-trade";
-        const parts = [];
-        if (c.trade_type) parts.push(c.trade_type);
-        if (c.primary_service_area) parts.push(c.primary_service_area);
-        else if (c.base_postcode) parts.push(c.base_postcode);
-        tradeEl.textContent = parts.join(" · ") || "Trade / area not set";
+        const statusClass = getStatusPillClass(statusCategory);
 
-        left.appendChild(nameEl);
-        left.appendChild(tradeEl);
+        const primaryServiceArea = row.primary_service_area || "";
+        const extraAreas = Array.isArray(row.extra_service_areas)
+          ? row.extra_service_areas
+          : [];
 
-        const right = document.createElement("div");
-        const openBtn = document.createElement("button");
-        openBtn.className = "btn btn-secondary";
-        openBtn.type = "button";
-        openBtn.textContent = "Open in wizard";
-        openBtn.addEventListener("click", () => {
-          if (!c.id) return;
-          window.location.href = `app.html?user_id=${encodeURIComponent(c.id)}`;
+        const directoryFlag = row.directory_opt_in ? "Listed on directory (hidden for now)" : "";
+
+        const channelsSummary = row.ai_style_notes || "";
+
+        const wizardHref = id
+          ? `app.html?user_id=${encodeURIComponent(id)}`
+          : "#";
+
+        return `
+          <article class="client-card">
+            <div class="client-card-header">
+              <div>
+                <h3 class="client-title">${businessName}</h3>
+                <p class="client-subtitle">
+                  ${trade ? `${trade} · ` : ""}${basePostcode || "Postcode tbc"}
+                </p>
+              </div>
+              <div>
+                <span class="${statusClass}">
+                  ${accountStatusLabel}
+                </span>
+              </div>
+            </div>
+
+            <div class="client-meta-row">
+              ${contactName ? `<span class="client-meta-item">👤 ${contactName}</span>` : ""}
+              ${email ? `<span class="client-meta-item">✉️ ${email}</span>` : ""}
+              ${phone ? `<span class="client-meta-item">📱 ${phone}</span>` : ""}
+              ${createdAt ? `<span class="client-meta-item">🕒 Added ${createdAt}</span>` : ""}
+            </div>
+
+            <div class="client-tags">
+              <span class="tag-pill tag-pill--plan">Plan: ${planStatusLabel}</span>
+              ${
+                primaryServiceArea
+                  ? `<span class="tag-pill tag-pill--area">Home area: ${primaryServiceArea}</span>`
+                  : ""
+              }
+              ${
+                extraAreas && extraAreas.length
+                  ? `<span class="tag-pill tag-pill--area">Extra areas: +${extraAreas.length}</span>`
+                  : ""
+              }
+              ${
+                channelsSummary
+                  ? `<span class="tag-pill tag-pill--channel">Notes: ${channelsSummary}</span>`
+                  : ""
+              }
+              ${
+                directoryFlag
+                  ? `<span class="tag-pill">${directoryFlag}</span>`
+                  : ""
+              }
+            </div>
+
+            <div class="client-card-footer">
+              <div class="client-footer-note">
+                ${
+                  planCategory === "trial"
+                    ? "On free trial – good time to offer upgrade or extra areas."
+                    : planCategory === "none"
+                    ? "No plan yet – treat as warm lead."
+                    : "Live or in pipeline – use the wizard to fine-tune setup."
+                }
+              </div>
+              <div>
+                ${
+                  id
+                    ? `<a class="btn btn-secondary" href="${wizardHref}">
+                         Open in wizard →
+                       </a>`
+                    : `<button class="btn btn-secondary" disabled>Missing ID</button>`
+                }
+              </div>
+            </div>
+          </article>
+        `;
+      });
+
+      clientListEl.innerHTML = cards.join("");
+    }
+
+    // --- filter chip wiring ---
+
+    function setupChipRow(rowEl, type) {
+      if (!rowEl) return;
+      const chips = rowEl.querySelectorAll(".chip");
+      chips.forEach((chip) => {
+        chip.addEventListener("click", () => {
+          chips.forEach((c) => c.classList.remove("is-active"));
+          chip.classList.add("is-active");
+
+          if (type === "plan") {
+            state.filters.planCategory = chip.getAttribute("data-plan-filter") || "all";
+          } else if (type === "status") {
+            state.filters.statusCategory = chip.getAttribute("data-status-filter") || "all";
+          }
+
+          applyFilters();
         });
-        right.appendChild(openBtn);
-
-        headerRow.appendChild(left);
-        headerRow.appendChild(right);
-
-        const meta = document.createElement("div");
-        meta.className = "client-meta";
-        const metaBits = [];
-        if (c.contact_name) metaBits.push(c.contact_name);
-        if (c.email) metaBits.push(c.email);
-        if (c.phone) metaBits.push(c.phone);
-        meta.textContent = metaBits.join(" · ");
-
-        const chipRow = document.createElement("div");
-        chipRow.className = "chip-row";
-
-        if (c.plan_status) {
-          const chip = document.createElement("span");
-          chip.className = "chip plan-chip";
-          chip.textContent = c.plan_status;
-          chipRow.appendChild(chip);
-        }
-
-        if (c.account_status) {
-          const chip = document.createElement("span");
-          chip.className = "chip stage-chip";
-          chip.textContent = c.account_status;
-          chipRow.appendChild(chip);
-        }
-
-        if (c.wants_free_trial) {
-          const chip = document.createElement("span");
-          chip.className = "chip trial-chip";
-          chip.textContent = "Free trial";
-          chipRow.appendChild(chip);
-        }
-
-        card.appendChild(headerRow);
-        card.appendChild(meta);
-        card.appendChild(chipRow);
-
-        grid.appendChild(card);
       });
     }
 
-    function updateSummary() {
-      const total = state.clients.length;
-      const visible = state.filtered.length;
-      const freeTrials = state.filtered.filter((c) => c.wants_free_trial).length;
-      const live = state.filtered.filter((c) => c.account_status === "Subscribed – Live").length;
+    // --- load data ---
 
-      const left = document.getElementById("summary-left");
-      const right = document.getElementById("summary-right");
+    async function loadClients() {
+      if (statusMessageEl) {
+        statusMessageEl.textContent = "Loading clients from Supabase…";
+      }
 
-      left.textContent = `${visible} client${visible === 1 ? "" : "s"} shown (of ${total})`;
+      const { data, error } = await supabaseFetch(
+        `/tradebotpro_signups?select=*&order=created_at.desc`,
+        { method: "GET" }
+      );
 
-      right.innerHTML = `
-        <span class="badge"><span class="badge-dot"></span><span>${live} live</span></span>
-        <span class="badge"><span class="badge-dot"></span><span>${freeTrials} on free trial</span></span>
-      `;
-    }
-
-    function setDashboardStatus(message, isError = false, style = "error") {
-      const el = document.getElementById("dashboard-status");
-      if (!el) return;
-      if (!message) {
-        el.textContent = "";
+      if (error) {
+        console.error("Error loading clients:", error);
+        if (statusMessageEl) {
+          statusMessageEl.textContent =
+            "There was a problem loading the client list. Please refresh to try again.";
+          statusMessageEl.classList.add("wizard-status-message--error");
+        }
         return;
       }
-      const cls = isError || style === "error" ? "error" : "ok";
-      el.innerHTML = `<span class="${cls}">${message}</span>`;
+
+      state.allClients = Array.isArray(data) ? data : [];
+
+      if (statusMessageEl) {
+        statusMessageEl.textContent = "";
+        statusMessageEl.className = "wizard-status-message";
+      }
+
+      applyFilters();
     }
-  </script>
+
+    // --- event listeners ---
+
+    if (searchInput) {
+      searchInput.addEventListener("input", () => {
+        state.filters.search = searchInput.value || "";
+        applyFilters();
+      });
+    }
+
+    setupChipRow(planFilterRow, "plan");
+    setupChipRow(statusFilterRow, "status");
+
+    loadClients();
+  });
+</script>
 </body>
 </html>
