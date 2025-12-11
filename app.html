@@ -983,10 +983,10 @@
   </main>
 </div>
 
- <!-- 🔐 SUPABASE CONFIG – must be before the wizard script -->
+<!-- 🔐 SUPABASE CONFIG – must be before the wizard script -->
 <script>
   // ⬇️ Replace these two lines with your real Supabase values:
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   // ⬆️ Use the PUBLIC anon key, NOT the service role key.
 
@@ -1022,7 +1022,7 @@
   }
 </script>
 
-<!-- 🟦 WIZARD SCRIPT – localStorage + Supabase (business_profiles only) -->
+<!-- 🟦 WIZARD SCRIPT – localStorage (only with user_id) + Supabase (business_profiles) -->
 <script>
   (function () {
     const TOTAL_STEPS = 4;
@@ -1239,13 +1239,17 @@
     }
 
     // -------------------------
-    // LOCAL STORAGE
+    // LOCAL STORAGE (only when user_id exists)
     // -------------------------
 
     function saveDraftToBrowser() {
+      // Only use local drafts in onboarding / existing-client mode
+      if (!userId) {
+        return;
+      }
       try {
         localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
-        statusMessage.textContent = "Draft saved in this browser. We’ll connect this to your account later.";
+        statusMessage.textContent = "Draft saved in this browser.";
         statusMessage.classList.add("wizard-status-message--success");
       } catch (e) {
         console.error("Save draft error", e);
@@ -1291,6 +1295,10 @@
     }
 
     function loadDraftFromBrowser() {
+      // Only load drafts in onboarding / existing-client mode
+      if (!userId) {
+        return;
+      }
       try {
         const raw = localStorage.getItem("tradebotpro_setup_wizard");
         if (!raw) return;
@@ -1305,7 +1313,7 @@
     function resetWizard() {
       // Reset state back to initial
       Object.assign(state, initialState);
-      // Clear any stored draft
+      // Clear any stored draft (even if user_id exists)
       localStorage.removeItem("tradebotpro_setup_wizard");
       // Reset UI
       populateUIFromState();
@@ -1365,7 +1373,7 @@
     // -------------------------
 
     async function saveWizardToBusinessProfile() {
-      // If Supabase helper is missing, just fall back to local “success”
+      // If Supabase helper is missing, just show local success and stop
       if (typeof supabaseFetch !== "function") {
         statusMessage.textContent =
           "Form sent successfully (saved locally). We’ll link this to your account during onboarding.";
@@ -1471,8 +1479,8 @@
         scrollToTopOfWizard();
       } else {
         // Final step "Finish" click
-        saveDraftToBrowser();           // keep local draft
-        saveWizardToBusinessProfile();  // save to Supabase (insert or update)
+        saveDraftToBrowser();           // only does something when user_id exists
+        saveWizardToBusinessProfile();  // INSERT (no user_id) or PATCH (with user_id)
       }
     });
 
@@ -1487,8 +1495,8 @@
     setupChips();
     setupTextInputs();
     showStep(1);
-    loadDraftFromBrowser();     // load browser draft first
-    loadFromBusinessProfile();  // then overlay with Supabase data (if any)
+    loadDraftFromBrowser();     // will only do anything when user_id exists
+    loadFromBusinessProfile();  // will only do anything when user_id exists
   })();
 </script>
 
