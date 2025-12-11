@@ -518,6 +518,24 @@
       border: 1px solid rgba(148, 163, 184, 0.6);
     }
 
+    .origin-self {
+      background: #ecfdf5;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+
+    .origin-manual {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+
+    .origin-profile-only {
+      background: #fef9c3;
+      color: #92400e;
+      border-color: #facc15;
+    }
+
     .client-actions-row {
       display: flex;
       justify-content: flex-end;
@@ -641,8 +659,8 @@
         </div>
       </div>
       <div class="header-note">
-        This dashboard shows <strong>every client with a business profile</strong> – whether they
-        self-signed up or were added manually.
+        Shows every client with a <strong>business profile</strong> – whether they self-signed up
+        or were added manually.
       </div>
     </div>
   </header>
@@ -680,8 +698,9 @@
 
         <div class="dash-note">
           <strong>How to use this screen:</strong> Filter by onboarding stage, search by business
-          or postcode and click <em>Open in wizard</em> to tune their AI setup. Every time you
-          complete the wizard, this dashboard will move them along the pipeline for you.
+          or postcode and click <em>Open in wizard</em> to tune their AI setup. The small tag on
+          each card shows whether they <strong>self-signed up</strong> or were
+          <strong>added manually</strong>.
         </div>
 
         <div class="dash-legend">
@@ -700,17 +719,20 @@
               <span>Full plan live</span>
             </div>
             <div class="legend-pill">
-              <span class="legend-dot paused"></span>
+              <span class="legend-dot.paused"></span>
               <span>Paused / inactive</span>
             </div>
           </div>
         </div>
 
         <div class="dash-note" style="margin-top:1.1rem;">
-          <strong>Tip:</strong> You can manually add a client by opening the setup wizard yourself,
-          filling it in as if you were them and clicking Finish. This creates both a
-          <span class="small-mono">tradebotpro_signups</span> row and a
-          <span class="small-mono">business_profiles</span> row, so they always appear here.
+          <strong>Source tags:</strong><br />
+          <span class="small-tag origin-self">Self-signup</span> – they filled the homepage form
+          first.<br />
+          <span class="small-tag origin-manual">Added manually</span> – you created them via the
+          wizard (signup + profile at the same time).<br />
+          <span class="small-tag origin-profile-only">Profile only</span> – older records where
+          no signup row exists.
         </div>
       </aside>
 
@@ -832,6 +854,7 @@
     const summaryTotalInlineEl = document.getElementById("summary-total-inline");
 
     let allClients = [];
+    let signupMap = {}; // id -> signup row from tradebotpro_signups
     let activeStageFilter = "all";
     let searchTerm = "";
 
@@ -881,6 +904,37 @@
       if (stageKey === "live") return "live";
       if (stageKey === "paused") return "paused";
       return "unknown";
+    }
+
+    // ---- Origin helpers (self-signup vs manual) ----
+    function computeOrigin(client) {
+      const signupId = client.signup_id || null;
+      const signupRow = signupId ? signupMap[signupId] : null;
+
+      if (!signupRow) {
+        return { label: "Profile only", cls: "origin-profile-only" };
+      }
+
+      // If we have both timestamps, use time difference
+      const profileTime = client.created_at ? new Date(client.created_at) : null;
+      const signupTime = signupRow.created_at ? new Date(signupRow.created_at) : null;
+
+      if (profileTime && signupTime && !isNaN(profileTime) && !isNaN(signupTime)) {
+        const diffMs = Math.abs(profileTime.getTime() - signupTime.getTime());
+
+        // If created within 15s of each other, treat as "Added manually"
+        if (diffMs <= 15000) {
+          return { label: "Added manually", cls: "origin-manual" };
+        }
+
+        // Otherwise, signup existed first → they came through the homepage
+        if (signupTime < profileTime) {
+          return { label: "Self-signup", cls: "origin-self" };
+        }
+      }
+
+      // Fallback if dates are weird
+      return { label: "Self-signup", cls: "origin-self" };
     }
 
     // ---- Rendering ----
@@ -954,6 +1008,8 @@
           const planStatus = client.plan_status || "No plan";
           const servicesSummary = client.services_summary || "";
 
+          const origin = computeOrigin(client);
+
           // Derive link to wizard:
           // Prefer signup_id → app.html?signup_id=...
           // Otherwise use profile id → app.html?profile_id=...
@@ -1010,24 +1066,25 @@
               </div>
             </div>
 
-            ${
-              tags.length
-                ? `<div class="tag-row">
-                     ${tags
-                       .map(
-                         (t) =>
-                           `<span class="small-tag">${t
-                             .replace("Emergency / urgent jobs", "Emergency")
-                             .replace("Small jobs / quick wins", "Small jobs")
-                             .replace("Bigger projects / installs", "Big projects")
-                             .replace("Maintenance / servicing", "Servicing")
-                             .replace("Landlords / repeat clients", "Landlords")
-                           }</span>`
-                       )
-                       .join("")}
-                   </div>`
-                : ""
-            }
+            <div class="tag-row">
+              <span class="small-tag ${origin.cls}">${origin.label}</span>
+              ${
+                tags.length
+                  ? tags
+                      .map(
+                        (t) =>
+                          `<span class="small-tag">${t
+                            .replace("Emergency / urgent jobs", "Emergency")
+                            .replace("Small jobs / quick wins", "Small jobs")
+                            .replace("Bigger projects / installs", "Big projects")
+                            .replace("Maintenance / servicing", "Servicing")
+                            .replace("Landlords / repeat clients", "Landlords")
+                          }</span>`
+                      )
+                      .join("")
+                  : ""
+              }
+            </div>
 
             <div class="client-actions-row">
               <button type="button" class="btn btn-secondary" data-action="open-wizard" data-href="${wizardUrl}">
@@ -1063,6 +1120,7 @@
         statusMessageEl.className = "";
       }
 
+      // 1) Load business_profiles
       const { data, error } = await supabaseFetch(
         "/business_profiles?select=*&order=created_at.desc",
         { method: "GET" }
@@ -1080,6 +1138,36 @@
 
       allClients = Array.isArray(data) ? data : [];
       console.log("Loaded business_profiles for dashboard:", allClients);
+
+      // 2) Load matching tradebotpro_signups for any signup_ids
+      const signupIds = Array.from(
+        new Set(
+          allClients
+            .map((c) => c.signup_id)
+            .filter((id) => !!id)
+        )
+      );
+
+      signupMap = {};
+
+      if (signupIds.length) {
+        const inList = signupIds.join(",");
+        const { data: signups, error: signupsError } = await supabaseFetch(
+          `/tradebotpro_signups?select=*&id=in.(${inList})`,
+          { method: "GET" }
+        );
+
+        if (signupsError) {
+          console.error("Error loading tradebotpro_signups:", signupsError);
+        } else if (Array.isArray(signups)) {
+          signups.forEach((row) => {
+            if (row.id) {
+              signupMap[row.id] = row;
+            }
+          });
+          console.log("Loaded linked tradebotpro_signups:", signupMap);
+        }
+      }
 
       if (statusMessageEl) {
         statusMessageEl.textContent = "";
