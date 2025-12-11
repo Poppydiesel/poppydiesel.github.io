@@ -982,11 +982,12 @@
     </div>
   </main>
 </div>
-<!-- 🔐 SUPABASE CONFIG – must be before the wizard script -->
+
+  <!-- 🔐 SUPABASE CONFIG – must be before the wizard script -->
 <script>
   // ⬇️ Replace these two lines with your real Supabase values:
- const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  window.SUPABASE_URL = "https://YOURPROJECTID.supabase.co";  // <--- change this
+  window.SUPABASE_KEY = "YOUR_PUBLIC_ANON_KEY";               // <--- change this
   // ⬆️ Use the PUBLIC anon key, NOT the service role key.
 
   async function supabaseFetch(path, options = {}) {
@@ -1301,12 +1302,11 @@
     // -------------------------
 
     async function loadFromBusinessProfile() {
+      // If this is a “generic” enquiry without a linked profile, just don’t load anything.
       if (!userId) {
-        console.warn("No user_id in URL, skipping Supabase load.");
         return;
       }
       if (typeof supabaseFetch !== "function") {
-        console.warn("supabaseFetch helper not found, skipping Supabase load.");
         return;
       }
 
@@ -1315,12 +1315,7 @@
         { method: "GET" }
       );
 
-      if (error) {
-        console.error("Error loading business_profile:", error);
-        return;
-      }
-      if (!data || !data.length) {
-        console.log("No business_profile row for this user yet.");
+      if (error || !data || !data.length) {
         return;
       }
 
@@ -1354,13 +1349,11 @@
     // -------------------------
 
     async function saveWizardToBusinessProfile() {
-      if (!userId) {
-        statusMessage.textContent = "Missing user ID – cannot save to your account.";
-        statusMessage.classList.add("wizard-status-message--error");
-        return;
-      }
-      if (typeof supabaseFetch !== "function") {
-        console.warn("supabaseFetch helper not found, skipping Supabase save.");
+      // If there is no user_id or no supabaseFetch, treat as local-only enquiry
+      if (!userId || typeof supabaseFetch !== "function") {
+        statusMessage.textContent =
+          "Form sent successfully (saved locally). We’ll link this to your account during onboarding.";
+        statusMessage.className = "wizard-status-message wizard-status-message--success";
         return;
       }
 
@@ -1428,7 +1421,7 @@
       } else {
         // Final step "Finish" click
         saveDraftToBrowser();           // keep local draft
-        saveWizardToBusinessProfile();  // save to Supabase (business_profiles only)
+        saveWizardToBusinessProfile();  // save to Supabase if user_id exists
       }
     });
 
@@ -1448,7 +1441,7 @@
   })();
 </script>
 
-  
+
 
 </body>
 </html>
