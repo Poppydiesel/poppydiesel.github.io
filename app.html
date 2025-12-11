@@ -1111,36 +1111,69 @@ document.addEventListener("DOMContentLoaded", () => {
     extra_notes: document.getElementById("extra_notes")
   };
 
-  /* ====================================================================== */
-  /*  CHIP SYSTEM — SIMPLE CLASS TOGGLE (THIS **WILL** HIGHLIGHT VISUALLY)  */
-  /* ====================================================================== */
-  function setupChips() {
-    const chipRows = document.querySelectorAll(".chip-row");
+// --------------------------------------------
+// CHIPS – HARD WIRED VISUAL TOGGLE
+// --------------------------------------------
+function setupChips() {
+  const chipRows = document.querySelectorAll(".chip-row");
+  console.log("setupChips: rows =", chipRows.length);
 
-    chipRows.forEach(row => {
-      const field = row.getAttribute("data-field");
-      const mode = row.getAttribute("data-select");
-      const chips = row.querySelectorAll(".chip");
+  chipRows.forEach((row) => {
+    const field = row.getAttribute("data-field");
+    const mode = row.getAttribute("data-select"); // "single" or "multi"
+    const chips = row.querySelectorAll(".chip");
+    console.log("chip-row", field, "chips =", chips.length);
 
-      chips.forEach(chip => {
-        chip.addEventListener("click", () => {
-          const value = chip.textContent.trim();
+    chips.forEach((chip) => {
+      // start clean
+      chip.classList.remove("is-active");
+      chip.style.border = "1px solid rgba(0,0,0,0.12)";
+      chip.style.backgroundColor = "#ffffff";
 
-          if (mode === "single") {
-            chips.forEach(c => c.classList.remove("is-active"));
+      chip.addEventListener("click", (event) => {
+        event.preventDefault();     // stop form submit
+        event.stopPropagation();    // stop parent handlers
+
+        const label = chip.textContent.trim();
+        console.log("chip clicked:", field, "→", label);
+
+        if (mode === "single") {
+          // clear all chips in this row
+          chips.forEach((c) => {
+            c.classList.remove("is-active");
+            c.style.border = "1px solid rgba(0,0,0,0.12)";
+            c.style.backgroundColor = "#ffffff";
+          });
+
+          // activate this one
+          chip.classList.add("is-active");
+          chip.style.border = "3px solid red";   // 🔴 super obvious
+          chip.style.backgroundColor = "yellow"; // 🟡 super obvious
+          state[field] = label;
+        } else {
+          // multi-select toggle
+          const nowActive = !chip.classList.contains("is-active");
+
+          if (nowActive) {
             chip.classList.add("is-active");
-            state[field] = value;
+            chip.style.border = "3px solid red";
+            chip.style.backgroundColor = "yellow";
           } else {
-            chip.classList.toggle("is-active");
-            const selected = Array.from(chips)
-              .filter(c => c.classList.contains("is-active"))
-              .map(c => c.textContent.trim());
-            state[field] = selected;
+            chip.classList.remove("is-active");
+            chip.style.border = "1px solid rgba(0,0,0,0.12)";
+            chip.style.backgroundColor = "#ffffff";
           }
-        });
+
+          const selected = Array.from(chips)
+            .filter((c) => c.classList.contains("is-active"))
+            .map((c) => c.textContent.trim());
+          state[field] = selected;
+        }
       });
     });
-  }
+  });
+}
+
 
   /* ====================================================================== */
   /*  TEXT INPUT SYNC                                                       */
