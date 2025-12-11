@@ -1110,10 +1110,10 @@
     const TOTAL_STEPS = 4;
     let currentStep = 1;
 
-    // 👇 get signup_id OR user_id from URL
+    // get signup_id OR user_id from URL
     const params = new URLSearchParams(window.location.search);
     const signupIdFromUrl = params.get("signup_id");
-    const userIdFromUrl = params.get("user_id"); // legacy
+    const userIdFromUrl = params.get("user_id"); // legacy support
 
     let currentSignupId = signupIdFromUrl || null;
     let currentProfileId = null; // business_profiles.id
@@ -1394,13 +1394,11 @@
           .filter(Boolean);
       }
 
-    // Extra direct mappings
-if (row.trade_type) state.main_trade = row.trade_type;
-if (row.service_radius) state.coverage_radius = row.service_radius;
-if (row.callout_from) state.callout_style = row.callout_from;
-// ❌ don't map numeric callout_fee into the text chip
-// if (row.callout_fee) state.callout_band = row.callout_fee;
-
+      // Extra direct mappings
+      if (row.trade_type) state.main_trade = row.trade_type;
+      if (row.service_radius) state.coverage_radius = row.service_radius;
+      if (row.callout_from) state.callout_style = row.callout_from;
+      // NOTE: we do NOT map numeric callout_fee into the text band chip
 
       // JSON blob in ai_style_notes for full wizard config
       if (row.ai_style_notes) {
@@ -1437,7 +1435,7 @@ if (row.callout_from) state.callout_style = row.callout_from;
     }
 
     // --------------------------------------------
-    // SUPABASE SAVE
+    // CREATE / LINK SIGNUP + PROFILE
     // --------------------------------------------
     async function ensureSignupAndProfile() {
       // If profile already loaded, we just use it
@@ -1479,14 +1477,16 @@ if (row.callout_from) state.callout_style = row.callout_from;
         return { signupId: currentSignupId, profileId: currentProfileId };
       }
 
-      // No signup id at all → create both signup + profile
+      // No signup id at all → create both signup + profile (manual add)
       if (!currentSignupId && !currentProfileId) {
         const signupPayload = {
           business_name: state.business_name || null,
           contact_name: state.contact_name || null,
           email: state.contact_email || null,
           phone: state.contact_mobile || null,
-          base_postcode: state.base_postcode || null
+          base_postcode: state.base_postcode || null,
+          // mark this as manually added so dashboard can show the difference
+          signup_source: "manual"
         };
 
         const { data: signupData, error: signupError } = await supabaseFetch(
@@ -1547,6 +1547,9 @@ if (row.callout_from) state.callout_style = row.callout_from;
       return { signupId: currentSignupId, profileId: currentProfileId };
     }
 
+    // --------------------------------------------
+    // SAVE WIZARD → business_profiles (and link to signup)
+    // --------------------------------------------
     async function saveWizardToBusinessProfile() {
       const { signupId, profileId } = await ensureSignupAndProfile();
 
@@ -1583,7 +1586,7 @@ if (row.callout_from) state.callout_style = row.callout_from;
         trade_type: state.main_trade || null,
         service_radius: state.coverage_radius || null,
         callout_from: state.callout_style || null,
-        callout_fee: state.callout_band || null,
+        // NOTE: we do NOT send callout_fee here (numeric column vs text band)
         ai_style_notes: JSON.stringify(wizardConfig),
         plan_status: "Trial",
         pending_setup: true,
@@ -1675,9 +1678,10 @@ if (row.callout_from) state.callout_style = row.callout_from;
     setupChips();
     setupTextInputs();
     showStep(1);
-    loadFromBusinessProfile(); // ⬅️ pre-fill & re-select chips when coming from dashboard
+    loadFromBusinessProfile(); // pre-fill & re-select chips when coming from dashboard
   });
 </script>
+
 
 
 
