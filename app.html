@@ -983,15 +983,13 @@
   </main>
 </div>
 
-<!-- 🔐 SUPABASE CONFIG – must be before the wizard script -->
 <script>
-  // ⬇️ REPLACE THESE TWO LINES ONLY – KEEP THE QUOTES ⬇️
+  
   window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  // <--- YOUR URL in quotes
   window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";               // <--- YOUR KEY in quotes
-  // ⬆️ DO NOT REMOVE THE QUOTES. Key must stay as one line string. ⬆️
-
+  
+  // ---- Supabase helper ----
   async function supabaseFetch(path, options = {}) {
-    // Fail fast if not configured properly
     if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
       console.error("Supabase is not configured. Check SUPABASE_URL and SUPABASE_KEY.");
       return {
@@ -1017,7 +1015,7 @@
     try {
       data = await res.json();
     } catch (e) {
-      // No JSON body, ignore
+      // No JSON body
     }
 
     if (!res.ok) {
@@ -1034,19 +1032,15 @@
 
     return { data, error: null };
   }
-</script>
 
-<!-- 🟦 WIZARD SCRIPT – localStorage (only with user_id) + Supabase (business_profiles) -->
-<script>
+  // ---- Wizard logic ----
   document.addEventListener("DOMContentLoaded", function () {
     const TOTAL_STEPS = 4;
     let currentStep = 1;
 
-    // Get user_id from URL (?user_id=...)
     const params = new URLSearchParams(window.location.search);
     const userId = params.get("user_id");
 
-    // Initial state template so we can reset cleanly
     const initialState = {
       contact_name: "",
       business_name: "",
@@ -1099,10 +1093,6 @@
       extra_notes: document.getElementById("extra_notes")
     };
 
-    // -------------------------
-    // WIZARD UI LOGIC
-    // -------------------------
-
     function updateStepHeader() {
       const labels = {
         1: {
@@ -1141,7 +1131,6 @@
         panel.classList.toggle("is-active", s === currentStep);
       });
 
-      // Update step dots + progress bar
       stepDots.forEach((dot) => {
         const s = Number(dot.getAttribute("data-step-dot"));
         dot.classList.toggle("is-active", s === currentStep);
@@ -1156,7 +1145,6 @@
         progressPercent.textContent = `Step ${currentStep} of ${TOTAL_STEPS}`;
       }
 
-      // Buttons
       if (btnBack) btnBack.disabled = currentStep === 1;
       if (btnNext) {
         btnNext.textContent = currentStep === TOTAL_STEPS ? "Finish" : "Next step →";
@@ -1166,13 +1154,11 @@
         footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${TOTAL_STEPS}</strong>. You can tweak anything later.`;
       }
 
-      // Reset status UI
       if (statusMessage) {
         statusMessage.textContent = "";
         statusMessage.className = "wizard-status-message";
       }
 
-      // Summary visibility (only at final step)
       if (summaryBox) {
         summaryBox.hidden = currentStep !== TOTAL_STEPS;
       }
@@ -1184,19 +1170,15 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // -------------------------
-    // CHIP HANDLERS
-    // -------------------------
-
     function setupChips() {
       const chipRows = document.querySelectorAll(".chip-row");
-      console.log("setupChips: found rows:", chipRows.length);
+      console.log("setupChips: rows =", chipRows.length);
 
       chipRows.forEach((row) => {
         const field = row.getAttribute("data-field");
         const mode = row.getAttribute("data-select"); // "single" or "multi"
         const chips = row.querySelectorAll(".chip");
-        console.log("row", field, "chips:", chips.length);
+        console.log("chip-row", field, "chips =", chips.length);
 
         chips.forEach((chip) => {
           chip.addEventListener("click", () => {
@@ -1216,10 +1198,6 @@
       });
     }
 
-    // -------------------------
-    // TEXT INPUT SYNC
-    // -------------------------
-
     function setupTextInputs() {
       Object.entries(textInputs).forEach(([key, el]) => {
         if (!el) return;
@@ -1228,10 +1206,6 @@
         });
       });
     }
-
-    // -------------------------
-    // SIMPLE STEP VALIDATION
-    // -------------------------
 
     function validateStep(step) {
       if (!statusMessage) return true;
@@ -1266,10 +1240,6 @@
       return true;
     }
 
-    // -------------------------
-    // LOCAL STORAGE (only when user_id exists)
-    // -------------------------
-
     function saveDraftToBrowser() {
       if (!userId || !statusMessage) return;
       try {
@@ -1286,11 +1256,7 @@
     function populateUIFromState() {
       Object.entries(textInputs).forEach(([key, el]) => {
         if (!el) return;
-        if (state[key] !== undefined && state[key] !== null) {
-          el.value = state[key];
-        } else {
-          el.value = "";
-        }
+        el.value = state[key] ?? "";
       });
 
       const chipRows = document.querySelectorAll(".chip-row");
@@ -1338,10 +1304,6 @@
       showStep(1);
     }
 
-    // -------------------------
-    // SUPABASE LOAD (business_profiles only)
-    // -------------------------
-
     async function loadFromBusinessProfile() {
       if (!userId || typeof supabaseFetch !== "function") return;
 
@@ -1374,10 +1336,6 @@
       populateUIFromState();
     }
 
-    // -------------------------
-    // SUPABASE SAVE (business_profiles only)
-    // -------------------------
-
     async function saveWizardToBusinessProfile() {
       const payload = {
         contact_name: state.contact_name || null,
@@ -1397,7 +1355,6 @@
 
       if (!statusMessage) return;
 
-      // CASE A: No user_id → INSERT new business_profiles row (new enquiry)
       if (!userId) {
         statusMessage.textContent = "Saving…";
         statusMessage.className = "wizard-status-message wizard-status-message--saving";
@@ -1429,7 +1386,6 @@
         return;
       }
 
-      // CASE B: user_id present → PATCH existing row
       statusMessage.textContent = "Saving…";
       statusMessage.className = "wizard-status-message wizard-status-message--saving";
 
@@ -1456,10 +1412,6 @@
       statusMessage.textContent = "Form sent successfully.";
       statusMessage.className = "wizard-status-message wizard-status-message--success";
     }
-
-    // -------------------------
-    // BUTTON HANDLERS
-    // -------------------------
 
     if (btnBack) {
       btnBack.addEventListener("click", () => {
@@ -1489,10 +1441,7 @@
       });
     }
 
-    // -------------------------
     // INIT
-    // -------------------------
-
     setupChips();
     setupTextInputs();
     showStep(1);
@@ -1501,6 +1450,6 @@
   });
 </script>
 
-
+  
 </body>
 </html>
