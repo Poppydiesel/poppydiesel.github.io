@@ -1059,7 +1059,6 @@
 </div>
 
 <script>
-  // Supabase config
   window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
@@ -1111,25 +1110,13 @@
     const TOTAL_STEPS = 4;
     let currentStep = 1;
 
-    // 🔑 Work out what IDs we have in the URL
+    // 👇 get signup_id OR user_id from URL
     const params = new URLSearchParams(window.location.search);
+    const signupIdFromUrl = params.get("signup_id");
+    const userIdFromUrl = params.get("user_id"); // legacy
 
-    // Possible patterns we might have used
-    let signupId =
-      params.get("signup_id") ||
-      params.get("user_id") ||
-      null;
-
-    let profileId =
-      params.get("profile_id") ||
-      params.get("id") ||
-      null;
-
-    console.log("Wizard URL params:", {
-      rawSearch: window.location.search,
-      signupIdFromUrl: signupId,
-      profileIdFromUrl: profileId
-    });
+    let currentSignupId = signupIdFromUrl || null;
+    let currentProfileId = null; // business_profiles.id
 
     const initialState = {
       contact_name: "",
@@ -1184,7 +1171,7 @@
     };
 
     // --------------------------------------------
-    // CHIP HANDLING
+    // CHIPS – USING CLASS TOGGLE
     // --------------------------------------------
     function setupChips() {
       const chipRows = document.querySelectorAll(".chip-row");
@@ -1194,7 +1181,7 @@
         const chips = row.querySelectorAll(".chip");
 
         chips.forEach((chip) => {
-          chip.classList.remove("is-active");
+          chip.classList.remove("is-active"); // reset initial
 
           chip.addEventListener("click", () => {
             const label = chip.textContent.trim();
@@ -1215,6 +1202,9 @@
       });
     }
 
+    // --------------------------------------------
+    // APPLY STATE → UI (for prefill)
+    // --------------------------------------------
     function populateUIFromState() {
       // Text inputs
       Object.entries(textInputs).forEach(([key, el]) => {
@@ -1222,7 +1212,7 @@
         el.value = state[key] ?? "";
       });
 
-      // Chips
+      // Chips: rebuild from state
       const chipRows = document.querySelectorAll(".chip-row");
       chipRows.forEach((row) => {
         const field = row.getAttribute("data-field");
@@ -1247,6 +1237,9 @@
       });
     }
 
+    // --------------------------------------------
+    // TEXT INPUTS
+    // --------------------------------------------
     function setupTextInputs() {
       Object.entries(textInputs).forEach(([key, el]) => {
         if (!el) return;
@@ -1348,101 +1341,93 @@
     }
 
     // --------------------------------------------
-    // LOAD FROM tradebotpro_signups + business_profiles
+    // LOAD FROM business_profiles WHEN signup_id / user_id EXISTS
     // --------------------------------------------
-    async function loadFromSignupAndProfile() {
-      if (!signupId && !profileId) {
-        console.log("No signupId/profileId in URL – starting with blank wizard.");
+    async function loadFromBusinessProfile() {
+      if (!signupIdFromUrl && !userIdFromUrl) {
+        console.log("No signup_id or user_id in URL – starting with blank wizard.");
+        return;
+      }
+      if (typeof supabaseFetch !== "function") {
+        console.warn("supabaseFetch is not defined, cannot load existing profile.");
         return;
       }
 
-      // 1) If we have a profileId, load that first and harvest signup_id from it
-      if (profileId) {
-        const { data: profileRows, error: profileErr } = await supabaseFetch(
-          `/business_profiles?id=eq.${encodeURIComponent(profileId)}&select=*`,
-          { method: "GET" }
-        );
-
-        if (profileErr) {
-          console.error("Error loading business profile by id:", profileErr);
-        } else if (profileRows && profileRows.length) {
-          const p = profileRows[0];
-          console.log("Loaded business profile by id:", p);
-
-          state.contact_name = p.contact_name || p.owner_name || state.contact_name;
-          state.business_name = p.business_name || state.business_name;
-          state.contact_email = p.email || state.contact_email;
-          state.contact_mobile = p.phone || state.contact_mobile;
-          state.base_postcode = p.base_postcode || state.base_postcode;
-
-          if (p.services_summary) {
-            state.preferred_jobs = p.services_summary
-              .split(",")
-              .map((v) => v.trim())
-              .filter(Boolean);
-          }
-
-          if (p.signup_id && !signupId) {
-            signupId = p.signup_id;
-            console.log("Adopted signupId from business_profiles.signup_id:", signupId);
-          }
-        }
+      let profileQuery = "";
+      if (signupIdFromUrl) {
+        profileQuery = `/business_profiles?signup_id=eq.${encodeURIComponent(
+          signupIdFromUrl
+        )}&select=*`;
+      } else if (userIdFromUrl) {
+        profileQuery = `/business_profiles?id=eq.${encodeURIComponent(userIdFromUrl)}&select=*`;
       }
 
-      // 2) If we have a signupId, load from tradebotpro_signups
-      if (signupId) {
-        const { data: signupRows, error: signupErr } = await supabaseFetch(
-          `/tradebotpro_signups?id=eq.${encodeURIComponent(signupId)}&select=*`,
-          { method: "GET" }
-        );
+      const { data, error } = await supabaseFetch(profileQuery, { method: "GET" });
 
-        if (signupErr) {
-          console.error("Error loading signup row:", signupErr);
-        } else if (signupRows && signupRows.length) {
-          const s = signupRows[0];
-          console.log("Loaded signup row:", s);
+      if (error) {
+        console.error("Error loading business profile:", error);
+        return;
+      }
+      if (!data || !data.length) {
+        console.log("No business_profile found for signup/user id");
+        return;
+      }
 
-          state.contact_name = state.contact_name || s.contact_name || s.owner_name || "";
-          state.business_name = state.business_name || s.business_name || "";
-          state.contact_email = state.contact_email || s.email || "";
-          state.contact_mobile = state.contact_mobile || s.phone || "";
-          state.base_postcode = state.base_postcode || s.base_postcode || "";
+      const row = data[0];
+      console.log("Loaded business profile for wizard:", row);
 
-          if (s.services_summary && (!state.preferred_jobs || !state.preferred_jobs.length)) {
-            state.preferred_jobs = s.services_summary
-              .split(",")
-              .map((v) => v.trim())
-              .filter(Boolean);
-          }
-        }
+      currentProfileId = row.id;
+      currentSignupId = row.signup_id || signupIdFromUrl || null;
 
-        // 3) If we didn't have a profileId, see if there is a profile linked to this signupId
-        if (!profileId) {
-          const { data: profileRows2, error: profileErr2 } = await supabaseFetch(
-            `/business_profiles?signup_id=eq.${encodeURIComponent(signupId)}&select=*`,
-            { method: "GET" }
-          );
+      // Basic fields
+      state.contact_name = row.contact_name || row.owner_name || "";
+      state.business_name = row.business_name || "";
+      state.contact_email = row.email || "";
+      state.contact_mobile = row.phone || "";
+      state.base_postcode = row.base_postcode || "";
 
-          if (profileErr2) {
-            console.error("Error loading business profile by signup_id:", profileErr2);
-          } else if (profileRows2 && profileRows2.length) {
-            const p2 = profileRows2[0];
-            console.log("Found business profile by signup_id:", p2);
-            profileId = p2.id;
+      // services_summary → preferred_jobs chips
+      if (row.services_summary) {
+        state.preferred_jobs = row.services_summary
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
 
-            state.contact_name = p2.contact_name || p2.owner_name || state.contact_name;
-            state.business_name = p2.business_name || state.business_name;
-            state.contact_email = p2.email || state.contact_email;
-            state.contact_mobile = p2.phone || state.contact_mobile;
-            state.base_postcode = p2.base_postcode || state.base_postcode;
+      // Extra direct mappings
+      if (row.trade_type) state.main_trade = row.trade_type;
+      if (row.service_radius) state.coverage_radius = row.service_radius;
+      if (row.callout_from) state.callout_style = row.callout_from;
+      if (row.callout_fee) state.callout_band = row.callout_fee;
 
-            if (p2.services_summary) {
-              state.preferred_jobs = p2.services_summary
-                .split(",")
-                .map((v) => v.trim())
-                .filter(Boolean);
+      // JSON blob in ai_style_notes for full wizard config
+      if (row.ai_style_notes) {
+        try {
+          const cfg = JSON.parse(row.ai_style_notes);
+          if (cfg && typeof cfg === "object") {
+            if (cfg.main_trade && !state.main_trade) state.main_trade = cfg.main_trade;
+            if (cfg.business_stage) state.business_stage = cfg.business_stage;
+            if (cfg.coverage_radius && !state.coverage_radius)
+              state.coverage_radius = cfg.coverage_radius;
+            if (cfg.callout_style && !state.callout_style)
+              state.callout_style = cfg.callout_style;
+            if (cfg.callout_band && !state.callout_band) state.callout_band = cfg.callout_band;
+            if (Array.isArray(cfg.preferred_jobs) && !state.preferred_jobs.length) {
+              state.preferred_jobs = cfg.preferred_jobs;
             }
+            if (cfg.tone_of_voice) state.tone_of_voice = cfg.tone_of_voice;
+            if (Array.isArray(cfg.channels)) state.channels = cfg.channels;
+            if (Array.isArray(cfg.review_platforms)) state.review_platforms = cfg.review_platforms;
+            if (cfg.review_link) state.review_link = cfg.review_link;
+            if (cfg.review_push_level) state.review_push_level = cfg.review_push_level;
+            if (cfg.ai_avoid) state.ai_avoid = cfg.ai_avoid;
+            if (Array.isArray(cfg.demo_style)) state.demo_style = cfg.demo_style;
+            if (cfg.demo_slot) state.demo_slot = cfg.demo_slot;
+            if (cfg.golive_timing) state.golive_timing = cfg.golive_timing;
+            if (cfg.extra_notes) state.extra_notes = cfg.extra_notes;
           }
+        } catch (e) {
+          console.warn("Could not parse ai_style_notes as wizard config JSON", e);
         }
       }
 
@@ -1450,57 +1435,59 @@
     }
 
     // --------------------------------------------
-    // SAVE: tradebotpro_signups + business_profiles
+    // SUPABASE SAVE
     // --------------------------------------------
-    async function saveWizardToSupabase() {
-      if (!statusMessage) return;
+    async function ensureSignupAndProfile() {
+      // If profile already loaded, we just use it
+      if (currentProfileId) {
+        return { signupId: currentSignupId, profileId: currentProfileId };
+      }
 
-      statusMessage.textContent = "Saving…";
-      statusMessage.className = "wizard-status-message";
+      // If we have a signup_id from URL but no profile yet, create one linked to it
+      if (signupIdFromUrl && !currentProfileId) {
+        const payload = {
+          signup_id: signupIdFromUrl,
+          business_name: state.business_name || null,
+          contact_name: state.contact_name || null,
+          email: state.contact_email || null,
+          phone: state.contact_mobile || null,
+          base_postcode: state.base_postcode || null
+        };
 
-      const servicesSummary =
-        state.preferred_jobs && state.preferred_jobs.length
-          ? state.preferred_jobs.join(", ")
-          : null;
+        const { data, error } = await supabaseFetch(`/business_profiles`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify(payload)
+        });
 
-      console.log("Saving wizard. Current signupId before save:", signupId, "profileId:", profileId);
+        if (error) {
+          console.error("Error creating business_profile from signup:", error);
+          return { signupId: signupIdFromUrl, profileId: null };
+        }
 
-      // ---- A) Ensure tradebotpro_signups row exists & is updated ----
-      let signupError = null;
+        const created = data && data[0] ? data[0] : null;
+        if (created) {
+          currentProfileId = created.id;
+          currentSignupId = created.signup_id || signupIdFromUrl;
+        }
 
-      const signupPayload = {
-        business_name: state.business_name || null,
-        contact_name: state.contact_name || null,
-        email: state.contact_email || null,
-        phone: state.contact_mobile || null,
-        base_postcode: state.base_postcode || null,
-        services_summary: servicesSummary,
-        plan_status: "Trial",
-        pending_setup: true,
-        account_status: "Wizard complete",
-        account_status_reason: "Setup wizard finished"
-      };
+        return { signupId: currentSignupId, profileId: currentProfileId };
+      }
 
-      if (signupId) {
-        console.log("Updating existing tradebotpro_signups row:", { signupId, signupPayload });
+      // No signup id at all → create both signup + profile
+      if (!currentSignupId && !currentProfileId) {
+        const signupPayload = {
+          business_name: state.business_name || null,
+          contact_name: state.contact_name || null,
+          email: state.contact_email || null,
+          phone: state.contact_mobile || null,
+          base_postcode: state.base_postcode || null
+        };
 
-        const { error: signupUpdateErr } = await supabaseFetch(
-          `/tradebotpro_signups?id=eq.${encodeURIComponent(signupId)}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Prefer: "return=representation"
-            },
-            body: JSON.stringify(signupPayload)
-          }
-        );
-
-        signupError = signupUpdateErr || null;
-      } else {
-        console.log("No signupId – creating new tradebotpro_signups row with:", signupPayload);
-
-        const { data: newSignupRows, error: signupInsertErr } = await supabaseFetch(
+        const { data: signupData, error: signupError } = await supabaseFetch(
           `/tradebotpro_signups`,
           {
             method: "POST",
@@ -1512,72 +1499,27 @@
           }
         );
 
-        signupError = signupInsertErr || null;
-
-        if (!signupInsertErr && newSignupRows && newSignupRows.length) {
-          signupId = newSignupRows[0].id;
-          console.log("Created new tradebotpro_signups row. New signupId:", signupId);
+        if (signupError) {
+          console.error("Error creating signup from wizard:", signupError);
+          return { signupId: null, profileId: null };
         }
-      }
 
-      if (signupError) {
-        console.error("Error saving tradebotpro_signups:", signupError);
-        statusMessage.textContent = "There was a problem saving your form. Please try again.";
-        statusMessage.className = "wizard-status-message wizard-status-message--error";
-        return;
-      }
-
-      // ---- B) Upsert into business_profiles, now that we have a signupId ----
-      const profilePayload = {
-        business_name: state.business_name || null,
-        contact_name: state.contact_name || null,
-        email: state.contact_email || null,
-        phone: state.contact_mobile || null,
-        base_postcode: state.base_postcode || null,
-        services_summary: servicesSummary,
-        plan_status: "Trial",
-        pending_setup: true,
-        is_active: false,
-        signup_id: signupId || null
-      };
-
-      let profileError = null;
-      let effectiveProfileId = profileId || null;
-
-      console.log("Saving wizard to business_profiles with payload:", {
-        payload: profilePayload,
-        signupId,
-        profileId
-      });
-
-      // If we don't already know profileId but have a signupId, check if a profile exists for it
-      if (!effectiveProfileId && signupId) {
-        const { data: existing, error: lookupError } = await supabaseFetch(
-          `/business_profiles?signup_id=eq.${encodeURIComponent(signupId)}&select=id`,
-          { method: "GET" }
-        );
-        if (lookupError) {
-          console.error("Error looking up existing business profile by signup_id:", lookupError);
-        } else if (existing && existing.length) {
-          effectiveProfileId = existing[0].id;
+        const createdSignup = signupData && signupData[0] ? signupData[0] : null;
+        if (createdSignup) {
+          currentSignupId = createdSignup.id;
         }
-      }
 
-      if (effectiveProfileId) {
-        const { error: patchErr } = await supabaseFetch(
-          `/business_profiles?id=eq.${encodeURIComponent(effectiveProfileId)}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Prefer: "return=representation"
-            },
-            body: JSON.stringify(profilePayload)
-          }
-        );
-        profileError = patchErr || null;
-      } else {
-        const { data: posted, error: postErr } = await supabaseFetch(
+        // create profile linked to this signup
+        const profilePayload = {
+          signup_id: currentSignupId,
+          business_name: state.business_name || null,
+          contact_name: state.contact_name || null,
+          email: state.contact_email || null,
+          phone: state.contact_mobile || null,
+          base_postcode: state.base_postcode || null
+        };
+
+        const { data: profileData, error: profileError } = await supabaseFetch(
           `/business_profiles`,
           {
             method: "POST",
@@ -1588,23 +1530,97 @@
             body: JSON.stringify(profilePayload)
           }
         );
-        profileError = postErr || null;
-        if (!profileError && posted && posted.length) {
-          effectiveProfileId = posted[0].id;
+
+        if (profileError) {
+          console.error("Error creating business_profile from wizard:", profileError);
+          return { signupId: currentSignupId, profileId: null };
+        }
+
+        const createdProfile = profileData && profileData[0] ? profileData[0] : null;
+        if (createdProfile) {
+          currentProfileId = createdProfile.id;
         }
       }
 
-      if (profileError) {
-        console.error("Save business profile error:", profileError);
+      return { signupId: currentSignupId, profileId: currentProfileId };
+    }
+
+    async function saveWizardToBusinessProfile() {
+      const { signupId, profileId } = await ensureSignupAndProfile();
+
+      const wizardConfig = {
+        main_trade: state.main_trade,
+        business_stage: state.business_stage,
+        coverage_radius: state.coverage_radius,
+        callout_style: state.callout_style,
+        callout_band: state.callout_band,
+        preferred_jobs: state.preferred_jobs,
+        tone_of_voice: state.tone_of_voice,
+        channels: state.channels,
+        review_platforms: state.review_platforms,
+        review_link: state.review_link,
+        review_push_level: state.review_push_level,
+        ai_avoid: state.ai_avoid,
+        demo_style: state.demo_style,
+        demo_slot: state.demo_slot,
+        golive_timing: state.golive_timing,
+        extra_notes: state.extra_notes
+      };
+
+      const payload = {
+        signup_id: signupId || null,
+        business_name: state.business_name || null,
+        contact_name: state.contact_name || null,
+        email: state.contact_email || null,
+        phone: state.contact_mobile || null,
+        base_postcode: state.base_postcode || null,
+        services_summary:
+          state.preferred_jobs && state.preferred_jobs.length
+            ? state.preferred_jobs.join(", ")
+            : null,
+        trade_type: state.main_trade || null,
+        service_radius: state.coverage_radius || null,
+        callout_from: state.callout_style || null,
+        callout_fee: state.callout_band || null,
+        ai_style_notes: JSON.stringify(wizardConfig),
+        plan_status: "Trial",
+        pending_setup: true,
+        is_active: false
+      };
+
+      console.log("Saving wizard payload:", payload, "profileId:", profileId, "signupId:", signupId);
+
+      if (!statusMessage) return;
+
+      statusMessage.textContent = "Saving…";
+      statusMessage.className = "wizard-status-message wizard-status-message--saving";
+
+      const { data, error } = await supabaseFetch(
+        profileId
+          ? `/business_profiles?id=eq.${encodeURIComponent(profileId)}`
+          : `/business_profiles`,
+        {
+          method: profileId ? "PATCH" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      if (error) {
+        console.error("Save profile error:", error);
         statusMessage.textContent = "There was a problem saving your form. Please try again.";
         statusMessage.className = "wizard-status-message wizard-status-message--error";
         return;
       }
 
-      profileId = effectiveProfileId;
-
-      if (summaryBox) {
-        summaryBox.hidden = false;
+      console.log("Business profile saved:", data);
+      const saved = data && data[0] ? data[0] : null;
+      if (saved) {
+        currentProfileId = saved.id;
+        currentSignupId = saved.signup_id || currentSignupId;
       }
 
       statusMessage.textContent = "Form sent successfully.";
@@ -1631,7 +1647,8 @@
           showStep(currentStep + 1);
           scrollTopSmooth();
         } else {
-          saveWizardToSupabase();
+          // Final step
+          saveWizardToBusinessProfile();
         }
       });
     }
@@ -1642,7 +1659,7 @@
           localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
           if (statusMessage) {
             statusMessage.textContent = "Draft saved in this browser.";
-            statusMessage.className = "wizard-status-message wizard-status-message--success";
+            statusMessage.classList.add("wizard-status-message--success");
           }
         } catch (e) {
           console.error("Save draft error", e);
@@ -1656,10 +1673,9 @@
     setupChips();
     setupTextInputs();
     showStep(1);
-    loadFromSignupAndProfile();
+    loadFromBusinessProfile(); // ⬅️ pre-fill & re-select chips when coming from dashboard
   });
 </script>
-
 
 
 
