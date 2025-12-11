@@ -1,489 +1,1538 @@
 <!DOCTYPE html> 
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>TradeBotPro — Admin Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>TradeBotPro – Setup Wizard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="TradeBotPro setup wizard for new trade accounts."
+  />
 
-<style>
-:root{
-  --blue:#1f4e79;
-  --blue-soft:#e8f1fb;
-  --bg:#f5f7fa;
-  --card:#ffffff;
-  --border:#d1d5db;
-  --text:#1b1b1f;
-  --muted:#6b7280;
-}
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-
-header{
-  background:#fff;
-  border-bottom:1px solid var(--border);
-  padding:14px 20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-header h1{
-  margin:0;
-  font-size:18px;
-}
-
-header span{
-  font-size:12px;
-  color:var(--muted);
-}
-
-main{
-  max-width:1400px;
-  margin:20px auto;
-  padding:0 16px;
-  display:grid;
-  grid-template-columns:2.2fr 1.4fr;
-  gap:16px;
-}
-
-.card{
-  background:var(--card);
-  border-radius:12px;
-  border:1px solid var(--border);
-  padding:14px;
-}
-
-/* TABLE */
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{
-  padding:10px;
-  border-bottom:1px solid #e5e7eb;
-  text-align:left;
-}
-th{
-  font-size:11px;
-  color:var(--muted);
-  text-transform:uppercase;
-}
-tbody tr{
-  cursor:pointer;
-}
-tbody tr:hover{
-  background:#f9fafb;
-}
-tbody tr.selected{
-  background:var(--blue-soft);
-  box-shadow:inset 4px 0 0 var(--blue);
-}
-
-/* STATUS */
-.status{
-  font-size:11px;
-  padding:3px 8px;
-  border-radius:999px;
-  background:#eef2ff;
-  color:var(--blue);
-}
-
-/* RIGHT PANEL */
-h3{
-  margin:0 0 8px 0;
-  font-size:14px;
-}
-
-.small{
-  font-size:12px;
-  color:var(--muted);
-}
-
-label{
-  font-size:11px;
-  color:var(--muted);
-}
-
-select,textarea{
-  width:100%;
-  margin-top:4px;
-  margin-bottom:8px;
-  padding:6px 8px;
-  font-size:13px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  font-family:inherit;
-}
-
-textarea{min-height:120px}
-
-button{
-  border:none;
-  border-radius:999px;
-  padding:8px 14px;
-  font-size:12px;
-  cursor:pointer;
-  background:var(--blue);
-  color:#fff;
-}
-button.secondary{
-  background:#e5e7eb;
-  color:#111;
-}
-
-.selected-banner{
-  background:var(--blue-soft);
-  border:1px solid #c7ddf4;
-  padding:8px 10px;
-  border-radius:8px;
-  font-size:13px;
-  margin-bottom:10px;
-}
-
-/* NEW: client status strip */
-.status-row{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  align-items:center;
-  margin-bottom:8px;
-}
-.status-row label{
-  display:flex;
-  align-items:center;
-  gap:4px;
-  margin:0;
-}
-.status-message{
-  font-size:11px;
-  margin-left:8px;
-}
-.status-message.success{color:#15803d;}
-.status-message.error{color:#b91c1c;}
-.status-message.saving{color:#4b5563;}
-</style>
-</head>
-
-<body>
-
-<header>
-  <h1>TradeBotPro Admin</h1>
-  <span>Internal · COPY-ONLY messages + client status</span>
-</header>
-
-<main>
-
-  <!-- LEFT -->
-  <div class="card">
-    <h3>Signups</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Business</th>
-          <th>Contact</th>
-          <th>Postcode</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="rows">
-        <tr><td colspan="4" class="small">Loading…</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- RIGHT -->
-  <div class="card">
-    <h3>Messaging</h3>
-
-    <div id="selectedInfo" class="selected-banner small">
-      No customer selected
-    </div>
-
-    <label for="templateSelect">Template</label>
-    <select id="templateSelect" aria-label="Message template">
-      <option value="">— choose —</option>
-      <option value="welcome">Welcome / next steps</option>
-      <option value="onboarding">Book onboarding call</option>
-      <option value="live">You’re now live</option>
-      <option value="pause">Account paused</option>
-    </select>
-
-    <label for="messageBox">Message (copy only)</label>
-    <textarea id="messageBox"
-      aria-label="Message body"
-      placeholder="Choose a template or write freely…"></textarea>
-
-    <button onclick="copyMessage()">Copy message</button>
-
-    <!-- NEW: CLIENT STATUS SECTION -->
-    <hr style="margin:14px 0;border:none;border-top:1px solid #e5e7eb;">
-
-    <h3>Client status</h3>
-    <div id="statusInfo" class="small" style="margin-bottom:8px;">
-      Select a signup on the left to load its business profile.
-    </div>
-
-    <label for="planStatusSelect">Plan status</label>
-    <select id="planStatusSelect" aria-label="Plan status">
-      <option value="">(none)</option>
-      <option value="Trial">Trial</option>
-      <option value="Paid">Paid</option>
-      <option value="Cancelled">Cancelled</option>
-    </select>
-
-    <div class="status-row">
-      <label>
-        <input type="checkbox" id="pendingSetupCheckbox">
-        Pending setup
-      </label>
-      <label>
-        <input type="checkbox" id="isActiveCheckbox">
-        Active
-      </label>
-      <span id="statusSaveMessage" class="status-message small"></span>
-    </div>
-
-    <label for="accountReasonBox">Account status reason</label>
-    <textarea id="accountReasonBox"
-      aria-label="Account status reason"
-      placeholder="Optional note e.g. 'Paused for summer', 'Card failed', etc."></textarea>
-
-    <button class="secondary" id="saveStatusButton">Save status</button>
-  </div>
-
-</main>
-
-<script src="https://esm.sh/@supabase/supabase-js@2"></script>
-<script>
-/* ⛔ CHANGE ONLY THESE TWO LINES IF NEEDED */
-const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-
-const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-let allRows = [];
-let selected = null;
-let selectedProfile = null; // NEW: business_profiles row for this signup
-
-const rowsEl = document.getElementById('rows');
-const selectedInfo = document.getElementById('selectedInfo');
-const templateSelect = document.getElementById('templateSelect');
-const messageBox = document.getElementById('messageBox');
-
-// NEW status elements
-const statusInfo = document.getElementById('statusInfo');
-const planStatusSelect = document.getElementById('planStatusSelect');
-const pendingSetupCheckbox = document.getElementById('pendingSetupCheckbox');
-const isActiveCheckbox = document.getElementById('isActiveCheckbox');
-const accountReasonBox = document.getElementById('accountReasonBox');
-const saveStatusButton = document.getElementById('saveStatusButton');
-const statusSaveMessage = document.getElementById('statusSaveMessage');
-
-async function load(){
-  const { data, error } = await supabase
-    .from('tradebotpro_signups')
-    .select('*')
-    .order('created_at', { ascending:false });
-
-  if(error){
-    rowsEl.innerHTML='<tr><td colspan="4">Error loading</td></tr>';
-    console.error("Error loading signups", error);
-    return;
-  }
-  allRows=data;
-  render();
-}
-
-function render(){
-  rowsEl.innerHTML='';
-  allRows.forEach(r=>{
-    const tr=document.createElement('tr');
-    tr.dataset.id=r.id;
-    if(selected && selected.id===r.id) tr.classList.add('selected');
-    tr.innerHTML=`
-      <td><strong>${r.business_name||''}</strong></td>
-      <td>${r.contact_name||r.owner_name||''}</td>
-      <td>${r.base_postcode||''}</td>
-      <td><span class="status">${r.account_status||r.plan_status||''}</span></td>
-    `;
-    tr.onclick=()=>selectRow(r);
-    rowsEl.appendChild(tr);
-  });
-
-  if(!allRows.length){
-    rowsEl.innerHTML='<tr><td colspan="4" class="small">No signups yet</td></tr>';
-  }
-}
-
-function selectRow(r){
-  selected=r;
-  selectedProfile=null;
-  selectedInfo.textContent=`Selected: ${r.business_name||'(no business name)'}`;
-
-  // highlight
-  document.querySelectorAll('#rows tr').forEach(tr=>tr.classList.remove('selected'));
-  const row=[...rowsEl.children].find(x=>x.dataset.id==r.id);
-  if(row) row.classList.add('selected');
-
-  // reset messaging
-  templateSelect.value='';
-  messageBox.value='';
-
-  // reset status UI & load profile
-  planStatusSelect.value='';
-  pendingSetupCheckbox.checked=false;
-  isActiveCheckbox.checked=false;
-  accountReasonBox.value='';
-  statusSaveMessage.textContent='';
-  statusSaveMessage.className='status-message small';
-  statusInfo.textContent='Loading linked business profile…';
-
-  loadProfileForSelected(r);
-}
-
-// NEW: load linked business_profiles row via signup_id
-async function loadProfileForSelected(signup){
-  const { data, error } = await supabase
-    .from('business_profiles')
-    .select('*')
-    .eq('signup_id', signup.id)
-    .maybeSingle();
-
-  if(error){
-    console.error("Error loading business profile", error);
-    statusInfo.textContent='Could not load business profile for this signup.';
-    return;
-  }
-
-  if(!data){
-    statusInfo.textContent='No business profile row yet for this signup.';
-    selectedProfile=null;
-    planStatusSelect.value='';
-    pendingSetupCheckbox.checked=false;
-    isActiveCheckbox.checked=false;
-    accountReasonBox.value='';
-    return;
-  }
-
-  selectedProfile=data;
-  statusInfo.textContent='Profile loaded. Changes here update business_profiles.';
-
-  planStatusSelect.value = data.plan_status || '';
-  pendingSetupCheckbox.checked = !!data.pending_setup;
-  isActiveCheckbox.checked = !!data.is_active;
-  accountReasonBox.value = data.account_status_reason || '';
-}
-
-templateSelect.onchange=()=>{
-  if(!selected){
-    alert('Select a customer first');
-    templateSelect.value='';
-    return;
-  }
-  const name=selected.contact_name||selected.owner_name||'there';
-  const biz=selected.business_name||'your business';
-  switch(templateSelect.value){
-    case 'welcome':
-      messageBox.value=`Hi ${name}, thanks for signing up to TradeBotPro.\n\nNext step is a quick onboarding call so we tailor the assistant properly for ${biz}.`;
-      break;
-    case 'onboarding':
-      messageBox.value=`Hi ${name}, can we book a short onboarding call to finish setting TradeBotPro up for ${biz}?`;
-      break;
-    case 'live':
-      messageBox.value=`Hi ${name}, your TradeBotPro AI office for ${biz} is now live ✅`;
-      break;
-    case 'pause':
-      messageBox.value=`Hi ${name}, we’ve paused TradeBotPro for now. Nothing is deleted — just message when ready to resume.`;
-      break;
-  }
-};
-
-function copyMessage(){
-  if(!messageBox.value){
-    alert('Nothing to copy');
-    return;
-  }
-  navigator.clipboard.writeText(messageBox.value);
-  alert('Copied to clipboard');
-}
-
-// NEW: save client status back to business_profiles
-async function saveStatus(){
-  if(!selected){
-    alert('Select a customer first');
-    return;
-  }
-
-  statusSaveMessage.textContent='Saving…';
-  statusSaveMessage.className='status-message small saving';
-
-  const payload = {
-    plan_status: planStatusSelect.value || null,
-    pending_setup: pendingSetupCheckbox.checked,
-    is_active: isActiveCheckbox.checked,
-    account_status_reason: accountReasonBox.value || null
-  };
-
-  // If there is no business_profile yet (older signups), create one minimal
-  if(!selectedProfile){
-    const newPayload = {
-      signup_id: selected.id,
-      business_name: selected.business_name || null,
-      owner_name: selected.owner_name || null,
-      contact_name: selected.contact_name || null,
-      email: selected.email || null,
-      phone: selected.phone || null,
-      trade_type: selected.trade_type || null,
-      base_postcode: selected.base_postcode || null,
-      services_summary: selected.services_summary || null,
-      ...payload
-    };
-
-    const { data, error } = await supabase
-      .from('business_profiles')
-      .insert(newPayload)
-      .select()
-      .maybeSingle();
-
-    if(error){
-      console.error("Error creating business profile", error);
-      statusSaveMessage.textContent='Error saving status.';
-      statusSaveMessage.className='status-message small error';
-      return;
+  <style>
+    :root {
+      --primary-blue: #1f4e79;
+      --accent-blue: #00a3ff;
+      --dark-text: #151820;
+      --muted-text: #6b7280;
+      --light-bg: #f3f4f9;
+      --white: #ffffff;
+      --border-subtle: rgba(15, 23, 42, 0.12);
+      --chip-bg: #eef2ff;
+      --chip-border: rgba(37, 99, 235, 0.3);
+      --chip-bg-muted: #f3f4f6;
+      --chip-border-muted: rgba(148, 163, 184, 0.6);
+      --success-green: #0f7b46;
+      --error-red: #b3261e;
     }
 
-    selectedProfile = data;
-    statusSaveMessage.textContent='Status saved (new profile created).';
-    statusSaveMessage.className='status-message small success';
-    return;
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at top left, #e0ebff 0, #f3f4f9 40%, #fdfdfd 100%);
+      color: var(--dark-text);
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* PAGE LAYOUT */
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      background: rgba(248, 250, 252, 0.96);
+      backdrop-filter: blur(6px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0.6rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .logo-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: var(--primary-blue);
+      position: relative;
+    }
+
+    .logo-icon::before,
+    .logo-icon::after {
+      content: "";
+      position: absolute;
+      background: var(--white);
+      border-radius: 4px;
+    }
+
+    .logo-icon::before {
+      width: 11px;
+      height: 17px;
+      left: 7px;
+      top: 6px;
+    }
+
+    .logo-icon::after {
+      width: 6px;
+      height: 11px;
+      right: 7px;
+      top: 9px;
+    }
+
+    .logo-main {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--primary-blue);
+    }
+
+    .logo-tag {
+      font-size: 0.75rem;
+      color: var(--muted-text);
+    }
+
+    .header-note {
+      font-size: 0.75rem;
+      color: var(--muted-text);
+    }
+
+    .header-note strong {
+      color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.25rem 3rem;
+    }
+
+    .wizard-shell {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr);
+      gap: 1.75rem;
+      align-items: flex-start;
+    }
+
+    .wizard-left {
+      padding: 1.5rem 1.6rem;
+      border-radius: 1.2rem;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow:
+        0 24px 60px rgba(15, 23, 42, 0.15),
+        0 0 0 1px rgba(15, 23, 42, 0.03);
+    }
+
+    .wizard-right {
+      padding: 1.5rem 1.6rem;
+      border-radius: 1.2rem;
+      background: rgba(248, 250, 252, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      backdrop-filter: blur(4px);
+    }
+
+    /* PROGRESS BAR */
+
+    .wizard-progress-wrap {
+      margin-bottom: 1.4rem;
+    }
+
+    .progress-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.35rem;
+      font-size: 0.75rem;
+      color: var(--muted-text);
+    }
+
+    .progress-label-row span strong {
+      color: var(--primary-blue);
+    }
+
+    .progress-bar-outer {
+      position: relative;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.3);
+      overflow: hidden;
+    }
+
+    .progress-bar-inner {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary-blue), var(--accent-blue));
+      border-radius: inherit;
+      transition: width 0.25s ease;
+    }
+
+    .step-dots {
+      margin-top: 0.35rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.7rem;
+      color: var(--muted-text);
+    }
+
+    .step-dot {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      white-space: nowrap;
+    }
+
+    .step-dot-circle {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(148, 163, 184, 0.7);
+      background: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      color: rgba(148, 163, 184, 0.8);
+    }
+
+    .step-dot.is-active .step-dot-circle {
+      border-color: var(--primary-blue);
+      color: var(--primary-blue);
+      background: #e0ecff;
+    }
+
+    .step-dot.is-complete .step-dot-circle {
+      border-color: var(--success-green);
+      background: #dcfce7;
+      color: var(--success-green);
+    }
+
+    .step-dot-label {
+      opacity: 0.9;
+    }
+
+    /* LEFT PANEL CONTENT */
+
+    .wizard-title-kicker {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-blue);
+      margin-bottom: 0.35rem;
+    }
+
+    .wizard-title {
+      margin: 0 0 0.4rem;
+      font-size: 1.6rem;
+      color: var(--primary-blue);
+    }
+
+    .wizard-subtitle {
+      margin: 0 0 0.85rem;
+      font-size: 0.92rem;
+      color: var(--muted-text);
+    }
+
+    .wizard-benefits {
+      margin: 0 0 1rem;
+      padding: 0;
+      list-style: none;
+      font-size: 0.86rem;
+      color: var(--dark-text);
+    }
+
+    .wizard-benefits li {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .wizard-benefits li span:first-child {
+      font-size: 0.9rem;
+    }
+
+    .wizard-note {
+      margin-top: 0.9rem;
+      font-size: 0.8rem;
+      color: var(--muted-text);
+      border-radius: 0.7rem;
+      padding: 0.7rem 0.8rem;
+      background: #f1f5f9;
+    }
+
+    .wizard-note strong {
+      color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    /* FORM / STEPS */
+
+    .wizard-right-header {
+      margin-bottom: 1rem;
+    }
+
+    .wizard-step-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--accent-blue);
+      margin-bottom: 0.25rem;
+    }
+
+    .wizard-step-title {
+      margin: 0 0 0.25rem;
+      font-size: 1.2rem;
+      color: var(--primary-blue);
+    }
+
+    .wizard-step-subtitle {
+      margin: 0;
+      font-size: 0.88rem;
+      color: var(--muted-text);
+    }
+
+    .step-panel {
+      display: none;
+      margin-top: 0.9rem;
+    }
+
+    .step-panel.is-active {
+      display: block;
+    }
+
+    .field-group {
+      margin-bottom: 1rem;
+    }
+
+    .field-label-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--dark-text);
+    }
+
+    .field-hint {
+      font-size: 0.75rem;
+      color: var(--muted-text);
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.6rem 0.7rem;
+      border-radius: 0.55rem;
+      border: 1px solid var(--border-subtle);
+      font: inherit;
+      font-size: 0.9rem;
+      background: var(--white);
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: 0;
+      border-color: rgba(37, 99, 235, 0.7);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+    }
+
+    /* CHIPS */
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+
+    /* -------------------------------------------------- */
+    /* CHIP SYSTEM — FULL RESET + ACTIVE STATE FIX        */
+    /* -------------------------------------------------- */
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #ffffff;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition: 
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+
+    .chip.is-active {
+      background: #e8f0fa;                  /* soft light blue highlight */
+      border-color: #1f4e79;                /* strong navy border */
+      color: #1f4e79;                       /* navy text */
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.15);
+      font-weight: 600;
+    }
+
+    .chip:hover {
+      border-color: #1f4e79;
+      background: rgba(31, 78, 121, 0.06);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #ffffff;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+
+    .chip.is-active {
+      background: #e8f0fa;
+      border-color: #1f4e79;
+      color: #1f4e79;
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2);
+      font-weight: 600;
+    }
+
+    /* FOOTER ACTIONS */
+
+    .wizard-footer {
+      margin-top: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      border-top: 1px dashed rgba(148, 163, 184, 0.7);
+      padding-top: 0.8rem;
+    }
+
+    .wizard-footer-left {
+      font-size: 0.78rem;
+      color: var(--muted-text);
+    }
+
+    .wizard-footer-left strong {
+      color: var(--primary-blue);
+    }
+
+    .wizard-footer-right {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid transparent;
+      padding: 0.55rem 1.1rem;
+      font-size: 0.86rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: transparent;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--accent-blue);
+      outline-offset: 2px;
+    }
+
+    .btn-secondary {
+      border-color: var(--border-subtle);
+      background: #f9fafb;
+      color: var(--dark-text);
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-blue), #163857);
+      color: var(--white);
+      border-color: transparent;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.35);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.03);
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.4);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .btn-ghost {
+      border-color: transparent;
+      background: transparent;
+      color: var(--muted-text);
+    }
+
+    .btn-ghost:hover {
+      color: var(--primary-blue);
+    }
+
+    .wizard-status-message {
+      margin-top: 0.7rem;
+      font-size: 0.8rem;
+      min-height: 1.2em;
+    }
+
+    .wizard-status-message--success {
+      color: var(--success-green);
+    }
+
+    .wizard-status-message--error {
+      color: var(--error-red);
+    }
+
+    /* SUMMARY BOX (end of step 4) */
+
+    .summary-box {
+      margin-top: 0.9rem;
+      padding: 0.8rem 0.9rem;
+      border-radius: 0.7rem;
+      background: #ecfdf5;
+      border: 1px solid rgba(22, 163, 74, 0.45);
+      font-size: 0.8rem;
+      color: #14532d;
+    }
+
+    .summary-box strong {
+      font-weight: 600;
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 900px) {
+      main {
+        padding-top: 1.5rem;
+      }
+
+      .wizard-shell {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .wizard-left {
+        order: -1;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .header-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .wizard-left,
+      .wizard-right {
+        padding: 1.1rem 1.1rem;
+      }
+
+      .step-dots {
+        font-size: 0.65rem;
+      }
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #ffffff;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+
+    .chip.is-active {
+      background: #e8f0fa !important;
+      border-color: #1f4e79 !important;
+      color: #1f4e79 !important;
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2) !important;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="logo-wrap">
+        <div class="logo-icon" aria-hidden="true"></div>
+        <div>
+          <div class="logo-main">TradeBotPro</div>
+          <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
+        </div>
+      </div>
+      <div class="header-note">
+        Goal: make you <strong>wish you had signed up years ago</strong> in the first month.
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="wizard-shell">
+
+      <!-- LEFT PANEL: OVERVIEW -->
+      <aside class="wizard-left">
+        <div class="wizard-progress-wrap">
+          <div class="progress-label-row">
+            <span><strong>Setup progress</strong></span>
+            <span id="progress-percent">Step 1 of 4</span>
+          </div>
+          <div class="progress-bar-outer">
+            <div id="progress-bar-inner" class="progress-bar-inner"></div>
+          </div>
+          <div class="step-dots">
+            <div class="step-dot is-active" data-step-dot="1">
+              <div class="step-dot-circle">1</div>
+              <div class="step-dot-label">Business basics</div>
+            </div>
+            <div class="step-dot" data-step-dot="2">
+              <div class="step-dot-circle">2</div>
+              <div class="step-dot-label">Area &amp; pricing</div>
+            </div>
+            <div class="step-dot" data-step-dot="3">
+              <div class="step-dot-circle">3</div>
+              <div class="step-dot-label">Messaging &amp; reviews</div>
+            </div>
+            <div class="step-dot" data-step-dot="4">
+              <div class="step-dot-circle">4</div>
+              <div class="step-dot-label">Demo &amp; go-live</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-title-kicker">Setup wizard</div>
+        <h1 class="wizard-title">Let’s tune TradeBotPro to your business</h1>
+        <p class="wizard-subtitle">
+          This takes around 5–10 minutes. Your answers help us configure how TradeBotPro
+          talks to customers, where it books jobs and which enquiries it chases hardest.
+        </p>
+
+        <ul class="wizard-benefits">
+          <li>
+            <span>⚡</span>
+            <span><strong>Instant replies</strong> that feel like a real member of your team.</span>
+          </li>
+          <li>
+            <span>📍</span>
+            <span><strong>Postcode-based coverage</strong> so you only quote in the areas you want.</span>
+          </li>
+          <li>
+            <span>⭐</span>
+            <span><strong>Review follow-ups</strong> tuned to your preferred platform.</span>
+          </li>
+          <li>
+            <span>📅</span>
+            <span><strong>Calendar-ready</strong> so confirmed jobs can drop straight into your diary.</span>
+          </li>
+        </ul>
+
+        <div class="wizard-note">
+          <strong>Important:</strong> This page is your setup wizard only – nothing goes live
+          to customers until you give the go-ahead. You’ll get a full demo evening to test
+          everything from your own phones first.
+        </div>
+
+        <div class="wizard-note">
+          <strong>What happens next?</strong><br />
+          Once this wizard is complete, we’ll plug in your WhatsApp, build your first flows
+          and set up your calendar links behind the scenes.
+          <br /><br />
+          During your demo evening:
+          <ul>
+            <li>You’ll message yourself from a partner’s phone.</li>
+            <li>TradeBotPro will reply like a real customer conversation.</li>
+            <li>You’ll even be able to book a test job into your diary.</li>
+          </ul>
+          <strong>Free trial offer:</strong><br />
+          We can offer a short free trial after the demo for anyone who isn’t fully convinced
+          yet — your setup stays in place so it’s easy to switch on.
+        </div>
+      </aside>
+
+      <!-- RIGHT PANEL: WIZARD STEPS -->
+      <section class="wizard-right" aria-live="polite">
+        <div class="wizard-right-header">
+          <div id="wizard-step-label" class="wizard-step-label">Step 1</div>
+          <h2 id="wizard-step-title" class="wizard-step-title">Business basics</h2>
+          <p id="wizard-step-subtitle" class="wizard-step-subtitle">
+            Who are you, what do you do and how do you like to run things?
+          </p>
+        </div>
+
+        <!-- Step 1: Business basics -->
+        <div class="step-panel is-active" data-step="1">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="contact_name">Main contact name</label>
+              <span class="field-hint">Who TradeBotPro should refer to by name.</span>
+            </div>
+            <input id="contact_name" type="text" autocomplete="name" />
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="business_name">Business name</label>
+              <span class="field-hint">Exactly as you want it shown to customers.</span>
+            </div>
+            <input id="business_name" type="text" autocomplete="organization" />
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>What trade are you?</label>
+              <span class="field-hint">Pick the closest match – we’ll fine-tune later.</span>
+            </div>
+            <div class="chip-row" data-field="main_trade" data-select="single">
+              <button type="button" class="chip"><span>Plumbing &amp; heating</span></button>
+              <button type="button" class="chip"><span>Heating only</span></button>
+              <button type="button" class="chip"><span>Gas engineer</span></button>
+              <button type="button" class="chip"><span>Electrician</span></button>
+              <button type="button" class="chip"><span>Roofing &amp; guttering</span></button>
+              <button type="button" class="chip"><span>Landscaping / gardening</span></button>
+              <button type="button" class="chip"><span>Window cleaning</span></button>
+              <button type="button" class="chip"><span>Cleaning / carpet cleaning</span></button>
+              <button type="button" class="chip"><span>Builder</span></button>
+              <button type="button" class="chip"><span>Handyman</span></button>
+              <button type="button" class="chip"><span>Pest control</span></button>
+              <button type="button" class="chip"><span>Home repairs &amp; maintenance</span></button>
+              <button type="button" class="chip"><span>Other</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Where are you as a business?</label>
+              <span class="field-hint">This just helps us set expectations on go-live.</span>
+            </div>
+            <div class="chip-row" data-field="business_stage" data-select="single">
+              <button type="button" class="chip"><span>Already trading</span></button>
+              <button type="button" class="chip"><span>Launching in next 3 months</span></button>
+              <button type="button" class="chip"><span>Just exploring options</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="contact_email">Best email for setup &amp; reports</label>
+              <span class="field-hint">We’ll send onboarding details and monthly stats here.</span>
+            </div>
+            <input id="contact_email" type="email" autocomplete="email" />
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="contact_mobile">Mobile / WhatsApp number</label>
+              <span class="field-hint">The main number customers currently use.</span>
+            </div>
+            <input id="contact_mobile" type="tel" autocomplete="tel" />
+          </div>
+        </div>
+
+        <!-- Step 2: Area & pricing -->
+        <div class="step-panel" data-step="2">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="base_postcode">Base postcode</label>
+              <span class="field-hint">We always work from postcode, not town.</span>
+            </div>
+            <input id="base_postcode" type="text" placeholder="e.g. OX2 7AB" autocomplete="postal-code" />
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Where do you want TradeBotPro to quote?</label>
+              <span class="field-hint">We’ll filter enquiries outside your preferred area.</span>
+            </div>
+            <div class="chip-row" data-field="coverage_radius" data-select="single">
+              <button type="button" class="chip"><span>Just my town / city</span></button>
+              <button type="button" class="chip"><span>Up to ~10 miles from base</span></button>
+              <button type="button" class="chip"><span>Up to ~20 miles from base</span></button>
+              <button type="button" class="chip"><span>City-wide / multiple postcodes</span></button>
+              <button type="button" class="chip"><span>Custom list (we’ll import later)</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>How do you usually charge call-outs?</label>
+              <span class="field-hint">Helps the AI give sensible ballpark prices.</span>
+            </div>
+            <div class="chip-row" data-field="callout_style" data-select="single">
+              <button type="button" class="chip"><span>Free estimates (no call-out fee)</span></button>
+              <button type="button" class="chip"><span>Paid call-out, deducted from job</span></button>
+              <button type="button" class="chip"><span>Fixed call-out fee</span></button>
+              <button type="button" class="chip"><span>No emergency call-outs</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Typical call-out fee band</label>
+              <span class="field-hint">We can refine by job type later.</span>
+            </div>
+            <div class="chip-row" data-field="callout_band" data-select="single">
+              <button type="button" class="chip"><span>Up to £79</span></button>
+              <button type="button" class="chip"><span>£80–£119</span></button>
+              <button type="button" class="chip"><span>£120–£179</span></button>
+              <button type="button" class="chip"><span>£180+</span></button>
+              <button type="button" class="chip"><span>Varies – discuss with us</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Which jobs do you want more of?</label>
+              <span class="field-hint">TradeBotPro can prioritise the work you enjoy.</span>
+            </div>
+            <div class="chip-row" data-field="preferred_jobs" data-select="multi">
+              <button type="button" class="chip chip-multi"><span>Emergency / urgent jobs</span></button>
+              <button type="button" class="chip chip-multi"><span>Small jobs / quick wins</span></button>
+              <button type="button" class="chip chip-multi"><span>Bigger projects / installs</span></button>
+              <button type="button" class="chip chip-multi"><span>Maintenance / servicing</span></button>
+              <button type="button" class="chip chip-multi"><span>Landlords / repeat clients</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Messaging & reviews -->
+        <div class="step-panel" data-step="3">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>How should TradeBotPro sound?</label>
+              <span class="field-hint">We’ll match your tone of voice.</span>
+            </div>
+            <div class="chip-row" data-field="tone_of_voice" data-select="single">
+              <button type="button" class="chip"><span>Friendly &amp; informal</span></button>
+              <button type="button" class="chip"><span>Professional &amp; straight to the point</span></button>
+              <button type="button" class="chip"><span>Premium / high-end feel</span></button>
+              <button type="button" class="chip"><span>Very short &amp; efficient</span></button>
+              <button type="button" class="chip"><span>We’ll decide together</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Which channels should we start with?</label>
+              <span class="field-hint">You can add more later.</span>
+            </div>
+            <div class="chip-row" data-field="channels" data-select="multi">
+              <button type="button" class="chip chip-multi"><span>WhatsApp</span></button>
+              <button type="button" class="chip chip-multi"><span>SMS / text messages</span></button>
+              <button type="button" class="chip chip-multi"><span>Facebook Messenger</span></button>
+              <button type="button" class="chip chip-multi"><span>Website chat widget</span></button>
+              <button type="button" class="chip chip-multi"><span>Instagram DMs</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Which review platform do you use or want to use?</label>
+              <span class="field-hint">We’ll send customers there automatically after jobs.</span>
+            </div>
+            <div class="chip-row" data-field="review_platforms" data-select="multi">
+              <button type="button" class="chip chip-multi"><span>Google Reviews</span></button>
+              <button type="button" class="chip chip-multi"><span>Trustpilot</span></button>
+              <button type="button" class="chip chip-multi"><span>Facebook page reviews</span></button>
+              <button type="button" class="chip chip-multi"><span>Yell / similar directories</span></button>
+              <button type="button" class="chip chip-multi"><span>Checkatrade / trade portals</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="review_link">Paste your main review link (optional)</label>
+              <span class="field-hint">We’ll wire this into your follow-up messages.</span>
+            </div>
+            <input id="review_link" type="text" placeholder="https://..." />
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>How hard should we push for reviews?</label>
+              <span class="field-hint">You stay in control – no over-the-top nagging.</span>
+            </div>
+            <div class="chip-row" data-field="review_push_level" data-select="single">
+              <button type="button" class="chip"><span>Very gentle reminder only</span></button>
+              <button type="button" class="chip"><span>Standard follow-up &amp; one reminder</span></button>
+              <button type="button" class="chip"><span>Quite proactive (several reminders)</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="ai_avoid">Anything you never want the AI to say?</label>
+              <span class="field-hint">Phrases, promises or situations to avoid.</span>
+            </div>
+            <textarea id="ai_avoid" placeholder="e.g. don’t promise exact arrival times, never discuss prices over WhatsApp without confirmation, etc."></textarea>
+          </div>
+        </div>
+
+        <!-- Step 4: Demo & go-live -->
+        <div class="step-panel" data-step="4">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>How would you like to run your demo?</label>
+              <span class="field-hint">We’ll set up a “test evening” for you and your partner/team.</span>
+            </div>
+            <div class="chip-row" data-field="demo_style" data-select="multi">
+              <button type="button" class="chip chip-multi"><span>Test from our own phones first</span></button>
+              <button type="button" class="chip chip-multi"><span>Test with a few real customers</span></button>
+              <button type="button" class="chip chip-multi"><span>Test calendar bookings</span></button>
+              <button type="button" class="chip chip-multi"><span>Test review follow-up flow</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Preferred evening to test from your own phones</label>
+              <span class="field-hint">So you can send messages from one phone to the other and see it in action.</span>
+            </div>
+            <div class="chip-row" data-field="demo_slot" data-select="single">
+              <button type="button" class="chip"><span>Weekday – 6–8pm</span></button>
+              <button type="button" class="chip"><span>Weekday – 8–10pm</span></button>
+              <button type="button" class="chip"><span>Weekend evening</span></button>
+              <button type="button" class="chip"><span>Daytime (I’m flexible)</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Roughly when do you want to go fully live?</label>
+              <span class="field-hint">Purely for planning – nothing switches on without your say-so.</span>
+            </div>
+            <div class="chip-row" data-field="golive_timing" data-select="single">
+              <button type="button" class="chip"><span>Within 1 week of the demo</span></button>
+              <button type="button" class="chip"><span>Within 1 month</span></button>
+              <button type="button" class="chip"><span>Later – just getting ready</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="extra_notes">Anything else we should know before we build your setup?</label>
+              <span class="field-hint">Special rules, pricing quirks, calendars you use, etc.</span>
+            </div>
+            <textarea id="extra_notes" placeholder="e.g. connect to my Google calendar, no work in certain postcodes, different prices at weekends, etc."></textarea>
+          </div>
+
+          <div class="summary-box" id="summary-box" hidden>
+            <strong>Nice work – that’s your wizard complete.</strong><br />
+            Your answers will be saved to your TradeBotPro profile and used to configure
+            your AI assistant, calendar connection and review follow-ups. We’ll confirm
+            your demo evening and go-live plan with you before anything switches on.
+          </div>
+        </div>
+
+        <!-- FOOTER ACTIONS -->
+        <div class="wizard-footer">
+          <div class="wizard-footer-left">
+            <span id="wizard-footer-text">
+              Step <strong>1</strong> of <strong>4</strong>. You can tweak anything later.
+            </span>
+          </div>
+          <div class="wizard-footer-right">
+            <button type="button" class="btn btn-ghost" id="btn-save-draft">
+              Save draft (browser only for now)
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-back" disabled>
+              ← Back
+            </button>
+            <button type="button" class="btn btn-primary" id="btn-next">
+              Next step →</button>
+          </div>
+        </div>
+
+        <div id="wizard-status-message" class="wizard-status-message"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+  window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co"; 
+  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
+  // ---- Supabase helper ----
+  async function supabaseFetch(path, options = {}) {
+    if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
+      console.error("Supabase is not configured. Check SUPABASE_URL and SUPABASE_KEY.");
+      return {
+        data: null,
+        error: { status: 0, statusText: "Supabase config missing", details: null }
+      };
+    }
+
+    const res = await fetch(`${window.SUPABASE_URL}/rest/v1${path}`, {
+      ...options,
+      headers: {
+        apikey: window.SUPABASE_KEY,
+        Authorization: `Bearer ${window.SUPABASE_KEY}`,
+        ...(options.headers || {})
+      }
+    });
+
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (e) {
+      // no JSON body
+    }
+
+    if (!res.ok) {
+      console.error("Supabase HTTP error", res.status, res.statusText, data);
+      return {
+        data: null,
+        error: {
+          status: res.status,
+          statusText: res.statusText,
+          details: data
+        }
+      };
+    }
+
+    return { data, error: null };
   }
 
-  // Update existing business_profile
-  const { data, error } = await supabase
-    .from('business_profiles')
-    .update(payload)
-    .eq('id', selectedProfile.id)
-    .select()
-    .maybeSingle();
+  // --------------------------------------------
+  // WIZARD + UI LOGIC
+  // --------------------------------------------
+  document.addEventListener("DOMContentLoaded", function () {
+    const TOTAL_STEPS = 4;
+    let currentStep = 1;
 
-  if(error){
-    console.error("Error updating business profile", error);
-    statusSaveMessage.textContent='Error saving status.';
-    statusSaveMessage.className='status-message small error';
-    return;
-  }
+    // 👇 get user_id from URL (so dashboard → wizard works)
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get("user_id"); // this should be tradebotpro_signups.id when opened from dashboard
 
-  selectedProfile = data;
-  statusSaveMessage.textContent='Status saved.';
-  statusSaveMessage.className='status-message small success';
-}
+    const initialState = {
+      contact_name: "",
+      business_name: "",
+      contact_email: "",
+      contact_mobile: "",
+      base_postcode: "",
+      preferred_jobs: [],
+      tone_of_voice: "",
+      coverage_radius: "",
+      callout_style: "",
+      callout_band: "",
+      main_trade: "",
+      business_stage: "",
+      channels: [],
+      review_platforms: [],
+      review_link: "",
+      review_push_level: "",
+      ai_avoid: "",
+      demo_style: [],
+      demo_slot: "",
+      golive_timing: "",
+      extra_notes: ""
+    };
 
-saveStatusButton.onclick = saveStatus;
+    const state = { ...initialState };
 
-load();
+    // ELEMENTS
+    const panels = document.querySelectorAll(".step-panel");
+    const stepLabel = document.getElementById("wizard-step-label");
+    const stepTitle = document.getElementById("wizard-step-title");
+    const stepSubtitle = document.getElementById("wizard-step-subtitle");
+    const progressBar = document.getElementById("progress-bar-inner");
+    const progressPercent = document.getElementById("progress-percent");
+    const stepDots = document.querySelectorAll("[data-step-dot]");
+    const btnBack = document.getElementById("btn-back");
+    const btnNext = document.getElementById("btn-next");
+    const btnSaveDraft = document.getElementById("btn-save-draft");
+    const footerText = document.getElementById("wizard-footer-text");
+    const statusMessage = document.getElementById("wizard-status-message");
+    const summaryBox = document.getElementById("summary-box");
+
+    const textInputs = {
+      contact_name: document.getElementById("contact_name"),
+      business_name: document.getElementById("business_name"),
+      contact_email: document.getElementById("contact_email"),
+      contact_mobile: document.getElementById("contact_mobile"),
+      base_postcode: document.getElementById("base_postcode"),
+      review_link: document.getElementById("review_link"),
+      ai_avoid: document.getElementById("ai_avoid"),
+      extra_notes: document.getElementById("extra_notes")
+    };
+
+    // --------------------------------------------
+    // CHIPS – USING CLASS TOGGLE
+    // --------------------------------------------
+    function setupChips() {
+      const chipRows = document.querySelectorAll(".chip-row");
+      chipRows.forEach((row) => {
+        const field = row.getAttribute("data-field");
+        const mode = row.getAttribute("data-select"); // "single" or "multi"
+        const chips = row.querySelectorAll(".chip");
+
+        chips.forEach((chip) => {
+          chip.classList.remove("is-active"); // reset initial
+
+          chip.addEventListener("click", () => {
+            const label = chip.textContent.trim();
+
+            if (mode === "single") {
+              chips.forEach((c) => c.classList.remove("is-active"));
+              chip.classList.add("is-active");
+              state[field] = label;
+            } else {
+              chip.classList.toggle("is-active");
+              const selected = Array.from(chips)
+                .filter((c) => c.classList.contains("is-active"))
+                .map((c) => c.textContent.trim());
+              state[field] = selected;
+            }
+          });
+        });
+      });
+    }
+
+    // --------------------------------------------
+    // APPLY STATE → UI (for prefill)
+    // --------------------------------------------
+    function populateUIFromState() {
+      // Text inputs
+      Object.entries(textInputs).forEach(([key, el]) => {
+        if (!el) return;
+        el.value = state[key] ?? "";
+      });
+
+      // Chips: rebuild from state
+      const chipRows = document.querySelectorAll(".chip-row");
+      chipRows.forEach((row) => {
+        const field = row.getAttribute("data-field");
+        const mode = row.getAttribute("data-select");
+        const chips = row.querySelectorAll(".chip");
+        const value = state[field];
+
+        chips.forEach((chip) => {
+          chip.classList.remove("is-active");
+          const label = chip.textContent.trim();
+
+          if (mode === "single") {
+            if (value && value === label) {
+              chip.classList.add("is-active");
+            }
+          } else if (mode === "multi") {
+            if (Array.isArray(value) && value.includes(label)) {
+              chip.classList.add("is-active");
+            }
+          }
+        });
+      });
+    }
+
+    // --------------------------------------------
+    // TEXT INPUTS
+    // --------------------------------------------
+    function setupTextInputs() {
+      Object.entries(textInputs).forEach(([key, el]) => {
+        if (!el) return;
+        el.addEventListener("input", () => {
+          state[key] = el.value;
+        });
+      });
+    }
+
+    // --------------------------------------------
+    // STEP UI
+    // --------------------------------------------
+    function updateStepHeader() {
+      const labels = {
+        1: { label: "Step 1", title: "Business basics", subtitle: "Tell us who you are" },
+        2: { label: "Step 2", title: "Area & pricing", subtitle: "Where you work" },
+        3: { label: "Step 3", title: "Messaging & reviews", subtitle: "How TradeBotPro talks" },
+        4: { label: "Step 4", title: "Demo & go-live", subtitle: "Prepare your test run" }
+      };
+      const info = labels[currentStep];
+
+      if (stepLabel) stepLabel.textContent = info.label;
+      if (stepTitle) stepTitle.textContent = info.title;
+      if (stepSubtitle) stepSubtitle.textContent = info.subtitle;
+    }
+
+    function showStep(step) {
+      currentStep = step;
+
+      panels.forEach((p) =>
+        p.classList.toggle("is-active", Number(p.getAttribute("data-step")) === currentStep)
+      );
+
+      stepDots.forEach((dot) => {
+        const s = Number(dot.getAttribute("data-step-dot"));
+        dot.classList.toggle("is-active", s === currentStep);
+        dot.classList.toggle("is-complete", s < currentStep);
+      });
+
+      const progress = (currentStep - 1) / (TOTAL_STEPS - 1);
+      if (progressBar) progressBar.style.width = (progress * 100).toFixed(0) + "%";
+      if (progressPercent) progressPercent.textContent = `Step ${currentStep} of ${TOTAL_STEPS}`;
+
+      if (btnBack) btnBack.disabled = currentStep === 1;
+      if (btnNext) btnNext.textContent = currentStep === TOTAL_STEPS ? "Finish" : "Next step →";
+
+      if (footerText) {
+        footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${TOTAL_STEPS}</strong>. You can tweak anything later.`;
+      }
+
+      if (summaryBox) summaryBox.hidden = currentStep !== TOTAL_STEPS;
+
+      if (statusMessage) {
+        statusMessage.textContent = "";
+        statusMessage.className = "wizard-status-message";
+      }
+
+      updateStepHeader();
+    }
+
+    function scrollTopSmooth() {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // --------------------------------------------
+    // VALIDATION
+    // --------------------------------------------
+    function validateStep(step) {
+      if (!statusMessage) return true;
+
+      statusMessage.textContent = "";
+      statusMessage.className = "wizard-status-message";
+
+      if (step === 1) {
+        if (!state.business_name || !state.contact_name) {
+          statusMessage.textContent = "Please add your contact and business name.";
+          statusMessage.classList.add("wizard-status-message--error");
+          return false;
+        }
+      }
+
+      if (step === 2) {
+        if (!state.base_postcode) {
+          statusMessage.textContent = "Please enter a base postcode.";
+          statusMessage.classList.add("wizard-status-message--error");
+          return false;
+        }
+      }
+
+      if (step === 3) {
+        if (!state.tone_of_voice) {
+          statusMessage.textContent = "Choose a tone of voice.";
+          statusMessage.classList.add("wizard-status-message--error");
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    // --------------------------------------------
+    // LOAD FROM business_profiles WHEN user_id EXISTS
+    // --------------------------------------------
+    async function loadFromBusinessProfile() {
+      if (!userId) {
+        console.log("No user_id in URL – starting with blank wizard.");
+        return;
+      }
+      if (typeof supabaseFetch !== "function") {
+        console.warn("supabaseFetch is not defined, cannot load existing profile.");
+        return;
+      }
+
+      const { data, error } = await supabaseFetch(
+        `/business_profiles?id=eq.${encodeURIComponent(userId)}&select=*`,
+        { method: "GET" }
+      );
+
+      if (error) {
+        console.error("Error loading business profile:", error);
+        return;
+      }
+      if (!data || !data.length) {
+        console.log("No business_profile found for user_id", userId);
+        return;
+      }
+
+      const row = data[0];
+      console.log("Loaded business profile for wizard:", row);
+
+      // Map DB → state
+      state.contact_name = row.contact_name || row.owner_name || "";
+      state.business_name = row.business_name || "";
+      state.contact_email = row.email || "";
+      state.contact_mobile = row.phone || "";
+      state.base_postcode = row.base_postcode || "";
+
+      if (row.services_summary) {
+        state.preferred_jobs = row.services_summary
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+
+      populateUIFromState();
+    }
+
+    // --------------------------------------------
+    // BUILD COMMON PAYLOAD FROM STATE
+    // --------------------------------------------
+    function buildCommonPayloadFromState() {
+      return {
+        business_name: state.business_name || null,
+        contact_name: state.contact_name || null,
+        email: state.contact_email || null,
+        phone: state.contact_mobile || null,
+        base_postcode: state.base_postcode || null,
+        services_summary:
+          state.preferred_jobs && state.preferred_jobs.length
+            ? state.preferred_jobs.join(", ")
+            : null
+      };
+    }
+
+    // --------------------------------------------
+    // SUPABASE SAVE – business_profiles + (optionally) tradebotpro_signups
+    // --------------------------------------------
+    async function saveWizardToBusinessProfile() {
+      if (!statusMessage) return;
+
+      const common = buildCommonPayloadFromState();
+
+      // payload for business_profiles
+      const businessPayload = {
+        ...common,
+        plan_status: "Trial",
+        pending_setup: true,
+        is_active: false,
+        // 🔗 link back to signup if we know the signup id
+        signup_id: userId || null
+      };
+
+      console.log("Saving wizard to business_profiles:", businessPayload, "userId:", userId);
+
+      statusMessage.textContent = "Saving…";
+      statusMessage.className = "wizard-status-message wizard-status-message--saving";
+
+      // Upsert into business_profiles (PATCH when userId present, POST when not)
+      const { data: bpData, error: bpError } = await supabaseFetch(
+        userId
+          ? `/business_profiles?id=eq.${encodeURIComponent(userId)}`
+          : `/business_profiles`,
+        {
+          method: userId ? "PATCH" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify(businessPayload)
+        }
+      );
+
+      if (bpError) {
+        console.error("Save profile error (business_profiles):", bpError);
+        statusMessage.textContent = "There was a problem saving your form. Please try again.";
+        statusMessage.className = "wizard-status-message wizard-status-message--error";
+        return;
+      }
+
+      console.log("Business profile saved:", bpData);
+
+      // If we know the signup id (opened from dashboard), also update tradebotpro_signups
+      if (userId) {
+        const signupPayload = {
+          ...common,
+          plan_status: "Trial",
+          pending_setup: true,
+          is_active: false,
+          // simple status text so the dashboard has something to work with
+          account_status: "Wizard complete",
+          account_status_reason: "Setup wizard saved from app.html"
+        };
+
+        console.log("Updating matching tradebotpro_signups row:", signupPayload);
+
+        const { data: suData, error: suError } = await supabaseFetch(
+          `/tradebotpro_signups?id=eq.${encodeURIComponent(userId)}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Prefer: "return=representation"
+            },
+            body: JSON.stringify(signupPayload)
+          }
+        );
+
+        if (suError) {
+          // Non-fatal – wizard still succeeded, but we log it for you in the console
+          console.error("Save profile warning (tradebotpro_signups):", suError);
+        } else {
+          console.log("Signup row updated from wizard:", suData);
+        }
+      }
+
+      statusMessage.textContent = "Form sent successfully.";
+      statusMessage.className = "wizard-status-message wizard-status-message--success";
+    }
+
+    // --------------------------------------------
+    // BUTTON EVENTS
+    // --------------------------------------------
+    if (btnBack) {
+      btnBack.addEventListener("click", () => {
+        if (currentStep > 1) {
+          showStep(currentStep - 1);
+          scrollTopSmooth();
+        }
+      });
+    }
+
+    if (btnNext) {
+      btnNext.addEventListener("click", () => {
+        if (!validateStep(currentStep)) return;
+
+        if (currentStep < TOTAL_STEPS) {
+          showStep(currentStep + 1);
+          scrollTopSmooth();
+        } else {
+          // Final step
+          saveWizardToBusinessProfile();
+        }
+      });
+    }
+
+    if (btnSaveDraft) {
+      btnSaveDraft.addEventListener("click", () => {
+        try {
+          localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
+          if (statusMessage) {
+            statusMessage.textContent = "Draft saved in this browser.";
+            statusMessage.classList.add("wizard-status-message--success");
+          }
+        } catch (e) {
+          console.error("Save draft error", e);
+        }
+      });
+    }
+
+    // --------------------------------------------
+    // INIT
+    // --------------------------------------------
+    setupChips();
+    setupTextInputs();
+    showStep(1);
+    loadFromBusinessProfile(); // ⬅️ prefill when opened from dashboard
+  });
 </script>
 
 </body>
