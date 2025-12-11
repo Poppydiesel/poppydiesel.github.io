@@ -1338,18 +1338,24 @@
 
     async function saveWizardToBusinessProfile() {
       const payload = {
-        contact_name: state.contact_name || null,
-        business_name: state.business_name || null,
-        email: state.contact_email || null,
-        phone: state.contact_mobile || null,
-        base_postcode: state.base_postcode || null,
-        service_radius: state.coverage_radius || null,
-        notes: state.extra_notes || null,
-        services_summary:
-          state.preferred_jobs && state.preferred_jobs.length
-            ? state.preferred_jobs.join(", ")
-            : null
-      };
+  business_name: state.business_name || null,
+  contact_name: state.contact_name || null,
+  email: state.contact_email || null,
+  phone: state.contact_mobile || null,
+  base_postcode: state.base_postcode || null,
+
+  // Exists as a column
+  services_summary:
+    state.preferred_jobs && state.preferred_jobs.length
+      ? state.preferred_jobs.join(", ")
+      : null,
+
+  // These exist and are safe defaults for new enquiries
+  plan_status: "Trial",
+  pending_setup: true,
+  is_active: false
+};
+
 
       console.log("Saving wizard payload:", payload, "userId:", userId);
 
