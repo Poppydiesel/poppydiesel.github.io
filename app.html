@@ -1039,459 +1039,414 @@
 <!-- 🟦 WIZARD SCRIPT – localStorage (only with user_id) + Supabase (business_profiles) -->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    (function () {
-      const TOTAL_STEPS = 4;
-      let currentStep = 1;
+    try {
+      (function () {
+        const TOTAL_STEPS = 4;
+        let currentStep = 1;
 
-      // Get user_id from URL (?user_id=...)
-      const params = new URLSearchParams(window.location.search);
-      const userId = params.get("user_id");
+        // Get user_id from URL (?user_id=...)
+        const params = new URLSearchParams(window.location.search);
+        const userId = params.get("user_id");
 
-      // Initial state template so we can reset cleanly
-      const initialState = {
-        contact_name: "",
-        business_name: "",
-        main_trade: "",
-        business_stage: "",
-        contact_email: "",
-        contact_mobile: "",
-        base_postcode: "",
-        coverage_radius: "",
-        callout_style: "",
-        callout_band: "",
-        preferred_jobs: [],
-        tone_of_voice: "",
-        channels: [],
-        review_platforms: [],
-        review_link: "",
-        review_push_level: "",
-        ai_avoid: "",
-        demo_style: [],
-        demo_slot: "",
-        golive_timing: "",
-        extra_notes: ""
-      };
-
-      const state = { ...initialState };
-
-      // Elements
-      const panels = document.querySelectorAll(".step-panel");
-      const stepLabel = document.getElementById("wizard-step-label");
-      const stepTitle = document.getElementById("wizard-step-title");
-      const stepSubtitle = document.getElementById("wizard-step-subtitle");
-      const progressBar = document.getElementById("progress-bar-inner");
-      const progressPercent = document.getElementById("progress-percent");
-      const stepDots = document.querySelectorAll("[data-step-dot]");
-      const btnBack = document.getElementById("btn-back");
-      const btnNext = document.getElementById("btn-next");
-      const btnSaveDraft = document.getElementById("btn-save-draft");
-      const footerText = document.getElementById("wizard-footer-text");
-      const statusMessage = document.getElementById("wizard-status-message");
-      const summaryBox = document.getElementById("summary-box");
-
-      const textInputs = {
-        contact_name: document.getElementById("contact_name"),
-        business_name: document.getElementById("business_name"),
-        contact_email: document.getElementById("contact_email"),
-        contact_mobile: document.getElementById("contact_mobile"),
-        base_postcode: document.getElementById("base_postcode"),
-        review_link: document.getElementById("review_link"),
-        ai_avoid: document.getElementById("ai_avoid"),
-        extra_notes: document.getElementById("extra_notes")
-      };
-
-      // -------------------------
-      // WIZARD UI LOGIC
-      // -------------------------
-
-      function updateStepHeader() {
-        const labels = {
-          1: {
-            label: "Step 1",
-            title: "Business basics",
-            subtitle: "Who are you, what do you do and how do you like to run things?"
-          },
-          2: {
-            label: "Step 2",
-            title: "Area & pricing",
-            subtitle: "Where you work and how you prefer to charge for work."
-          },
-          3: {
-            label: "Step 3",
-            title: "Messaging & reviews",
-            subtitle: "How TradeBotPro should talk to customers and collect reviews."
-          },
-          4: {
-            label: "Step 4",
-            title: "Demo & go-live",
-            subtitle: "Plan your test evening, calendar and go-live timing."
-          }
+        // Initial state template so we can reset cleanly
+        const initialState = {
+          contact_name: "",
+          business_name: "",
+          main_trade: "",
+          business_stage: "",
+          contact_email: "",
+          contact_mobile: "",
+          base_postcode: "",
+          coverage_radius: "",
+          callout_style: "",
+          callout_band: "",
+          preferred_jobs: [],
+          tone_of_voice: "",
+          channels: [],
+          review_platforms: [],
+          review_link: "",
+          review_push_level: "",
+          ai_avoid: "",
+          demo_style: [],
+          demo_slot: "",
+          golive_timing: "",
+          extra_notes: ""
         };
 
-        const info = labels[currentStep];
-        stepLabel.textContent = info.label;
-        stepTitle.textContent = info.title;
-        stepSubtitle.textContent = info.subtitle;
-      }
+        const state = { ...initialState };
 
-      function showStep(step) {
-        currentStep = step;
+        // Elements
+        const panels = document.querySelectorAll(".step-panel");
+        const stepLabel = document.getElementById("wizard-step-label");
+        const stepTitle = document.getElementById("wizard-step-title");
+        const stepSubtitle = document.getElementById("wizard-step-subtitle");
+        const progressBar = document.getElementById("progress-bar-inner");
+        const progressPercent = document.getElementById("progress-percent");
+        const stepDots = document.querySelectorAll("[data-step-dot]");
+        const btnBack = document.getElementById("btn-back");
+        const btnNext = document.getElementById("btn-next");
+        const btnSaveDraft = document.getElementById("btn-save-draft");
+        const footerText = document.getElementById("wizard-footer-text");
+        const statusMessage = document.getElementById("wizard-status-message");
+        const summaryBox = document.getElementById("summary-box");
 
-        panels.forEach((panel) => {
-          const s = Number(panel.getAttribute("data-step"));
-          panel.classList.toggle("is-active", s === currentStep);
-        });
+        const textInputs = {
+          contact_name: document.getElementById("contact_name"),
+          business_name: document.getElementById("business_name"),
+          contact_email: document.getElementById("contact_email"),
+          contact_mobile: document.getElementById("contact_mobile"),
+          base_postcode: document.getElementById("base_postcode"),
+          review_link: document.getElementById("review_link"),
+          ai_avoid: document.getElementById("ai_avoid"),
+          extra_notes: document.getElementById("extra_notes")
+        };
 
-        // Update step dots + progress bar
-        stepDots.forEach((dot) => {
-          const s = Number(dot.getAttribute("data-step-dot"));
-          dot.classList.toggle("is-active", s === currentStep);
-          dot.classList.toggle("is-complete", s < currentStep);
-        });
+        // -------------------------
+        // WIZARD UI LOGIC
+        // -------------------------
 
-        const progress = (currentStep - 1) / (TOTAL_STEPS - 1);
-        progressBar.style.width = (progress * 100).toFixed(0) + "%";
-        progressPercent.textContent = `Step ${currentStep} of ${TOTAL_STEPS}`;
+        function updateStepHeader() {
+          const labels = {
+            1: {
+              label: "Step 1",
+              title: "Business basics",
+              subtitle: "Who are you, what do you do and how do you like to run things?"
+            },
+            2: {
+              label: "Step 2",
+              title: "Area & pricing",
+              subtitle: "Where you work and how you prefer to charge for work."
+            },
+            3: {
+              label: "Step 3",
+              title: "Messaging & reviews",
+              subtitle: "How TradeBotPro should talk to customers and collect reviews."
+            },
+            4: {
+              label: "Step 4",
+              title: "Demo & go-live",
+              subtitle: "Plan your test evening, calendar and go-live timing."
+            }
+          };
 
-        // Buttons
-        btnBack.disabled = currentStep === 1;
-        btnNext.textContent = currentStep === TOTAL_STEPS ? "Finish" : "Next step →";
+          const info = labels[currentStep];
+          stepLabel && (stepLabel.textContent = info.label);
+          stepTitle && (stepTitle.textContent = info.title);
+          stepSubtitle && (stepSubtitle.textContent = info.subtitle);
+        }
 
-        footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${TOTAL_STEPS}</strong>. You can tweak anything later.`;
+        function showStep(step) {
+          currentStep = step;
 
-        // Reset status UI
-        statusMessage.textContent = "";
-        statusMessage.className = "wizard-status-message";
+          panels.forEach((panel) => {
+            const s = Number(panel.getAttribute("data-step"));
+            panel.classList.toggle("is-active", s === currentStep);
+          });
 
-        // Summary visibility (only at final step)
-        summaryBox.hidden = currentStep !== TOTAL_STEPS;
+          // Update step dots + progress bar
+          stepDots.forEach((dot) => {
+            const s = Number(dot.getAttribute("data-step-dot"));
+            dot.classList.toggle("is-active", s === currentStep);
+            dot.classList.toggle("is-complete", s < currentStep);
+          });
 
-        updateStepHeader();
-      }
+          const progress = (currentStep - 1) / (TOTAL_STEPS - 1);
+          if (progressBar) {
+            progressBar.style.width = (progress * 100).toFixed(0) + "%";
+          }
+          if (progressPercent) {
+            progressPercent.textContent = `Step ${currentStep} of ${TOTAL_STEPS}`;
+          }
 
-      function scrollToTopOfWizard() {
-        // Scroll the page to the top – no layout changes, just movement
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
+          // Buttons
+          if (btnBack) btnBack.disabled = currentStep === 1;
+          if (btnNext) {
+            btnNext.textContent = currentStep === TOTAL_STEPS ? "Finish" : "Next step →";
+          }
 
-      // -------------------------
-      // CHIP HANDLERS
-      // -------------------------
+          if (footerText) {
+            footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${TOTAL_STEPS}</strong>. You can tweak anything later.`;
+          }
 
-      function setupChips() {
-        const chipRows = document.querySelectorAll(".chip-row");
+          // Reset status UI
+          if (statusMessage) {
+            statusMessage.textContent = "";
+            statusMessage.className = "wizard-status-message";
+          }
 
-        chipRows.forEach((row) => {
-          const field = row.getAttribute("data-field");
-          const mode = row.getAttribute("data-select"); // "single" or "multi"
-          const chips = row.querySelectorAll(".chip");
+          // Summary visibility (only at final step)
+          if (summaryBox) {
+            summaryBox.hidden = currentStep !== TOTAL_STEPS;
+          }
 
-          chips.forEach((chip) => {
-            chip.addEventListener("click", () => {
+          updateStepHeader();
+        }
+
+        function scrollToTopOfWizard() {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        // -------------------------
+        // CHIP HANDLERS
+        // -------------------------
+
+        function setupChips() {
+          const chipRows = document.querySelectorAll(".chip-row");
+
+          chipRows.forEach((row) => {
+            const field = row.getAttribute("data-field");
+            const mode = row.getAttribute("data-select"); // "single" or "multi"
+            const chips = row.querySelectorAll(".chip");
+
+            chips.forEach((chip) => {
+              chip.addEventListener("click", () => {
+                if (mode === "single") {
+                  chips.forEach((c) => c.classList.remove("is-active"));
+                  chip.classList.add("is-active");
+                  state[field] = chip.textContent.trim();
+                } else {
+                  chip.classList.toggle("is-active");
+                  const selected = Array.from(row.querySelectorAll(".chip.is-active")).map((c) =>
+                    c.textContent.trim()
+                  );
+                  state[field] = selected;
+                }
+              });
+            });
+          });
+        }
+
+        // -------------------------
+        // TEXT INPUT SYNC
+        // -------------------------
+
+        function setupTextInputs() {
+          Object.entries(textInputs).forEach(([key, el]) => {
+            if (!el) return;
+            el.addEventListener("input", () => {
+              state[key] = el.value;
+            });
+          });
+        }
+
+        // -------------------------
+        // SIMPLE STEP VALIDATION
+        // -------------------------
+
+        function validateStep(step) {
+          if (!statusMessage) return true;
+
+          statusMessage.textContent = "";
+          statusMessage.className = "wizard-status-message";
+
+          if (step === 1) {
+            if (!state.business_name || !state.contact_name) {
+              statusMessage.textContent = "Please add at least a contact name and business name.";
+              statusMessage.classList.add("wizard-status-message--error");
+              return false;
+            }
+          }
+
+          if (step === 2) {
+            if (!state.base_postcode || !state.coverage_radius) {
+              statusMessage.textContent = "Please choose a base postcode and coverage area.";
+              statusMessage.classList.add("wizard-status-message--error";
+              return false;
+            }
+          }
+
+          if (step === 3) {
+            if (!state.tone_of_voice) {
+              statusMessage.textContent = "Please pick a tone of voice so messages feel right for you.";
+              statusMessage.classList.add("wizard-status-message--error");
+              return false;
+            }
+          }
+
+          return true;
+        }
+
+        // -------------------------
+        // LOCAL STORAGE (only when user_id exists)
+        // -------------------------
+
+        function saveDraftToBrowser() {
+          if (!userId || !statusMessage) {
+            return;
+          }
+          try {
+            localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
+            statusMessage.textContent = "Draft saved in this browser.";
+            statusMessage.classList.add("wizard-status-message--success");
+          } catch (e) {
+            console.error("Save draft error", e);
+            statusMessage.textContent = "Couldn’t save draft in this browser. Try again or switch browser.";
+            statusMessage.classList.add("wizard-status-message--error");
+          }
+        }
+
+        function populateUIFromState() {
+          Object.entries(textInputs).forEach(([key, el]) => {
+            if (!el) return;
+            if (state[key] !== undefined && state[key] !== null) {
+              el.value = state[key];
+            } else {
+              el.value = "";
+            }
+          });
+
+          const chipRows = document.querySelectorAll(".chip-row");
+          chipRows.forEach((row) => {
+            const field = row.getAttribute("data-field");
+            const mode = row.getAttribute("data-select");
+            const chips = row.querySelectorAll(".chip");
+            const value = state[field];
+
+            chips.forEach((chip) => {
+              chip.classList.remove("is-active");
+              const label = chip.textContent.trim();
+
               if (mode === "single") {
-                chips.forEach((c) => c.classList.remove("is-active"));
-                chip.classList.add("is-active");
-                state[field] = chip.textContent.trim();
-              } else {
-                // multi-select
-                chip.classList.toggle("is-active");
-                const selected = Array.from(row.querySelectorAll(".chip.is-active")).map((c) =>
-                  c.textContent.trim()
-                );
-                state[field] = selected;
+                if (value && value === label) {
+                  chip.classList.add("is-active");
+                }
+              } else if (mode === "multi") {
+                if (Array.isArray(value) && value.includes(label)) {
+                  chip.classList.add("is-active");
+                }
               }
             });
           });
-        });
-      }
+        }
 
-      // -------------------------
-      // TEXT INPUT SYNC
-      // -------------------------
-
-      function setupTextInputs() {
-        Object.entries(textInputs).forEach(([key, el]) => {
-          if (!el) return;
-          el.addEventListener("input", () => {
-            state[key] = el.value;
-          });
-        });
-      }
-
-      // -------------------------
-      // SIMPLE STEP VALIDATION
-      // -------------------------
-
-      function validateStep(step) {
-        statusMessage.textContent = "";
-        statusMessage.className = "wizard-status-message";
-
-        if (step === 1) {
-          if (!state.business_name || !state.contact_name) {
-            statusMessage.textContent = "Please add at least a contact name and business name.";
-            statusMessage.classList.add("wizard-status-message--error");
-            return false;
+        function loadDraftFromBrowser() {
+          if (!userId) {
+            return;
+          }
+          try {
+            const raw = localStorage.getItem("tradebotpro_setup_wizard");
+            if (!raw) return;
+            const saved = JSON.parse(raw);
+            Object.assign(state, saved);
+            populateUIFromState();
+          } catch (e) {
+            console.warn("No valid draft found", e);
           }
         }
 
-        if (step === 2) {
-          if (!state.base_postcode || !state.coverage_radius) {
-            statusMessage.textContent = "Please choose a base postcode and coverage area.";
-            statusMessage.classList.add("wizard-status-message--error");
-            return false;
-          }
-        }
-
-        if (step === 3) {
-          if (!state.tone_of_voice) {
-            statusMessage.textContent = "Please pick a tone of voice so messages feel right for you.";
-            statusMessage.classList.add("wizard-status-message--error");
-            return false;
-          }
-        }
-
-        return true;
-      }
-
-      // -------------------------
-      // LOCAL STORAGE (only when user_id exists)
-      // -------------------------
-
-      function saveDraftToBrowser() {
-        // Only use local drafts in onboarding / existing-client mode
-        if (!userId) {
-          return;
-        }
-        try {
-          localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
-          statusMessage.textContent = "Draft saved in this browser.";
-          statusMessage.classList.add("wizard-status-message--success");
-        } catch (e) {
-          console.error("Save draft error", e);
-          statusMessage.textContent = "Couldn’t save draft in this browser. Try again or switch browser.";
-          statusMessage.classList.add("wizard-status-message--error");
-        }
-      }
-
-      function populateUIFromState() {
-        // Text fields
-        Object.entries(textInputs).forEach(([key, el]) => {
-          if (!el) return;
-          if (state[key] !== undefined && state[key] !== null) {
-            el.value = state[key];
-          } else {
-            el.value = "";
-          }
-        });
-
-        // Chips
-        const chipRows = document.querySelectorAll(".chip-row");
-        chipRows.forEach((row) => {
-          const field = row.getAttribute("data-field");
-          const mode = row.getAttribute("data-select");
-          const chips = row.querySelectorAll(".chip");
-          const value = state[field];
-
-          chips.forEach((chip) => {
-            chip.classList.remove("is-active");
-            const label = chip.textContent.trim();
-
-            if (mode === "single") {
-              if (value && value === label) {
-                chip.classList.add("is-active");
-              }
-            } else if (mode === "multi") {
-              if (Array.isArray(value) && value.includes(label)) {
-                chip.classList.add("is-active");
-              }
-            }
-          });
-        });
-      }
-
-      function loadDraftFromBrowser() {
-        // Only load drafts in onboarding / existing-client mode
-        if (!userId) {
-          return;
-        }
-        try {
-          const raw = localStorage.getItem("tradebotpro_setup_wizard");
-          if (!raw) return;
-          const saved = JSON.parse(raw);
-          Object.assign(state, saved);
+        function resetWizard() {
+          Object.assign(state, initialState);
+          localStorage.removeItem("tradebotpro_setup_wizard");
           populateUIFromState();
-        } catch (e) {
-          console.warn("No valid draft found", e);
-        }
-      }
-
-      function resetWizard() {
-        // Reset state back to initial
-        Object.assign(state, initialState);
-        // Clear any stored draft (even if user_id exists)
-        localStorage.removeItem("tradebotpro_setup_wizard");
-        // Reset UI
-        populateUIFromState();
-        currentStep = 1;
-        showStep(1);
-      }
-
-      // -------------------------
-      // SUPABASE LOAD (business_profiles only)
-      // -------------------------
-
-      async function loadFromBusinessProfile() {
-        // If this is a “generic” enquiry without a linked profile, just don’t load anything.
-        if (!userId) {
-          return;
-        }
-        if (typeof supabaseFetch !== "function") {
-          return;
+          currentStep = 1;
+          showStep(1);
         }
 
-        const { data, error } = await supabaseFetch(
-          `/business_profiles?id=eq.${encodeURIComponent(userId)}&select=*`,
-          { method: "GET" }
-        );
+        // -------------------------
+        // SUPABASE LOAD (business_profiles only)
+        // -------------------------
 
-        if (error || !data || !data.length) {
-          return;
-        }
-
-        const row = data[0];
-
-        state.contact_name = row.contact_name || state.contact_name;
-        state.business_name = row.business_name || state.business_name;
-        state.contact_email = row.email || state.contact_email;
-        state.contact_mobile = row.phone || row.whatsapp_number || state.contact_mobile;
-        state.base_postcode = row.base_postcode || state.base_postcode;
-        state.coverage_radius = row.service_radius || state.coverage_radius;
-
-        if (row.notes && !state.extra_notes) {
-          state.extra_notes = row.notes;
-        }
-        if (row.services_summary && !state.preferred_jobs.length) {
-          state.preferred_jobs = row.services_summary
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        }
-
-        populateUIFromState();
-      }
-
-      // -------------------------
-      // SUPABASE SAVE (business_profiles only)
-      // -------------------------
-
-          // -------------------------
-    // SUPABASE SAVE (business_profiles only)
-    // -------------------------
-
-    async function saveWizardToBusinessProfile() {
-      // Build a minimal, safe payload – only columns we’re confident exist.
-      const payload = {
-        contact_name: state.contact_name || null,
-        business_name: state.business_name || null,
-        email: state.contact_email || null,
-        phone: state.contact_mobile || null,
-        base_postcode: state.base_postcode || null,
-        service_radius: state.coverage_radius || null,
-        notes: state.extra_notes || null,
-        services_summary:
-          state.preferred_jobs && state.preferred_jobs.length
-            ? state.preferred_jobs.join(", ")
-            : null
-      };
-
-      console.log("Saving wizard payload:", payload, "userId:", userId);
-
-      // CASE A: No user_id → INSERT new business_profiles row (new enquiry)
-      if (!userId) {
-        statusMessage.textContent = "Saving…";
-        statusMessage.className = "wizard-status-message wizard-status-message--saving";
-
-        const { data, error } = await supabaseFetch(
-          `/business_profiles`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Prefer: "return=representation"
-            },
-            body: JSON.stringify(payload)
+        async function loadFromBusinessProfile() {
+          if (!userId || typeof supabaseFetch !== "function") {
+            return;
           }
-        );
 
-        if (error) {
-          console.error("Insert profile error:", error);
-          statusMessage.textContent = "There was a problem sending your form. Please try again.";
-          statusMessage.className = "wizard-status-message wizard-status-message--error";
-          return;
+          const { data, error } = await supabaseFetch(
+            `/business_profiles?id=eq.${encodeURIComponent(userId)}&select=*`,
+            { method: "GET" }
+          );
+
+          if (error || !data || !data.length) {
+            return;
+          }
+
+          const row = data[0];
+
+          state.contact_name = row.contact_name || state.contact_name;
+          state.business_name = row.business_name || state.business_name;
+          state.contact_email = row.email || state.contact_email;
+          state.contact_mobile = row.phone || row.whatsapp_number || state.contact_mobile;
+          state.base_postcode = row.base_postcode || state.base_postcode;
+          state.coverage_radius = row.service_radius || state.coverage_radius;
+
+          if (row.notes && !state.extra_notes) {
+            state.extra_notes = row.notes;
+          }
+          if (row.services_summary && !state.preferred_jobs.length) {
+            state.preferred_jobs = row.services_summary
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean);
+          }
+
+          populateUIFromState();
         }
 
-        console.log("New business profile created:", data);
-        statusMessage.textContent = "Form sent successfully.";
-        statusMessage.className = "wizard-status-message wizard-status-message--success";
+        // -------------------------
+        // SUPABASE SAVE (business_profiles only)
+        // -------------------------
 
-        // Clear the form for the next enquiry
-        resetWizard();
-        return;
-      }
+        async function saveWizardToBusinessProfile() {
+          const payload = {
+            contact_name: state.contact_name || null,
+            business_name: state.business_name || null,
+            email: state.contact_email || null,
+            phone: state.contact_mobile || null,
+            base_postcode: state.base_postcode || null,
+            service_radius: state.coverage_radius || null,
+            notes: state.extra_notes || null,
+            services_summary:
+              state.preferred_jobs && state.preferred_jobs.length
+                ? state.preferred_jobs.join(", ")
+                : null
+          };
 
-      // CASE B: user_id present → PATCH existing row
-      statusMessage.textContent = "Saving…";
-      statusMessage.className = "wizard-status-message wizard-status-message--saving";
+          console.log("Saving wizard payload:", payload, "userId:", userId);
 
-      const { data, error } = await supabaseFetch(
-        `/business_profiles?id=eq.${encodeURIComponent(userId)}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Prefer: "return=representation"
-          },
-          body: JSON.stringify(payload)
-        }
-      );
+          if (!statusMessage) {
+            return;
+          }
 
-      if (error) {
-        console.error("Save profile error:", error);
-        statusMessage.textContent = "There was a problem sending your form. Please try again.";
-        statusMessage.className = "wizard-status-message wizard-status-message--error";
-        return;
-      }
+          // CASE A: No user_id → INSERT new business_profiles row (new enquiry)
+          if (!userId) {
+            statusMessage.textContent = "Saving…";
+            statusMessage.className = "wizard-status-message wizard-status-message--saving";
 
-      console.log("Business profile updated:", data);
-      statusMessage.textContent = "Form sent successfully.";
-      statusMessage.className = "wizard-status-message wizard-status-message--success";
-    }
+            const { data, error } = await supabaseFetch(
+              `/business_profiles`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Prefer: "return=representation"
+                },
+                body: JSON.stringify(payload)
+              }
+            );
 
+            if (error) {
+              console.error("Insert profile error:", error);
+              statusMessage.textContent = "There was a problem sending your form. Please try again.";
+              statusMessage.className = "wizard-status-message wizard-status-message--error";
+              return;
+            }
 
-        // Build a minimal, safe payload – only columns we’re confident exist.
-        const payload = {
-          contact_name: state.contact_name || null,
-          business_name: state.business_name || null,
-          email: state.contact_email || null,
-          phone: state.contact_mobile || null,
-          base_postcode: state.base_postcode || null,
-          service_radius: state.coverage_radius || null,
-          notes: state.extra_notes || null,
-          services_summary:
-            state.preferred_jobs && state.preferred_jobs.length
-              ? state.preferred_jobs.join(", ")
-              : null
-        };
+            console.log("New business profile created:", data);
+            statusMessage.textContent = "Form sent successfully.";
+            statusMessage.className = "wizard-status-message wizard-status-message--success";
 
-        // CASE A: No user_id → INSERT new business_profiles row (new enquiry)
-        if (!userId) {
+            resetWizard();
+            return;
+          }
+
+          // CASE B: user_id present → PATCH existing row
           statusMessage.textContent = "Saving…";
           statusMessage.className = "wizard-status-message wizard-status-message--saving";
 
           const { data, error } = await supabaseFetch(
-            `/business_profiles`,
+            `/business_profiles?id=eq.${encodeURIComponent(userId)}`,
             {
-              method: "POST",
+              method: "PATCH",
               headers: {
                 "Content-Type": "application/json",
                 Prefer: "return=representation"
@@ -1501,93 +1456,62 @@
           );
 
           if (error) {
-            console.error("Insert profile error:", error);
+            console.error("Save profile error:", error);
             statusMessage.textContent = "There was a problem sending your form. Please try again.";
             statusMessage.className = "wizard-status-message wizard-status-message--error";
             return;
           }
 
-          console.log("New business profile created:", data);
+          console.log("Business profile updated:", data);
           statusMessage.textContent = "Form sent successfully.";
           statusMessage.className = "wizard-status-message wizard-status-message--success";
-
-          // Clear the form for the next enquiry
-          resetWizard();
-          return;
         }
 
-        // CASE B: user_id present → PATCH existing row
-        statusMessage.textContent = "Saving…";
-        statusMessage.className = "wizard-status-message wizard-status-message--saving";
+        // -------------------------
+        // BUTTON HANDLERS
+        // -------------------------
 
-        const { data, error } = await supabaseFetch(
-          `/business_profiles?id=eq.${encodeURIComponent(userId)}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Prefer: "return=representation"
-            },
-            body: JSON.stringify(payload)
-          }
-        );
-
-        if (error) {
-          console.error("Save profile error:", error);
-          statusMessage.textContent = "There was a problem sending your form. Please try again.";
-          statusMessage.className = "wizard-status-message wizard-status-message--error";
-          return;
-        }
-
-        console.log("Business profile updated:", data);
-        statusMessage.textContent = "Form sent successfully.";
-        statusMessage.className = "wizard-status-message wizard-status-message--success";
-      }
-
-      // -------------------------
-      // BUTTON HANDLERS
-      // -------------------------
-
-      if (btnBack) {
-        btnBack.addEventListener("click", () => {
-          if (currentStep <= 1) return;
-          showStep(currentStep - 1);
-          scrollToTopOfWizard();
-        });
-      }
-
-      if (btnNext) {
-        btnNext.addEventListener("click", () => {
-          // Validate current step before moving on
-          if (!validateStep(currentStep)) return;
-
-          if (currentStep < TOTAL_STEPS) {
-            showStep(currentStep + 1);
+        if (btnBack) {
+          btnBack.addEventListener("click", () => {
+            if (currentStep <= 1) return;
+            showStep(currentStep - 1);
             scrollToTopOfWizard();
-          } else {
-            // Final step "Finish" click
-            saveDraftToBrowser();           // only does something when user_id exists
-            saveWizardToBusinessProfile();  // INSERT (no user_id) or PATCH (with user_id)
-          }
-        });
-      }
+          });
+        }
 
-      if (btnSaveDraft) {
-        btnSaveDraft.addEventListener("click", () => {
-          saveDraftToBrowser();
-        });
-      }
+        if (btnNext) {
+          btnNext.addEventListener("click", () => {
+            if (!validateStep(currentStep)) return;
 
-      // -------------------------
-      // INIT
-      // -------------------------
+            if (currentStep < TOTAL_STEPS) {
+              showStep(currentStep + 1);
+              scrollToTopOfWizard();
+            } else {
+              saveDraftToBrowser();
+              saveWizardToBusinessProfile();
+            }
+          });
+        }
 
-      setupChips();
-      setupTextInputs();
-      showStep(1);
-      loadDraftFromBrowser();     // only does anything when user_id exists
-      loadFromBusinessProfile();  // only does anything when user_id exists
-    })();
+        if (btnSaveDraft) {
+          btnSaveDraft.addEventListener("click", () => {
+            saveDraftToBrowser();
+          });
+        }
+
+        // -------------------------
+        // INIT
+        // -------------------------
+
+        setupChips();
+        setupTextInputs();
+        showStep(1);
+        loadDraftFromBrowser();
+        loadFromBusinessProfile();
+      })();
+    } catch (e) {
+      console.error("Wizard init error", e);
+    }
   });
 </script>
 
