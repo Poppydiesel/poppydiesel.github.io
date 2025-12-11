@@ -1,5 +1,4 @@
-
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -397,94 +396,84 @@
       margin-top: 0.25rem;
     }
 
-/* -------------------------------------------------- */
-/* CHIP SYSTEM — FULL RESET + ACTIVE STATE FIX        */
-/* -------------------------------------------------- */
+    /* -------------------------------------------------- */
+    /* CHIP SYSTEM — FULL RESET + ACTIVE STATE FIX        */
+    /* -------------------------------------------------- */
 
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 14px;
-}
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
 
-.chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #ffffff;
-  font-size: 0.85rem;
-  line-height: 1.2;
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-  transition: 
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease;
-}
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #ffffff;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition: 
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
 
-/* -------------------------------------------------- */
-/* ACTIVE CHIP — THIS IS WHAT MAKES THEM HIGHLIGHT     */
-/* -------------------------------------------------- */
+    .chip.is-active {
+      background: #e8f0fa;                  /* soft light blue highlight */
+      border-color: #1f4e79;                /* strong navy border */
+      color: #1f4e79;                       /* navy text */
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.15);
+      font-weight: 600;
+    }
 
-.chip.is-active {
-  background: #e8f0fa;                  /* soft light blue highlight */
-  border-color: #1f4e79;                /* strong navy border */
-  color: #1f4e79;                       /* navy text */
-  box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.15);
-  font-weight: 600;
-}
+    .chip:hover {
+      border-color: #1f4e79;
+      background: rgba(31, 78, 121, 0.06);
+    }
 
-/* -------------------------------------------------- */
-/* CHIP ON HOVER — OPTIONAL BUT MAKES UI FEEL ALIVE    */
-/* -------------------------------------------------- */
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
 
-.chip:hover {
-  border-color: #1f4e79;
-  background: rgba(31, 78, 121, 0.06);
-}
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #ffffff;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
 
-    /* CHIP VISUAL STATE */
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #ffffff;
-  font-size: 0.85rem;
-  line-height: 1.2;
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.chip.is-active {
-  background: #e8f0fa;
-  border-color: #1f4e79;
-  color: #1f4e79;
-  box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2);
-  font-weight: 600;
-}
-
+    .chip.is-active {
+      background: #e8f0fa;
+      border-color: #1f4e79;
+      color: #1f4e79;
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2);
+      font-weight: 600;
+    }
 
     /* FOOTER ACTIONS */
 
@@ -632,44 +621,41 @@
         font-size: 0.65rem;
       }
     }
-/* CHIP ACTIVE STATE – FORCE VISUAL DIFFERENCE */
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 14px;
-}
 
-    
-.chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #ffffff;
-  font-size: 0.85rem;
-  line-height: 1.2;
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease;
-}
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
 
-.chip.is-active {
-  background: #e8f0fa !important;
-  border-color: #1f4e79 !important;
-  color: #1f4e79 !important;
-  box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2) !important;
-  font-weight: 600;
-}
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #ffffff;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
 
-  
+    .chip.is-active {
+      background: #e8f0fa !important;
+      border-color: #1f4e79 !important;
+      color: #1f4e79 !important;
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2) !important;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -756,7 +742,6 @@
           everything from your own phones first.
         </div>
 
-        <!-- NEW "WHAT HAPPENS NEXT" BLOCK -->
         <div class="wizard-note">
           <strong>What happens next?</strong><br />
           Once this wizard is complete, we’ll plug in your WhatsApp, build your first flows
@@ -1063,8 +1048,7 @@
               ← Back
             </button>
             <button type="button" class="btn btn-primary" id="btn-next">
-              Next step →
-            </button>
+              Next step →</button>
           </div>
         </div>
 
@@ -1075,10 +1059,9 @@
 </div>
 
 <script>
-  
-  window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  
-  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";               // <--- YOUR KEY in quotes
-  
+  window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co"; 
+  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
   // ---- Supabase helper ----
   async function supabaseFetch(path, options = {}) {
     if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
@@ -1127,9 +1110,9 @@
     const TOTAL_STEPS = 4;
     let currentStep = 1;
 
-    // user_id from URL, so dashboard → wizard works
+    // 👇 get user_id from URL (so dashboard → wizard works)
     const params = new URLSearchParams(window.location.search);
-    const userId = params.get("user_id");
+    const userId = params.get("user_id"); // this should be tradebotpro_signups.id when opened from dashboard
 
     const initialState = {
       contact_name: "",
@@ -1152,19 +1135,7 @@
       demo_style: [],
       demo_slot: "",
       golive_timing: "",
-      extra_notes: "",
-
-      // backend-only / dashboard fields
-      account_status: "",              // e.g. "Lead – New"
-      account_status_reason: "",
-      plan_status: "Free trial",       // default
-      wants_free_trial: null,
-      primary_service_area: "",
-      extra_service_areas: [],
-      directory_opt_in: null,
-      directory_headline: "",
-      directory_blurb: "",
-      directory_is_active: false
+      extra_notes: ""
     };
 
     const state = { ...initialState };
@@ -1196,7 +1167,7 @@
     };
 
     // --------------------------------------------
-    // CHIPS – class toggle
+    // CHIPS – USING CLASS TOGGLE
     // --------------------------------------------
     function setupChips() {
       const chipRows = document.querySelectorAll(".chip-row");
@@ -1237,7 +1208,7 @@
         el.value = state[key] ?? "";
       });
 
-      // Chips
+      // Chips: rebuild from state
       const chipRows = document.querySelectorAll(".chip-row");
       chipRows.forEach((row) => {
         const field = row.getAttribute("data-field");
@@ -1279,10 +1250,10 @@
     // --------------------------------------------
     function updateStepHeader() {
       const labels = {
-        1: { label: "Step 1", title: "Business basics",      subtitle: "Tell us who you are" },
-        2: { label: "Step 2", title: "Area & pricing",       subtitle: "Where you work" },
-        3: { label: "Step 3", title: "Messaging & reviews",  subtitle: "How TradeBotPro talks" },
-        4: { label: "Step 4", title: "Demo & go-live",       subtitle: "Prepare your test run" }
+        1: { label: "Step 1", title: "Business basics", subtitle: "Tell us who you are" },
+        2: { label: "Step 2", title: "Area & pricing", subtitle: "Where you work" },
+        3: { label: "Step 3", title: "Messaging & reviews", subtitle: "How TradeBotPro talks" },
+        4: { label: "Step 4", title: "Demo & go-live", subtitle: "Prepare your test run" }
       };
       const info = labels[currentStep];
 
@@ -1366,7 +1337,7 @@
     }
 
     // --------------------------------------------
-    // LOAD FROM business_profiles + tradebotpro_signups
+    // LOAD FROM business_profiles WHEN user_id EXISTS
     // --------------------------------------------
     async function loadFromBusinessProfile() {
       if (!userId) {
@@ -1378,164 +1349,82 @@
         return;
       }
 
-      // 1) business_profiles
-      const { data: profileRows, error: profileError } = await supabaseFetch(
+      const { data, error } = await supabaseFetch(
         `/business_profiles?id=eq.${encodeURIComponent(userId)}&select=*`,
         { method: "GET" }
       );
 
-      if (profileError) {
-        console.error("Error loading business profile:", profileError);
+      if (error) {
+        console.error("Error loading business profile:", error);
+        return;
       }
-
-      if (profileRows && profileRows.length) {
-        const row = profileRows[0];
-        console.log("Loaded business profile for wizard:", row);
-
-        state.contact_name   = row.contact_name || row.owner_name || state.contact_name;
-        state.business_name  = row.business_name || state.business_name;
-        state.contact_email  = row.email || state.contact_email;
-        state.contact_mobile = row.phone || state.contact_mobile;
-        state.base_postcode  = row.base_postcode || state.base_postcode;
-
-        if (row.services_summary) {
-          state.preferred_jobs = row.services_summary
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        }
-
-        state.account_status         = row.account_status || state.account_status;
-        state.account_status_reason  = row.account_status_reason || state.account_status_reason;
-        state.plan_status            = row.plan_status || state.plan_status;
-        state.wants_free_trial =
-          typeof row.wants_free_trial === "boolean"
-            ? row.wants_free_trial
-            : state.wants_free_trial;
-        state.primary_service_area   = row.primary_service_area || state.primary_service_area;
-        state.extra_service_areas    = Array.isArray(row.extra_service_areas)
-          ? row.extra_service_areas
-          : state.extra_service_areas;
-        state.directory_opt_in =
-          typeof row.directory_opt_in === "boolean"
-            ? row.directory_opt_in
-            : state.directory_opt_in;
-        state.directory_headline     = row.directory_headline || state.directory_headline;
-        state.directory_blurb        = row.directory_blurb || state.directory_blurb;
-        state.directory_is_active =
-          typeof row.directory_is_active === "boolean"
-            ? row.directory_is_active
-            : state.directory_is_active;
-      } else {
+      if (!data || !data.length) {
         console.log("No business_profile found for user_id", userId);
+        return;
       }
 
-      // 2) tradebotpro_signups – only to backfill missing info
-      const { data: signupRows, error: signupError } = await supabaseFetch(
-        `/tradebotpro_signups?id=eq.${encodeURIComponent(userId)}&select=*`,
-        { method: "GET" }
-      );
+      const row = data[0];
+      console.log("Loaded business profile for wizard:", row);
 
-      if (signupError) {
-        console.error("Error loading signup record:", signupError);
-      }
+      // Map DB → state
+      state.contact_name = row.contact_name || row.owner_name || "";
+      state.business_name = row.business_name || "";
+      state.contact_email = row.email || "";
+      state.contact_mobile = row.phone || "";
+      state.base_postcode = row.base_postcode || "";
 
-      if (signupRows && signupRows.length) {
-        const signup = signupRows[0];
-        console.log("Loaded signup for wizard:", signup);
-
-        if (!state.business_name && signup.business_name) {
-          state.business_name = signup.business_name;
-        }
-        if (!state.contact_name && (signup.contact_name || signup.owner_name)) {
-          state.contact_name = signup.contact_name || signup.owner_name;
-        }
-        if (!state.contact_email && signup.email) {
-          state.contact_email = signup.email;
-        }
-        if (!state.contact_mobile && (signup.phone || signup.whatsapp_number)) {
-          state.contact_mobile = signup.whatsapp_number || signup.phone;
-        }
-        if (!state.base_postcode && signup.base_postcode) {
-          state.base_postcode = signup.base_postcode;
-        }
-
-        if ((!state.preferred_jobs || !state.preferred_jobs.length) && signup.services_summary) {
-          state.preferred_jobs = signup.services_summary
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        }
-
-        if (!state.account_status && signup.account_status) {
-          state.account_status = signup.account_status;
-        }
-        if (!state.account_status_reason && signup.account_status_reason) {
-          state.account_status_reason = signup.account_status_reason;
-        }
-        if (!state.plan_status && signup.plan_status) {
-          state.plan_status = signup.plan_status;
-        }
-        if (state.wants_free_trial === null && typeof signup.wants_free_trial === "boolean") {
-          state.wants_free_trial = signup.wants_free_trial;
-        }
-        if (!state.primary_service_area && signup.primary_service_area) {
-          state.primary_service_area = signup.primary_service_area;
-        }
-        if (
-          (!state.extra_service_areas || !state.extra_service_areas.length) &&
-          Array.isArray(signup.extra_service_areas)
-        ) {
-          state.extra_service_areas = signup.extra_service_areas;
-        }
+      if (row.services_summary) {
+        state.preferred_jobs = row.services_summary
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
       }
 
       populateUIFromState();
     }
 
     // --------------------------------------------
-    // SAVE → business_profiles + tradebotpro_signups
+    // BUILD COMMON PAYLOAD FROM STATE
     // --------------------------------------------
-    async function saveWizardToBusinessProfile() {
-      const account_status = state.account_status || "Lead – New";
-      const plan_status    = state.plan_status || "Free trial";
-
-      const payload = {
-        business_name:  state.business_name || null,
-        contact_name:   state.contact_name || null,
-        email:          state.contact_email || null,
-        phone:          state.contact_mobile || null,
-        base_postcode:  state.base_postcode || null,
+    function buildCommonPayloadFromState() {
+      return {
+        business_name: state.business_name || null,
+        contact_name: state.contact_name || null,
+        email: state.contact_email || null,
+        phone: state.contact_mobile || null,
+        base_postcode: state.base_postcode || null,
         services_summary:
           state.preferred_jobs && state.preferred_jobs.length
             ? state.preferred_jobs.join(", ")
-            : null,
+            : null
+      };
+    }
 
-        account_status,
-        account_status_reason: state.account_status_reason || null,
-        plan_status,
-        wants_free_trial: state.wants_free_trial,
+    // --------------------------------------------
+    // SUPABASE SAVE – business_profiles + (optionally) tradebotpro_signups
+    // --------------------------------------------
+    async function saveWizardToBusinessProfile() {
+      if (!statusMessage) return;
 
-        primary_service_area: state.primary_service_area || null,
-        extra_service_areas:  state.extra_service_areas || [],
+      const common = buildCommonPayloadFromState();
 
-        directory_opt_in:   state.directory_opt_in,
-        directory_headline: state.directory_headline || null,
-        directory_blurb:    state.directory_blurb || null,
-        directory_is_active: !!state.directory_is_active,
-
+      // payload for business_profiles
+      const businessPayload = {
+        ...common,
+        plan_status: "Trial",
         pending_setup: true,
-        is_active: false
+        is_active: false,
+        // 🔗 link back to signup if we know the signup id
+        signup_id: userId || null
       };
 
-      console.log("Saving wizard payload to business_profiles:", payload, "userId:", userId);
+      console.log("Saving wizard to business_profiles:", businessPayload, "userId:", userId);
 
-      if (!statusMessage) return;
       statusMessage.textContent = "Saving…";
       statusMessage.className = "wizard-status-message wizard-status-message--saving";
 
-      // 1) Save into business_profiles
-      const { data: profileData, error: profileError } = await supabaseFetch(
+      // Upsert into business_profiles (PATCH when userId present, POST when not)
+      const { data: bpData, error: bpError } = await supabaseFetch(
         userId
           ? `/business_profiles?id=eq.${encodeURIComponent(userId)}`
           : `/business_profiles`,
@@ -1545,41 +1434,34 @@
             "Content-Type": "application/json",
             Prefer: "return=representation"
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(businessPayload)
         }
       );
 
-      if (profileError) {
-        console.error("Save profile error:", profileError);
+      if (bpError) {
+        console.error("Save profile error (business_profiles):", bpError);
         statusMessage.textContent = "There was a problem saving your form. Please try again.";
         statusMessage.className = "wizard-status-message wizard-status-message--error";
         return;
       }
 
-      console.log("Business profile saved:", profileData);
+      console.log("Business profile saved:", bpData);
 
-      // 2) Sync into tradebotpro_signups (for dashboard)
+      // If we know the signup id (opened from dashboard), also update tradebotpro_signups
       if (userId) {
         const signupPayload = {
-          business_name:  payload.business_name,
-          contact_name:   payload.contact_name,
-          email:          payload.email,
-          phone:          payload.phone,
-          base_postcode:  payload.base_postcode,
-          services_summary: payload.services_summary,
-          account_status:   payload.account_status,
-          account_status_reason: payload.account_status_reason,
-          plan_status:      payload.plan_status,
-          wants_free_trial: payload.wants_free_trial,
-          primary_service_area: payload.primary_service_area,
-          extra_service_areas:  payload.extra_service_areas,
-          pending_setup:   payload.pending_setup,
-          is_active:       payload.is_active
+          ...common,
+          plan_status: "Trial",
+          pending_setup: true,
+          is_active: false,
+          // simple status text so the dashboard has something to work with
+          account_status: "Wizard complete",
+          account_status_reason: "Setup wizard saved from app.html"
         };
 
-        console.log("Syncing wizard payload to tradebotpro_signups:", signupPayload);
+        console.log("Updating matching tradebotpro_signups row:", signupPayload);
 
-        const { data: signupData, error: signupError } = await supabaseFetch(
+        const { data: suData, error: suError } = await supabaseFetch(
           `/tradebotpro_signups?id=eq.${encodeURIComponent(userId)}`,
           {
             method: "PATCH",
@@ -1591,15 +1473,12 @@
           }
         );
 
-        if (signupError) {
-          console.error("Save signup sync error:", signupError);
-          statusMessage.textContent =
-            "Form sent successfully, but dashboard info may take a moment to catch up.";
-          statusMessage.className = "wizard-status-message wizard-status-message--success";
-          return;
+        if (suError) {
+          // Non-fatal – wizard still succeeded, but we log it for you in the console
+          console.error("Save profile warning (tradebotpro_signups):", suError);
+        } else {
+          console.log("Signup row updated from wizard:", suData);
         }
-
-        console.log("Signup row updated:", signupData);
       }
 
       statusMessage.textContent = "Form sent successfully.";
@@ -1626,6 +1505,7 @@
           showStep(currentStep + 1);
           scrollTopSmooth();
         } else {
+          // Final step
           saveWizardToBusinessProfile();
         }
       });
@@ -1651,10 +1531,9 @@
     setupChips();
     setupTextInputs();
     showStep(1);
-    loadFromBusinessProfile();
+    loadFromBusinessProfile(); // ⬅️ prefill when opened from dashboard
   });
 </script>
 
-  
 </body>
 </html>
