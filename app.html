@@ -983,10 +983,10 @@
   </main>
 </div>
 
-  <!-- 🔐 SUPABASE CONFIG – must be before the wizard script -->
+ <!-- 🔐 SUPABASE CONFIG – must be before the wizard script -->
 <script>
   // ⬇️ Replace these two lines with your real Supabase values:
- const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   // ⬆️ Use the PUBLIC anon key, NOT the service role key.
 
@@ -1032,7 +1032,8 @@
     const params = new URLSearchParams(window.location.search);
     const userId = params.get("user_id");
 
-    const state = {
+    // Initial state template so we can reset cleanly
+    const initialState = {
       contact_name: "",
       business_name: "",
       main_trade: "",
@@ -1055,6 +1056,8 @@
       golive_timing: "",
       extra_notes: ""
     };
+
+    const state = { ...initialState };
 
     // Elements
     const panels = document.querySelectorAll(".step-panel");
@@ -1257,6 +1260,8 @@
         if (!el) return;
         if (state[key] !== undefined && state[key] !== null) {
           el.value = state[key];
+        } else {
+          el.value = "";
         }
       });
 
@@ -1295,6 +1300,17 @@
       } catch (e) {
         console.warn("No valid draft found", e);
       }
+    }
+
+    function resetWizard() {
+      // Reset state back to initial
+      Object.assign(state, initialState);
+      // Clear any stored draft
+      localStorage.removeItem("tradebotpro_setup_wizard");
+      // Reset UI
+      populateUIFromState();
+      currentStep = 1;
+      showStep(1);
     }
 
     // -------------------------
@@ -1349,17 +1365,15 @@
     // -------------------------
 
     async function saveWizardToBusinessProfile() {
-      // If there is no user_id or no supabaseFetch, treat as local-only enquiry
-      if (!userId || typeof supabaseFetch !== "function") {
+      // If Supabase helper is missing, just fall back to local “success”
+      if (typeof supabaseFetch !== "function") {
         statusMessage.textContent =
           "Form sent successfully (saved locally). We’ll link this to your account during onboarding.";
         statusMessage.className = "wizard-status-message wizard-status-message--success";
         return;
       }
 
-      statusMessage.textContent = "Saving…";
-      statusMessage.className = "wizard-status-message wizard-status-message--saving";
-
+      // Build payload once
       const payload = {
         contact_name: state.contact_name || null,
         business_name: state.business_name || null,
@@ -1376,6 +1390,43 @@
         callout_notes: state.callout_style || null,
         pricing_notes: state.callout_band || null
       };
+
+      // CASE A: No user_id → INSERT new business_profiles row (new enquiry)
+      if (!userId) {
+        statusMessage.textContent = "Saving…";
+        statusMessage.className = "wizard-status-message wizard-status-message--saving";
+
+        const { data, error } = await supabaseFetch(
+          `/business_profiles`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Prefer: "return=representation"
+            },
+            body: JSON.stringify(payload)
+          }
+        );
+
+        if (error) {
+          console.error("Insert profile error:", error);
+          statusMessage.textContent = "There was a problem sending your form. Please try again.";
+          statusMessage.className = "wizard-status-message wizard-status-message--error";
+          return;
+        }
+
+        console.log("New business profile created:", data);
+        statusMessage.textContent = "Form sent successfully.";
+        statusMessage.className = "wizard-status-message wizard-status-message--success";
+
+        // Clear the form for the next enquiry
+        resetWizard();
+        return;
+      }
+
+      // CASE B: user_id present → PATCH existing row
+      statusMessage.textContent = "Saving…";
+      statusMessage.className = "wizard-status-message wizard-status-message--saving";
 
       const { data, error } = await supabaseFetch(
         `/business_profiles?id=eq.${encodeURIComponent(userId)}`,
@@ -1421,7 +1472,7 @@
       } else {
         // Final step "Finish" click
         saveDraftToBrowser();           // keep local draft
-        saveWizardToBusinessProfile();  // save to Supabase if user_id exists
+        saveWizardToBusinessProfile();  // save to Supabase (insert or update)
       }
     });
 
@@ -1440,6 +1491,8 @@
     loadFromBusinessProfile();  // then overlay with Supabase data (if any)
   })();
 </script>
+
+
 
 
 
