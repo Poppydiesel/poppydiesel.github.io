@@ -984,11 +984,14 @@
 </div>
 
 <script>
-  // FRONT-END ONLY WIZARD LOGIC
-  // No Supabase / API calls yet – we’ll wire those later.
+  // SETUP WIZARD — FRONT-END + SUPABASE (business_profiles only)
   (function () {
     const TOTAL_STEPS = 4;
     let currentStep = 1;
+
+    // Get user_id from URL (?user_id=...)
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get("user_id");
 
     const state = {
       contact_name: "",
@@ -1100,11 +1103,7 @@
       statusMessage.className = "wizard-status-message";
 
       // Summary visibility (only at final step)
-      if (currentStep === TOTAL_STEPS) {
-        summaryBox.hidden = false;
-      } else {
-        summaryBox.hidden = true;
-      }
+      summaryBox.hidden = currentStep !== TOTAL_STEPS;
 
       updateStepHeader();
     }
@@ -1148,8 +1147,7 @@
     function setupTextInputs() {
       Object.entries(textInputs).forEach(([key, el]) => {
         if (!el) return;
-        const isTextArea = el.tagName.toLowerCase() === "textarea";
-        const eventName = isTextArea ? "input" : "input";
+        const eventName = "input";
 
         el.addEventListener(eventName, () => {
           state[key] = el.value;
@@ -1193,7 +1191,7 @@
     function saveDraftToBrowser() {
       try {
         localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
-        statusMessage.textContent = "Draft saved in this browser. We’ll connect this to your account later.";
+        statusMessage.textContent = "Draft saved in this browser.";
         statusMessage.classList.add("wizard-status-message--success");
       } catch (e) {
         console.error("Save draft error", e);
@@ -1202,46 +1200,173 @@
       }
     }
 
+    // Populate UI (text inputs + chips) from current state
+    function populateUIFromState() {
+      // Text fields
+      Object.entries(textInputs).forEach(([key, el]) => {
+        if (!el) return;
+        if (state[key] !== undefined && state[key] !== null) {
+          el.value = state[key];
+        }
+      });
+
+      // Chips
+      const chipRows = document.querySelectorAll(".chip-row");
+      chipRows.forEach((row) => {
+        const field = row.getAttribute("data-field");
+        const mode = row.getAttribute("data-select");
+        const chips = row.querySelectorAll(".chip");
+        const value = state[field];
+
+        chips.forEach((chip) => {
+          chip.classList.remove("is-active");
+          const label = chip.textContent.trim();
+
+          if (mode === "single") {
+            if (value && value === label) {
+              chip.classList.add("is-active");
+            }
+          } else if (mode === "multi") {
+            if (Array.isArray(value) && value.includes(label)) {
+              chip.classList.add("is-active");
+            }
+          }
+        });
+      });
+    }
+
     function loadDraftFromBrowser() {
       try {
         const raw = localStorage.getItem("tradebotpro_setup_wizard");
         if (!raw) return;
         const saved = JSON.parse(raw);
         Object.assign(state, saved);
-
-        // Re-populate text fields
-        Object.entries(textInputs).forEach(([key, el]) => {
-          if (!el) return;
-          if (state[key] !== undefined) {
-            el.value = state[key];
-          }
-        });
-
-        // Rebuild chips
-        const chipRows = document.querySelectorAll(".chip-row");
-        chipRows.forEach((row) => {
-          const field = row.getAttribute("data-field");
-          const mode = row.getAttribute("data-select");
-          const chips = row.querySelectorAll(".chip");
-          const value = state[field];
-
-          chips.forEach((chip) => {
-            chip.classList.remove("is-active");
-            const label = chip.textContent.trim();
-
-            if (mode === "single") {
-              if (value && value === label) {
-                chip.classList.add("is-active");
-              }
-            } else if (mode === "multi") {
-              if (Array.isArray(value) && value.includes(label)) {
-                chip.classList.add("is-active");
-              }
-            }
-          });
-        });
+        populateUIFromState();
       } catch (e) {
         console.warn("No valid draft found", e);
+      }
+    }
+
+    // 🔄 LOAD FROM SUPABASE (business_profiles only)
+    async function loadFromBusinessProfile() {
+      if (!userId) {
+        console.warn("No user_id in URL, skipping Supabase load.");
+        return;
+      }
+      if (typeof supabaseFetch !== "function") {
+        console.warn("supabaseFetch helper not found, skipping Supabase load.");
+        return;
+      }
+
+      try {
+        const { data, error } = await supabaseFetch(
+          `/business_profiles?id=eq.${encodeURIComponent(userId)}&select=*`,
+          { method: "GET" }
+        );
+
+        if (error) {
+          console.error("Error loading business_profile:", error);
+          return;
+        }
+        if (!data || !data.length) {
+          console.log("No business_profile row for this user yet.");
+          return;
+        }
+
+        const row = data[0];
+
+        // Map profile basics into wizard state
+        state.contact_name = row.contact_name || state.contact_name;
+        state.business_name = row.business_name || state.business_name;
+        state.contact_email = row.email || state.contact_email;
+        state.contact_mobile = row.phone || row.whatsapp_number || state.contact_mobile;
+        state.base_postcode = row.base_postcode || state.base_postcode;
+        state.coverage_radius = row.service_radius || state.coverage_radius;
+
+        // Use ai_style_notes / notes to prefill some messaging fields if present
+        if (row.ai_style_notes && !state.tone_of_voice) {
+          state.tone_of_voice = row.ai_style_notes;
+        }
+        if (row.notes && !state.extra_notes) {
+          state.extra_notes = row.notes;
+        }
+        if (row.services_summary && !state.preferred_jobs.length) {
+          state.preferred_jobs = row.services_summary.split(",").map((s) => s.trim()).filter(Boolean);
+        }
+
+        populateUIFromState();
+      } catch (err) {
+        console.error("Unexpected error loading profile:", err);
+      }
+    }
+
+    // 💾 SAVE TO SUPABASE (business_profiles only)
+    async function saveWizardToBusinessProfile() {
+      if (!userId) {
+        statusMessage.textContent = "Missing user ID – cannot save to your account.";
+        statusMessage.classList.add("wizard-status-message--error");
+        return;
+      }
+      if (typeof supabaseFetch !== "function") {
+        console.warn("supabaseFetch helper not found, skipping Supabase save.");
+        return;
+      }
+
+      statusMessage.textContent = "Saving your setup…";
+      statusMessage.className = "wizard-status-message wizard-status-message--saving";
+
+      // Map wizard state to business_profiles columns
+      const payload = {
+        contact_name: state.contact_name || null,
+        business_name: state.business_name || null,
+        email: state.contact_email || null,
+        phone: state.contact_mobile || null,
+        base_postcode: state.base_postcode || null,
+        service_radius: state.coverage_radius || null,
+
+        // Store wizard-style config into these text fields
+        ai_style_notes: state.tone_of_voice || null,
+        notes: state.extra_notes || null,
+        services_summary:
+          state.preferred_jobs && state.preferred_jobs.length
+            ? state.preferred_jobs.join(", ")
+            : null,
+        callout_notes: state.callout_style || null,
+        pricing_notes: state.callout_band || null
+      };
+
+      try {
+        const { data, error } = await supabaseFetch(
+          `/business_profiles?id=eq.${encodeURIComponent(userId)}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Prefer: "return=representation"
+            },
+            body: JSON.stringify(payload)
+          }
+        );
+
+        if (error) {
+          console.error("Save profile error:", error);
+          statusMessage.textContent =
+            "There was a problem saving your setup. Please try again.";
+          statusMessage.className =
+            "wizard-status-message wizard-status-message--error";
+          return;
+        }
+
+        console.log("Business profile updated:", data);
+        statusMessage.textContent = "All steps complete. Your setup has been saved.";
+        statusMessage.className =
+          "wizard-status-message wizard-status-message--success";
+      } catch (err) {
+        console.error("Unexpected save error:", err);
+        statusMessage.textContent =
+          "Unexpected error saving your setup. Please try again.";
+        statusMessage.className =
+          "wizard-status-message wizard-status-message--error";
       }
     }
 
@@ -1260,13 +1385,9 @@
         showStep(currentStep + 1);
         scrollToTopOfWizard();
       } else {
-        // Final step "Finish" click – front-end only
-        saveDraftToBrowser();
-        statusMessage.textContent = "All steps complete. We’ll connect this wizard to your live dashboard during onboarding.";
-        statusMessage.classList.add("wizard-status-message--success");
-
-        // NOTE: This is where Supabase / backend wiring will go later:
-        // TODO: send `state` to your backend or Supabase profile table.
+        // Final step "Finish" click
+        saveDraftToBrowser();           // still keep local draft
+        saveWizardToBusinessProfile();  // now save to Supabase (business_profiles only)
       }
     });
 
@@ -1278,8 +1399,10 @@
     setupChips();
     setupTextInputs();
     showStep(1);
-    loadDraftFromBrowser();
+    loadDraftFromBrowser();     // local draft first
+    loadFromBusinessProfile();  // then overlay anything from Supabase (if exists)
   })();
 </script>
+
 </body>
 </html>
