@@ -312,8 +312,6 @@
       color: var(--muted-text);
     }
 
-    /* CHIPS (reuse wizard style) */
-
     .chip-row {
       display: flex;
       flex-wrap: wrap;
@@ -685,6 +683,14 @@
       color: var(--success-green);
     }
 
+    .save-status {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 4px;
+      min-height: 1em;
+      text-align: right;
+    }
+
     /* RESPONSIVE */
 
     @media (max-width: 900px) {
@@ -720,7 +726,7 @@
 </head>
 <body>
 <div class="page">
-  <!-- HEADER (matches app.html) -->
+  <!-- HEADER -->
   <header>
     <div class="header-inner">
       <div class="logo-wrap">
@@ -739,7 +745,7 @@
   <!-- MAIN -->
   <main>
     <div class="dashboard-shell">
-      <!-- LEFT PANEL: OVERVIEW / SUMMARY -->
+      <!-- LEFT PANEL -->
       <aside class="dashboard-left">
         <div class="dash-title-kicker">Client dashboard</div>
         <h1 class="dash-title">Your TradeBotPro clients</h1>
@@ -790,7 +796,7 @@
               <span>Full plan live</span>
             </div>
             <div class="legend-pill">
-              <span class="legend-dot paused"></span>
+              <span class="legend-dot.paused"></span>
               <span>Paused / inactive</span>
             </div>
           </div>
@@ -807,7 +813,7 @@
         </div>
       </aside>
 
-      <!-- RIGHT PANEL: FILTERS + CLIENT LIST -->
+      <!-- RIGHT PANEL -->
       <section class="dashboard-right" aria-live="polite">
         <div class="dashboard-right-header">
           <div class="dashboard-step-label">Overview</div>
@@ -913,6 +919,37 @@
     return { data, error: null };
   }
 
+  // Helper to escape notes safely into HTML
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  // Per-card save indicators
+  function setCardSaving(cardEl) {
+    if (!cardEl) return;
+    const el = cardEl.querySelector(".save-status");
+    if (!el) return;
+    el.textContent = "Saving…";
+    el.style.color = "#6b7280"; // grey
+  }
+
+  function setCardSaved(cardEl) {
+    if (!cardEl) return;
+    const el = cardEl.querySelector(".save-status");
+    if (!el) return;
+    el.textContent = "Saved ✓";
+    el.style.color = "#0f7b46"; // green
+    setTimeout(() => {
+      if (el.textContent === "Saved ✓") {
+        el.textContent = "";
+      }
+    }, 1500);
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     const clientsListEl = document.getElementById("clients-list");
     const stageFiltersEl = document.getElementById("stage-filters");
@@ -925,7 +962,7 @@
     const summaryTotalInlineEl = document.getElementById("summary-total-inline");
 
     let allClients = [];
-    let signupMap = {}; // id -> signup row from tradebotpro_signups
+    let signupMap = {};
     let activeStageFilter = "all";
     let searchTerm = "";
 
@@ -977,7 +1014,7 @@
       return "unknown";
     }
 
-    // ---- Origin helpers (self-signup vs manual) ----
+    // ---- Origin helpers ----
     function computeOrigin(client) {
       const signupId = client.signup_id || null;
       const signupRow = signupId ? signupMap[signupId] : null;
@@ -1004,9 +1041,12 @@
       return { label: "Self-signup", cls: "origin-self" };
     }
 
-    // ---- PATCH helper ----
-    async function patchBusinessProfile(id, payload, onSuccess) {
+    // ---- PATCH helper with per-card indicator ----
+    async function patchBusinessProfile(id, payload, cardEl, onSuccess) {
       if (!id) return;
+
+      if (cardEl) setCardSaving(cardEl);
+
       const { data, error } = await supabaseFetch(
         `/business_profiles?id=eq.${encodeURIComponent(id)}`,
         {
@@ -1037,6 +1077,8 @@
       }
 
       if (onSuccess) onSuccess();
+
+      if (cardEl) setCardSaved(cardEl);
 
       if (statusMessageEl) {
         statusMessageEl.textContent = "Saved.";
@@ -1143,6 +1185,7 @@
           const comfort = client.pricing_notes || "Not discussed yet";
           const areasNotes = client.callout_notes || "Not discussed yet";
           const notes = client.notes || "";
+          const safeNotes = escapeHtml(notes);
 
           card.innerHTML = `
             <div class="client-header-row">
@@ -1252,11 +1295,9 @@
                   <div class="small-label">Follow-up &amp; next steps (internal)</div>
                   <div class="notes-hint">e.g. "Call after demo, offer Pro + extra areas"</div>
                 </div>
-                <textarea class="notes-textarea notes-input">${notes.replace(
-                  /&/g,
-                  "&amp;"
-                ).replace(/</g, "&lt;").replace(/>/g, "&gt;")}</textarea>
+                <textarea class="notes-textarea notes-input">${safeNotes}</textarea>
               </div>
+              <div class="save-status"></div>
             </div>
 
             <div class="client-actions-row">
@@ -1371,6 +1412,7 @@
     }
 
     if (clientsListEl) {
+      // Click handlers
       clientsListEl.addEventListener("click", (evt) => {
         const btn = evt.target.closest("button[data-action]");
         if (btn) {
@@ -1394,17 +1436,20 @@
           const block = chip.closest(".client-controls-block");
           if (!block) return;
           const profileId = block.getAttribute("data-profile-id");
+          if (!profileId) return;
           const value = chip.getAttribute("data-value");
-          if (!profileId || !value) return;
+          if (!value) return;
 
           const row = chip.parentElement;
           row.querySelectorAll(".chip").forEach((c) => c.classList.remove("is-active"));
           chip.classList.add("is-active");
 
-          patchBusinessProfile(profileId, { callout_notes: value });
+          const card = block.closest(".client-card");
+          patchBusinessProfile(profileId, { callout_notes: value }, card);
         }
       });
 
+      // Change handlers (dropdowns)
       clientsListEl.addEventListener("change", (evt) => {
         const target = evt.target;
         const block = target.closest(".client-controls-block");
@@ -1412,28 +1457,36 @@
         const profileId = block.getAttribute("data-profile-id");
         if (!profileId) return;
 
+        const card = block.closest(".client-card");
+
         if (target.classList.contains("status-select")) {
           const value = target.value;
-          patchBusinessProfile(profileId, { account_status: value });
+          patchBusinessProfile(profileId, { account_status: value }, card);
         }
 
         if (target.classList.contains("comfort-select")) {
           const value = target.value;
-          patchBusinessProfile(profileId, { pricing_notes: value });
+          patchBusinessProfile(profileId, { pricing_notes: value }, card);
         }
       });
 
-      clientsListEl.addEventListener("blur", (evt) => {
-        const target = evt.target;
-        if (!target.classList.contains("notes-input")) return;
-        const block = target.closest(".client-controls-block");
-        if (!block) return;
-        const profileId = block.getAttribute("data-profile-id");
-        if (!profileId) return;
+      // Blur handler for notes (save on leaving the box)
+      clientsListEl.addEventListener(
+        "blur",
+        (evt) => {
+          const target = evt.target;
+          if (!target.classList.contains("notes-input")) return;
+          const block = target.closest(".client-controls-block");
+          if (!block) return;
+          const profileId = block.getAttribute("data-profile-id");
+          if (!profileId) return;
 
-        const value = target.value || "";
-        patchBusinessProfile(profileId, { notes: value });
-      }, true);
+          const value = target.value || "";
+          const card = block.closest(".client-card");
+          patchBusinessProfile(profileId, { notes: value }, card);
+        },
+        true
+      );
     }
 
     loadClients();
