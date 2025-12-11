@@ -1111,9 +1111,25 @@
     const TOTAL_STEPS = 4;
     let currentStep = 1;
 
-    // Treat user_id in URL as signup_id from tradebotpro_signups
+    // 🔑 Work out what IDs we have in the URL
     const params = new URLSearchParams(window.location.search);
-    const signupId = params.get("user_id") || null;
+
+    // These are the possible patterns we might have used:
+    let signupId =
+      params.get("signup_id") ||
+      params.get("user_id") ||
+      null;
+
+    let profileId =
+      params.get("profile_id") ||
+      params.get("id") ||
+      null;
+
+    console.log("Wizard URL params:", {
+      rawSearch: window.location.search,
+      signupIdFromUrl: signupId,
+      profileIdFromUrl: profileId
+    });
 
     const initialState = {
       contact_name: "",
@@ -1335,57 +1351,103 @@
     // LOAD FROM tradebotpro_signups + business_profiles
     // --------------------------------------------
     async function loadFromSignupAndProfile() {
-      if (!signupId) {
-        console.log("No user_id in URL – starting with blank wizard.");
+      if (!signupId && !profileId) {
+        console.log("No signupId/profileId in URL – starting with blank wizard.");
         return;
       }
 
-      // 1) Base prefill from tradebotpro_signups
-      const { data: signupRows, error: signupErr } = await supabaseFetch(
-        `/tradebotpro_signups?id=eq.${encodeURIComponent(signupId)}&select=*`,
-        { method: "GET" }
-      );
+      // 1) If we have a profileId, load that first and harvest signup_id from it
+      if (profileId) {
+        const { data: profileRows, error: profileErr } = await supabaseFetch(
+          `/business_profiles?id=eq.${encodeURIComponent(profileId)}&select=*`,
+          { method: "GET" }
+        );
 
-      if (signupErr) {
-        console.error("Error loading signup row:", signupErr);
-      } else if (signupRows && signupRows.length) {
-        const s = signupRows[0];
-        state.contact_name = s.contact_name || s.owner_name || state.contact_name;
-        state.business_name = s.business_name || state.business_name;
-        state.contact_email = s.email || state.contact_email;
-        state.contact_mobile = s.phone || state.contact_mobile;
-        state.base_postcode = s.base_postcode || state.base_postcode;
-        if (s.services_summary && !state.preferred_jobs.length) {
-          state.preferred_jobs = s.services_summary
-            .split(",")
-            .map((v) => v.trim())
-            .filter(Boolean);
+        if (profileErr) {
+          console.error("Error loading business profile by id:", profileErr);
+        } else if (profileRows && profileRows.length) {
+          const p = profileRows[0];
+          console.log("Loaded business profile by id:", p);
+
+          // Map into state
+          state.contact_name = p.contact_name || p.owner_name || state.contact_name;
+          state.business_name = p.business_name || state.business_name;
+          state.contact_email = p.email || state.contact_email;
+          state.contact_mobile = p.phone || state.contact_mobile;
+          state.base_postcode = p.base_postcode || state.base_postcode;
+
+          if (p.services_summary) {
+            state.preferred_jobs = p.services_summary
+              .split(",")
+              .map((v) => v.trim())
+              .filter(Boolean);
+          }
+
+          // If this profile row already knows which signup it belongs to, use that
+          if (p.signup_id && !signupId) {
+            signupId = p.signup_id;
+            console.log("Adopted signupId from business_profiles.signup_id:", signupId);
+          }
         }
       }
 
-      // 2) If there is already a business_profile for this signup_id, overlay from that
-      const { data: profileRows, error: profileErr } = await supabaseFetch(
-        `/business_profiles?signup_id=eq.${encodeURIComponent(signupId)}&select=*`,
-        { method: "GET" }
-      );
+      // 2) If we have a signupId, load from tradebotpro_signups
+      if (signupId) {
+        const { data: signupRows, error: signupErr } = await supabaseFetch(
+          `/tradebotpro_signups?id=eq.${encodeURIComponent(signupId)}&select=*`,
+          { method: "GET" }
+        );
 
-      if (profileErr) {
-        console.error("Error loading business profile:", profileErr);
-      } else if (profileRows && profileRows.length) {
-        const p = profileRows[0];
-        state.contact_name = p.contact_name || p.owner_name || state.contact_name;
-        state.business_name = p.business_name || state.business_name;
-        state.contact_email = p.email || state.contact_email;
-        state.contact_mobile = p.phone || state.contact_mobile;
-        state.base_postcode = p.base_postcode || state.base_postcode;
+        if (signupErr) {
+          console.error("Error loading signup row:", signupErr);
+        } else if (signupRows && signupRows.length) {
+          const s = signupRows[0];
+          console.log("Loaded signup row:", s);
 
-        if (p.services_summary) {
-          state.preferred_jobs = p.services_summary
-            .split(",")
-            .map((v) => v.trim())
-            .filter(Boolean);
+          // Only overwrite if state doesn't already have something
+          state.contact_name = state.contact_name || s.contact_name || s.owner_name || "";
+          state.business_name = state.business_name || s.business_name || "";
+          state.contact_email = state.contact_email || s.email || "";
+          state.contact_mobile = state.contact_mobile || s.phone || "";
+          state.base_postcode = state.base_postcode || s.base_postcode || "";
+
+          if (s.services_summary && (!state.preferred_jobs || !state.preferred_jobs.length)) {
+            state.preferred_jobs = s.services_summary
+              .split(",")
+              .map((v) => v.trim())
+              .filter(Boolean);
+          }
         }
-        // If later you store tone_of_voice etc. in business_profiles, map them here.
+
+        // 3) If we didn't have a profileId, see if there is a profile linked to this signupId
+        if (!profileId) {
+          const { data: profileRows2, error: profileErr2 } = await supabaseFetch(
+            `/business_profiles?signup_id=eq.${encodeURIComponent(signupId)}&select=*`,
+            { method: "GET" }
+          );
+
+          if (profileErr2) {
+            console.error("Error loading business profile by signup_id:", profileErr2);
+          } else if (profileRows2 && profileRows2.length) {
+            const p2 = profileRows2[0];
+            console.log("Found business profile by signup_id:", p2);
+            profileId = p2.id;
+
+            // Overlay profile fields
+            state.contact_name = p2.contact_name || p2.owner_name || state.contact_name;
+            state.business_name = p2.business_name || state.business_name;
+            state.contact_email = p2.email || state.contact_email;
+            state.contact_mobile = p2.phone || state.contact_mobile;
+            state.base_postcode = p2.base_postcode || state.base_postcode;
+
+            if (p2.services_summary) {
+              state.preferred_jobs = p2.services_summary
+                .split(",")
+                .map((v) => v.trim())
+                .filter(Boolean);
+            }
+          }
+        }
       }
 
       populateUIFromState();
@@ -1405,7 +1467,7 @@
           ? state.preferred_jobs.join(", ")
           : null;
 
-      // 1) Upsert into business_profiles, linking signup_id when we have it
+      // ---- 1) Upsert into business_profiles ----
       const profilePayload = {
         business_name: state.business_name || null,
         contact_name: state.contact_name || null,
@@ -1420,50 +1482,44 @@
       };
 
       let profileError = null;
+      let effectiveProfileId = profileId || null;
 
-      if (signupId) {
-        // Check if a profile already exists for this signup_id
+      console.log("Saving wizard to business_profiles with payload:", {
+        payload: profilePayload,
+        signupId,
+        profileId
+      });
+
+      // If we don't already know profileId but have a signupId, check if a profile exists for it
+      if (!effectiveProfileId && signupId) {
         const { data: existing, error: lookupError } = await supabaseFetch(
           `/business_profiles?signup_id=eq.${encodeURIComponent(signupId)}&select=id`,
           { method: "GET" }
         );
-
         if (lookupError) {
-          console.error("Error looking up existing business profile:", lookupError);
-          profileError = lookupError;
+          console.error("Error looking up existing business profile by signup_id:", lookupError);
         } else if (existing && existing.length) {
-          // PATCH existing profile
-          const existingId = existing[0].id;
-          const { error: patchErr } = await supabaseFetch(
-            `/business_profiles?id=eq.${encodeURIComponent(existingId)}`,
-            {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-                Prefer: "return=representation"
-              },
-              body: JSON.stringify(profilePayload)
-            }
-          );
-          profileError = patchErr;
-        } else {
-          // POST new profile
-          const { error: postErr } = await supabaseFetch(
-            `/business_profiles`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Prefer: "return=representation"
-              },
-              body: JSON.stringify(profilePayload)
-            }
-          );
-          profileError = postErr;
+          effectiveProfileId = existing[0].id;
         }
+      }
+
+      if (effectiveProfileId) {
+        // PATCH existing profile
+        const { error: patchErr } = await supabaseFetch(
+          `/business_profiles?id=eq.${encodeURIComponent(effectiveProfileId)}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Prefer: "return=representation"
+            },
+            body: JSON.stringify(profilePayload)
+          }
+        );
+        profileError = patchErr || null;
       } else {
-        // No signupId – internal use: create a standalone business_profile
-        const { error: postErr } = await supabaseFetch(
+        // POST new profile
+        const { data: posted, error: postErr } = await supabaseFetch(
           `/business_profiles`,
           {
             method: "POST",
@@ -1474,7 +1530,10 @@
             body: JSON.stringify(profilePayload)
           }
         );
-        profileError = postErr;
+        profileError = postErr || null;
+        if (!profileError && posted && posted.length) {
+          effectiveProfileId = posted[0].id;
+        }
       }
 
       if (profileError) {
@@ -1484,7 +1543,9 @@
         return;
       }
 
-      // 2) Update tradebotpro_signups (only if we know which signup row this is)
+      profileId = effectiveProfileId;
+
+      // ---- 2) Update tradebotpro_signups (only if we know which signup row this is) ----
       if (signupId) {
         const signupPayload = {
           business_name: state.business_name || null,
@@ -1498,6 +1559,8 @@
           account_status: "Wizard complete",
           account_status_reason: "Setup wizard finished"
         };
+
+        console.log("Updating tradebotpro_signups:", { signupId, signupPayload });
 
         const { error: signupUpdateErr } = await supabaseFetch(
           `/tradebotpro_signups?id=eq.${encodeURIComponent(signupId)}`,
@@ -1513,8 +1576,10 @@
 
         if (signupUpdateErr) {
           console.error("Update signup row error:", signupUpdateErr);
-          // Don’t block success, but log it.
+          // We'll still consider the wizard saved, but log it.
         }
+      } else {
+        console.log("No signupId known when saving – business_profiles updated only.");
       }
 
       if (summaryBox) {
@@ -1574,6 +1639,7 @@
     loadFromSignupAndProfile();
   });
 </script>
+
 
 
 </body>
