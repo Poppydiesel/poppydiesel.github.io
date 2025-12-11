@@ -1394,11 +1394,13 @@
           .filter(Boolean);
       }
 
-      // Extra direct mappings
-      if (row.trade_type) state.main_trade = row.trade_type;
-      if (row.service_radius) state.coverage_radius = row.service_radius;
-      if (row.callout_from) state.callout_style = row.callout_from;
-      if (row.callout_fee) state.callout_band = row.callout_fee;
+    // Extra direct mappings
+if (row.trade_type) state.main_trade = row.trade_type;
+if (row.service_radius) state.coverage_radius = row.service_radius;
+if (row.callout_from) state.callout_style = row.callout_from;
+// ❌ don't map numeric callout_fee into the text chip
+// if (row.callout_fee) state.callout_band = row.callout_fee;
+
 
       // JSON blob in ai_style_notes for full wizard config
       if (row.ai_style_notes) {
