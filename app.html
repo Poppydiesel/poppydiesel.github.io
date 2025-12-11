@@ -448,6 +448,42 @@
   background: rgba(31, 78, 121, 0.06);
 }
 
+    /* CHIP VISUAL STATE */
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.chip.is-active {
+  background: #e8f0fa;
+  border-color: #1f4e79;
+  color: #1f4e79;
+  box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2);
+  font-weight: 600;
+}
+
 
     /* FOOTER ACTIONS */
 
@@ -1005,408 +1041,344 @@
   window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";               // <--- YOUR KEY in quotes
   
 <script>
-/* ====================================================================== */
-/*  SUPABASE HELPER                                                       */
-/* ====================================================================== */
-async function supabaseFetch(path, options = {}) {
-  if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
-    console.error("Supabase is not configured. Check SUPABASE_URL and SUPABASE_KEY.");
-    return {
-      data: null,
-      error: { status: 0, statusText: "Supabase config missing", details: null }
-    };
-  }
-
-  const res = await fetch(`${window.SUPABASE_URL}/rest/v1${path}`, {
-    ...options,
-    headers: {
-      apikey: window.SUPABASE_KEY,
-      Authorization: `Bearer ${window.SUPABASE_KEY}`,
-      ...(options.headers || {})
+  // ---- Supabase helper ----
+  async function supabaseFetch(path, options = {}) {
+    if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
+      console.error("Supabase is not configured. Check SUPABASE_URL and SUPABASE_KEY.");
+      return {
+        data: null,
+        error: { status: 0, statusText: "Supabase config missing", details: null }
+      };
     }
-  });
 
-  let data = null;
-  try {
-    data = await res.json();
-  } catch (e) {}
-
-  if (!res.ok) {
-    console.error("Supabase HTTP error", res.status, res.statusText, data);
-    return {
-      data: null,
-      error: {
-        status: res.status,
-        statusText: res.statusText,
-        details: data
+    const res = await fetch(`${window.SUPABASE_URL}/rest/v1${path}`, {
+      ...options,
+      headers: {
+        apikey: window.SUPABASE_KEY,
+        Authorization: `Bearer ${window.SUPABASE_KEY}`,
+        ...(options.headers || {})
       }
-    };
+    });
+
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (e) {
+      // no JSON body
+    }
+
+    if (!res.ok) {
+      console.error("Supabase HTTP error", res.status, res.statusText, data);
+      return {
+        data: null,
+        error: {
+          status: res.status,
+          statusText: res.statusText,
+          details: data
+        }
+      };
+    }
+
+    return { data, error: null };
   }
 
-  return { data, error: null };
-}
+  // --------------------------------------------
+  // WIZARD + UI LOGIC
+  // --------------------------------------------
+  document.addEventListener("DOMContentLoaded", function () {
+    const TOTAL_STEPS = 4;
+    let currentStep = 1;
 
-/* ====================================================================== */
-/*  WIZARD + UI LOGIC — FULL SCRIPT                                       */
-/* ====================================================================== */
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get("user_id");
 
-document.addEventListener("DOMContentLoaded", () => {
-  const TOTAL_STEPS = 4;
-  let currentStep = 1;
+    const initialState = {
+      contact_name: "",
+      business_name: "",
+      contact_email: "",
+      contact_mobile: "",
+      base_postcode: "",
+      preferred_jobs: [],
+      tone_of_voice: "",
+      coverage_radius: "",
+      callout_style: "",
+      callout_band: "",
+      main_trade: "",
+      business_stage: "",
+      channels: [],
+      review_platforms: [],
+      review_link: "",
+      review_push_level: "",
+      ai_avoid: "",
+      demo_style: [],
+      demo_slot: "",
+      golive_timing: "",
+      extra_notes: ""
+    };
 
-  const params = new URLSearchParams(window.location.search);
-  const userId = params.get("user_id");
+    const state = { ...initialState };
 
-  const initialState = {
-    contact_name: "",
-    business_name: "",
-    contact_email: "",
-    contact_mobile: "",
-    base_postcode: "",
-    preferred_jobs: [],
-    tone_of_voice: "",
-    coverage_radius: "",
-    callout_style: "",
-    callout_band: "",
-    main_trade: "",
-    business_stage: "",
-    channels: [],
-    review_platforms: [],
-    review_link: "",
-    review_push_level: "",
-    ai_avoid: "",
-    demo_style: [],
-    demo_slot: "",
-    golive_timing: "",
-    extra_notes: ""
-  };
+    // ELEMENTS
+    const panels = document.querySelectorAll(".step-panel");
+    const stepLabel = document.getElementById("wizard-step-label");
+    const stepTitle = document.getElementById("wizard-step-title");
+    const stepSubtitle = document.getElementById("wizard-step-subtitle");
+    const progressBar = document.getElementById("progress-bar-inner");
+    const progressPercent = document.getElementById("progress-percent");
+    const stepDots = document.querySelectorAll("[data-step-dot]");
+    const btnBack = document.getElementById("btn-back");
+    const btnNext = document.getElementById("btn-next");
+    const btnSaveDraft = document.getElementById("btn-save-draft");
+    const footerText = document.getElementById("wizard-footer-text");
+    const statusMessage = document.getElementById("wizard-status-message");
+    const summaryBox = document.getElementById("summary-box");
 
-  const state = { ...initialState };
+    const textInputs = {
+      contact_name: document.getElementById("contact_name"),
+      business_name: document.getElementById("business_name"),
+      contact_email: document.getElementById("contact_email"),
+      contact_mobile: document.getElementById("contact_mobile"),
+      base_postcode: document.getElementById("base_postcode"),
+      review_link: document.getElementById("review_link"),
+      ai_avoid: document.getElementById("ai_avoid"),
+      extra_notes: document.getElementById("extra_notes")
+    };
 
-  /* ------------------------------------------------------------- */
-  /* UI ELEMENT REFERENCES                                         */
-  /* ------------------------------------------------------------- */
-  const panels = document.querySelectorAll(".step-panel");
-  const stepLabel = document.getElementById("wizard-step-label");
-  const stepTitle = document.getElementById("wizard-step-title");
-  const stepSubtitle = document.getElementById("wizard-step-subtitle");
-  const progressBar = document.getElementById("progress-bar-inner");
-  const progressPercent = document.getElementById("progress-percent");
-  const stepDots = document.querySelectorAll("[data-step-dot]");
-  const btnBack = document.getElementById("btn-back");
-  const btnNext = document.getElementById("btn-next");
-  const btnSaveDraft = document.getElementById("btn-save-draft");
-  const footerText = document.getElementById("wizard-footer-text");
-  const statusMessage = document.getElementById("wizard-status-message");
-  const summaryBox = document.getElementById("summary-box");
+    // --------------------------------------------
+    // CHIP HANDLING – EVENT DELEGATION
+    // --------------------------------------------
+    function setupChipDelegation() {
+      document.addEventListener("click", function (event) {
+        const chip = event.target.closest(".chip");
+        if (!chip) return; // clicked something else
 
-  const textInputs = {
-    contact_name: document.getElementById("contact_name"),
-    business_name: document.getElementById("business_name"),
-    contact_email: document.getElementById("contact_email"),
-    contact_mobile: document.getElementById("contact_mobile"),
-    base_postcode: document.getElementById("base_postcode"),
-    review_link: document.getElementById("review_link"),
-    ai_avoid: document.getElementById("ai_avoid"),
-    extra_notes: document.getElementById("extra_notes")
-  };
+        const row = chip.closest(".chip-row");
+        if (!row) return;
 
-// --------------------------------------------
-// CHIPS – HARD WIRED VISUAL TOGGLE
-// --------------------------------------------
-function setupChips() {
-  const chipRows = document.querySelectorAll(".chip-row");
-  console.log("setupChips: rows =", chipRows.length);
-
-  chipRows.forEach((row) => {
-    const field = row.getAttribute("data-field");
-    const mode = row.getAttribute("data-select"); // "single" or "multi"
-    const chips = row.querySelectorAll(".chip");
-    console.log("chip-row", field, "chips =", chips.length);
-
-    chips.forEach((chip) => {
-      // start clean
-      chip.classList.remove("is-active");
-      chip.style.border = "1px solid rgba(0,0,0,0.12)";
-      chip.style.backgroundColor = "#ffffff";
-
-      chip.addEventListener("click", (event) => {
-        event.preventDefault();     // stop form submit
-        event.stopPropagation();    // stop parent handlers
-
+        const field = row.getAttribute("data-field");
+        const mode = row.getAttribute("data-select") || "single";
+        const chips = row.querySelectorAll(".chip");
         const label = chip.textContent.trim();
-        console.log("chip clicked:", field, "→", label);
+
+        // Stop any form submit behaviour if chips are buttons
+        event.preventDefault();
+        event.stopPropagation();
+
+        console.log("chip clicked:", { field, mode, label });
 
         if (mode === "single") {
-          // clear all chips in this row
-          chips.forEach((c) => {
-            c.classList.remove("is-active");
-            c.style.border = "1px solid rgba(0,0,0,0.12)";
-            c.style.backgroundColor = "#ffffff";
-          });
-
-          // activate this one
+          chips.forEach((c) => c.classList.remove("is-active"));
           chip.classList.add("is-active");
-          chip.style.border = "3px solid red";   // 🔴 super obvious
-          chip.style.backgroundColor = "yellow"; // 🟡 super obvious
           state[field] = label;
         } else {
-          // multi-select toggle
-          const nowActive = !chip.classList.contains("is-active");
-
-          if (nowActive) {
-            chip.classList.add("is-active");
-            chip.style.border = "3px solid red";
-            chip.style.backgroundColor = "yellow";
-          } else {
-            chip.classList.remove("is-active");
-            chip.style.border = "1px solid rgba(0,0,0,0.12)";
-            chip.style.backgroundColor = "#ffffff";
-          }
-
+          chip.classList.toggle("is-active");
           const selected = Array.from(chips)
             .filter((c) => c.classList.contains("is-active"))
             .map((c) => c.textContent.trim());
           state[field] = selected;
         }
       });
-    });
-  });
-}
+    }
 
-
-  /* ====================================================================== */
-  /*  TEXT INPUT SYNC                                                       */
-  /* ====================================================================== */
-  function setupTextInputs() {
-    Object.entries(textInputs).forEach(([key, el]) => {
-      if (!el) return;
-      el.addEventListener("input", () => {
-        state[key] = el.value;
+    // --------------------------------------------
+    // TEXT INPUTS
+    // --------------------------------------------
+    function setupTextInputs() {
+      Object.entries(textInputs).forEach(([key, el]) => {
+        if (!el) return;
+        el.addEventListener("input", () => {
+          state[key] = el.value;
+        });
       });
-    });
-  }
-
-  /* ====================================================================== */
-  /*  STEP DISPLAY + HEADER UPDATE                                           */
-  /* ====================================================================== */
-  function updateStepHeader() {
-    const labels = {
-      1: { label: "Step 1", title: "Business basics", subtitle: "Tell us who you are" },
-      2: { label: "Step 2", title: "Area & pricing", subtitle: "Where you work" },
-      3: { label: "Step 3", title: "Messaging & reviews", subtitle: "How TradeBotPro talks" },
-      4: { label: "Step 4", title: "Demo & go-live", subtitle: "Prepare your test run" }
-    };
-
-    const info = labels[currentStep];
-    stepLabel.textContent = info.label;
-    stepTitle.textContent = info.title;
-    stepSubtitle.textContent = info.subtitle;
-  }
-
-  function showStep(step) {
-    currentStep = step;
-
-    panels.forEach(p =>
-      p.classList.toggle("is-active", Number(p.getAttribute("data-step")) === currentStep)
-    );
-
-    stepDots.forEach(dot => {
-      const s = Number(dot.getAttribute("data-step-dot"));
-      dot.classList.toggle("is-active", s === currentStep);
-      dot.classList.toggle("is-complete", s < currentStep);
-    });
-
-    const progress = (currentStep - 1) / (TOTAL_STEPS - 1);
-    progressBar.style.width = (progress * 100).toFixed(0) + "%";
-    progressPercent.textContent = `Step ${currentStep} of ${TOTAL_STEPS}`;
-
-    btnBack.disabled = currentStep === 1;
-    btnNext.textContent = currentStep === TOTAL_STEPS ? "Finish" : "Next step →";
-
-    footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${TOTAL_STEPS}</strong>.`;
-
-    summaryBox.hidden = currentStep !== TOTAL_STEPS;
-
-    statusMessage.textContent = "";
-    statusMessage.className = "wizard-status-message";
-
-    updateStepHeader();
-  }
-
-  /* ====================================================================== */
-  /*  VALIDATION                                                            */
-  /* ====================================================================== */
-  function validateStep(step) {
-    statusMessage.textContent = "";
-    statusMessage.className = "wizard-status-message";
-
-    if (step === 1) {
-      if (!state.business_name || !state.contact_name) {
-        statusMessage.textContent = "Please add your contact and business name.";
-        statusMessage.classList.add("wizard-status-message--error");
-        return false;
-      }
     }
 
-    if (step === 2 && !state.base_postcode) {
-      statusMessage.textContent = "Please enter a base postcode.";
-      statusMessage.classList.add("wizard-status-message--error");
-      return false;
+    // --------------------------------------------
+    // STEP UI
+    // --------------------------------------------
+    function updateStepHeader() {
+      const labels = {
+        1: { label: "Step 1", title: "Business basics", subtitle: "Tell us who you are" },
+        2: { label: "Step 2", title: "Area & pricing", subtitle: "Where you work" },
+        3: { label: "Step 3", title: "Messaging & reviews", subtitle: "How TradeBotPro talks" },
+        4: { label: "Step 4", title: "Demo & go-live", subtitle: "Prepare your test run" }
+      };
+      const info = labels[currentStep];
+
+      if (stepLabel) stepLabel.textContent = info.label;
+      if (stepTitle) stepTitle.textContent = info.title;
+      if (stepSubtitle) stepSubtitle.textContent = info.subtitle;
     }
 
-    if (step === 3 && !state.tone_of_voice) {
-      statusMessage.textContent = "Choose a tone of voice.";
-      statusMessage.classList.add("wizard-status-message--error");
-      return false;
-    }
+    function showStep(step) {
+      currentStep = step;
 
-    return true;
-  }
+      panels.forEach((p) =>
+        p.classList.toggle("is-active", Number(p.getAttribute("data-step")) === currentStep)
+      );
 
-// --------------------------------------------
-// SUPABASE SAVE (with clear success message)
-// --------------------------------------------
-async function saveWizardToBusinessProfile() {
-  const payload = {
-    business_name: state.business_name || null,
-    contact_name: state.contact_name || null,
-    email: state.contact_email || null,
-    phone: state.contact_mobile || null,
-    base_postcode: state.base_postcode || null,
-    services_summary:
-      state.preferred_jobs && state.preferred_jobs.length
-        ? state.preferred_jobs.join(", ")
-        : null,
-    plan_status: "Trial",
-    pending_setup: true,
-    is_active: false
-  };
-
-  console.log("Saving wizard payload:", payload, "userId:", userId);
-
-  if (!statusMessage) return;
-
-  // Show saving state
-  statusMessage.textContent = "Saving your business details…";
-  statusMessage.className = "wizard-status-message wizard-status-message--saving";
-
-  // Decide INSERT vs UPDATE based on userId
-  const isUpdate = !!userId;
-  const path = isUpdate
-    ? `/business_profiles?id=eq.${encodeURIComponent(userId)}`
-    : `/business_profiles`;
-  const method = isUpdate ? "PATCH" : "POST";
-
-  const { data, error } = await supabaseFetch(path, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      Prefer: "return=representation"
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (error) {
-    console.error("Save profile error:", error);
-    statusMessage.textContent = "There was a problem saving your business details. Please try again.";
-    statusMessage.className = "wizard-status-message wizard-status-message--error";
-    return;
-  }
-
-  console.log("Business profile saved:", data);
-
-  // ✅ This is the line you were expecting
-  statusMessage.textContent = "Business details sent successfully.";
-  statusMessage.className = "wizard-status-message wizard-status-message--success";
-
-  // OPTIONAL: for new enquiries, clear the form but KEEP the success message visible
-  if (!isUpdate) {
-    // clear inputs and chips without touching statusMessage
-    Object.values(textInputs).forEach(el => {
-      if (el) el.value = "";
-    });
-    state.preferred_jobs = [];
-    const chipRows = document.querySelectorAll(".chip-row");
-    chipRows.forEach(row => {
-      row.querySelectorAll(".chip").forEach(chip => {
-        chip.classList.remove("is-active");
+      stepDots.forEach((dot) => {
+        const s = Number(dot.getAttribute("data-step-dot"));
+        dot.classList.toggle("is-active", s === currentStep);
+        dot.classList.toggle("is-complete", s < currentStep);
       });
-    });
-  }
 
-  // Scroll to top of wizard so they see the message
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
+      const progress = (currentStep - 1) / (TOTAL_STEPS - 1);
+      if (progressBar) progressBar.style.width = (progress * 100).toFixed(0) + "%";
+      if (progressPercent) progressPercent.textContent = `Step ${currentStep} of ${TOTAL_STEPS}`;
 
+      if (btnBack) btnBack.disabled = currentStep === 1;
+      if (btnNext) btnNext.textContent = currentStep === TOTAL_STEPS ? "Finish" : "Next step →";
 
-    statusMessage.textContent = "Saving…";
-    statusMessage.className = "wizard-status-message wizard-status-message--saving";
-
-    const { data, error } = await supabaseFetch(
-      userId
-        ? `/business_profiles?id=eq.${encodeURIComponent(userId)}`
-        : `/business_profiles`,
-      {
-        method: userId ? "PATCH" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Prefer: "return=representation"
-        },
-        body: JSON.stringify(payload)
+      if (footerText) {
+        footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${TOTAL_STEPS}</strong>. You can tweak anything later.`;
       }
-    );
 
-    if (error) {
-      console.error("Save error:", error);
-      statusMessage.textContent = "There was a problem saving your form.";
-      statusMessage.className = "wizard-status-message wizard-status-message--error";
-      return;
+      if (summaryBox) summaryBox.hidden = currentStep !== TOTAL_STEPS;
+
+      if (statusMessage) {
+        statusMessage.textContent = "";
+        statusMessage.className = "wizard-status-message";
+      }
+
+      updateStepHeader();
     }
 
-    statusMessage.textContent = "Form sent successfully.";
-    statusMessage.className = "wizard-status-message wizard-status-message--success";
+    function scrollTopSmooth() {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 
-    if (!userId) resetWizard();
-  }
+    // --------------------------------------------
+    // VALIDATION
+    // --------------------------------------------
+    function validateStep(step) {
+      if (!statusMessage) return true;
 
-  /* ====================================================================== */
-  /*  RESET + STATE POPULATION                                               */
-  /* ====================================================================== */
-  function resetWizard() {
-    Object.assign(state, initialState);
+      statusMessage.textContent = "";
+      statusMessage.className = "wizard-status-message";
+
+      if (step === 1) {
+        if (!state.business_name || !state.contact_name) {
+          statusMessage.textContent = "Please add your contact and business name.";
+          statusMessage.classList.add("wizard-status-message--error");
+          return false;
+        }
+      }
+
+      if (step === 2) {
+        if (!state.base_postcode) {
+          statusMessage.textContent = "Please enter a base postcode.";
+          statusMessage.classList.add("wizard-status-message--error");
+          return false;
+        }
+      }
+
+      if (step === 3) {
+        if (!state.tone_of_voice) {
+          statusMessage.textContent = "Choose a tone of voice.";
+          statusMessage.classList.add("wizard-status-message--error");
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    // --------------------------------------------
+    // SUPABASE SAVE (insert or update)
+    // --------------------------------------------
+    async function saveWizardToBusinessProfile() {
+      const payload = {
+        business_name: state.business_name || null,
+        contact_name: state.contact_name || null,
+        email: state.contact_email || null,
+        phone: state.contact_mobile || null,
+        base_postcode: state.base_postcode || null,
+        services_summary:
+          state.preferred_jobs && state.preferred_jobs.length
+            ? state.preferred_jobs.join(", ")
+            : null,
+        plan_status: "Trial",
+        pending_setup: true,
+        is_active: false
+      };
+
+      console.log("Saving wizard payload:", payload, "userId:", userId);
+
+      if (!statusMessage) return;
+
+      statusMessage.textContent = "Saving…";
+      statusMessage.className = "wizard-status-message wizard-status-message--saving";
+
+      const { data, error } = await supabaseFetch(
+        userId
+          ? `/business_profiles?id=eq.${encodeURIComponent(userId)}`
+          : `/business_profiles`,
+        {
+          method: userId ? "PATCH" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      if (error) {
+        console.error("Save profile error:", error);
+        statusMessage.textContent = "There was a problem saving your form. Please try again.";
+        statusMessage.className = "wizard-status-message wizard-status-message--error";
+        return;
+      }
+
+      console.log("Business profile saved:", data);
+      statusMessage.textContent = "Form sent successfully.";
+      statusMessage.className = "wizard-status-message wizard-status-message--success";
+    }
+
+    // --------------------------------------------
+    // BUTTON EVENTS
+    // --------------------------------------------
+    if (btnBack) {
+      btnBack.addEventListener("click", () => {
+        if (currentStep > 1) {
+          showStep(currentStep - 1);
+          scrollTopSmooth();
+        }
+      });
+    }
+
+    if (btnNext) {
+      btnNext.addEventListener("click", () => {
+        if (!validateStep(currentStep)) return;
+
+        if (currentStep < TOTAL_STEPS) {
+          showStep(currentStep + 1);
+          scrollTopSmooth();
+        } else {
+          saveWizardToBusinessProfile();
+        }
+      });
+    }
+
+    if (btnSaveDraft) {
+      btnSaveDraft.addEventListener("click", () => {
+        localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
+        if (statusMessage) {
+          statusMessage.textContent = "Draft saved in this browser.";
+          statusMessage.classList.add("wizard-status-message--success");
+        }
+      });
+    }
+
+    // --------------------------------------------
+    // INIT
+    // --------------------------------------------
+    setupChipDelegation();
+    setupTextInputs();
     showStep(1);
-  }
-
-  /* ====================================================================== */
-  /*  BUTTON EVENTS                                                          */
-  /* ====================================================================== */
-  btnBack.addEventListener("click", () => {
-    if (currentStep > 1) showStep(currentStep - 1);
   });
-
-  btnNext.addEventListener("click", () => {
-    if (!validateStep(currentStep)) return;
-    if (currentStep < TOTAL_STEPS) showStep(currentStep + 1);
-    else saveWizardToBusinessProfile();
-  });
-
-  if (btnSaveDraft) {
-    btnSaveDraft.addEventListener("click", () => {
-      localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
-      statusMessage.textContent = "Draft saved.";
-      statusMessage.classList.add("wizard-status-message--success");
-    });
-  }
-
-  /* ====================================================================== */
-  /*  INIT                                                                   */
-  /* ====================================================================== */
-  setupChips();
-  setupTextInputs();
-  showStep(1);
-});
 </script>
+
 
   
 </body>
