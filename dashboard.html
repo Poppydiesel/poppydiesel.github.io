@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta
     name="description"
-    content="Internal dashboard for managing TradeBotPro clients and onboarding."
+    content="TradeBotPro dashboard for managing trade accounts and onboarding."
   />
 
   <style>
@@ -20,8 +20,8 @@
       --border-subtle: rgba(15, 23, 42, 0.12);
       --success-green: #0f7b46;
       --error-red: #b3261e;
-      --warning-amber: #b45309;
-      --pill-bg: #e5edff;
+      --chip-bg-muted: #f3f4f6;
+      --chip-border-muted: rgba(148, 163, 184, 0.6);
     }
 
     * {
@@ -45,7 +45,7 @@
       text-decoration: none;
     }
 
-    /* PAGE LAYOUT – mirror wizard */
+    /* PAGE LAYOUT (matching app.html) */
 
     .page {
       min-height: 100vh;
@@ -137,16 +137,16 @@
       padding: 2.5rem 1.25rem 3rem;
     }
 
-    .wizard-shell {
+    .dashboard-shell {
       width: 100%;
       max-width: 1100px;
       display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.6fr);
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr);
       gap: 1.75rem;
       align-items: flex-start;
     }
 
-    .wizard-left {
+    .dashboard-left {
       padding: 1.5rem 1.6rem;
       border-radius: 1.2rem;
       background: rgba(255, 255, 255, 0.92);
@@ -155,17 +155,20 @@
         0 0 0 1px rgba(15, 23, 42, 0.03);
     }
 
-    .wizard-right {
+    .dashboard-right {
       padding: 1.5rem 1.6rem;
       border-radius: 1.2rem;
       background: rgba(248, 250, 252, 0.96);
       border: 1px solid rgba(148, 163, 184, 0.35);
       backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
 
-    /* LEFT PANEL – overview */
+    /* LEFT PANEL CONTENT */
 
-    .wizard-title-kicker {
+    .dash-title-kicker {
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -173,37 +176,57 @@
       margin-bottom: 0.35rem;
     }
 
-    .wizard-title {
+    .dash-title {
       margin: 0 0 0.4rem;
       font-size: 1.6rem;
       color: var(--primary-blue);
     }
 
-    .wizard-subtitle {
+    .dash-subtitle {
       margin: 0 0 0.85rem;
       font-size: 0.92rem;
       color: var(--muted-text);
     }
 
-    .wizard-benefits {
-      margin: 0 0 1rem;
-      padding: 0;
-      list-style: none;
-      font-size: 0.86rem;
-      color: var(--dark-text);
+    .dash-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin: 1rem 0 1.2rem;
     }
 
-    .wizard-benefits li {
-      display: flex;
-      gap: 0.4rem;
-      margin-bottom: 0.35rem;
+    .summary-card {
+      padding: 0.7rem 0.8rem;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: #f8fafc;
+      font-size: 0.8rem;
     }
 
-    .wizard-benefits li span:first-child {
-      font-size: 0.9rem;
+    .summary-label {
+      color: var(--muted-text);
+      margin-bottom: 0.2rem;
     }
 
-    .wizard-note {
+    .summary-value {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--primary-blue);
+    }
+
+    .summary-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.1rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      background: #e5f9ee;
+      color: #166534;
+      margin-top: 0.25rem;
+    }
+
+    .dash-note {
       margin-top: 0.9rem;
       font-size: 0.8rem;
       color: var(--muted-text);
@@ -212,58 +235,64 @@
       background: #f1f5f9;
     }
 
-    .wizard-note strong {
+    .dash-note strong {
       color: var(--primary-blue);
       font-weight: 600;
     }
 
-    /* Mini pipeline strip (reusing the 'progress' idea but for counts) */
-
-    .pipeline-strip {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.75rem;
-      margin: 1.2rem 0 0.6rem;
-    }
-
-    .pipeline-card {
-      border-radius: 0.8rem;
-      background: #f9fafb;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      padding: 0.6rem 0.7rem;
+    .dash-legend {
+      margin-top: 0.9rem;
       font-size: 0.8rem;
-    }
-
-    .pipeline-label {
       color: var(--muted-text);
-      margin-bottom: 0.15rem;
     }
 
-    .pipeline-value {
-      font-weight: 600;
-      color: var(--primary-blue);
-      font-size: 1rem;
-    }
-
-    .pipeline-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.2rem;
-      border-radius: 999px;
-      padding: 0.15rem 0.5rem;
-      font-size: 0.7rem;
-      background: #ecfdf5;
-      color: #166534;
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.75rem;
       margin-top: 0.3rem;
     }
 
-    /* RIGHT PANEL – filters & list */
-
-    .wizard-right-header {
-      margin-bottom: 0.9rem;
+    .legend-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.76rem;
     }
 
-    .wizard-step-label {
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+    }
+
+    .legend-dot.needs-setup {
+      background: #fee2e2;
+      border: 1px solid #b91c1c;
+    }
+
+    .legend-dot.trial {
+      background: #e0f2fe;
+      border: 1px solid #0369a1;
+    }
+
+    .legend-dot.live {
+      background: #dcfce7;
+      border: 1px solid #15803d;
+    }
+
+    .legend-dot.paused {
+      background: #fef3c7;
+      border: 1px solid #d97706;
+    }
+
+    /* RIGHT PANEL: FILTERS + LIST */
+
+    .dashboard-right-header {
+      margin-bottom: 1rem;
+    }
+
+    .dashboard-step-label {
       font-size: 0.78rem;
       text-transform: uppercase;
       letter-spacing: 0.16em;
@@ -271,25 +300,26 @@
       margin-bottom: 0.25rem;
     }
 
-    .wizard-step-title {
+    .dashboard-step-title {
       margin: 0 0 0.25rem;
       font-size: 1.2rem;
       color: var(--primary-blue);
     }
 
-    .wizard-step-subtitle {
+    .dashboard-step-subtitle {
       margin: 0;
       font-size: 0.88rem;
       color: var(--muted-text);
     }
 
-    /* CHIPS – same look/feel as wizard */
+    /* CHIPS (reuse wizard style) */
 
     .chip-row {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 14px;
+      margin-top: 0.45rem;
+      margin-bottom: 0.65rem;
     }
 
     .chip {
@@ -300,7 +330,7 @@
       border-radius: 999px;
       border: 1px solid rgba(0, 0, 0, 0.12);
       background: #ffffff;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       line-height: 1.2;
       cursor: pointer;
       user-select: none;
@@ -325,132 +355,96 @@
       font-weight: 600;
     }
 
-    /* Search row */
-
-    .filter-row {
+    .filter-bar {
       display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 0.6rem;
       flex-wrap: wrap;
-      gap: 0.7rem;
-      margin: 0.7rem 0 0.4rem;
       align-items: center;
     }
 
-    .filter-search {
-      flex: 1 1 180px;
+    .search-input-wrap {
+      flex: 1;
+      min-width: 180px;
     }
 
-    .filter-search input {
+    .search-input {
       width: 100%;
-      padding: 0.5rem 0.8rem;
+      padding: 0.55rem 0.75rem;
       border-radius: 999px;
       border: 1px solid var(--border-subtle);
       font-size: 0.85rem;
       background: #ffffff;
     }
 
-    .filter-search input:focus {
+    .search-input:focus {
       outline: 0;
       border-color: rgba(37, 99, 235, 0.7);
       box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
     }
 
-    .filter-badge {
+    .small-label {
       font-size: 0.75rem;
       color: var(--muted-text);
     }
 
-    /* Client list */
+    /* CLIENT LIST */
 
-    .client-list {
-      margin-top: 0.7rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
+    .clients-scroll {
+      margin-top: 0.5rem;
+      border-top: 1px dashed rgba(148, 163, 184, 0.55);
+      padding-top: 0.9rem;
+      overflow-y: auto;
+      max-height: 520px;
     }
 
     .client-card {
+      padding: 0.75rem 0.85rem;
       border-radius: 0.9rem;
+      border: 1px solid rgba(148, 163, 184, 0.45);
       background: #ffffff;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      padding: 0.8rem 0.9rem;
+      margin-bottom: 0.75rem;
       display: flex;
       flex-direction: column;
-      gap: 0.55rem;
+      gap: 0.4rem;
+      transition:
+        box-shadow 0.15s ease,
+        transform 0.12s ease;
     }
 
-    .client-card-header {
+    .client-card:hover {
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+      transform: translateY(-1px);
+    }
+
+    .client-header-row {
       display: flex;
       justify-content: space-between;
-      gap: 0.75rem;
-      align-items: baseline;
+      gap: 0.7rem;
+      align-items: flex-start;
     }
 
-    .client-title {
+    .client-name {
       font-size: 0.98rem;
       font-weight: 600;
       color: var(--primary-blue);
-      margin: 0;
     }
 
-    .client-subtitle {
+    .client-sub {
       font-size: 0.8rem;
       color: var(--muted-text);
-      margin: 0.15rem 0 0;
-    }
-
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.2rem 0.6rem;
-      border-radius: 999px;
-      font-size: 0.72rem;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      background: #f9fafb;
-      color: var(--dark-text);
-      white-space: nowrap;
-      gap: 0.25rem;
-    }
-
-    .status-pill--lead {
-      background: #eff6ff;
-      border-color: rgba(37, 99, 235, 0.4);
-      color: #1d4ed8;
-    }
-
-    .status-pill--demo {
-      background: #fef3c7;
-      border-color: rgba(234, 179, 8, 0.5);
-      color: var(--warning-amber);
-    }
-
-    .status-pill--trial {
-      background: #ecfdf5;
-      border-color: rgba(34, 197, 94, 0.6);
-      color: #15803d;
-    }
-
-    .status-pill--live {
-      background: #dcfce7;
-      border-color: rgba(22, 163, 74, 0.8);
-      color: #166534;
-    }
-
-    .status-pill--paused {
-      background: #f3f4f6;
-      border-color: rgba(107, 114, 128, 0.6);
-      color: #4b5563;
-    }
-
-    .status-pill--cancelled {
-      background: #fef2f2;
-      border-color: rgba(248, 113, 113, 0.7);
-      color: #b91c1c;
     }
 
     .client-meta-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.3rem 0.8rem;
       font-size: 0.78rem;
       color: var(--muted-text);
     }
@@ -458,75 +452,103 @@
     .client-meta-item {
       display: inline-flex;
       align-items: center;
-      gap: 0.22rem;
+      gap: 0.3rem;
     }
 
-    .client-tags {
+    .meta-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.9);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border-radius: 999px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.74rem;
+      font-weight: 500;
+    }
+
+    .status-pill.needs-setup {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .status-pill.trial {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .status-pill.live {
+      background: #ecfdf5;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    .status-pill.paused {
+      background: #fffbeb;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .status-pill.unknown {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+
+    .tag-row {
       display: flex;
       flex-wrap: wrap;
       gap: 0.35rem;
-      font-size: 0.72rem;
-      margin-top: 0.2rem;
+      margin-top: 0.1rem;
     }
 
-    .tag-pill {
+    .small-tag {
       border-radius: 999px;
-      padding: 0.15rem 0.45rem;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      background: #f9fafb;
-      white-space: nowrap;
+      padding: 0.12rem 0.5rem;
+      font-size: 0.72rem;
+      background: #f3f4f6;
+      color: #4b5563;
+      border: 1px solid rgba(148, 163, 184, 0.6);
     }
 
-    .tag-pill--plan {
-      background: #e5edff;
-      border-color: rgba(37, 99, 235, 0.5);
-      color: #1d4ed8;
-    }
-
-    .tag-pill--area {
-      background: #ecfdf5;
-      border-color: rgba(16, 185, 129, 0.5);
-      color: #047857;
-    }
-
-    .tag-pill--channel {
-      background: #f3e8ff;
-      border-color: rgba(168, 85, 247, 0.5);
-      color: #6b21a8;
-    }
-
-    .client-card-footer {
+    .client-actions-row {
       display: flex;
-      justify-content: space-between;
-      gap: 0.6rem;
-      margin-top: 0.5rem;
-      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 0.35rem;
       flex-wrap: wrap;
     }
-
-    .client-footer-note {
-      font-size: 0.74rem;
-      color: var(--muted-text);
-    }
-
-    /* BUTTONS – same style as wizard */
 
     .btn {
       border-radius: 999px;
       border: 1px solid transparent;
-      padding: 0.45rem 1rem;
-      font-size: 0.82rem;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.8rem;
       font-weight: 500;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
+      gap: 0.3rem;
       background: transparent;
     }
 
-    .btn:focus-visible {
-      outline: 2px solid var(--accent-blue);
-      outline-offset: 2px;
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-blue), #163857);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.4);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.03);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.5);
     }
 
     .btn-secondary {
@@ -539,28 +561,38 @@
       background: #e5e7eb;
     }
 
-    .btn-ghost {
-      border-color: transparent;
-      background: transparent;
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    .empty-state {
+      font-size: 0.85rem;
       color: var(--muted-text);
+      padding: 0.5rem 0;
     }
 
-    .btn-ghost:hover {
-      color: var(--primary-blue);
+    .small-mono {
+      font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono",
+        "Courier New", monospace;
+      font-size: 0.72rem;
+      color: #6b7280;
     }
 
-    .wizard-status-message {
-      margin-top: 0.7rem;
-      font-size: 0.8rem;
+    #dashboard-status-message {
+      margin-top: 0.5rem;
+      font-size: 0.78rem;
       min-height: 1.2em;
     }
 
-    .wizard-status-message--success {
-      color: var(--success-green);
+    .status-error {
+      color: var(--error-red);
     }
 
-    .wizard-status-message--error {
-      color: var(--error-red);
+    .status-success {
+      color: var(--success-green);
     }
 
     /* RESPONSIVE */
@@ -570,12 +602,16 @@
         padding-top: 1.5rem;
       }
 
-      .wizard-shell {
+      .dashboard-shell {
         grid-template-columns: minmax(0, 1fr);
       }
 
-      .wizard-left {
+      .dashboard-left {
         order: -1;
+      }
+
+      .clients-scroll {
+        max-height: unset;
       }
     }
 
@@ -585,8 +621,8 @@
         align-items: flex-start;
       }
 
-      .wizard-left,
-      .wizard-right {
+      .dashboard-left,
+      .dashboard-right {
         padding: 1.1rem 1.1rem;
       }
     }
@@ -594,7 +630,7 @@
 </head>
 <body>
 <div class="page">
-  <!-- HEADER -->
+  <!-- HEADER (matches app.html) -->
   <header>
     <div class="header-inner">
       <div class="logo-wrap">
@@ -605,161 +641,145 @@
         </div>
       </div>
       <div class="header-note">
-        Dashboard: see who’s <strong>ready for demo, trial or go-live</strong> at a glance.
+        This dashboard shows <strong>every client with a business profile</strong> – whether they
+        self-signed up or were added manually.
       </div>
     </div>
   </header>
 
   <!-- MAIN -->
   <main>
-    <div class="wizard-shell">
-
-      <!-- LEFT PANEL: OVERVIEW -->
-      <aside class="wizard-left">
-        <div class="wizard-title-kicker">Client pipeline</div>
-        <h1 class="wizard-title">Onboarding overview</h1>
-        <p class="wizard-subtitle">
-          Quick view of who’s a new lead, who has a demo booked, who’s on a free trial and
-          who’s already live on a paid plan.
+    <div class="dashboard-shell">
+      <!-- LEFT PANEL: OVERVIEW / SUMMARY -->
+      <aside class="dashboard-left">
+        <div class="dash-title-kicker">Client dashboard</div>
+        <h1 class="dash-title">Your TradeBotPro clients</h1>
+        <p class="dash-subtitle">
+          A live view of everyone in the system – from first demo to free trial to fully live
+          subscription. This panel is for <strong>you, not your clients</strong>.
         </p>
 
-        <ul class="wizard-benefits">
-          <li>
-            <span>👀</span>
-            <span><strong>At-a-glance statuses</strong> for every client – no more hunting through spreadsheets.</span>
-          </li>
-          <li>
-            <span>🧪</span>
-            <span><strong>Free trial visibility</strong> so you can chase upgrades at the right time.</span>
-          </li>
-          <li>
-            <span>📅</span>
-            <span><strong>Demo → trial → live</strong> pipeline in one place.</span>
-          </li>
-        </ul>
-
-        <div class="pipeline-strip">
-          <div class="pipeline-card">
-            <div class="pipeline-label">New & warm leads</div>
-            <div class="pipeline-value" id="metric-leads">–</div>
-            <div class="pipeline-pill">
-              <span>Inbox to-do</span>
+        <div class="dash-summary-grid">
+          <div class="summary-card">
+            <div class="summary-label">Total clients with profiles</div>
+            <div class="summary-value" id="summary-total">–</div>
+            <div class="summary-pill">
+              <span class="pill-dot"></span>
+              <span id="summary-new-label">New + in setup</span>
             </div>
           </div>
-          <div class="pipeline-card">
-            <div class="pipeline-label">Demos / trials</div>
-            <div class="pipeline-value" id="metric-demos-trials">–</div>
-            <div class="pipeline-pill">
-              <span>Make an impression</span>
-            </div>
-          </div>
-          <div class="pipeline-card">
-            <div class="pipeline-label">Live paying clients</div>
-            <div class="pipeline-value" id="metric-live">–</div>
-            <div class="pipeline-pill">
-              <span>Revenue</span>
+          <div class="summary-card">
+            <div class="summary-label">Trial &amp; live accounts</div>
+            <div class="summary-value" id="summary-live">–</div>
+            <div class="summary-pill" style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;">
+              <span class="pill-dot"></span>
+              <span id="summary-live-label">Trial, paid &amp; active</span>
             </div>
           </div>
         </div>
 
-        <div class="wizard-note">
-          <strong>Tip:</strong> Use the filters on the right to work a specific slice –
-          for example, “Trials” → sort by date → ring the ones you want to upgrade.<br /><br />
-          The <strong>“Open in wizard”</strong> button lets you open their setup wizard
-          prefilled, so you can tweak TradeBotPro while you’re on the phone with them.
+        <div class="dash-note">
+          <strong>How to use this screen:</strong> Filter by onboarding stage, search by business
+          or postcode and click <em>Open in wizard</em> to tune their AI setup. Every time you
+          complete the wizard, this dashboard will move them along the pipeline for you.
+        </div>
+
+        <div class="dash-legend">
+          <div class="small-label">Onboarding legend</div>
+          <div class="legend-row">
+            <div class="legend-pill">
+              <span class="legend-dot needs-setup"></span>
+              <span>Needs setup / no plan</span>
+            </div>
+            <div class="legend-pill">
+              <span class="legend-dot trial"></span>
+              <span>Trial setup or live</span>
+            </div>
+            <div class="legend-pill">
+              <span class="legend-dot live"></span>
+              <span>Full plan live</span>
+            </div>
+            <div class="legend-pill">
+              <span class="legend-dot paused"></span>
+              <span>Paused / inactive</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-note" style="margin-top:1.1rem;">
+          <strong>Tip:</strong> You can manually add a client by opening the setup wizard yourself,
+          filling it in as if you were them and clicking Finish. This creates both a
+          <span class="small-mono">tradebotpro_signups</span> row and a
+          <span class="small-mono">business_profiles</span> row, so they always appear here.
         </div>
       </aside>
 
-      <!-- RIGHT PANEL: FILTERS & LIST -->
-      <section class="wizard-right" aria-live="polite">
-        <div class="wizard-right-header">
-          <div class="wizard-step-label">Client list</div>
-          <h2 class="wizard-step-title">Dashboard</h2>
-          <p class="wizard-step-subtitle">
-            Filter by plan, onboarding status or search by name, email or postcode.
+      <!-- RIGHT PANEL: FILTERS + CLIENT LIST -->
+      <section class="dashboard-right" aria-live="polite">
+        <div class="dashboard-right-header">
+          <div class="dashboard-step-label">Overview</div>
+          <h2 class="dashboard-step-title">Pipeline &amp; onboarding status</h2>
+          <p class="dashboard-step-subtitle">
+            Filter by onboarding stage or search by business, contact, email or postcode.
           </p>
         </div>
 
-        <!-- Filters -->
-        <div class="filter-row">
-          <div class="filter-search">
-            <input
-              id="search-input"
-              type="text"
-              placeholder="Search by business, contact, email or postcode…"
-              autocomplete="off"
-            />
+        <div class="filter-bar">
+          <div>
+            <div class="small-label">Filter by stage</div>
+            <div class="chip-row" id="stage-filters">
+              <button type="button" class="chip is-active" data-stage-filter="all">
+                All clients
+              </button>
+              <button type="button" class="chip" data-stage-filter="needs_setup">
+                Needs setup
+              </button>
+              <button type="button" class="chip" data-stage-filter="trial">
+                Trial (setup or live)
+              </button>
+              <button type="button" class="chip" data-stage-filter="live">
+                Live &amp; paying
+              </button>
+              <button type="button" class="chip" data-stage-filter="paused">
+                Paused / inactive
+              </button>
+            </div>
           </div>
-          <div class="filter-badge">
-            <span id="result-count-label">Loading clients…</span>
+
+          <div class="search-row">
+            <div class="search-input-wrap">
+              <input
+                id="search-input"
+                class="search-input"
+                type="text"
+                placeholder="Search by business, contact, email or postcode…"
+                autocomplete="off"
+              />
+            </div>
+            <div class="small-label">
+              Showing <span id="summary-visible">0</span> of
+              <span id="summary-total-inline">0</span>
+            </div>
           </div>
         </div>
 
-        <div class="field-group">
-          <div class="field-label-row" style="margin-top: 0.4rem;">
-            <label>Plan filter</label>
-            <span class="field-hint">Free trials vs paid plans.</span>
-          </div>
-          <div class="chip-row" id="plan-filter-row">
-            <button type="button" class="chip is-active" data-plan-filter="all">
-              All plans
-            </button>
-            <button type="button" class="chip" data-plan-filter="trial">
-              Trials
-            </button>
-            <button type="button" class="chip" data-plan-filter="monthly">
-              Paid – monthly
-            </button>
-            <button type="button" class="chip" data-plan-filter="annual">
-              Paid – annual
-            </button>
-            <button type="button" class="chip" data-plan-filter="none">
-              No plan yet
-            </button>
-          </div>
+        <div class="clients-scroll" id="clients-list">
+          <!-- Cards injected here -->
         </div>
 
-        <div class="field-group">
-          <div class="field-label-row">
-            <label>Onboarding status</label>
-            <span class="field-hint">Where they are in the journey.</span>
-          </div>
-          <div class="chip-row" id="status-filter-row">
-            <button type="button" class="chip is-active" data-status-filter="all">
-              All statuses
-            </button>
-            <button type="button" class="chip" data-status-filter="lead">
-              New leads
-            </button>
-            <button type="button" class="chip" data-status-filter="demo">
-              Demo booked
-            </button>
-            <button type="button" class="chip" data-status-filter="trial">
-              Trial live
-            </button>
-            <button type="button" class="chip" data-status-filter="live">
-              Live / paying
-            </button>
-            <button type="button" class="chip" data-status-filter="paused">
-              Paused / cancelled
-            </button>
-          </div>
-        </div>
-
-        <!-- Client list -->
-        <div id="client-list" class="client-list"></div>
-
-        <div id="dashboard-status-message" class="wizard-status-message"></div>
+        <div id="dashboard-status-message"></div>
       </section>
     </div>
   </main>
 </div>
 
 <script>
-  // Same Supabase config style as app.html
+  // Supabase config (same as app.html)
   window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  window.SUPABASE_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
+  // ---- Supabase helper ----
   async function supabaseFetch(path, options = {}) {
     if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
       console.error("Supabase is not configured. Check SUPABASE_URL and SUPABASE_KEY.");
@@ -800,373 +820,317 @@
     return { data, error: null };
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    const clientListEl = document.getElementById("client-list");
+  document.addEventListener("DOMContentLoaded", () => {
+    const clientsListEl = document.getElementById("clients-list");
+    const stageFiltersEl = document.getElementById("stage-filters");
+    const searchInputEl = document.getElementById("search-input");
     const statusMessageEl = document.getElementById("dashboard-status-message");
-    const resultCountLabel = document.getElementById("result-count-label");
 
-    const metricLeadsEl = document.getElementById("metric-leads");
-    const metricDemosTrialsEl = document.getElementById("metric-demos-trials");
-    const metricLiveEl = document.getElementById("metric-live");
+    const summaryTotalEl = document.getElementById("summary-total");
+    const summaryLiveEl = document.getElementById("summary-live");
+    const summaryVisibleEl = document.getElementById("summary-visible");
+    const summaryTotalInlineEl = document.getElementById("summary-total-inline");
 
-    const searchInput = document.getElementById("search-input");
-    const planFilterRow = document.getElementById("plan-filter-row");
-    const statusFilterRow = document.getElementById("status-filter-row");
+    let allClients = [];
+    let activeStageFilter = "all";
+    let searchTerm = "";
 
-    const state = {
-      allClients: [],
-      filters: {
-        search: "",
-        planCategory: "all",
-        statusCategory: "all"
-      }
-    };
+    // ---- Stage helpers ----
+    function computeStageKey(client) {
+      const plan = (client.plan_status || "").toLowerCase();
+      const pending = client.pending_setup === true;
+      const active = client.is_active === true;
 
-    function normalise(text) {
-      return (text || "").toString().toLowerCase();
+      if (!plan && pending) return "needs_setup";
+      if (!plan && !pending && !active) return "needs_setup";
+
+      if (plan === "trial" && !active) return "trial_setup";
+      if (plan === "trial" && active) return "trial_live";
+
+      if (plan && plan !== "trial" && active) return "live";
+      if (plan && plan !== "trial" && !active) return "paused";
+
+      return "unknown";
     }
 
-    // --- categorisation helpers ---
-
-    function getPlanCategory(planStatusRaw) {
-      const s = normalise(planStatusRaw);
-      if (!s) return "none";
-      if (s.includes("trial")) return "trial";
-      if (s.includes("month")) return "monthly";
-      if (s.includes("annual") || s.includes("year")) return "annual";
-      return "other";
+    function isTrialStage(stageKey) {
+      return stageKey === "trial_setup" || stageKey === "trial_live";
     }
 
-    function getStatusCategory(accountStatusRaw, planStatusRaw, isActive) {
-      const status = normalise(accountStatusRaw);
-      const plan = normalise(planStatusRaw);
-      const active = !!isActive;
-
-      if (status.includes("cancel") || status.includes("churn")) return "paused";
-      if (status.includes("pause")) return "paused";
-
-      if (active && !plan.includes("trial")) return "live";
-      if (plan.includes("trial") || status.includes("trial")) return "trial";
-
-      if (status.includes("demo")) return "demo";
-      if (status.includes("lead") || status.includes("new") || status.includes("enquiry")) {
-        return "lead";
-      }
-
-      return "other";
-    }
-
-    function getStatusPillClass(category) {
-      switch (category) {
-        case "lead": return "status-pill status-pill--lead";
-        case "demo": return "status-pill status-pill--demo";
-        case "trial": return "status-pill status-pill--trial";
-        case "live": return "status-pill status-pill--live";
-        case "paused": return "status-pill status-pill--paused";
-        default: return "status-pill";
+    function stageLabel(stageKey, plan_status) {
+      const plan = (plan_status || "").toLowerCase();
+      switch (stageKey) {
+        case "needs_setup":
+          return "Needs setup";
+        case "trial_setup":
+          return "Trial – setup";
+        case "trial_live":
+          return "Trial – live";
+        case "live":
+          return plan ? `${plan_status} – live` : "Live";
+        case "paused":
+          return "Paused / inactive";
+        default:
+          return plan_status ? plan_status : "Status not set";
       }
     }
 
-    function formatDate(iso) {
-      if (!iso) return "";
-      try {
-        const d = new Date(iso);
-        if (Number.isNaN(d.getTime())) return "";
-        const day = String(d.getDate()).padStart(2, "0");
-        const month = String(d.getMonth() + 1).padStart(2, "0");
-        const year = d.getFullYear();
-        return `${day}/${month}/${year}`;
-      } catch (e) {
-        return "";
-      }
+    function stagePillClass(stageKey) {
+      if (stageKey === "needs_setup") return "needs-setup";
+      if (stageKey === "trial_setup" || stageKey === "trial_live") return "trial";
+      if (stageKey === "live") return "live";
+      if (stageKey === "paused") return "paused";
+      return "unknown";
     }
 
-    // --- rendering ---
+    // ---- Rendering ----
+    function render() {
+      if (!clientsListEl) return;
 
-    function applyFilters() {
-      const { search, planCategory, statusCategory } = state.filters;
-      const searchTerm = normalise(search);
+      const trimmed = (searchTerm || "").trim().toLowerCase();
 
-      const filtered = state.allClients.filter((row) => {
-        const {
-          business_name,
-          contact_name,
-          owner_name,
-          email,
-          phone,
-          whatsapp_number,
-          base_postcode,
-          plan_status,
-          account_status,
-          is_active
-        } = row;
+      const filtered = allClients.filter((client) => {
+        const stage = computeStageKey(client);
 
-        // Search match
-        if (searchTerm) {
-          const haystack = [
-            business_name,
-            contact_name,
-            owner_name,
-            email,
-            phone,
-            whatsapp_number,
-            base_postcode
+        if (activeStageFilter === "needs_setup" && stage !== "needs_setup") {
+          return false;
+        }
+        if (activeStageFilter === "trial" && !isTrialStage(stage)) {
+          return false;
+        }
+        if (activeStageFilter === "live" && stage !== "live") {
+          return false;
+        }
+        if (activeStageFilter === "paused" && stage !== "paused") {
+          return false;
+        }
+
+        if (!trimmed) return true;
+
+        const haystack =
+          [
+            client.business_name,
+            client.contact_name,
+            client.email,
+            client.phone,
+            client.base_postcode,
+            client.services_summary
           ]
-            .map((v) => normalise(v))
-            .join(" ");
+            .filter(Boolean)
+            .join(" | ")
+            .toLowerCase() || "";
 
-          if (!haystack.includes(searchTerm)) return false;
-        }
-
-        // Plan category
-        const rowPlanCategory = getPlanCategory(plan_status);
-        if (planCategory !== "all") {
-          if (planCategory === "none") {
-            if (rowPlanCategory !== "none") return false;
-          } else if (planCategory === "monthly") {
-            if (rowPlanCategory !== "monthly") return false;
-          } else if (planCategory === "annual") {
-            if (rowPlanCategory !== "annual") return false;
-          } else if (planCategory === "trial") {
-            if (rowPlanCategory !== "trial") return false;
-          } else {
-            if (rowPlanCategory !== planCategory) return false;
-          }
-        }
-
-        // Status category
-        const rowStatusCategory = getStatusCategory(account_status, plan_status, is_active);
-        if (statusCategory !== "all" && rowStatusCategory !== statusCategory) {
-          if (!(statusCategory === "paused" && rowStatusCategory === "cancelled")) {
-            return false;
-          }
-        }
-
-        return true;
+        return haystack.includes(trimmed);
       });
 
-      renderClientList(filtered);
-      updateMetrics(state.allClients);
-      updateResultCount(filtered.length, state.allClients.length);
-    }
+      clientsListEl.innerHTML = "";
 
-    function updateResultCount(showing, total) {
-      if (!resultCountLabel) return;
-      if (!total) {
-        resultCountLabel.textContent = "No clients yet.";
-      } else if (showing === total) {
-        resultCountLabel.textContent = `Showing all ${total} clients`;
+      if (!filtered.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent =
+          allClients.length === 0
+            ? "No clients found in business_profiles yet."
+            : "No clients match your current filters.";
+        clientsListEl.appendChild(empty);
       } else {
-        resultCountLabel.textContent = `Showing ${showing} of ${total} clients`;
-      }
-    }
+        filtered.forEach((client) => {
+          const card = document.createElement("article");
+          card.className = "client-card";
 
-    function updateMetrics(allRows) {
-      const total = allRows.length;
-      let leads = 0;
-      let demosTrials = 0;
-      let live = 0;
+          const stageKey = computeStageKey(client);
+          const pillClass = stagePillClass(stageKey);
+          const pillLabel = stageLabel(stageKey, client.plan_status);
 
-      allRows.forEach((row) => {
-        const cat = getStatusCategory(row.account_status, row.plan_status, row.is_active);
-        if (cat === "lead") leads += 1;
-        else if (cat === "demo" || cat === "trial") demosTrials += 1;
-        else if (cat === "live") live += 1;
-      });
+          const createdAtText = client.created_at
+            ? new Date(client.created_at).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric"
+              })
+            : "Unknown date";
 
-      if (metricLeadsEl) metricLeadsEl.textContent = total ? leads : "–";
-      if (metricDemosTrialsEl) metricDemosTrialsEl.textContent = total ? demosTrials : "–";
-      if (metricLiveEl) metricLiveEl.textContent = total ? live : "–";
-    }
+          const basePostcode = client.base_postcode || "No postcode set";
+          const planStatus = client.plan_status || "No plan";
+          const servicesSummary = client.services_summary || "";
 
-    function renderClientList(rows) {
-      if (!clientListEl) return;
-      if (!rows || !rows.length) {
-        clientListEl.innerHTML = `
-          <div class="client-card">
-            <div class="client-card-header">
-              <h3 class="client-title">No clients match your filters</h3>
-            </div>
-            <p class="client-subtitle">
-              Try clearing the filters or search to see everyone again.
-            </p>
-          </div>
-        `;
-        return;
-      }
+          // Derive link to wizard:
+          // Prefer signup_id → app.html?signup_id=...
+          // Otherwise use profile id → app.html?profile_id=...
+          const signupId = client.signup_id || null;
+          const profileId = client.id;
+          const wizardUrl = signupId
+            ? `app.html?signup_id=${encodeURIComponent(signupId)}`
+            : `app.html?profile_id=${encodeURIComponent(profileId)}`;
 
-      const cards = rows.map((row) => {
-        const id = row.id;
-        const businessName = row.business_name || "(No business name)";
-        const contactName = row.contact_name || row.owner_name || "";
-        const email = row.email || "";
-        const phone = row.whatsapp_number || row.phone || "";
-        const basePostcode = row.base_postcode || row.callout_from || "";
-        const trade = row.trade_type || row.services_summary || "";
-        const createdAt = formatDate(row.created_at);
+          // Build tags from services_summary (simple split)
+          const tags = servicesSummary
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
 
-        const planStatusRaw = row.plan_status || "";
-        const accountStatusRaw = row.account_status || "";
-        const statusCategory = getStatusCategory(accountStatusRaw, planStatusRaw, row.is_active);
-        const planCategory = getPlanCategory(planStatusRaw);
-
-        const planStatusLabel = planStatusRaw || "No plan yet";
-        const accountStatusLabel = accountStatusRaw || "Lead – New";
-
-        const statusClass = getStatusPillClass(statusCategory);
-
-        const primaryServiceArea = row.primary_service_area || "";
-        const extraAreas = Array.isArray(row.extra_service_areas)
-          ? row.extra_service_areas
-          : [];
-
-        const directoryFlag = row.directory_opt_in ? "Listed on directory (hidden for now)" : "";
-
-        const channelsSummary = row.ai_style_notes || "";
-
-        const wizardHref = id
-          ? `app.html?user_id=${encodeURIComponent(id)}`
-          : "#";
-
-        return `
-          <article class="client-card">
-            <div class="client-card-header">
+          card.innerHTML = `
+            <div class="client-header-row">
               <div>
-                <h3 class="client-title">${businessName}</h3>
-                <p class="client-subtitle">
-                  ${trade ? `${trade} · ` : ""}${basePostcode || "Postcode tbc"}
-                </p>
+                <div class="client-name">${client.business_name || "Unnamed business"}</div>
+                <div class="client-sub">
+                  ${client.contact_name ? client.contact_name + " · " : ""}${
+            client.email || "No email yet"
+          }
+                </div>
               </div>
               <div>
-                <span class="${statusClass}">
-                  ${accountStatusLabel}
-                </span>
+                <div class="status-pill ${pillClass}">
+                  <span class="pill-dot"></span>
+                  <span>${pillLabel}</span>
+                </div>
               </div>
             </div>
 
             <div class="client-meta-row">
-              ${contactName ? `<span class="client-meta-item">👤 ${contactName}</span>` : ""}
-              ${email ? `<span class="client-meta-item">✉️ ${email}</span>` : ""}
-              ${phone ? `<span class="client-meta-item">📱 ${phone}</span>` : ""}
-              ${createdAt ? `<span class="client-meta-item">🕒 Added ${createdAt}</span>` : ""}
-            </div>
-
-            <div class="client-tags">
-              <span class="tag-pill tag-pill--plan">Plan: ${planStatusLabel}</span>
-              ${
-                primaryServiceArea
-                  ? `<span class="tag-pill tag-pill--area">Home area: ${primaryServiceArea}</span>`
-                  : ""
-              }
-              ${
-                extraAreas && extraAreas.length
-                  ? `<span class="tag-pill tag-pill--area">Extra areas: +${extraAreas.length}</span>`
-                  : ""
-              }
-              ${
-                channelsSummary
-                  ? `<span class="tag-pill tag-pill--channel">Notes: ${channelsSummary}</span>`
-                  : ""
-              }
-              ${
-                directoryFlag
-                  ? `<span class="tag-pill">${directoryFlag}</span>`
-                  : ""
-              }
-            </div>
-
-            <div class="client-card-footer">
-              <div class="client-footer-note">
-                ${
-                  planCategory === "trial"
-                    ? "On free trial – good time to offer upgrade or extra areas."
-                    : planCategory === "none"
-                    ? "No plan yet – treat as warm lead."
-                    : "Live or in pipeline – use the wizard to fine-tune setup."
-                }
+              <div class="client-meta-item">
+                <span class="meta-dot"></span>
+                <span>${basePostcode}</span>
               </div>
-              <div>
-                ${
-                  id
-                    ? `<a class="btn btn-secondary" href="${wizardHref}">
-                         Open in wizard →
-                       </a>`
-                    : `<button class="btn btn-secondary" disabled>Missing ID</button>`
-                }
+              <div class="client-meta-item">
+                <span class="meta-dot"></span>
+                <span>Plan: ${planStatus}</span>
+              </div>
+              ${
+                client.phone
+                  ? `<div class="client-meta-item">
+                       <span class="meta-dot"></span>
+                       <span>${client.phone}</span>
+                     </div>`
+                  : ""
+              }
+              <div class="client-meta-item">
+                <span class="meta-dot"></span>
+                <span>Profile created: ${createdAtText}</span>
               </div>
             </div>
-          </article>
-        `;
-      });
 
-      clientListEl.innerHTML = cards.join("");
-    }
+            ${
+              tags.length
+                ? `<div class="tag-row">
+                     ${tags
+                       .map(
+                         (t) =>
+                           `<span class="small-tag">${t
+                             .replace("Emergency / urgent jobs", "Emergency")
+                             .replace("Small jobs / quick wins", "Small jobs")
+                             .replace("Bigger projects / installs", "Big projects")
+                             .replace("Maintenance / servicing", "Servicing")
+                             .replace("Landlords / repeat clients", "Landlords")
+                           }</span>`
+                       )
+                       .join("")}
+                   </div>`
+                : ""
+            }
 
-    // --- filter chip wiring ---
+            <div class="client-actions-row">
+              <button type="button" class="btn btn-secondary" data-action="open-wizard" data-href="${wizardUrl}">
+                Open in wizard
+              </button>
+              <button type="button" class="btn btn-primary" data-action="open-messages" data-id="${profileId}">
+                Open CRM / messages
+              </button>
+            </div>
+          `;
 
-    function setupChipRow(rowEl, type) {
-      if (!rowEl) return;
-      const chips = rowEl.querySelectorAll(".chip");
-      chips.forEach((chip) => {
-        chip.addEventListener("click", () => {
-          chips.forEach((c) => c.classList.remove("is-active"));
-          chip.classList.add("is-active");
-
-          if (type === "plan") {
-            state.filters.planCategory = chip.getAttribute("data-plan-filter") || "all";
-          } else if (type === "status") {
-            state.filters.statusCategory = chip.getAttribute("data-status-filter") || "all";
-          }
-
-          applyFilters();
+          clientsListEl.appendChild(card);
         });
-      });
+      }
+
+      // Summary counts
+      const total = allClients.length;
+      const liveCount = allClients.filter((c) => {
+        const stage = computeStageKey(c);
+        return stage === "live" || isTrialStage(stage);
+      }).length;
+
+      if (summaryTotalEl) summaryTotalEl.textContent = total.toString();
+      if (summaryTotalInlineEl) summaryTotalInlineEl.textContent = total.toString();
+      if (summaryVisibleEl) summaryVisibleEl.textContent = filtered.length.toString();
+      if (summaryLiveEl) summaryLiveEl.textContent = liveCount.toString();
     }
 
-    // --- load data ---
-
+    // ---- Load data ----
     async function loadClients() {
       if (statusMessageEl) {
-        statusMessageEl.textContent = "Loading clients from Supabase…";
+        statusMessageEl.textContent = "Loading clients from business_profiles…";
+        statusMessageEl.className = "";
       }
 
       const { data, error } = await supabaseFetch(
-        `/tradebotpro_signups?select=*&order=created_at.desc`,
+        "/business_profiles?select=*&order=created_at.desc",
         { method: "GET" }
       );
 
       if (error) {
-        console.error("Error loading clients:", error);
+        console.error("Error loading business_profiles:", error);
         if (statusMessageEl) {
           statusMessageEl.textContent =
-            "There was a problem loading the client list. Please refresh to try again.";
-          statusMessageEl.classList.add("wizard-status-message--error");
+            "There was a problem loading clients. Please refresh or try again later.";
+          statusMessageEl.className = "status-error";
         }
         return;
       }
 
-      state.allClients = Array.isArray(data) ? data : [];
+      allClients = Array.isArray(data) ? data : [];
+      console.log("Loaded business_profiles for dashboard:", allClients);
 
       if (statusMessageEl) {
         statusMessageEl.textContent = "";
-        statusMessageEl.className = "wizard-status-message";
+        statusMessageEl.className = "";
       }
 
-      applyFilters();
+      render();
     }
 
-    // --- event listeners ---
+    // ---- Event wiring ----
+    if (stageFiltersEl) {
+      stageFiltersEl.addEventListener("click", (evt) => {
+        const btn = evt.target.closest(".chip[data-stage-filter]");
+        if (!btn) return;
+        const value = btn.getAttribute("data-stage-filter");
+        if (!value) return;
 
-    if (searchInput) {
-      searchInput.addEventListener("input", () => {
-        state.filters.search = searchInput.value || "";
-        applyFilters();
+        activeStageFilter = value;
+        Array.from(stageFiltersEl.querySelectorAll(".chip")).forEach((chip) =>
+          chip.classList.toggle("is-active", chip === btn)
+        );
+        render();
       });
     }
 
-    setupChipRow(planFilterRow, "plan");
-    setupChipRow(statusFilterRow, "status");
+    if (searchInputEl) {
+      searchInputEl.addEventListener("input", () => {
+        searchTerm = searchInputEl.value || "";
+        render();
+      });
+    }
 
+    if (clientsListEl) {
+      clientsListEl.addEventListener("click", (evt) => {
+        const btn = evt.target.closest("button[data-action]");
+        if (!btn) return;
+        const action = btn.getAttribute("data-action");
+        if (action === "open-wizard") {
+          const href = btn.getAttribute("data-href");
+          if (href) {
+            window.open(href, "_blank");
+          }
+        } else if (action === "open-messages") {
+          const id = btn.getAttribute("data-id");
+          // Placeholder – later this can open a dedicated CRM/messages view
+          alert("Messages/CRM view coming soon for profile id: " + id);
+        }
+      });
+    }
+
+    // Init
     loadClients();
   });
 </script>
