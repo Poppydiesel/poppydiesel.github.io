@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -396,94 +396,84 @@
       margin-top: 0.25rem;
     }
 
-/* -------------------------------------------------- */
-/* CHIP SYSTEM — FULL RESET + ACTIVE STATE FIX        */
-/* -------------------------------------------------- */
+    /* -------------------------------------------------- */
+    /* CHIP SYSTEM — FULL RESET + ACTIVE STATE FIX        */
+    /* -------------------------------------------------- */
 
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 14px;
-}
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
 
-.chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #ffffff;
-  font-size: 0.85rem;
-  line-height: 1.2;
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-  transition: 
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease;
-}
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #ffffff;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition: 
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
 
-/* -------------------------------------------------- */
-/* ACTIVE CHIP — THIS IS WHAT MAKES THEM HIGHLIGHT     */
-/* -------------------------------------------------- */
+    .chip.is-active {
+      background: #e8f0fa;                  /* soft light blue highlight */
+      border-color: #1f4e79;                /* strong navy border */
+      color: #1f4e79;                       /* navy text */
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.15);
+      font-weight: 600;
+    }
 
-.chip.is-active {
-  background: #e8f0fa;                  /* soft light blue highlight */
-  border-color: #1f4e79;                /* strong navy border */
-  color: #1f4e79;                       /* navy text */
-  box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.15);
-  font-weight: 600;
-}
+    .chip:hover {
+      border-color: #1f4e79;
+      background: rgba(31, 78, 121, 0.06);
+    }
 
-/* -------------------------------------------------- */
-/* CHIP ON HOVER — OPTIONAL BUT MAKES UI FEEL ALIVE    */
-/* -------------------------------------------------- */
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
 
-.chip:hover {
-  border-color: #1f4e79;
-  background: rgba(31, 78, 121, 0.06);
-}
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #ffffff;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
 
-    /* CHIP VISUAL STATE */
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #ffffff;
-  font-size: 0.85rem;
-  line-height: 1.2;
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.chip.is-active {
-  background: #e8f0fa;
-  border-color: #1f4e79;
-  color: #1f4e79;
-  box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2);
-  font-weight: 600;
-}
-
+    .chip.is-active {
+      background: #e8f0fa;
+      border-color: #1f4e79;
+      color: #1f4e79;
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2);
+      font-weight: 600;
+    }
 
     /* FOOTER ACTIONS */
 
@@ -631,44 +621,41 @@
         font-size: 0.65rem;
       }
     }
-/* CHIP ACTIVE STATE – FORCE VISUAL DIFFERENCE */
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 14px;
-}
 
-    
-.chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #ffffff;
-  font-size: 0.85rem;
-  line-height: 1.2;
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease;
-}
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
 
-.chip.is-active {
-  background: #e8f0fa !important;
-  border-color: #1f4e79 !important;
-  color: #1f4e79 !important;
-  box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2) !important;
-  font-weight: 600;
-}
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #ffffff;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
 
-  
+    .chip.is-active {
+      background: #e8f0fa !important;
+      border-color: #1f4e79 !important;
+      color: #1f4e79 !important;
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2) !important;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -755,7 +742,6 @@
           everything from your own phones first.
         </div>
 
-        <!-- NEW "WHAT HAPPENS NEXT" BLOCK -->
         <div class="wizard-note">
           <strong>What happens next?</strong><br />
           Once this wizard is complete, we’ll plug in your WhatsApp, build your first flows
@@ -1062,8 +1048,7 @@
               ← Back
             </button>
             <button type="button" class="btn btn-primary" id="btn-next">
-              Next step →
-            </button>
+              Next step →</button>
           </div>
         </div>
 
@@ -1074,10 +1059,9 @@
 </div>
 
 <script>
-  
-  window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  // <--- YOUR URL in quotes
-  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";               // <--- YOUR KEY in quotes
-  
+  window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co"; 
+  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
   // ---- Supabase helper ----
   async function supabaseFetch(path, options = {}) {
     if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
@@ -1128,7 +1112,7 @@
 
     // 👇 get user_id from URL (so dashboard → wizard works)
     const params = new URLSearchParams(window.location.search);
-    const userId = params.get("user_id");
+    const userId = params.get("user_id"); // this should be tradebotpro_signups.id when opened from dashboard
 
     const initialState = {
       contact_name: "",
@@ -1389,7 +1373,6 @@
       state.contact_mobile = row.phone || "";
       state.base_postcode = row.base_postcode || "";
 
-      // services_summary → preferred_jobs chips
       if (row.services_summary) {
         state.preferred_jobs = row.services_summary
           .split(",")
@@ -1397,16 +1380,14 @@
           .filter(Boolean);
       }
 
-      // (You’re not yet storing tone_of_voice, bands, etc. in DB – those will stay as-is.)
-
       populateUIFromState();
     }
 
     // --------------------------------------------
-    // SUPABASE SAVE
+    // BUILD COMMON PAYLOAD FROM STATE
     // --------------------------------------------
-    async function saveWizardToBusinessProfile() {
-      const payload = {
+    function buildCommonPayloadFromState() {
+      return {
         business_name: state.business_name || null,
         contact_name: state.contact_name || null,
         email: state.contact_email || null,
@@ -1415,20 +1396,35 @@
         services_summary:
           state.preferred_jobs && state.preferred_jobs.length
             ? state.preferred_jobs.join(", ")
-            : null,
+            : null
+      };
+    }
+
+    // --------------------------------------------
+    // SUPABASE SAVE – business_profiles + (optionally) tradebotpro_signups
+    // --------------------------------------------
+    async function saveWizardToBusinessProfile() {
+      if (!statusMessage) return;
+
+      const common = buildCommonPayloadFromState();
+
+      // payload for business_profiles
+      const businessPayload = {
+        ...common,
         plan_status: "Trial",
         pending_setup: true,
-        is_active: false
+        is_active: false,
+        // 🔗 link back to signup if we know the signup id
+        signup_id: userId || null
       };
 
-      console.log("Saving wizard payload:", payload, "userId:", userId);
-
-      if (!statusMessage) return;
+      console.log("Saving wizard to business_profiles:", businessPayload, "userId:", userId);
 
       statusMessage.textContent = "Saving…";
       statusMessage.className = "wizard-status-message wizard-status-message--saving";
 
-      const { data, error } = await supabaseFetch(
+      // Upsert into business_profiles (PATCH when userId present, POST when not)
+      const { data: bpData, error: bpError } = await supabaseFetch(
         userId
           ? `/business_profiles?id=eq.${encodeURIComponent(userId)}`
           : `/business_profiles`,
@@ -1438,18 +1434,53 @@
             "Content-Type": "application/json",
             Prefer: "return=representation"
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(businessPayload)
         }
       );
 
-      if (error) {
-        console.error("Save profile error:", error);
+      if (bpError) {
+        console.error("Save profile error (business_profiles):", bpError);
         statusMessage.textContent = "There was a problem saving your form. Please try again.";
         statusMessage.className = "wizard-status-message wizard-status-message--error";
         return;
       }
 
-      console.log("Business profile saved:", data);
+      console.log("Business profile saved:", bpData);
+
+      // If we know the signup id (opened from dashboard), also update tradebotpro_signups
+      if (userId) {
+        const signupPayload = {
+          ...common,
+          plan_status: "Trial",
+          pending_setup: true,
+          is_active: false,
+          // simple status text so the dashboard has something to work with
+          account_status: "Wizard complete",
+          account_status_reason: "Setup wizard saved from app.html"
+        };
+
+        console.log("Updating matching tradebotpro_signups row:", signupPayload);
+
+        const { data: suData, error: suError } = await supabaseFetch(
+          `/tradebotpro_signups?id=eq.${encodeURIComponent(userId)}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Prefer: "return=representation"
+            },
+            body: JSON.stringify(signupPayload)
+          }
+        );
+
+        if (suError) {
+          // Non-fatal – wizard still succeeded, but we log it for you in the console
+          console.error("Save profile warning (tradebotpro_signups):", suError);
+        } else {
+          console.log("Signup row updated from wizard:", suData);
+        }
+      }
+
       statusMessage.textContent = "Form sent successfully.";
       statusMessage.className = "wizard-status-message wizard-status-message--success";
     }
@@ -1482,7 +1513,6 @@
 
     if (btnSaveDraft) {
       btnSaveDraft.addEventListener("click", () => {
-        // simple local draft – optional, just keeps your existing concept
         try {
           localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
           if (statusMessage) {
@@ -1501,10 +1531,9 @@
     setupChips();
     setupTextInputs();
     showStep(1);
-    loadFromBusinessProfile(); // ⬅️ this is the bit that pre-fills when opened from dashboard
+    loadFromBusinessProfile(); // ⬅️ prefill when opened from dashboard
   });
 </script>
 
-  
 </body>
 </html>
