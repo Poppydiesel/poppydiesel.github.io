@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chip Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #ffffff;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+
+    .chip.is-active {
+      background: #e8f0fa;
+      border-color: #1f4e79;
+      color: #1f4e79;
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chip Test</h1>
+  <p>Click the chips below. They should change colour and stay selected.</p>
+
+  <div class="chip-row" data-field="main_trade" data-select="single">
+    <button type="button" class="chip">Boiler installs</button>
+    <button type="button" class="chip">Boiler breakdowns</button>
+    <button type="button" class="chip">Landlord certificates</button>
+    <button type="button" class="chip">General plumbing</button>
+  </div>
+
+  <div class="chip-row" data-field="preferred_jobs" data-select="multi">
+    <button type="button" class="chip">Emergencies only</button>
+    <button type="button" class="chip">Small jobs</button>
+    <button type="button" class="chip">Full systems</button>
+    <button type="button" class="chip">Underfloor heating</button>
+  </div>
+
+  <pre id="debug"></pre>
+
+  <script>
+    const state = {
+      main_trade: "",
+      preferred_jobs: []
+    };
+
+    const debugEl = document.getElementById("debug");
+
+    function renderDebug() {
+      debugEl.textContent = JSON.stringify(state, null, 2);
+    }
+
+    // Delegated click handler so we don't care about nesting
+    document.addEventListener("click", function (event) {
+      const chip = event.target.closest(".chip");
+      if (!chip) return;
+
+      const row = chip.closest(".chip-row");
+      if (!row) return;
+
+      const field = row.getAttribute("data-field");
+      const mode = row.getAttribute("data-select") || "single";
+      const chips = row.querySelectorAll(".chip");
+      const label = chip.textContent.trim();
+
+      event.preventDefault();
+
+      if (mode === "single") {
+        chips.forEach(c => c.classList.remove("is-active"));
+        chip.classList.add("is-active");
+        state[field] = label;
+      } else {
+        chip.classList.toggle("is-active");
+        const selected = Array.from(chips)
+          .filter(c => c.classList.contains("is-active"))
+          .map(c => c.textContent.trim());
+        state[field] = selected;
+      }
+
+      renderDebug();
+    });
+
+    renderDebug();
+  </script>
+</body>
+</html>
