@@ -2,113 +2,613 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Chip Test</title>
+  <title>TradeBotPro — Client Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="TradeBotPro dashboard to manage clients, see onboarding status and open the setup wizard."
+  />
+
   <style>
+    :root {
+      --primary-blue: #1f4e79;
+      --accent-blue: #00a3ff;
+      --dark-text: #1b1b1f;
+      --muted-text: #666a73;
+      --light-bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --border-subtle: #e0e3eb;
+      --radius-lg: 16px;
+      --danger: #d9534f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
+      margin: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      padding: 40px;
-      background: #f5f5f5;
+      background: var(--light-bg);
+      color: var(--dark-text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, var(--accent-blue), var(--primary-blue));
+    }
+
+    .brand-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--muted-text);
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 16px auto 32px;
+      padding: 0 16px;
+    }
+
+    .top-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .filters {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      padding: 10px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      align-items: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 140px;
+      font-size: 0.85rem;
+    }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    select,
+    input[type="text"] {
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      outline: none;
+      background: #fff;
+    }
+
+    select:focus,
+    input[type="text"]:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 2px rgba(0, 163, 255, 0.15);
+    }
+
+    .filter-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+    }
+
+    .summary-bar {
+      font-size: 0.85rem;
+      color: var(--muted-text);
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 0.8rem;
+      border: 1px solid var(--border-subtle);
+      background: #f9fafc;
+      color: var(--muted-text);
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+    }
+
+    .clients-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .client-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      padding: 12px 14px 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .client-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .client-name {
+      font-size: 0.98rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .client-trade {
+      font-size: 0.85rem;
+      color: var(--muted-text);
+    }
+
+    .client-meta {
+      font-size: 0.78rem;
+      color: var(--muted-text);
     }
 
     .chip-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 14px;
+      gap: 6px;
+      margin-top: 4px;
     }
 
     .chip {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.4rem 0.9rem;
       border-radius: 999px;
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      background: #ffffff;
-      font-size: 0.85rem;
-      line-height: 1.2;
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-      transition:
-        background 0.15s ease,
-        border-color 0.15s ease,
-        color 0.15s ease,
-        box-shadow 0.15s ease;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      border: 1px solid var(--border-subtle);
+      background: #f1f3fa;
+      color: var(--muted-text);
     }
 
-    .chip.is-active {
-      background: #e8f0fa;
-      border-color: #1f4e79;
-      color: #1f4e79;
-      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2);
-      font-weight: 600;
+    .plan-chip {
+      border-color: var(--accent-blue);
+      color: var(--primary-blue);
+      background: #edf5ff;
+    }
+
+    .stage-chip {
+      border-color: #d2c6ff;
+      background: #f3efff;
+      color: #5b4bb5;
+    }
+
+    .trial-chip {
+      border-color: #ffd27f;
+      background: #fff7e6;
+      color: #a16207;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-secondary {
+      background: #f5f7fa;
+      color: var(--dark-text);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .btn-secondary:hover {
+      background: #eef1f7;
+    }
+
+    .status-text {
+      font-size: 0.85rem;
+      min-height: 18px;
+      margin-top: 8px;
+    }
+
+    .status-text .error {
+      color: var(--danger);
+    }
+
+    .status-text .ok {
+      color: var(--primary-blue);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 10px;
+      font-size: 0.9rem;
+      color: var(--muted-text);
+    }
+
+    @media (max-width: 700px) {
+      .filters {
+        flex-direction: column;
+        align-items: stretch;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Chip Test</h1>
-  <p>Click the chips below. They should change colour and stay selected.</p>
+  <header>
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div>
+        <div class="brand-title">TradeBotPro — Client Dashboard</div>
+        <div class="brand-subtitle">See who’s where in onboarding and open the setup wizard in one click.</div>
+      </div>
+    </div>
+  </header>
 
-  <div class="chip-row" data-field="main_trade" data-select="single">
-    <button type="button" class="chip">Boiler installs</button>
-    <button type="button" class="chip">Boiler breakdowns</button>
-    <button type="button" class="chip">Landlord certificates</button>
-    <button type="button" class="chip">General plumbing</button>
-  </div>
+  <main>
+    <div class="top-row">
+      <h1>Clients</h1>
+      <div class="badge">
+        <span class="badge-dot"></span>
+        <span>Live Supabase data</span>
+      </div>
+    </div>
 
-  <div class="chip-row" data-field="preferred_jobs" data-select="multi">
-    <button type="button" class="chip">Emergencies only</button>
-    <button type="button" class="chip">Small jobs</button>
-    <button type="button" class="chip">Full systems</button>
-    <button type="button" class="chip">Underfloor heating</button>
-  </div>
+    <section class="filters">
+      <div class="filter-group">
+        <label for="filter_search">Search</label>
+        <input id="filter_search" type="text" placeholder="Business, contact or postcode…" />
+      </div>
 
-  <pre id="debug"></pre>
+      <div class="filter-group">
+        <label for="filter_trade">Trade</label>
+        <select id="filter_trade">
+          <option value="">All trades</option>
+        </select>
+      </div>
 
-  <script>
+      <div class="filter-group">
+        <label for="filter_plan">Plan</label>
+        <select id="filter_plan">
+          <option value="">All plans</option>
+          <option value="Free trial">Free trial</option>
+          <option value="Starter">Starter</option>
+          <option value="Pro">Pro</option>
+          <option value="Agency / Custom">Agency / Custom</option>
+          <option value="No plan chosen yet">No plan chosen yet</option>
+          <option value="Demo only">Demo only</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter_stage">Stage</label>
+        <select id="filter_stage">
+          <option value="">All stages</option>
+          <option value="Lead – New">Lead – New</option>
+          <option value="Lead – Contacted">Lead – Contacted</option>
+          <option value="Demo booked">Demo booked</option>
+          <option value="Demo completed">Demo completed</option>
+          <option value="Free trial – Active">Free trial – Active</option>
+          <option value="Free trial – Ended">Free trial – Ended</option>
+          <option value="Subscribed – Live">Subscribed – Live</option>
+          <option value="Offer upgrade to additional areas">Offer upgrade to additional areas</option>
+          <option value="Subscribed – Paused">Subscribed – Paused</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>&nbsp;</label>
+        <div class="filter-inline">
+          <input id="filter_trial_only" type="checkbox" />
+          <span>Free trial only</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="summary-bar">
+      <div id="summary-left">Loading clients…</div>
+      <div id="summary-right"></div>
+    </div>
+
+    <section id="clients-section">
+      <div id="clients-grid" class="clients-grid"></div>
+      <div id="empty-state" class="empty-state" style="display:none;">
+        No clients match your filters yet.
+      </div>
+      <div id="dashboard-status" class="status-text"></div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.0";
+ window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  // <--- YOUR URL in quotes
+  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";  
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     const state = {
-      main_trade: "",
-      preferred_jobs: []
+      clients: [],
+      filtered: [],
     };
 
-    const debugEl = document.getElementById("debug");
-
-    function renderDebug() {
-      debugEl.textContent = JSON.stringify(state, null, 2);
-    }
-
-    // Delegated click handler so we don't care about nesting
-    document.addEventListener("click", function (event) {
-      const chip = event.target.closest(".chip");
-      if (!chip) return;
-
-      const row = chip.closest(".chip-row");
-      if (!row) return;
-
-      const field = row.getAttribute("data-field");
-      const mode = row.getAttribute("data-select") || "single";
-      const chips = row.querySelectorAll(".chip");
-      const label = chip.textContent.trim();
-
-      event.preventDefault();
-
-      if (mode === "single") {
-        chips.forEach(c => c.classList.remove("is-active"));
-        chip.classList.add("is-active");
-        state[field] = label;
-      } else {
-        chip.classList.toggle("is-active");
-        const selected = Array.from(chips)
-          .filter(c => c.classList.contains("is-active"))
-          .map(c => c.textContent.trim());
-        state[field] = selected;
-      }
-
-      renderDebug();
+    document.addEventListener("DOMContentLoaded", () => {
+      setupFilters();
+      loadClients();
     });
 
-    renderDebug();
+    function setupFilters() {
+      const search = document.getElementById("filter_search");
+      const trade = document.getElementById("filter_trade");
+      const plan = document.getElementById("filter_plan");
+      const stage = document.getElementById("filter_stage");
+      const trial = document.getElementById("filter_trial_only");
+
+      [search, trade, plan, stage, trial].forEach((el) => {
+        el.addEventListener("input", applyFilters);
+        el.addEventListener("change", applyFilters);
+      });
+    }
+
+    async function loadClients() {
+      setDashboardStatus("Loading clients…", false);
+
+      try {
+        const { data, error } = await supabase
+          .from("tradebotpro_signups")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error loading clients:", error);
+          setDashboardStatus("Error loading clients from Supabase.", true);
+          return;
+        }
+
+        state.clients = data || [];
+        buildTradeFilterOptions();
+        applyFilters();
+        setDashboardStatus("Clients loaded.", false, "ok");
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        setDashboardStatus("Unexpected error loading clients.", true);
+      }
+    }
+
+    function buildTradeFilterOptions() {
+      const tradeSelect = document.getElementById("filter_trade");
+      const trades = new Set();
+
+      state.clients.forEach((c) => {
+        if (c.trade_type) trades.add(c.trade_type);
+      });
+
+      tradeSelect.innerHTML = '<option value="">All trades</option>';
+      Array.from(trades)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((t) => {
+          const opt = document.createElement("option");
+          opt.value = t;
+          opt.textContent = t;
+          tradeSelect.appendChild(opt);
+        });
+    }
+
+    function applyFilters() {
+      const search = document.getElementById("filter_search").value.trim().toLowerCase();
+      const trade = document.getElementById("filter_trade").value;
+      const plan = document.getElementById("filter_plan").value;
+      const stage = document.getElementById("filter_stage").value;
+      const trialOnly = document.getElementById("filter_trial_only").checked;
+
+      let filtered = state.clients.slice();
+
+      filtered = filtered.filter((c) => {
+        if (search) {
+          const haystack = [
+            c.business_name,
+            c.contact_name,
+            c.email,
+            c.phone,
+            c.base_postcode,
+            c.primary_service_area,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          if (!haystack.includes(search)) return false;
+        }
+
+        if (trade && c.trade_type !== trade) return false;
+        if (plan && c.plan_status !== plan) return false;
+        if (stage && c.account_status !== stage) return false;
+        if (trialOnly && !c.wants_free_trial) return false;
+
+        return true;
+      });
+
+      state.filtered = filtered;
+      renderClients();
+      updateSummary();
+    }
+
+    function renderClients() {
+      const grid = document.getElementById("clients-grid");
+      const empty = document.getElementById("empty-state");
+
+      grid.innerHTML = "";
+
+      if (!state.filtered.length) {
+        empty.style.display = "block";
+        return;
+      } else {
+        empty.style.display = "none";
+      }
+
+      state.filtered.forEach((c) => {
+        const card = document.createElement("div");
+        card.className = "client-card";
+
+        const headerRow = document.createElement("div");
+        headerRow.className = "client-header-row";
+
+        const left = document.createElement("div");
+        const nameEl = document.createElement("p");
+        nameEl.className = "client-name";
+        nameEl.textContent = c.business_name || "(No business name)";
+
+        const tradeEl = document.createElement("div");
+        tradeEl.className = "client-trade";
+        const parts = [];
+        if (c.trade_type) parts.push(c.trade_type);
+        if (c.primary_service_area) parts.push(c.primary_service_area);
+        else if (c.base_postcode) parts.push(c.base_postcode);
+        tradeEl.textContent = parts.join(" · ") || "Trade / area not set";
+
+        left.appendChild(nameEl);
+        left.appendChild(tradeEl);
+
+        const right = document.createElement("div");
+        const openBtn = document.createElement("button");
+        openBtn.className = "btn btn-secondary";
+        openBtn.type = "button";
+        openBtn.textContent = "Open in wizard";
+        openBtn.addEventListener("click", () => {
+          if (!c.id) return;
+          window.location.href = `app.html?user_id=${encodeURIComponent(c.id)}`;
+        });
+        right.appendChild(openBtn);
+
+        headerRow.appendChild(left);
+        headerRow.appendChild(right);
+
+        const meta = document.createElement("div");
+        meta.className = "client-meta";
+        const metaBits = [];
+        if (c.contact_name) metaBits.push(c.contact_name);
+        if (c.email) metaBits.push(c.email);
+        if (c.phone) metaBits.push(c.phone);
+        meta.textContent = metaBits.join(" · ");
+
+        const chipRow = document.createElement("div");
+        chipRow.className = "chip-row";
+
+        if (c.plan_status) {
+          const chip = document.createElement("span");
+          chip.className = "chip plan-chip";
+          chip.textContent = c.plan_status;
+          chipRow.appendChild(chip);
+        }
+
+        if (c.account_status) {
+          const chip = document.createElement("span");
+          chip.className = "chip stage-chip";
+          chip.textContent = c.account_status;
+          chipRow.appendChild(chip);
+        }
+
+        if (c.wants_free_trial) {
+          const chip = document.createElement("span");
+          chip.className = "chip trial-chip";
+          chip.textContent = "Free trial";
+          chipRow.appendChild(chip);
+        }
+
+        card.appendChild(headerRow);
+        card.appendChild(meta);
+        card.appendChild(chipRow);
+
+        grid.appendChild(card);
+      });
+    }
+
+    function updateSummary() {
+      const total = state.clients.length;
+      const visible = state.filtered.length;
+      const freeTrials = state.filtered.filter((c) => c.wants_free_trial).length;
+      const live = state.filtered.filter((c) => c.account_status === "Subscribed – Live").length;
+
+      const left = document.getElementById("summary-left");
+      const right = document.getElementById("summary-right");
+
+      left.textContent = `${visible} client${visible === 1 ? "" : "s"} shown (of ${total})`;
+
+      right.innerHTML = `
+        <span class="badge"><span class="badge-dot"></span><span>${live} live</span></span>
+        <span class="badge"><span class="badge-dot"></span><span>${freeTrials} on free trial</span></span>
+      `;
+    }
+
+    function setDashboardStatus(message, isError = false, style = "error") {
+      const el = document.getElementById("dashboard-status");
+      if (!el) return;
+      if (!message) {
+        el.textContent = "";
+        return;
+      }
+      const cls = isError || style === "error" ? "error" : "ok";
+      el.innerHTML = `<span class="${cls}">${message}</span>`;
+    }
   </script>
 </body>
 </html>
