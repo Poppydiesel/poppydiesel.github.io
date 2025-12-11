@@ -1059,7 +1059,7 @@
 </div>
 
 <script>
-  // Supabase config (same as before)
+  // Supabase config
   window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
@@ -1114,7 +1114,7 @@
     // 🔑 Work out what IDs we have in the URL
     const params = new URLSearchParams(window.location.search);
 
-    // These are the possible patterns we might have used:
+    // Possible patterns we might have used
     let signupId =
       params.get("signup_id") ||
       params.get("user_id") ||
@@ -1369,7 +1369,6 @@
           const p = profileRows[0];
           console.log("Loaded business profile by id:", p);
 
-          // Map into state
           state.contact_name = p.contact_name || p.owner_name || state.contact_name;
           state.business_name = p.business_name || state.business_name;
           state.contact_email = p.email || state.contact_email;
@@ -1383,7 +1382,6 @@
               .filter(Boolean);
           }
 
-          // If this profile row already knows which signup it belongs to, use that
           if (p.signup_id && !signupId) {
             signupId = p.signup_id;
             console.log("Adopted signupId from business_profiles.signup_id:", signupId);
@@ -1404,7 +1402,6 @@
           const s = signupRows[0];
           console.log("Loaded signup row:", s);
 
-          // Only overwrite if state doesn't already have something
           state.contact_name = state.contact_name || s.contact_name || s.owner_name || "";
           state.business_name = state.business_name || s.business_name || "";
           state.contact_email = state.contact_email || s.email || "";
@@ -1433,7 +1430,6 @@
             console.log("Found business profile by signup_id:", p2);
             profileId = p2.id;
 
-            // Overlay profile fields
             state.contact_name = p2.contact_name || p2.owner_name || state.contact_name;
             state.business_name = p2.business_name || state.business_name;
             state.contact_email = p2.email || state.contact_email;
@@ -1454,7 +1450,7 @@
     }
 
     // --------------------------------------------
-    // SAVE: business_profiles + tradebotpro_signups
+    // SAVE: tradebotpro_signups + business_profiles
     // --------------------------------------------
     async function saveWizardToSupabase() {
       if (!statusMessage) return;
@@ -1467,7 +1463,71 @@
           ? state.preferred_jobs.join(", ")
           : null;
 
-      // ---- 1) Upsert into business_profiles ----
+      console.log("Saving wizard. Current signupId before save:", signupId, "profileId:", profileId);
+
+      // ---- A) Ensure tradebotpro_signups row exists & is updated ----
+      let signupError = null;
+
+      const signupPayload = {
+        business_name: state.business_name || null,
+        contact_name: state.contact_name || null,
+        email: state.contact_email || null,
+        phone: state.contact_mobile || null,
+        base_postcode: state.base_postcode || null,
+        services_summary: servicesSummary,
+        plan_status: "Trial",
+        pending_setup: true,
+        account_status: "Wizard complete",
+        account_status_reason: "Setup wizard finished"
+      };
+
+      if (signupId) {
+        console.log("Updating existing tradebotpro_signups row:", { signupId, signupPayload });
+
+        const { error: signupUpdateErr } = await supabaseFetch(
+          `/tradebotpro_signups?id=eq.${encodeURIComponent(signupId)}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Prefer: "return=representation"
+            },
+            body: JSON.stringify(signupPayload)
+          }
+        );
+
+        signupError = signupUpdateErr || null;
+      } else {
+        console.log("No signupId – creating new tradebotpro_signups row with:", signupPayload);
+
+        const { data: newSignupRows, error: signupInsertErr } = await supabaseFetch(
+          `/tradebotpro_signups`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Prefer: "return=representation"
+            },
+            body: JSON.stringify(signupPayload)
+          }
+        );
+
+        signupError = signupInsertErr || null;
+
+        if (!signupInsertErr && newSignupRows && newSignupRows.length) {
+          signupId = newSignupRows[0].id;
+          console.log("Created new tradebotpro_signups row. New signupId:", signupId);
+        }
+      }
+
+      if (signupError) {
+        console.error("Error saving tradebotpro_signups:", signupError);
+        statusMessage.textContent = "There was a problem saving your form. Please try again.";
+        statusMessage.className = "wizard-status-message wizard-status-message--error";
+        return;
+      }
+
+      // ---- B) Upsert into business_profiles, now that we have a signupId ----
       const profilePayload = {
         business_name: state.business_name || null,
         contact_name: state.contact_name || null,
@@ -1504,7 +1564,6 @@
       }
 
       if (effectiveProfileId) {
-        // PATCH existing profile
         const { error: patchErr } = await supabaseFetch(
           `/business_profiles?id=eq.${encodeURIComponent(effectiveProfileId)}`,
           {
@@ -1518,7 +1577,6 @@
         );
         profileError = patchErr || null;
       } else {
-        // POST new profile
         const { data: posted, error: postErr } = await supabaseFetch(
           `/business_profiles`,
           {
@@ -1544,43 +1602,6 @@
       }
 
       profileId = effectiveProfileId;
-
-      // ---- 2) Update tradebotpro_signups (only if we know which signup row this is) ----
-      if (signupId) {
-        const signupPayload = {
-          business_name: state.business_name || null,
-          contact_name: state.contact_name || null,
-          email: state.contact_email || null,
-          phone: state.contact_mobile || null,
-          base_postcode: state.base_postcode || null,
-          services_summary: servicesSummary,
-          plan_status: "Trial",
-          pending_setup: true,
-          account_status: "Wizard complete",
-          account_status_reason: "Setup wizard finished"
-        };
-
-        console.log("Updating tradebotpro_signups:", { signupId, signupPayload });
-
-        const { error: signupUpdateErr } = await supabaseFetch(
-          `/tradebotpro_signups?id=eq.${encodeURIComponent(signupId)}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Prefer: "return=representation"
-            },
-            body: JSON.stringify(signupPayload)
-          }
-        );
-
-        if (signupUpdateErr) {
-          console.error("Update signup row error:", signupUpdateErr);
-          // We'll still consider the wizard saved, but log it.
-        }
-      } else {
-        console.log("No signupId known when saving – business_profiles updated only.");
-      }
 
       if (summaryBox) {
         summaryBox.hidden = false;
@@ -1610,7 +1631,6 @@
           showStep(currentStep + 1);
           scrollTopSmooth();
         } else {
-          // Final step
           saveWizardToSupabase();
         }
       });
@@ -1639,6 +1659,7 @@
     loadFromSignupAndProfile();
   });
 </script>
+
 
 
 
