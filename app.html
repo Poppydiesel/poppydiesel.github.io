@@ -1231,22 +1231,81 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
-  /* ====================================================================== */
-  /*  SUPABASE SAVE — MATCHES YOUR TABLE EXACTLY                             */
-  /* ====================================================================== */
-  async function saveWizardToBusinessProfile() {
-    const payload = {
-      business_name: state.business_name || null,
-      contact_name: state.contact_name || null,
-      email: state.contact_email || null,
-      phone: state.contact_mobile || null,
-      base_postcode: state.base_postcode || null,
-      services_summary:
-        state.preferred_jobs.length ? state.preferred_jobs.join(", ") : null,
-      plan_status: "Trial",
-      pending_setup: true,
-      is_active: false
-    };
+// --------------------------------------------
+// SUPABASE SAVE (with clear success message)
+// --------------------------------------------
+async function saveWizardToBusinessProfile() {
+  const payload = {
+    business_name: state.business_name || null,
+    contact_name: state.contact_name || null,
+    email: state.contact_email || null,
+    phone: state.contact_mobile || null,
+    base_postcode: state.base_postcode || null,
+    services_summary:
+      state.preferred_jobs && state.preferred_jobs.length
+        ? state.preferred_jobs.join(", ")
+        : null,
+    plan_status: "Trial",
+    pending_setup: true,
+    is_active: false
+  };
+
+  console.log("Saving wizard payload:", payload, "userId:", userId);
+
+  if (!statusMessage) return;
+
+  // Show saving state
+  statusMessage.textContent = "Saving your business details…";
+  statusMessage.className = "wizard-status-message wizard-status-message--saving";
+
+  // Decide INSERT vs UPDATE based on userId
+  const isUpdate = !!userId;
+  const path = isUpdate
+    ? `/business_profiles?id=eq.${encodeURIComponent(userId)}`
+    : `/business_profiles`;
+  const method = isUpdate ? "PATCH" : "POST";
+
+  const { data, error } = await supabaseFetch(path, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (error) {
+    console.error("Save profile error:", error);
+    statusMessage.textContent = "There was a problem saving your business details. Please try again.";
+    statusMessage.className = "wizard-status-message wizard-status-message--error";
+    return;
+  }
+
+  console.log("Business profile saved:", data);
+
+  // ✅ This is the line you were expecting
+  statusMessage.textContent = "Business details sent successfully.";
+  statusMessage.className = "wizard-status-message wizard-status-message--success";
+
+  // OPTIONAL: for new enquiries, clear the form but KEEP the success message visible
+  if (!isUpdate) {
+    // clear inputs and chips without touching statusMessage
+    Object.values(textInputs).forEach(el => {
+      if (el) el.value = "";
+    });
+    state.preferred_jobs = [];
+    const chipRows = document.querySelectorAll(".chip-row");
+    chipRows.forEach(row => {
+      row.querySelectorAll(".chip").forEach(chip => {
+        chip.classList.remove("is-active");
+      });
+    });
+  }
+
+  // Scroll to top of wizard so they see the message
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 
     statusMessage.textContent = "Saving…";
     statusMessage.className = "wizard-status-message wizard-status-message--saving";
