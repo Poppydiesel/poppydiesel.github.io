@@ -1004,14 +1004,14 @@
   window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  // <--- YOUR URL in quotes
   window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";               // <--- YOUR KEY in quotes
   
- <script>
+<script>
   // ---- Supabase helper ----
   async function supabaseFetch(path, options = {}) {
     if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
       console.error("Supabase is not configured. Check SUPABASE_URL and SUPABASE_KEY.");
       return {
         data: null,
-        error: { status: 0, statusText: "Missing config", details: null }
+        error: { status: 0, statusText: "Supabase config missing", details: null }
       };
     }
 
@@ -1025,22 +1025,31 @@
     });
 
     let data = null;
-    try { data = await res.json(); } catch (e) {}
+    try {
+      data = await res.json();
+    } catch (e) {
+      // no JSON body
+    }
 
     if (!res.ok) {
       console.error("Supabase HTTP error", res.status, res.statusText, data);
-      return { data: null, error: { status: res.status, statusText: res.statusText, details: data } };
+      return {
+        data: null,
+        error: {
+          status: res.status,
+          statusText: res.statusText,
+          details: data
+        }
+      };
     }
 
     return { data, error: null };
   }
 
   // --------------------------------------------
-  // ----------- WIZARD + UI LOGIC --------------
+  // WIZARD + UI LOGIC
   // --------------------------------------------
-
   document.addEventListener("DOMContentLoaded", function () {
-
     const TOTAL_STEPS = 4;
     let currentStep = 1;
 
@@ -1100,35 +1109,62 @@
     };
 
     // --------------------------------------------
-    // CHIPS (fixed and working)
+    // CHIP VISUAL HELPERS (FORCE HIGHLIGHT)
+    // --------------------------------------------
+    function clearChipVisual(chip) {
+      chip.classList.remove("is-active");
+      chip.style.backgroundColor = "";
+      chip.style.borderColor = "";
+      chip.style.color = "";
+      chip.style.boxShadow = "";
+      chip.dataset.active = "0";
+    }
+
+    function setChipActiveVisual(chip) {
+      chip.classList.add("is-active");
+      chip.style.backgroundColor = "#e8f0fa";
+      chip.style.borderColor = "#1f4e79";
+      chip.style.color = "#1f4e79";
+      chip.style.boxShadow = "0 0 0 2px rgba(31, 78, 121, 0.2)";
+      chip.dataset.active = "1";
+    }
+
+    // --------------------------------------------
+    // CHIPS – INLINE STYLE VERSION
     // --------------------------------------------
     function setupChips() {
       const chipRows = document.querySelectorAll(".chip-row");
       console.log("setupChips: rows =", chipRows.length);
 
       chipRows.forEach((row) => {
-        const field = row.dataset.field;
-        const mode = row.dataset.select;
+        const field = row.getAttribute("data-field");
+        const mode = row.getAttribute("data-select"); // "single" or "multi"
         const chips = row.querySelectorAll(".chip");
+        console.log("chip-row", field, "chips =", chips.length);
 
         chips.forEach((chip) => {
+          clearChipVisual(chip); // reset initial
+
           chip.addEventListener("click", () => {
-            console.log("chip clicked:", field, chip.textContent.trim());
+            const label = chip.textContent.trim();
+            console.log("chip clicked:", field, "→", label);
 
-            // SINGLE SELECT
             if (mode === "single") {
-              chips.forEach((c) => c.classList.remove("is-active"));
-              chip.classList.add("is-active");
-              state[field] = chip.textContent.trim();
-              return;
+              chips.forEach(clearChipVisual);
+              setChipActiveVisual(chip);
+              state[field] = label;
+            } else {
+              const isActive = chip.dataset.active === "1";
+              if (isActive) {
+                clearChipVisual(chip);
+              } else {
+                setChipActiveVisual(chip);
+              }
+              const selected = Array.from(row.querySelectorAll(".chip"))
+                .filter((c) => c.dataset.active === "1")
+                .map((c) => c.textContent.trim());
+              state[field] = selected;
             }
-
-            // MULTI SELECT
-            chip.classList.toggle("is-active");
-            const selected = [...row.querySelectorAll(".chip.is-active")].map((c) =>
-              c.textContent.trim()
-            );
-            state[field] = selected;
           });
         });
       });
@@ -1167,24 +1203,25 @@
       currentStep = step;
 
       panels.forEach((p) =>
-        p.classList.toggle("is-active", Number(p.dataset.step) === currentStep)
+        p.classList.toggle("is-active", Number(p.getAttribute("data-step")) === currentStep)
       );
 
       stepDots.forEach((dot) => {
-        const s = Number(dot.dataset.stepDot);
+        const s = Number(dot.getAttribute("data-step-dot"));
         dot.classList.toggle("is-active", s === currentStep);
         dot.classList.toggle("is-complete", s < currentStep);
       });
 
       const progress = (currentStep - 1) / (TOTAL_STEPS - 1);
-      if (progressBar) progressBar.style.width = progress * 100 + "%";
+      if (progressBar) progressBar.style.width = (progress * 100).toFixed(0) + "%";
       if (progressPercent) progressPercent.textContent = `Step ${currentStep} of ${TOTAL_STEPS}`;
 
       if (btnBack) btnBack.disabled = currentStep === 1;
-      if (btnNext) btnNext.textContent = currentStep === TOTAL_STEPS ? "Finish" : "Next";
+      if (btnNext) btnNext.textContent = currentStep === TOTAL_STEPS ? "Finish" : "Next step →";
 
-      if (footerText)
-        footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${TOTAL_STEPS}</strong>`;
+      if (footerText) {
+        footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${TOTAL_STEPS}</strong>. You can tweak anything later.`;
+      }
 
       if (summaryBox) summaryBox.hidden = currentStep !== TOTAL_STEPS;
 
@@ -1209,45 +1246,47 @@
       statusMessage.textContent = "";
       statusMessage.className = "wizard-status-message";
 
-      if (step === 1 && (!state.business_name || !state.contact_name)) {
-        statusMessage.textContent = "Please add your contact and business name.";
-        statusMessage.classList.add("wizard-status-message--error");
-        return false;
+      if (step === 1) {
+        if (!state.business_name || !state.contact_name) {
+          statusMessage.textContent = "Please add your contact and business name.";
+          statusMessage.classList.add("wizard-status-message--error");
+          return false;
+        }
       }
 
-      if (step === 2 && !state.base_postcode) {
-        statusMessage.textContent = "Please enter a base postcode.";
-        statusMessage.classList.add("wizard-status-message--error");
-        return false;
+      if (step === 2) {
+        if (!state.base_postcode) {
+          statusMessage.textContent = "Please enter a base postcode.";
+          statusMessage.classList.add("wizard-status-message--error");
+          return false;
+        }
       }
 
-      if (step === 3 && !state.tone_of_voice) {
-        statusMessage.textContent = "Choose a tone of voice.";
-        statusMessage.classList.add("wizard-status-message--error");
-        return false;
+      if (step === 3) {
+        if (!state.tone_of_voice) {
+          statusMessage.textContent = "Choose a tone of voice.";
+          statusMessage.classList.add("wizard-status-message--error");
+          return false;
+        }
       }
 
       return true;
     }
 
     // --------------------------------------------
-    // SAVE TO SUPABASE (corrected)
+    // SUPABASE SAVE (MATCHES YOUR TABLE)
     // --------------------------------------------
     async function saveWizardToBusinessProfile() {
-
-      // MATCHES YOUR TABLE EXACTLY
       const payload = {
         business_name: state.business_name || null,
         contact_name: state.contact_name || null,
         email: state.contact_email || null,
         phone: state.contact_mobile || null,
         base_postcode: state.base_postcode || null,
-
         services_summary:
           state.preferred_jobs && state.preferred_jobs.length
             ? state.preferred_jobs.join(", ")
             : null,
-
         plan_status: "Trial",
         pending_setup: true,
         is_active: false
@@ -1255,12 +1294,12 @@
 
       console.log("Saving wizard payload:", payload, "userId:", userId);
 
-      // INSERT if no user_id
+      if (!statusMessage) return;
+
+      // INSERT (no user_id)
       if (!userId) {
-        if (statusMessage) {
-          statusMessage.textContent = "Saving…";
-          statusMessage.className = "wizard-status-message wizard-status-message--saving";
-        }
+        statusMessage.textContent = "Saving…";
+        statusMessage.className = "wizard-status-message wizard-status-message--saving";
 
         const { data, error } = await supabaseFetch(`/business_profiles`, {
           method: "POST",
@@ -1273,11 +1312,12 @@
 
         if (error) {
           console.error("Insert profile error:", error);
-          statusMessage.textContent = "There was a problem sending your form.";
+          statusMessage.textContent = "There was a problem sending your form. Please try again.";
           statusMessage.className = "wizard-status-message wizard-status-message--error";
           return;
         }
 
+        console.log("New business profile created:", data);
         statusMessage.textContent = "Form sent successfully.";
         statusMessage.className = "wizard-status-message wizard-status-message--success";
 
@@ -1285,7 +1325,10 @@
         return;
       }
 
-      // UPDATE if user_id exists
+      // UPDATE (with user_id)
+      statusMessage.textContent = "Saving…";
+      statusMessage.className = "wizard-status-message wizard-status-message--saving";
+
       const { data, error } = await supabaseFetch(
         `/business_profiles?id=eq.${encodeURIComponent(userId)}`,
         {
@@ -1300,12 +1343,13 @@
 
       if (error) {
         console.error("Save profile error:", error);
-        statusMessage.textContent = "There was a problem saving.";
+        statusMessage.textContent = "There was a problem saving your form. Please try again.";
         statusMessage.className = "wizard-status-message wizard-status-message--error";
         return;
       }
 
-      statusMessage.textContent = "Saved.";
+      console.log("Business profile updated:", data);
+      statusMessage.textContent = "Form sent successfully.";
       statusMessage.className = "wizard-status-message wizard-status-message--success";
     }
 
@@ -1319,41 +1363,62 @@
       showStep(1);
     }
 
-    function loadDraftFromBrowser() {
-      if (!userId) return;
-      const raw = localStorage.getItem("tradebotpro_setup_wizard");
-      if (!raw) return;
-      Object.assign(state, JSON.parse(raw));
-      populateUIFromState();
-    }
-
     function populateUIFromState() {
-      // text
+      // text fields
       Object.entries(textInputs).forEach(([key, el]) => {
-        if (el) el.value = state[key] ?? "";
+        if (!el) return;
+        el.value = state[key] ?? "";
       });
 
-      // chips
+      // chips — rebuild visual from state
       const chipRows = document.querySelectorAll(".chip-row");
       chipRows.forEach((row) => {
-        const field = row.dataset.field;
-        const mode = row.dataset.select;
+        const field = row.getAttribute("data-field");
+        const mode = row.getAttribute("data-select");
         const chips = row.querySelectorAll(".chip");
         const value = state[field];
 
         chips.forEach((chip) => {
-          chip.classList.remove("is-active");
+          clearChipVisual(chip);
           const label = chip.textContent.trim();
 
-          if (mode === "single" && value === label) {
-            chip.classList.add("is-active");
-          }
-
-          if (mode === "multi" && Array.isArray(value) && value.includes(label)) {
-            chip.classList.add("is-active");
+          if (mode === "single") {
+            if (value && value === label) {
+              setChipActiveVisual(chip);
+            }
+          } else if (mode === "multi") {
+            if (Array.isArray(value) && value.includes(label)) {
+              setChipActiveVisual(chip);
+            }
           }
         });
       });
+    }
+
+    function loadDraftFromBrowser() {
+      if (!userId) return;
+      try {
+        const raw = localStorage.getItem("tradebotpro_setup_wizard");
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        Object.assign(state, saved);
+        populateUIFromState();
+      } catch (e) {
+        console.warn("No valid draft found", e);
+      }
+    }
+
+    function saveDraftToBrowser() {
+      if (!userId) return;
+      try {
+        localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
+        if (statusMessage) {
+          statusMessage.textContent = "Draft saved in this browser.";
+          statusMessage.classList.add("wizard-status-message--success");
+        }
+      } catch (e) {
+        console.error("Save draft error", e);
+      }
     }
 
     // --------------------------------------------
@@ -1376,12 +1441,17 @@
           showStep(currentStep + 1);
           scrollTopSmooth();
         } else {
+          saveDraftToBrowser();
           saveWizardToBusinessProfile();
         }
       });
     }
 
-    if (btnSaveDraft) btnSaveDraft.addEventListener("click", loadDraftFromBrowser);
+    if (btnSaveDraft) {
+      btnSaveDraft.addEventListener("click", () => {
+        saveDraftToBrowser();
+      });
+    }
 
     // --------------------------------------------
     // INIT
@@ -1392,6 +1462,7 @@
     loadDraftFromBrowser();
   });
 </script>
+
 
   
 </body>
