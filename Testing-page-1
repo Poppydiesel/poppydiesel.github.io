@@ -9,6 +9,7 @@
     content="TradeBotPro setup wizard for new trade accounts."
   />
 
+
   <style>
     :root {
       --primary-blue: #1f4e79;
