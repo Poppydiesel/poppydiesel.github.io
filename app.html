@@ -1078,6 +1078,7 @@
   window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  // <--- YOUR URL in quotes
   window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";               // <--- YOUR KEY in quotes
   
+  <script>
   // ---- Supabase helper ----
   async function supabaseFetch(path, options = {}) {
     if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
@@ -1126,6 +1127,7 @@
     const TOTAL_STEPS = 4;
     let currentStep = 1;
 
+    // 👇 get user_id from URL (so dashboard → wizard works)
     const params = new URLSearchParams(window.location.search);
     const userId = params.get("user_id");
 
@@ -1182,38 +1184,69 @@
     };
 
     // --------------------------------------------
-    // CHIP HANDLING – EVENT DELEGATION
+    // CHIPS – USING CLASS TOGGLE
     // --------------------------------------------
-    function setupChipDelegation() {
-      document.addEventListener("click", function (event) {
-        const chip = event.target.closest(".chip");
-        if (!chip) return; // clicked something else
-
-        const row = chip.closest(".chip-row");
-        if (!row) return;
-
+    function setupChips() {
+      const chipRows = document.querySelectorAll(".chip-row");
+      chipRows.forEach((row) => {
         const field = row.getAttribute("data-field");
-        const mode = row.getAttribute("data-select") || "single";
+        const mode = row.getAttribute("data-select"); // "single" or "multi"
         const chips = row.querySelectorAll(".chip");
-        const label = chip.textContent.trim();
 
-        // Stop any form submit behaviour if chips are buttons
-        event.preventDefault();
-        event.stopPropagation();
+        chips.forEach((chip) => {
+          chip.classList.remove("is-active"); // reset initial
 
-        console.log("chip clicked:", { field, mode, label });
+          chip.addEventListener("click", () => {
+            const label = chip.textContent.trim();
 
-        if (mode === "single") {
-          chips.forEach((c) => c.classList.remove("is-active"));
-          chip.classList.add("is-active");
-          state[field] = label;
-        } else {
-          chip.classList.toggle("is-active");
-          const selected = Array.from(chips)
-            .filter((c) => c.classList.contains("is-active"))
-            .map((c) => c.textContent.trim());
-          state[field] = selected;
-        }
+            if (mode === "single") {
+              chips.forEach((c) => c.classList.remove("is-active"));
+              chip.classList.add("is-active");
+              state[field] = label;
+            } else {
+              chip.classList.toggle("is-active");
+              const selected = Array.from(chips)
+                .filter((c) => c.classList.contains("is-active"))
+                .map((c) => c.textContent.trim());
+              state[field] = selected;
+            }
+          });
+        });
+      });
+    }
+
+    // --------------------------------------------
+    // APPLY STATE → UI (for prefill)
+    // --------------------------------------------
+    function populateUIFromState() {
+      // Text inputs
+      Object.entries(textInputs).forEach(([key, el]) => {
+        if (!el) return;
+        el.value = state[key] ?? "";
+      });
+
+      // Chips: rebuild from state
+      const chipRows = document.querySelectorAll(".chip-row");
+      chipRows.forEach((row) => {
+        const field = row.getAttribute("data-field");
+        const mode = row.getAttribute("data-select");
+        const chips = row.querySelectorAll(".chip");
+        const value = state[field];
+
+        chips.forEach((chip) => {
+          chip.classList.remove("is-active");
+          const label = chip.textContent.trim();
+
+          if (mode === "single") {
+            if (value && value === label) {
+              chip.classList.add("is-active");
+            }
+          } else if (mode === "multi") {
+            if (Array.isArray(value) && value.includes(label)) {
+              chip.classList.add("is-active");
+            }
+          }
+        });
       });
     }
 
@@ -1320,158 +1353,107 @@
       return true;
     }
 
-// --------------------------------------------
-// SUPABASE SAVE – tradebotpro_signups + business_profiles
-// --------------------------------------------
-async function saveWizardToBusinessProfile() {
-  if (!statusMessage) return;
+    // --------------------------------------------
+    // LOAD FROM business_profiles WHEN user_id EXISTS
+    // --------------------------------------------
+    async function loadFromBusinessProfile() {
+      if (!userId) {
+        console.log("No user_id in URL – starting with blank wizard.");
+        return;
+      }
+      if (typeof supabaseFetch !== "function") {
+        console.warn("supabaseFetch is not defined, cannot load existing profile.");
+        return;
+      }
 
-  // Base fields reused for both tables
-  const servicesSummary =
-    state.preferred_jobs && state.preferred_jobs.length
-      ? state.preferred_jobs.join(", ")
-      : null;
+      const { data, error } = await supabaseFetch(
+        `/business_profiles?id=eq.${encodeURIComponent(userId)}&select=*`,
+        { method: "GET" }
+      );
 
-  const commonFields = {
-    business_name: state.business_name || null,
-    contact_name: state.contact_name || null,
-    email: state.contact_email || null,
-    phone: state.contact_mobile || null,
-    base_postcode: state.base_postcode || null,
-    services_summary: servicesSummary,
-    plan_status: "Trial",
-    pending_setup: true,
-    is_active: false
-  };
+      if (error) {
+        console.error("Error loading business profile:", error);
+        return;
+      }
+      if (!data || !data.length) {
+        console.log("No business_profile found for user_id", userId);
+        return;
+      }
 
-  statusMessage.textContent = "Saving…";
-  statusMessage.className = "wizard-status-message wizard-status-message--saving";
+      const row = data[0];
+      console.log("Loaded business profile for wizard:", row);
 
-  try {
-    let signupId = null;
+      // Map DB → state
+      state.contact_name = row.contact_name || row.owner_name || "";
+      state.business_name = row.business_name || "";
+      state.contact_email = row.email || "";
+      state.contact_mobile = row.phone || "";
+      state.base_postcode = row.base_postcode || "";
 
-    // ------------------------------------------------
-    // CASE 1: NEW SIGNUP (no user_id in URL)
-    // ------------------------------------------------
-    if (!userId) {
-      const signupPayload = {
-        ...commonFields,
-        // If you want to tag the main trade into signups, do it here:
-        trade_type: state.main_trade || null
+      // services_summary → preferred_jobs chips
+      if (row.services_summary) {
+        state.preferred_jobs = row.services_summary
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+
+      // (You’re not yet storing tone_of_voice, bands, etc. in DB – those will stay as-is.)
+
+      populateUIFromState();
+    }
+
+    // --------------------------------------------
+    // SUPABASE SAVE
+    // --------------------------------------------
+    async function saveWizardToBusinessProfile() {
+      const payload = {
+        business_name: state.business_name || null,
+        contact_name: state.contact_name || null,
+        email: state.contact_email || null,
+        phone: state.contact_mobile || null,
+        base_postcode: state.base_postcode || null,
+        services_summary:
+          state.preferred_jobs && state.preferred_jobs.length
+            ? state.preferred_jobs.join(", ")
+            : null,
+        plan_status: "Trial",
+        pending_setup: true,
+        is_active: false
       };
 
-      // 1) Insert into tradebotpro_signups first
-      const { data: signupData, error: signupError } = await supabaseFetch(
-        `/tradebotpro_signups`,
+      console.log("Saving wizard payload:", payload, "userId:", userId);
+
+      if (!statusMessage) return;
+
+      statusMessage.textContent = "Saving…";
+      statusMessage.className = "wizard-status-message wizard-status-message--saving";
+
+      const { data, error } = await supabaseFetch(
+        userId
+          ? `/business_profiles?id=eq.${encodeURIComponent(userId)}`
+          : `/business_profiles`,
         {
-          method: "POST",
+          method: userId ? "PATCH" : "POST",
           headers: {
             "Content-Type": "application/json",
             Prefer: "return=representation"
           },
-          body: JSON.stringify(signupPayload)
+          body: JSON.stringify(payload)
         }
       );
 
-      if (signupError || !signupData || !signupData.length) {
-        console.error("Insert tradebotpro_signups error:", signupError || signupData);
-        statusMessage.textContent =
-          "There was a problem saving your signup. Please try again.";
+      if (error) {
+        console.error("Save profile error:", error);
+        statusMessage.textContent = "There was a problem saving your form. Please try again.";
         statusMessage.className = "wizard-status-message wizard-status-message--error";
         return;
       }
 
-      signupId = signupData[0].id;
-      console.log("New signup created:", signupData[0]);
-
-      // 2) Insert into business_profiles, linked to that signup_id
-      const businessPayload = {
-        ...commonFields,
-        signup_id: signupId
-      };
-
-      const { data: bpData, error: bpError } = await supabaseFetch(
-        `/business_profiles`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Prefer: "return=representation"
-          },
-          body: JSON.stringify(businessPayload)
-        }
-      );
-
-      if (bpError || !bpData || !bpData.length) {
-        console.error("Insert business_profiles error:", bpError || bpData);
-        statusMessage.textContent =
-          "Signup saved but linking business profile failed. We’ll fix this manually.";
-        statusMessage.className = "wizard-status-message wizard-status-message--error";
-        return;
-      }
-
-      console.log("New business profile created:", bpData[0]);
-
-      statusMessage.textContent = "Business details sent successfully.";
+      console.log("Business profile saved:", data);
+      statusMessage.textContent = "Form sent successfully.";
       statusMessage.className = "wizard-status-message wizard-status-message--success";
-
-      // Optional: clear the form for the next enquiry
-      Object.keys(state).forEach((key) => (state[key] = Array.isArray(state[key]) ? [] : ""));
-      Object.values(textInputs).forEach((el) => {
-        if (el) el.value = "";
-      });
-      const chipRows = document.querySelectorAll(".chip-row");
-      chipRows.forEach((row) => {
-        row.querySelectorAll(".chip").forEach((chip) => {
-          chip.classList.remove("is-active");
-        });
-      });
-
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
     }
-
-    // ------------------------------------------------
-    // CASE 2: EXISTING CLIENT / ONBOARDING (user_id present)
-    // Only update business_profiles row with id = user_id
-    // ------------------------------------------------
-    const businessUpdatePayload = {
-      ...commonFields
-      // Do NOT touch signup_id here – it should already be set
-    };
-
-    const { data: updateData, error: updateError } = await supabaseFetch(
-      `/business_profiles?id=eq.${encodeURIComponent(userId)}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Prefer: "return=representation"
-        },
-        body: JSON.stringify(businessUpdatePayload)
-      }
-    );
-
-    if (updateError || !updateData || !updateData.length) {
-      console.error("Update business_profiles error:", updateError || updateData);
-      statusMessage.textContent =
-        "There was a problem updating your business details. Please try again.";
-      statusMessage.className = "wizard-status-message wizard-status-message--error";
-      return;
-    }
-
-    console.log("Business profile updated:", updateData[0]);
-    statusMessage.textContent = "Business details updated successfully.";
-    statusMessage.className = "wizard-status-message wizard-status-message--success";
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  } catch (err) {
-    console.error("Unexpected save error:", err);
-    statusMessage.textContent =
-      "Unexpected error while saving your details. Please try again.";
-    statusMessage.className = "wizard-status-message wizard-status-message--error";
-  }
-}
-
 
     // --------------------------------------------
     // BUTTON EVENTS
@@ -1493,6 +1475,7 @@ async function saveWizardToBusinessProfile() {
           showStep(currentStep + 1);
           scrollTopSmooth();
         } else {
+          // Final step
           saveWizardToBusinessProfile();
         }
       });
@@ -1500,10 +1483,15 @@ async function saveWizardToBusinessProfile() {
 
     if (btnSaveDraft) {
       btnSaveDraft.addEventListener("click", () => {
-        localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
-        if (statusMessage) {
-          statusMessage.textContent = "Draft saved in this browser.";
-          statusMessage.classList.add("wizard-status-message--success");
+        // simple local draft – optional, just keeps your existing concept
+        try {
+          localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
+          if (statusMessage) {
+            statusMessage.textContent = "Draft saved in this browser.";
+            statusMessage.classList.add("wizard-status-message--success");
+          }
+        } catch (e) {
+          console.error("Save draft error", e);
         }
       });
     }
@@ -1511,12 +1499,12 @@ async function saveWizardToBusinessProfile() {
     // --------------------------------------------
     // INIT
     // --------------------------------------------
-    setupChipDelegation();
+    setupChips();
     setupTextInputs();
     showStep(1);
+    loadFromBusinessProfile(); // ⬅️ this is the bit that pre-fills when opened from dashboard
   });
 </script>
-
 
   
 </body>
