@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro — Client Dashboard</title>
+  <title>TradeBotPro – Client Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta
     name="description"
-    content="TradeBotPro internal client onboarding dashboard."
+    content="TradeBotPro dashboard for managing trade accounts and onboarding."
   />
 
   <style>
@@ -20,8 +20,8 @@
       --border-subtle: rgba(15, 23, 42, 0.12);
       --success-green: #0f7b46;
       --error-red: #b3261e;
-      --chip-bg: #eef2ff;
-      --chip-border: rgba(37, 99, 235, 0.3);
+      --chip-bg-muted: #f3f4f6;
+      --chip-border-muted: rgba(148, 163, 184, 0.6);
     }
 
     * {
@@ -45,7 +45,7 @@
       text-decoration: none;
     }
 
-    /* PAGE LAYOUT */
+    /* PAGE LAYOUT (matching app.html) */
 
     .page {
       min-height: 100vh;
@@ -131,22 +131,23 @@
 
     main {
       flex: 1;
-      padding: 2rem 1.25rem 3rem;
       display: flex;
+      align-items: center;
       justify-content: center;
+      padding: 2.5rem 1.25rem 3rem;
     }
 
     .dashboard-shell {
       width: 100%;
       max-width: 1100px;
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.9fr);
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr);
       gap: 1.75rem;
       align-items: flex-start;
     }
 
-    .panel-left {
-      padding: 1.4rem 1.5rem;
+    .dashboard-left {
+      padding: 1.5rem 1.6rem;
       border-radius: 1.2rem;
       background: rgba(255, 255, 255, 0.92);
       box-shadow:
@@ -154,145 +155,180 @@
         0 0 0 1px rgba(15, 23, 42, 0.03);
     }
 
-    .panel-right {
-      padding: 1.4rem 1.5rem;
+    .dashboard-right {
+      padding: 1.5rem 1.6rem;
       border-radius: 1.2rem;
       background: rgba(248, 250, 252, 0.96);
       border: 1px solid rgba(148, 163, 184, 0.35);
       backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
 
     /* LEFT PANEL CONTENT */
 
-    .panel-title-kicker {
+    .dash-title-kicker {
       font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.12em;
       color: var(--accent-blue);
       margin-bottom: 0.35rem;
     }
 
-    .panel-title {
-      margin: 0 0 0.3rem;
-      font-size: 1.4rem;
+    .dash-title {
+      margin: 0 0 0.4rem;
+      font-size: 1.6rem;
       color: var(--primary-blue);
     }
 
-    .panel-subtitle {
-      margin: 0 0 0.8rem;
-      font-size: 0.9rem;
+    .dash-subtitle {
+      margin: 0 0 0.85rem;
+      font-size: 0.92rem;
       color: var(--muted-text);
     }
 
-    .pipeline-summary {
+    .dash-summary-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.75rem;
-      margin-bottom: 1.1rem;
+      margin: 1rem 0 1.2rem;
+    }
+
+    .summary-card {
+      padding: 0.7rem 0.8rem;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: #f8fafc;
+      font-size: 0.8rem;
+    }
+
+    .summary-label {
+      color: var(--muted-text);
+      margin-bottom: 0.2rem;
+    }
+
+    .summary-value {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--primary-blue);
     }
 
     .summary-pill {
-      padding: 0.65rem 0.7rem;
-      border-radius: 0.9rem;
-      background: #f1f5f9;
-      border: 1px dashed rgba(148, 163, 184, 0.6);
-      font-size: 0.8rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.1rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      background: #e5f9ee;
+      color: #166534;
+      margin-top: 0.25rem;
     }
 
-    .summary-pill-label {
+    .dash-note {
+      margin-top: 0.9rem;
+      font-size: 0.8rem;
+      color: var(--muted-text);
+      border-radius: 0.7rem;
+      padding: 0.7rem 0.8rem;
+      background: #f1f5f9;
+    }
+
+    .dash-note strong {
+      color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    .dash-legend {
+      margin-top: 0.9rem;
+      font-size: 0.8rem;
       color: var(--muted-text);
     }
 
-    .summary-pill-value {
-      font-weight: 600;
-      color: var(--primary-blue);
-      font-size: 0.95rem;
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.75rem;
+      margin-top: 0.3rem;
     }
 
-    .filter-section {
-      margin-top: 0.8rem;
-      padding-top: 0.9rem;
-      border-top: 1px dashed rgba(148, 163, 184, 0.6);
+    .legend-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.76rem;
     }
 
-    .filter-label {
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+    }
+
+    .legend-dot.needs-setup {
+      background: #fee2e2;
+      border: 1px solid #b91c1c;
+    }
+
+    .legend-dot.trial {
+      background: #e0f2fe;
+      border: 1px solid #0369a1;
+    }
+
+    .legend-dot.live {
+      background: #dcfce7;
+      border: 1px solid #15803d;
+    }
+
+    .legend-dot.paused {
+      background: #fef3c7;
+      border: 1px solid #d97706;
+    }
+
+    /* RIGHT PANEL: FILTERS + LIST */
+
+    .dashboard-right-header {
+      margin-bottom: 1rem;
+    }
+
+    .dashboard-step-label {
       font-size: 0.78rem;
       text-transform: uppercase;
       letter-spacing: 0.16em;
       color: var(--accent-blue);
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.25rem;
     }
 
-    .filter-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 0.7rem;
-    }
-
-    .filter-input {
-      flex: 1;
-      min-width: 180px;
-      padding: 0.55rem 0.7rem;
-      border-radius: 999px;
-      border: 1px solid var(--border-subtle);
-      font-size: 0.85rem;
-      background: #ffffff;
-    }
-
-    .filter-input:focus {
-      outline: 0;
-      border-color: rgba(37, 99, 235, 0.65);
-      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35);
-    }
-
-    .filter-select {
-      padding: 0.45rem 0.7rem;
-      border-radius: 999px;
-      border: 1px solid var(--border-subtle);
-      font-size: 0.8rem;
-      background: #ffffff;
-    }
-
-    .filter-helper {
-      font-size: 0.75rem;
-      color: var(--muted-text);
-      margin-top: 0.3rem;
-    }
-
-    .panel-note {
-      margin-top: 0.8rem;
-      font-size: 0.78rem;
-      color: var(--muted-text);
-      background: #f1f5f9;
-      border-radius: 0.7rem;
-      padding: 0.7rem 0.8rem;
-    }
-
-    .panel-note strong {
+    .dashboard-step-title {
+      margin: 0 0 0.25rem;
+      font-size: 1.2rem;
       color: var(--primary-blue);
     }
 
-    /* CHIPS */
+    .dashboard-step-subtitle {
+      margin: 0;
+      font-size: 0.88rem;
+      color: var(--muted-text);
+    }
 
     .chip-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.45rem;
+      gap: 8px;
+      margin-top: 0.45rem;
+      margin-bottom: 0.65rem;
     }
 
     .chip {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0.32rem 0.8rem;
+      padding: 0.4rem 0.9rem;
       border-radius: 999px;
       border: 1px solid rgba(0, 0, 0, 0.12);
       background: #ffffff;
-      font-size: 0.78rem;
+      font-size: 0.82rem;
       line-height: 1.2;
       cursor: pointer;
       user-select: none;
@@ -304,6 +340,11 @@
         box-shadow 0.15s ease;
     }
 
+    .chip:hover {
+      border-color: #1f4e79;
+      background: rgba(31, 78, 121, 0.06);
+    }
+
     .chip.is-active {
       background: #e8f0fa !important;
       border-color: #1f4e79 !important;
@@ -312,238 +353,297 @@
       font-weight: 600;
     }
 
-    .chip:hover {
-      border-color: #1f4e79;
-      background: rgba(31, 78, 121, 0.06);
+    .chip-row.mini {
+      margin-top: 0.2rem;
+      margin-bottom: 0.25rem;
+      gap: 6px;
     }
 
-    /* RIGHT PANEL – CLIENT LIST */
+    .chip.mini {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.72rem;
+    }
 
-    .clients-header-row {
+    .filter-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-input-wrap {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      font-size: 0.85rem;
+      background: #ffffff;
+    }
+
+    .search-input:focus {
+      outline: 0;
+      border-color: rgba(37, 99, 235, 0.7);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+    }
+
+    .small-label {
+      font-size: 0.75rem;
+      color: var(--muted-text);
+    }
+
+    /* CLIENT LIST */
+
+    .clients-scroll {
+      margin-top: 0.5rem;
+      border-top: 1px dashed rgba(148, 163, 184, 0.55);
+      padding-top: 0.9rem;
+      overflow-y: auto;
+      max-height: 520px;
+    }
+
+    .client-card {
+      padding: 0.75rem 0.85rem;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      background: #ffffff;
+      margin-bottom: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      transition:
+        box-shadow 0.15s ease,
+        transform 0.12s ease;
+    }
+
+    .client-card:hover {
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+      transform: translateY(-1px);
+    }
+
+    .client-header-row {
       display: flex;
       justify-content: space-between;
-      gap: 0.75rem;
-      align-items: baseline;
-      margin-bottom: 0.9rem;
+      gap: 0.7rem;
+      align-items: flex-start;
     }
 
-    .clients-title {
-      font-size: 1.05rem;
+    .client-name {
+      font-size: 0.98rem;
       font-weight: 600;
       color: var(--primary-blue);
-      margin: 0;
     }
 
-    .clients-subtitle {
-      margin: 0;
+    .client-sub {
       font-size: 0.8rem;
       color: var(--muted-text);
     }
 
-    .clients-counter {
-      font-size: 0.78rem;
-      color: var(--muted-text);
-    }
-
-    .clients-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-    }
-
-    .client-card {
-      border-radius: 1rem;
-      background: #ffffff;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      padding: 0.9rem 0.95rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-
-    .client-card-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 0.75rem;
-      align-items: flex-start;
-    }
-
-    .client-main {
-      min-width: 0;
-    }
-
-    .client-name-row {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      margin-bottom: 0.15rem;
-    }
-
-    .client-name {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--primary-blue);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .client-plan-pill {
-      font-size: 0.7rem;
-      border-radius: 999px;
-      padding: 0.1rem 0.55rem;
-      background: #e0f2fe;
-      color: #075985;
-      border: 1px solid rgba(37, 99, 235, 0.3);
-      white-space: nowrap;
-    }
-
-    .client-contact-line {
-      font-size: 0.78rem;
-      color: var(--muted-text);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.3rem;
-    }
-
-    .client-contact-line span {
-      white-space: nowrap;
-    }
-
-    .client-contact-line .dot {
-      opacity: 0.5;
-    }
-
     .client-meta-row {
-      font-size: 0.75rem;
-      color: var(--muted-text);
       display: flex;
       flex-wrap: wrap;
-      gap: 0.35rem;
-      margin-top: 0.2rem;
-    }
-
-    .meta-pill {
-      padding: 0.12rem 0.5rem;
-      border-radius: 999px;
-      background: #f3f4f6;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      white-space: nowrap;
-    }
-
-    .client-origin-pill {
-      font-size: 0.7rem;
-      padding: 0.16rem 0.55rem;
-      border-radius: 999px;
-      border: 1px dashed rgba(148, 163, 184, 0.8);
+      gap: 0.3rem 0.8rem;
+      font-size: 0.78rem;
       color: var(--muted-text);
-      background: #f9fafb;
-      white-space: nowrap;
     }
 
-    .client-tag-row {
-      display: flex;
-      flex-wrap: wrap;
+    .client-meta-item {
+      display: inline-flex;
+      align-items: center;
       gap: 0.3rem;
-      margin-top: 0.3rem;
     }
 
-    .client-tag {
-      font-size: 0.7rem;
-      padding: 0.14rem 0.5rem;
+    .meta-dot {
+      width: 6px;
+      height: 6px;
       border-radius: 999px;
+      background: rgba(148, 163, 184, 0.9);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border-radius: 999px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.74rem;
+      font-weight: 500;
+    }
+
+    .status-pill.needs-setup {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .status-pill.trial {
       background: #eff6ff;
       color: #1d4ed8;
+      border: 1px solid #bfdbfe;
     }
 
-    /* CONTROLS AREA */
+    .status-pill.live {
+      background: #ecfdf5;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    .status-pill.paused {
+      background: #fffbeb;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .status-pill.unknown {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.1rem;
+    }
+
+    .small-tag {
+      border-radius: 999px;
+      padding: 0.12rem 0.5rem;
+      font-size: 0.72rem;
+      background: #f3f4f6;
+      color: #4b5563;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .origin-self {
+      background: #ecfdf5;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+
+    .origin-manual {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+
+    .origin-profile-only {
+      background: #fef9c3;
+      color: #92400e;
+      border-color: #facc15;
+    }
+
+    .client-controls-block {
+      margin-top: 0.25rem;
+      border-radius: 0.65rem;
+      padding: 0.45rem 0.55rem;
+      background: #f9fafb;
+      border: 1px dashed rgba(148, 163, 184, 0.6);
+    }
 
     .client-controls-row {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
-      gap: 0.75rem;
-      margin-top: 0.4rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 0.45rem;
     }
 
-    .control-block {
-      font-size: 0.78rem;
+    @media (max-width: 900px) {
+      .client-controls-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
 
-    .control-label {
+    .mini-select {
+      width: 100%;
+      padding: 0.3rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.9);
       font-size: 0.75rem;
-      color: var(--muted-text);
-      margin-bottom: 0.2rem;
-    }
-
-    .control-select {
-      width: 100%;
-      padding: 0.4rem 0.55rem;
-      border-radius: 0.55rem;
-      border: 1px solid var(--border-subtle);
-      font-size: 0.78rem;
       background: #ffffff;
+      color: #374151;
     }
 
-    .control-select:focus {
+    .mini-select:focus {
       outline: 0;
       border-color: rgba(37, 99, 235, 0.7);
       box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
     }
 
-    .areas-chip-row {
-      margin-top: 0.2rem;
-    }
-
-    .client-notes {
-      margin-top: 0.4rem;
-      font-size: 0.78rem;
-    }
-
-    .client-notes textarea {
-      width: 100%;
-      padding: 0.45rem 0.55rem;
-      border-radius: 0.55rem;
-      border: 1px solid var(--border-subtle);
-      font: inherit;
-      font-size: 0.78rem;
-      min-height: 55px;
-      resize: vertical;
-      background: #f9fafb;
-    }
-
-    .client-notes textarea:focus {
-      outline: 0;
-      border-color: rgba(37, 99, 235, 0.7);
-      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
-      background: #ffffff;
-    }
-
-    .client-footer-row {
-      margin-top: 0.45rem;
+    .notes-label-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.15rem;
     }
 
-    .client-buttons {
+    .notes-textarea {
+      width: 100%;
+      min-height: 52px;
+      resize: vertical;
+      padding: 0.35rem 0.5rem;
+      border-radius: 0.6rem;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      font-size: 0.76rem;
+      font-family: inherit;
+      background: #ffffff;
+    }
+
+    .notes-textarea:focus {
+      outline: 0;
+      border-color: rgba(37, 99, 235, 0.7);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+    }
+
+    .notes-hint {
+      font-size: 0.7rem;
+      color: #9ca3af;
+    }
+
+    .client-actions-row {
       display: flex;
-      gap: 0.45rem;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 0.35rem;
       flex-wrap: wrap;
     }
 
     .btn {
       border-radius: 999px;
       border: 1px solid transparent;
-      padding: 0.4rem 0.85rem;
-      font-size: 0.78rem;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.8rem;
       font-weight: 500;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 0.3rem;
       background: transparent;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-blue), #163857);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.4);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.03);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.5);
     }
 
     .btn-secondary {
@@ -556,34 +656,39 @@
       background: #e5e7eb;
     }
 
-    .btn-outline {
-      border-color: rgba(148, 163, 184, 0.8);
-      background: transparent;
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    .empty-state {
+      font-size: 0.85rem;
       color: var(--muted-text);
+      padding: 0.5rem 0;
     }
 
-    .btn-outline:hover {
-      border-color: #1f4e79;
-      color: #1f4e79;
-      background: #e5efff;
+    #dashboard-status-message {
+      margin-top: 0.5rem;
+      font-size: 0.78rem;
+      min-height: 1.2em;
     }
 
-    .client-save-status {
-      font-size: 0.72rem;
-      min-height: 1.1em;
-      color: var(--muted-text);
+    .status-error {
+      color: var(--error-red);
     }
 
-    .client-save-status--saving {
-      color: #92400e;
-    }
-
-    .client-save-status--success {
+    .status-success {
       color: var(--success-green);
     }
 
-    .client-save-status--error {
-      color: var(--error-red);
+    .save-status {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 4px;
+      min-height: 1em;
+      text-align: right;
     }
 
     /* RESPONSIVE */
@@ -597,8 +702,12 @@
         grid-template-columns: minmax(0, 1fr);
       }
 
-      .panel-left {
+      .dashboard-left {
         order: -1;
+      }
+
+      .clients-scroll {
+        max-height: unset;
       }
     }
 
@@ -608,17 +717,9 @@
         align-items: flex-start;
       }
 
-      .panel-left,
-      .panel-right {
+      .dashboard-left,
+      .dashboard-right {
         padding: 1.1rem 1.1rem;
-      }
-
-      .pipeline-summary {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .client-controls-row {
-        grid-template-columns: minmax(0, 1fr);
       }
     }
   </style>
@@ -636,7 +737,7 @@
         </div>
       </div>
       <div class="header-note">
-        Internal view: keep track of <strong>demos, trials and upsell opportunities</strong>.
+        Shows every client with a <strong>business profile</strong> – plus demo, trial &amp; upsell notes.
       </div>
     </div>
   </header>
@@ -645,89 +746,139 @@
   <main>
     <div class="dashboard-shell">
       <!-- LEFT PANEL -->
-      <aside class="panel-left">
-        <div class="panel-title-kicker">Overview</div>
-        <h1 class="panel-title">Pipeline & onboarding status</h1>
-        <p class="panel-subtitle">
-          Filter by onboarding stage or search by business, contact, email or postcode.
-          Use the controls on each card to keep your follow-ups organised.
+      <aside class="dashboard-left">
+        <div class="dash-title-kicker">Client dashboard</div>
+        <h1 class="dash-title">Your TradeBotPro clients</h1>
+        <p class="dash-subtitle">
+          A live view of everyone in the system – from first demo to free trial to fully live
+          subscription. This panel is for <strong>you, not your clients</strong>.
         </p>
 
-        <div class="pipeline-summary" id="pipeline-summary">
-          <div class="summary-pill">
-            <div class="summary-pill-label">New / needs setup</div>
-            <div class="summary-pill-value" id="summary-new">0</div>
+        <div class="dash-summary-grid">
+          <div class="summary-card">
+            <div class="summary-label">Total clients with profiles</div>
+            <div class="summary-value" id="summary-total">–</div>
+            <div class="summary-pill">
+              <span class="pill-dot"></span>
+              <span id="summary-new-label">New + in setup</span>
+            </div>
           </div>
-          <div class="summary-pill">
-            <div class="summary-pill-label">Demos / trials</div>
-            <div class="summary-pill-value" id="summary-demo">0</div>
-          </div>
-          <div class="summary-pill">
-            <div class="summary-pill-label">Live / active</div>
-            <div class="summary-pill-value" id="summary-live">0</div>
-          </div>
-        </div>
-
-        <div class="filter-section">
-          <div class="filter-label">Quick filters</div>
-          <div class="filter-row">
-            <input
-              id="search-input"
-              class="filter-input"
-              type="text"
-              placeholder="Search name, contact, email, postcode…"
-            />
-            <select id="status-filter" class="filter-select">
-              <option value="">All onboarding stages</option>
-              <option value="New lead">New lead</option>
-              <option value="Needs setup">Needs setup</option>
-              <option value="Demo booked">Demo booked</option>
-              <option value="Demo complete">Demo complete</option>
-              <option value="Free trial">Free trial</option>
-              <option value="Live – Starter">Live – Starter</option>
-              <option value="Live – Pro">Live – Pro</option>
-              <option value="Paused">Paused</option>
-              <option value="Not interested">Not interested</option>
-            </select>
-          </div>
-          <div class="filter-helper">
-            Tip: use the <strong>Onboarding status</strong>, <strong>Comfort level</strong> and
-            <strong>More areas</strong> controls on each card to keep your pipeline tidy.
+          <div class="summary-card">
+            <div class="summary-label">Trial &amp; live accounts</div>
+            <div class="summary-value" id="summary-live">–</div>
+            <div class="summary-pill" style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;">
+              <span class="pill-dot"></span>
+              <span id="summary-live-label">Trial, paid &amp; active</span>
+            </div>
           </div>
         </div>
 
-        <div class="panel-note">
-          <strong>How this works:</strong> each card saves straight into
-          <code>business_profiles</code>. You can always re-open the full setup wizard later using
-          the <em>Open in wizard</em> button for a deeper refresh.
+        <div class="dash-note">
+          <strong>How to use this screen:</strong> Filter by onboarding stage, search by business
+          or postcode and use the controls on each card to set <strong>Demo / Free trial</strong>,
+          what level they’re comfortable with and whether they want
+          <strong>more areas later</strong>.
+        </div>
+
+        <div class="dash-legend">
+          <div class="small-label">Onboarding legend (system view)</div>
+          <div class="legend-row">
+            <div class="legend-pill">
+              <span class="legend-dot needs-setup"></span>
+              <span>Needs setup / no plan</span>
+            </div>
+            <div class="legend-pill">
+              <span class="legend-dot trial"></span>
+              <span>Trial setup or live</span>
+            </div>
+            <div class="legend-pill">
+              <span class="legend-dot live"></span>
+              <span>Full plan live</span>
+            </div>
+            <div class="legend-pill">
+              <span class="legend-dot.paused"></span>
+              <span>Paused / inactive</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-note" style="margin-top:1.1rem;">
+          <strong>Source tags:</strong><br />
+          <span class="small-tag origin-self">Self-signup</span> – they filled the homepage form
+          first.<br />
+          <span class="small-tag origin-manual">Added manually</span> – you created them via the
+          wizard (signup + profile at the same time).<br />
+          <span class="small-tag origin-profile-only">Profile only</span> – older records where
+          no signup row exists.
         </div>
       </aside>
 
       <!-- RIGHT PANEL -->
-      <section class="panel-right">
-        <div class="clients-header-row">
-          <div>
-            <h2 class="clients-title">Clients</h2>
-            <p class="clients-subtitle" id="clients-subtitle">
-              Loading clients from Supabase…
-            </p>
-          </div>
-          <div class="clients-counter" id="clients-counter"></div>
+      <section class="dashboard-right" aria-live="polite">
+        <div class="dashboard-right-header">
+          <div class="dashboard-step-label">Overview</div>
+          <h2 class="dashboard-step-title">Pipeline &amp; onboarding status</h2>
+          <p class="dashboard-step-subtitle">
+            Filter by onboarding stage or search by business, contact, email or postcode.
+          </p>
         </div>
 
-        <div id="clients-grid" class="clients-grid"></div>
+        <div class="filter-bar">
+          <div>
+            <div class="small-label">Filter by stage</div>
+            <div class="chip-row" id="stage-filters">
+              <button type="button" class="chip is-active" data-stage-filter="all">
+                All clients
+              </button>
+              <button type="button" class="chip" data-stage-filter="needs_setup">
+                Needs setup
+              </button>
+              <button type="button" class="chip" data-stage-filter="trial">
+                Trial (setup or live)
+              </button>
+              <button type="button" class="chip" data-stage-filter="live">
+                Live &amp; paying
+              </button>
+              <button type="button" class="chip" data-stage-filter="paused">
+                Paused / inactive
+              </button>
+            </div>
+          </div>
+
+          <div class="search-row">
+            <div class="search-input-wrap">
+              <input
+                id="search-input"
+                class="search-input"
+                type="text"
+                placeholder="Search by business, contact, email or postcode…"
+                autocomplete="off"
+              />
+            </div>
+            <div class="small-label">
+              Showing <span id="summary-visible">0</span> of
+              <span id="summary-total-inline">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="clients-scroll" id="clients-list">
+          <!-- Cards injected here -->
+        </div>
+
+        <div id="dashboard-status-message"></div>
       </section>
     </div>
   </main>
 </div>
 
 <script>
-  // ---------------------------------------------------------
-  // Supabase config
-  // ---------------------------------------------------------
+  // Supabase config (same as app.html)
   window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  window.SUPABASE_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
+  // ---- Supabase helper ----
   async function supabaseFetch(path, options = {}) {
     if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
       console.error("Supabase is not configured. Check SUPABASE_URL and SUPABASE_KEY.");
@@ -750,7 +901,7 @@
     try {
       data = await res.json();
     } catch (e) {
-      // ignore
+      // no JSON body
     }
 
     if (!res.ok) {
@@ -768,564 +919,577 @@
     return { data, error: null };
   }
 
-  // ---------------------------------------------------------
-  // Dashboard logic
-  // ---------------------------------------------------------
+  // Helper to escape notes safely into HTML
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  // Per-card save indicators
+  function setCardSaving(cardEl) {
+    if (!cardEl) return;
+    const el = cardEl.querySelector(".save-status");
+    if (!el) return;
+    el.textContent = "Saving…";
+    el.style.color = "#6b7280"; // grey
+  }
+
+  function setCardSaved(cardEl) {
+    if (!cardEl) return;
+    const el = cardEl.querySelector(".save-status");
+    if (!el) return;
+    el.textContent = "Saved ✓";
+    el.style.color = "#0f7b46"; // green
+    setTimeout(() => {
+      if (el.textContent === "Saved ✓") {
+        el.textContent = "";
+      }
+    }, 1500);
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
-    const clientsGrid = document.getElementById("clients-grid");
-    const clientsSubtitle = document.getElementById("clients-subtitle");
-    const clientsCounter = document.getElementById("clients-counter");
-    const searchInput = document.getElementById("search-input");
-    const statusFilter = document.getElementById("status-filter");
+    const clientsListEl = document.getElementById("clients-list");
+    const stageFiltersEl = document.getElementById("stage-filters");
+    const searchInputEl = document.getElementById("search-input");
+    const statusMessageEl = document.getElementById("dashboard-status-message");
 
-    const summaryNew = document.getElementById("summary-new");
-    const summaryDemo = document.getElementById("summary-demo");
-    const summaryLive = document.getElementById("summary-live");
+    const summaryTotalEl = document.getElementById("summary-total");
+    const summaryLiveEl = document.getElementById("summary-live");
+    const summaryVisibleEl = document.getElementById("summary-visible");
+    const summaryTotalInlineEl = document.getElementById("summary-total-inline");
 
-    let profiles = [];
-    let signupsIndex = {};
-    let filteredProfiles = [];
+    let allClients = [];
+    let signupMap = {};
+    let activeStageFilter = "all";
+    let searchTerm = "";
 
-    function humanStatusFromRow(row) {
-      // account_status is your manual override / human label; fall back to plan flags
-      if (row.account_status && row.account_status.trim() !== "") {
-        return row.account_status.trim();
+    // ---- Stage helpers ----
+    function computeStageKey(client) {
+      const plan = (client.plan_status || "").toLowerCase();
+      const pending = client.pending_setup === true;
+      const active = client.is_active === true;
+
+      if (!plan && pending) return "needs_setup";
+      if (!plan && !pending && !active) return "needs_setup";
+
+      if (plan === "trial" && !active) return "trial_setup";
+      if (plan === "trial" && active) return "trial_live";
+
+      if (plan && plan !== "trial" && active) return "live";
+      if (plan && plan !== "trial" && !active) return "paused";
+
+      return "unknown";
+    }
+
+    function isTrialStage(stageKey) {
+      return stageKey === "trial_setup" || stageKey === "trial_live";
+    }
+
+    function stageLabel(stageKey, plan_status) {
+      const plan = (plan_status || "").toLowerCase();
+      switch (stageKey) {
+        case "needs_setup":
+          return "Needs setup";
+        case "trial_setup":
+          return "Trial – setup";
+        case "trial_live":
+          return "Trial – live";
+        case "live":
+          return plan ? `${plan_status} – live` : "Live";
+        case "paused":
+          return "Paused / inactive";
+        default:
+          return plan_status ? plan_status : "Status not set";
       }
-      if (row.plan_status === "Trial") return "Free trial";
-      if (row.is_active) return "Live – Starter";
-      if (row.pending_setup) return "Needs setup";
-      return "New lead";
     }
 
-    function recomputeSummaries() {
-      let newCount = 0;
-      let demoCount = 0;
-      let liveCount = 0;
-
-      profiles.forEach((row) => {
-        const hs = humanStatusFromRow(row);
-        if (["New lead", "Needs setup"].includes(hs)) newCount++;
-        if (["Demo booked", "Demo complete", "Free trial"].includes(hs)) demoCount++;
-        if (hs.startsWith("Live")) liveCount++;
-      });
-
-      summaryNew.textContent = newCount;
-      summaryDemo.textContent = demoCount;
-      summaryLive.textContent = liveCount;
+    function stagePillClass(stageKey) {
+      if (stageKey === "needs_setup") return "needs-setup";
+      if (stageKey === "trial_setup" || stageKey === "trial_live") return "trial";
+      if (stageKey === "live") return "live";
+      if (stageKey === "paused") return "paused";
+      return "unknown";
     }
 
-    function applyFilters() {
-      const q = (searchInput.value || "").toLowerCase().trim();
-      const statusVal = statusFilter.value;
+    // ---- Origin helpers ----
+    function computeOrigin(client) {
+      const signupId = client.signup_id || null;
+      const signupRow = signupId ? signupMap[signupId] : null;
 
-      filteredProfiles = profiles.filter((row) => {
-        const hs = humanStatusFromRow(row);
-
-        if (statusVal && hs !== statusVal) return false;
-
-        if (q) {
-          const haystack = [
-            row.business_name || "",
-            row.contact_name || row.owner_name || "",
-            row.email || "",
-            row.phone || "",
-            row.base_postcode || ""
-          ]
-            .join(" ")
-            .toLowerCase();
-          if (!haystack.includes(q)) return false;
-        }
-
-        return true;
-      });
-
-      renderProfiles();
-    }
-
-    function originLabel(row) {
-      if (row.signup_id && signupsIndex[row.signup_id]) {
-        return "Self-signup";
-      }
-      if (row.signup_id && !signupsIndex[row.signup_id]) {
-        return "Added manually";
-      }
-      return "Added manually"; // older/orphaned records
-    }
-
-    function safeDate(iso) {
-      if (!iso) return "";
-      const d = new Date(iso);
-      if (Number.isNaN(d.getTime())) return "";
-      return d.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric"
-      });
-    }
-
-    function renderProfiles() {
-      clientsGrid.innerHTML = "";
-
-      if (!filteredProfiles.length) {
-        clientsGrid.innerHTML =
-          '<div style="font-size:0.85rem;color:var(--muted-text);">No clients match your filters yet.</div>';
-        clientsCounter.textContent = "";
-        clientsSubtitle.textContent = "Adjust filters or search to see more clients.";
-        return;
+      if (!signupRow) {
+        return { label: "Profile only", cls: "origin-profile-only" };
       }
 
-      clientsCounter.textContent = `${filteredProfiles.length} client${
-        filteredProfiles.length === 1 ? "" : "s"
-      } shown`;
-      clientsSubtitle.textContent = "Click controls on each card to update onboarding details.";
+      const profileTime = client.created_at ? new Date(client.created_at) : null;
+      const signupTime = signupRow.created_at ? new Date(signupRow.created_at) : null;
 
-      filteredProfiles.forEach((row) => {
-        const card = document.createElement("article");
-        card.className = "client-card";
-        card.dataset.profileId = row.id;
-        card.dataset.signupId = row.signup_id || "";
+      if (profileTime && signupTime && !isNaN(profileTime) && !isNaN(signupTime)) {
+        const diffMs = Math.abs(profileTime.getTime() - signupTime.getTime());
 
-        const hs = humanStatusFromRow(row);
-        const planLabel = row.plan_status || "No plan yet";
-        const createdAt = safeDate(row.created_at);
-        const origin = originLabel(row);
-
-        const servicesTags =
-          (row.services_summary || "")
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean) || [];
-
-        // HEADER
-        const header = document.createElement("div");
-        header.className = "client-card-header";
-
-        const left = document.createElement("div");
-        left.className = "client-main";
-
-        const nameRow = document.createElement("div");
-        nameRow.className = "client-name-row";
-
-        const nameEl = document.createElement("div");
-        nameEl.className = "client-name";
-        nameEl.textContent = row.business_name || "(No business name)";
-
-        const planPill = document.createElement("div");
-        planPill.className = "client-plan-pill";
-        planPill.textContent = planLabel;
-
-        nameRow.appendChild(nameEl);
-        nameRow.appendChild(planPill);
-
-        const contactLine = document.createElement("div");
-        contactLine.className = "client-contact-line";
-        const primaryContact = row.contact_name || row.owner_name || "";
-        const phone = row.phone || "";
-        const email = row.email || "";
-        const postcode = row.base_postcode || "";
-
-        if (primaryContact) contactLine.innerHTML += `<span>${primaryContact}</span>`;
-        if (phone) {
-          if (contactLine.innerHTML) contactLine.innerHTML += '<span class="dot">•</span>';
-          contactLine.innerHTML += `<span>${phone}</span>`;
-        }
-        if (email) {
-          if (contactLine.innerHTML) contactLine.innerHTML += '<span class="dot">•</span>';
-          contactLine.innerHTML += `<span>${email}</span>`;
-        }
-        if (postcode) {
-          if (contactLine.innerHTML) contactLine.innerHTML += '<span class="dot">•</span>';
-          contactLine.innerHTML += `<span>${postcode}</span>`;
+        if (diffMs <= 15000) {
+          return { label: "Added manually", cls: "origin-manual" };
         }
 
-        const metaRow = document.createElement("div");
-        metaRow.className = "client-meta-row";
-
-        const statusPill = document.createElement("div");
-        statusPill.className = "meta-pill";
-        statusPill.textContent = hs;
-
-        const createdPill = document.createElement("div");
-        createdPill.className = "meta-pill";
-        createdPill.textContent = createdAt ? `Joined ${createdAt}` : "Date unknown";
-
-        metaRow.appendChild(statusPill);
-        metaRow.appendChild(createdPill);
-
-        left.appendChild(nameRow);
-        left.appendChild(contactLine);
-        left.appendChild(metaRow);
-
-        const right = document.createElement("div");
-        const originPill = document.createElement("div");
-        originPill.className = "client-origin-pill";
-        originPill.textContent = origin;
-        right.appendChild(originPill);
-
-        header.appendChild(left);
-        header.appendChild(right);
-
-        card.appendChild(header);
-
-        // TAGS
-        if (servicesTags.length) {
-          const tagRow = document.createElement("div");
-          tagRow.className = "client-tag-row";
-
-          servicesTags.forEach((tag) => {
-            const tagEl = document.createElement("span");
-            tagEl.className = "client-tag";
-            tagEl.textContent = tag;
-            tagRow.appendChild(tagEl);
-          });
-
-          card.appendChild(tagRow);
+        if (signupTime < profileTime) {
+          return { label: "Self-signup", cls: "origin-self" };
         }
+      }
 
-        // CONTROLS
-        const controlsRow = document.createElement("div");
-        controlsRow.className = "client-controls-row";
-
-        // Block 1 – Onboarding status
-        const block1 = document.createElement("div");
-        block1.className = "control-block";
-
-        const label1 = document.createElement("div");
-        label1.className = "control-label";
-        label1.textContent = "Onboarding status";
-
-        const select1 = document.createElement("select");
-        select1.className = "control-select";
-        select1.innerHTML = `
-          <option value="">(Choose status)</option>
-          <option value="New lead">New lead</option>
-          <option value="Needs setup">Needs setup</option>
-          <option value="Demo booked">Demo booked</option>
-          <option value="Demo complete">Demo complete</option>
-          <option value="Free trial">Free trial</option>
-          <option value="Live – Starter">Live – Starter</option>
-          <option value="Live – Pro">Live – Pro</option>
-          <option value="Paused">Paused</option>
-          <option value="Not interested">Not interested</option>
-        `;
-        select1.value = hs || "";
-
-        block1.appendChild(label1);
-        block1.appendChild(select1);
-
-        // Block 2 – Comfortable subscription level
-        const block2 = document.createElement("div");
-        block2.className = "control-block";
-
-        const label2 = document.createElement("div");
-        label2.className = "control-label";
-        label2.textContent = "Comfortable subscription level";
-
-        const select2 = document.createElement("select");
-        select2.className = "control-select";
-        select2.innerHTML = `
-          <option value="">(Not discussed yet)</option>
-          <option value="Interested in Starter only">Interested in Starter only</option>
-          <option value="Happy with Pro if results are good">Happy with Pro if results are good</option>
-          <option value="Price-sensitive / needs strong proof">Price-sensitive / needs strong proof</option>
-          <option value="Premium / happy to invest if it works">Premium / happy to invest if it works</option>
-        `;
-        select2.value = row.pricing_notes || "";
-
-        block2.appendChild(label2);
-        block2.appendChild(select2);
-
-        controlsRow.appendChild(block1);
-        controlsRow.appendChild(block2);
-
-        card.appendChild(controlsRow);
-
-        // More areas interest chips
-        const areasBlock = document.createElement("div");
-        areasBlock.className = "control-block";
-        const labelAreas = document.createElement("div");
-        labelAreas.className = "control-label";
-        labelAreas.textContent = "More areas interest";
-        areasBlock.appendChild(labelAreas);
-
-        const areasRow = document.createElement("div");
-        areasRow.className = "chip-row areas-chip-row";
-        areasRow.dataset.field = "callout_notes";
-
-        const areaOptions = [
-          "Not discussed yet",
-          "Core area only",
-          "Open to more areas later",
-          "Definitely wants more areas"
-        ];
-        const currentArea = row.callout_notes || "";
-
-        areaOptions.forEach((opt) => {
-          const chip = document.createElement("button");
-          chip.type = "button";
-          chip.className = "chip";
-          chip.textContent = opt;
-          if (opt === currentArea) {
-            chip.classList.add("is-active");
-          }
-          areasRow.appendChild(chip);
-        });
-
-        areasBlock.appendChild(areasRow);
-        card.appendChild(areasBlock);
-
-        // Notes
-        const notesBlock = document.createElement("div");
-        notesBlock.className = "client-notes";
-
-        const notesLabel = document.createElement("div");
-        notesLabel.className = "control-label";
-        notesLabel.textContent = "Follow-up & next steps (internal only)";
-
-        const notesArea = document.createElement("textarea");
-        notesArea.value = row.notes || "";
-
-        notesBlock.appendChild(notesLabel);
-        notesBlock.appendChild(notesArea);
-        card.appendChild(notesBlock);
-
-        // Footer: buttons + save status
-        const footerRow = document.createElement("div");
-        footerRow.className = "client-footer-row";
-
-        const btnRow = document.createElement("div");
-        btnRow.className = "client-buttons";
-
-        const openWizardBtn = document.createElement("button");
-        openWizardBtn.type = "button";
-        openWizardBtn.className = "btn btn-secondary";
-        openWizardBtn.textContent = "Open in wizard";
-        openWizardBtn.addEventListener("click", () => {
-          const signupId = row.signup_id;
-          if (signupId) {
-            window.open(`app.html?signup_id=${encodeURIComponent(signupId)}`, "_blank");
-          } else {
-            window.open("app.html", "_blank");
-          }
-        });
-
-        const openCrmBtn = document.createElement("button");
-        openCrmBtn.type = "button";
-        openCrmBtn.className = "btn btn-outline";
-        openCrmBtn.textContent = "Open CRM / messages";
-        openCrmBtn.addEventListener("click", () => {
-          alert("CRM / messages view to be built – this is a placeholder for now.");
-        });
-
-        btnRow.appendChild(openWizardBtn);
-        btnRow.appendChild(openCrmBtn);
-
-        const saveStatus = document.createElement("div");
-        saveStatus.className = "client-save-status";
-        saveStatus.textContent = "";
-
-        footerRow.appendChild(btnRow);
-        footerRow.appendChild(saveStatus);
-
-        card.appendChild(footerRow);
-
-        // Attach events for autosave
-        attachAutosaveHandlers({
-          card,
-          row,
-          selectStatus: select1,
-          selectComfort: select2,
-          areasRow,
-          notesArea,
-          saveStatusEl: saveStatus
-        });
-
-        clientsGrid.appendChild(card);
-      });
+      return { label: "Self-signup", cls: "origin-self" };
     }
 
-    async function updateProfileField(profileId, patch, saveStatusEl) {
-      if (!profileId) return;
+    // ---- PATCH helper with per-card indicator ----
+    async function patchBusinessProfile(id, payload, cardEl, onSuccess) {
+      if (!id) return;
 
-      if (saveStatusEl) {
-        saveStatusEl.textContent = "Saving...";
-        saveStatusEl.className = "client-save-status client-save-status--saving";
-      }
+      if (cardEl) setCardSaving(cardEl);
 
       const { data, error } = await supabaseFetch(
-        `/business_profiles?id=eq.${encodeURIComponent(profileId)}`,
+        `/business_profiles?id=eq.${encodeURIComponent(id)}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             Prefer: "return=representation"
           },
-          body: JSON.stringify(patch)
+          body: JSON.stringify(payload)
         }
       );
 
       if (error) {
-        console.error("Update profile error", error);
-        if (saveStatusEl) {
-          saveStatusEl.textContent = "Save failed – please try again.";
-          saveStatusEl.className = "client-save-status client-save-status--error";
+        console.error("Error updating business_profile:", error);
+        if (statusMessageEl) {
+          statusMessageEl.textContent = "Save failed – please try again.";
+          statusMessageEl.className = "status-error";
         }
-        return null;
-      }
-
-      if (saveStatusEl) {
-        saveStatusEl.textContent = "Saved \u2713";
-        saveStatusEl.className = "client-save-status client-save-status--success";
-        setTimeout(() => {
-          saveStatusEl.textContent = "";
-          saveStatusEl.className = "client-save-status";
-        }, 2000);
-      }
-
-      return data && data[0] ? data[0] : null;
-    }
-
-    function attachAutosaveHandlers(config) {
-      const {
-        card,
-        row,
-        selectStatus,
-        selectComfort,
-        areasRow,
-        notesArea,
-        saveStatusEl
-      } = config;
-
-      const profileId = row.id;
-
-      // Onboarding status -> account_status
-      if (selectStatus) {
-        selectStatus.addEventListener("change", async () => {
-          const newVal = selectStatus.value || null;
-          const updated = await updateProfileField(
-            profileId,
-            { account_status: newVal },
-            saveStatusEl
-          );
-          if (updated) {
-            row.account_status = updated.account_status;
-            // re-render summaries and human status label
-            recomputeSummaries();
-            applyFilters();
-          }
-        });
-      }
-
-      // Comfortable subscription level -> pricing_notes
-      if (selectComfort) {
-        selectComfort.addEventListener("change", async () => {
-          const newVal = selectComfort.value || null;
-          const updated = await updateProfileField(
-            profileId,
-            { pricing_notes: newVal },
-            saveStatusEl
-          );
-          if (updated) {
-            row.pricing_notes = updated.pricing_notes;
-          }
-        });
-      }
-
-      // More areas interest -> callout_notes
-      if (areasRow) {
-        const chips = Array.from(areasRow.querySelectorAll(".chip"));
-        chips.forEach((chip) => {
-          chip.addEventListener("click", async () => {
-            const alreadyActive = chip.classList.contains("is-active");
-
-            chips.forEach((c) => c.classList.remove("is-active"));
-
-            let newVal = null;
-            if (!alreadyActive) {
-              chip.classList.add("is-active");
-              newVal = chip.textContent.trim();
-            }
-
-            const updated = await updateProfileField(
-              profileId,
-              { callout_notes: newVal },
-              saveStatusEl
-            );
-            if (updated) {
-              row.callout_notes = updated.callout_notes;
-            }
-          });
-        });
-      }
-
-      // Notes -> notes
-      if (notesArea) {
-        let notesTimeout = null;
-        notesArea.addEventListener("blur", async () => {
-          const newVal = notesArea.value || null;
-          const updated = await updateProfileField(profileId, { notes: newVal }, saveStatusEl);
-          if (updated) {
-            row.notes = updated.notes;
-          }
-        });
-
-        // Optional: also autosave after a short pause while typing
-        notesArea.addEventListener("input", () => {
-          if (notesTimeout) clearTimeout(notesTimeout);
-          notesTimeout = setTimeout(() => {
-            notesArea.dispatchEvent(new Event("blur"));
-          }, 2500);
-        });
-      }
-    }
-
-    async function loadData() {
-      clientsSubtitle.textContent = "Loading clients from Supabase…";
-
-      const [profilesRes, signupsRes] = await Promise.all([
-        supabaseFetch("/business_profiles?select=*"),
-        supabaseFetch("/tradebotpro_signups?select=id,created_at")
-      ]);
-
-      if (profilesRes.error) {
-        console.error("Error loading business_profiles", profilesRes.error);
-        clientsSubtitle.textContent =
-          "Error loading clients. Check console for details or retry.";
         return;
       }
 
-      profiles = profilesRes.data || [];
+      if (Array.isArray(data) && data.length) {
+        const updated = data[0];
+        const idx = allClients.findIndex((c) => c.id === id);
+        if (idx !== -1) {
+          allClients[idx] = { ...allClients[idx], ...updated };
+        }
+      }
 
-      signupsIndex = {};
-      if (!signupsRes.error && Array.isArray(signupsRes.data)) {
-        signupsRes.data.forEach((s) => {
-          signupsIndex[s.id] = s;
+      if (onSuccess) onSuccess();
+
+      if (cardEl) setCardSaved(cardEl);
+
+      if (statusMessageEl) {
+        statusMessageEl.textContent = "Saved.";
+        statusMessageEl.className = "status-success";
+        setTimeout(() => {
+          if (statusMessageEl.textContent === "Saved.") {
+            statusMessageEl.textContent = "";
+            statusMessageEl.className = "";
+          }
+        }, 1500);
+      }
+
+      render();
+    }
+
+    // ---- Rendering ----
+    function render() {
+      if (!clientsListEl) return;
+
+      const trimmed = (searchTerm || "").trim().toLowerCase();
+
+      const filtered = allClients.filter((client) => {
+        const stage = computeStageKey(client);
+
+        if (activeStageFilter === "needs_setup" && stage !== "needs_setup") {
+          return false;
+        }
+        if (activeStageFilter === "trial" && !isTrialStage(stage)) {
+          return false;
+        }
+        if (activeStageFilter === "live" && stage !== "live") {
+          return false;
+        }
+        if (activeStageFilter === "paused" && stage !== "paused") {
+          return false;
+        }
+
+        if (!trimmed) return true;
+
+        const haystack =
+          [
+            client.business_name,
+            client.contact_name,
+            client.email,
+            client.phone,
+            client.base_postcode,
+            client.services_summary,
+            client.account_status,
+            client.pricing_notes,
+            client.callout_notes
+          ]
+            .filter(Boolean)
+            .join(" | ")
+            .toLowerCase() || "";
+
+        return haystack.includes(trimmed);
+      });
+
+      clientsListEl.innerHTML = "";
+
+      if (!filtered.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent =
+          allClients.length === 0
+            ? "No clients found in business_profiles yet."
+            : "No clients match your current filters.";
+        clientsListEl.appendChild(empty);
+      } else {
+        filtered.forEach((client) => {
+          const card = document.createElement("article");
+          card.className = "client-card";
+
+          const stageKey = computeStageKey(client);
+          const pillClass = stagePillClass(stageKey);
+          const pillLabel = stageLabel(stageKey, client.plan_status);
+
+          const createdAtText = client.created_at
+            ? new Date(client.created_at).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric"
+              })
+            : "Unknown date";
+
+          const basePostcode = client.base_postcode || "No postcode set";
+          const planStatus = client.plan_status || "No plan";
+          const servicesSummary = client.services_summary || "";
+
+          const origin = computeOrigin(client);
+
+          const signupId = client.signup_id || null;
+          const profileId = client.id;
+          const wizardUrl = signupId
+            ? `app.html?signup_id=${encodeURIComponent(signupId)}`
+            : `app.html?profile_id=${encodeURIComponent(profileId)}`;
+
+          const tags = servicesSummary
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+          const onboardingStatus = client.account_status || "New lead";
+          const comfort = client.pricing_notes || "Not discussed yet";
+          const areasNotes = client.callout_notes || "Not discussed yet";
+          const notes = client.notes || "";
+          const safeNotes = escapeHtml(notes);
+
+          card.innerHTML = `
+            <div class="client-header-row">
+              <div>
+                <div class="client-name">${client.business_name || "Unnamed business"}</div>
+                <div class="client-sub">
+                  ${client.contact_name ? client.contact_name + " · " : ""}${client.email || "No email yet"}
+                </div>
+              </div>
+              <div>
+                <div class="status-pill ${pillClass}">
+                  <span class="pill-dot"></span>
+                  <span>${pillLabel}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="client-meta-row">
+              <div class="client-meta-item">
+                <span class="meta-dot"></span>
+                <span>${basePostcode}</span>
+              </div>
+              <div class="client-meta-item">
+                <span class="meta-dot"></span>
+                <span>Plan: ${planStatus}</span>
+              </div>
+              ${
+                client.phone
+                  ? `<div class="client-meta-item">
+                       <span class="meta-dot"></span>
+                       <span>${client.phone}</span>
+                     </div>`
+                  : ""
+              }
+              <div class="client-meta-item">
+                <span class="meta-dot"></span>
+                <span>Profile created: ${createdAtText}</span>
+              </div>
+            </div>
+
+            <div class="tag-row">
+              <span class="small-tag ${origin.cls}">${origin.label}</span>
+              ${
+                tags.length
+                  ? tags
+                      .map(
+                        (t) =>
+                          `<span class="small-tag">${t
+                            .replace("Emergency / urgent jobs", "Emergency")
+                            .replace("Small jobs / quick wins", "Small jobs")
+                            .replace("Bigger projects / installs", "Big projects")
+                            .replace("Maintenance / servicing", "Servicing")
+                            .replace("Landlords / repeat clients", "Landlords")}</span>`
+                      )
+                      .join("")
+                  : ""
+              }
+            </div>
+
+            <div class="client-controls-block" data-profile-id="${profileId}">
+              <div class="client-controls-row">
+                <div>
+                  <div class="small-label">Onboarding status</div>
+                  <select class="mini-select status-select">
+                    <option value="New lead"${onboardingStatus === "New lead" ? " selected" : ""}>New lead</option>
+                    <option value="Demo booked"${onboardingStatus === "Demo booked" ? " selected" : ""}>Demo booked</option>
+                    <option value="Demo complete"${onboardingStatus === "Demo complete" ? " selected" : ""}>Demo complete</option>
+                    <option value="Free trial"${onboardingStatus === "Free trial" ? " selected" : ""}>Free trial</option>
+                    <option value="Live – Starter"${onboardingStatus === "Live – Starter" ? " selected" : ""}>Live – Starter</option>
+                    <option value="Live – Pro"${onboardingStatus === "Live – Pro" ? " selected" : ""}>Live – Pro</option>
+                    <option value="Paused / on hold"${onboardingStatus === "Paused / on hold" ? " selected" : ""}>Paused / on hold</option>
+                    <option value="Not interested"${onboardingStatus === "Not interested" ? " selected" : ""}>Not interested</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="small-label">Comfortable subscription level</div>
+                  <select class="mini-select comfort-select">
+                    <option value="Not discussed yet"${comfort === "Not discussed yet" ? " selected" : ""}>Not discussed yet</option>
+                    <option value="Leaning to Free trial only"${comfort === "Leaning to Free trial only" ? " selected" : ""}>Leaning to Free trial only</option>
+                    <option value="Happy with Starter"${comfort === "Happy with Starter" ? " selected" : ""}>Happy with Starter</option>
+                    <option value="Happy with Pro"${comfort === "Happy with Pro" ? " selected" : ""}>Happy with Pro</option>
+                    <option value="Wants cheapest option"${comfort === "Wants cheapest option" ? " selected" : ""}>Wants cheapest option</option>
+                    <option value="Open to anything with ROI"${comfort === "Open to anything with ROI" ? " selected" : ""}>Open to anything with ROI</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="small-label">More areas interest</div>
+                  <div class="chip-row mini areas-chips">
+                    <button type="button" class="chip mini ${
+                      areasNotes === "Not discussed yet" ? "is-active" : ""
+                    }" data-value="Not discussed yet">Not discussed yet</button>
+                    <button type="button" class="chip mini ${
+                      areasNotes === "Core area only" ? "is-active" : ""
+                    }" data-value="Core area only">Core area only</button>
+                    <button type="button" class="chip mini ${
+                      areasNotes === "Open to more later" ? "is-active" : ""
+                    }" data-value="Open to more later">Open to more later</button>
+                    <button type="button" class="chip mini ${
+                      areasNotes === "Definitely wants more areas" ? "is-active" : ""
+                    }" data-value="Definitely wants more areas">Definitely wants more areas</button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="notes-label-row">
+                  <div class="small-label">Follow-up &amp; next steps (internal)</div>
+                  <div class="notes-hint">e.g. "Call after demo, offer Pro + extra areas"</div>
+                </div>
+                <textarea class="notes-textarea notes-input">${safeNotes}</textarea>
+              </div>
+              <div class="save-status"></div>
+            </div>
+
+            <div class="client-actions-row">
+              <button type="button" class="btn btn-secondary" data-action="open-wizard" data-href="${wizardUrl}">
+                Open in wizard
+              </button>
+              <button type="button" class="btn btn-primary" data-action="open-messages" data-id="${profileId}">
+                Open CRM / messages
+              </button>
+            </div>
+          `;
+
+          clientsListEl.appendChild(card);
         });
       }
 
-      recomputeSummaries();
-      filteredProfiles = profiles.slice().sort((a, b) => {
-        const da = new Date(a.created_at || 0).getTime();
-        const db = new Date(b.created_at || 0).getTime();
-        return db - da;
-      });
+      const total = allClients.length;
+      const liveCount = allClients.filter((c) => {
+        const stage = computeStageKey(c);
+        return stage === "live" || isTrialStage(stage);
+      }).length;
 
-      applyFilters();
+      if (summaryTotalEl) summaryTotalEl.textContent = total.toString();
+      if (summaryTotalInlineEl) summaryTotalInlineEl.textContent = total.toString();
+      if (summaryVisibleEl) summaryVisibleEl.textContent = filtered.length.toString();
+      if (summaryLiveEl) summaryLiveEl.textContent = liveCount.toString();
     }
 
-    // Filters
-    if (searchInput) {
-      searchInput.addEventListener("input", () => {
-        applyFilters();
-      });
+    // ---- Load data ----
+    async function loadClients() {
+      if (statusMessageEl) {
+        statusMessageEl.textContent = "Loading clients from business_profiles…";
+        statusMessageEl.className = "";
+      }
+
+      const { data, error } = await supabaseFetch(
+        "/business_profiles?select=*&order=created_at.desc",
+        { method: "GET" }
+      );
+
+      if (error) {
+        console.error("Error loading business_profiles:", error);
+        if (statusMessageEl) {
+          statusMessageEl.textContent =
+            "There was a problem loading clients. Please refresh or try again later.";
+          statusMessageEl.className = "status-error";
+        }
+        return;
+      }
+
+      allClients = Array.isArray(data) ? data : [];
+      console.log("Loaded business_profiles for dashboard:", allClients);
+
+      const signupIds = Array.from(
+        new Set(
+          allClients
+            .map((c) => c.signup_id)
+            .filter((id) => !!id)
+        )
+      );
+
+      signupMap = {};
+
+      if (signupIds.length) {
+        const inList = signupIds.join(",");
+        const { data: signups, error: signupsError } = await supabaseFetch(
+          `/tradebotpro_signups?select=*&id=in.(${inList})`,
+          { method: "GET" }
+        );
+
+        if (signupsError) {
+          console.error("Error loading tradebotpro_signups:", signupsError);
+        } else if (Array.isArray(signups)) {
+          signups.forEach((row) => {
+            if (row.id) {
+              signupMap[row.id] = row;
+            }
+          });
+          console.log("Loaded linked tradebotpro_signups:", signupMap);
+        }
+      }
+
+      if (statusMessageEl) {
+        statusMessageEl.textContent = "";
+        statusMessageEl.className = "";
+      }
+
+      render();
     }
-    if (statusFilter) {
-      statusFilter.addEventListener("change", () => {
-        applyFilters();
+
+    // ---- Event wiring ----
+    if (stageFiltersEl) {
+      stageFiltersEl.addEventListener("click", (evt) => {
+        const btn = evt.target.closest(".chip[data-stage-filter]");
+        if (!btn) return;
+        const value = btn.getAttribute("data-stage-filter");
+        if (!value) return;
+
+        activeStageFilter = value;
+        Array.from(stageFiltersEl.querySelectorAll(".chip")).forEach((chip) =>
+          chip.classList.toggle("is-active", chip === btn)
+        );
+        render();
       });
     }
 
-    loadData();
+    if (searchInputEl) {
+      searchInputEl.addEventListener("input", () => {
+        searchTerm = searchInputEl.value || "";
+        render();
+      });
+    }
+
+    if (clientsListEl) {
+      // Click handlers
+      clientsListEl.addEventListener("click", (evt) => {
+        const btn = evt.target.closest("button[data-action]");
+        if (btn) {
+          const action = btn.getAttribute("data-action");
+          if (action === "open-wizard") {
+            const href = btn.getAttribute("data-href");
+            if (href) {
+              window.open(href, "_blank");
+            }
+            return;
+          }
+          if (action === "open-messages") {
+            const id = btn.getAttribute("data-id");
+            alert("Messages/CRM view coming soon for profile id: " + id);
+            return;
+          }
+        }
+
+        const chip = evt.target.closest(".areas-chips .chip");
+        if (chip) {
+          const block = chip.closest(".client-controls-block");
+          if (!block) return;
+          const profileId = block.getAttribute("data-profile-id");
+          if (!profileId) return;
+          const value = chip.getAttribute("data-value");
+          if (!value) return;
+
+          const row = chip.parentElement;
+          row.querySelectorAll(".chip").forEach((c) => c.classList.remove("is-active"));
+          chip.classList.add("is-active");
+
+          const card = block.closest(".client-card");
+          patchBusinessProfile(profileId, { callout_notes: value }, card);
+        }
+      });
+
+      // Change handlers (dropdowns)
+      clientsListEl.addEventListener("change", (evt) => {
+        const target = evt.target;
+        const block = target.closest(".client-controls-block");
+        if (!block) return;
+        const profileId = block.getAttribute("data-profile-id");
+        if (!profileId) return;
+
+        const card = block.closest(".client-card");
+
+        if (target.classList.contains("status-select")) {
+          const value = target.value;
+          patchBusinessProfile(profileId, { account_status: value }, card);
+        }
+
+        if (target.classList.contains("comfort-select")) {
+          const value = target.value;
+          patchBusinessProfile(profileId, { pricing_notes: value }, card);
+        }
+      });
+
+      // Blur handler for notes (save on leaving the box)
+      clientsListEl.addEventListener(
+        "blur",
+        (evt) => {
+          const target = evt.target;
+          if (!target.classList.contains("notes-input")) return;
+          const block = target.closest(".client-controls-block");
+          if (!block) return;
+          const profileId = block.getAttribute("data-profile-id");
+          if (!profileId) return;
+
+          const value = target.value || "";
+          const card = block.closest(".client-card");
+          patchBusinessProfile(profileId, { notes: value }, card);
+        },
+        true
+      );
+    }
+
+    loadClients();
   });
 </script>
 </body>
