@@ -990,6 +990,13 @@
   window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";               // <--- YOUR KEY in quotes
   // ⬆️ DO NOT REMOVE THE QUOTES. Key must stay as one line string. ⬆️
 
+  <!-- 🔐 SUPABASE CONFIG – must be before the wizard script -->
+<script>
+  // ⬇️ REPLACE THESE TWO LINES ONLY – KEEP THE QUOTES ⬇️
+  window.SUPABASE_URL = "https://YOURPROJECTID.supabase.co";  // <--- YOUR URL in quotes
+  window.SUPABASE_KEY = "YOUR_PUBLIC_ANON_KEY";               // <--- YOUR KEY in quotes
+  // ⬆️ DO NOT REMOVE THE QUOTES. Key must stay as one line string. ⬆️
+
   async function supabaseFetch(path, options = {}) {
     // Fail fast if not configured properly
     if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
@@ -1236,7 +1243,7 @@
       if (step === 2) {
         if (!state.base_postcode || !state.coverage_radius) {
           statusMessage.textContent = "Please choose a base postcode and coverage area.";
-          statusMessage.classList.add("wizard-status-message--error";
+          statusMessage.classList.add("wizard-status-message--error");
           return false;
         }
       }
@@ -1366,9 +1373,6 @@
       state.base_postcode = row.base_postcode || state.base_postcode;
       state.coverage_radius = row.service_radius || state.coverage_radius;
 
-      if (row.ai_style_notes && !state.tone_of_voice) {
-        state.tone_of_voice = row.ai_style_notes;
-      }
       if (row.notes && !state.extra_notes) {
         state.extra_notes = row.notes;
       }
@@ -1395,7 +1399,7 @@
         return;
       }
 
-      // Build payload once – NOTE: no ai_style_notes field here now
+      // Build a minimal, safe payload – only columns we’re confident exist.
       const payload = {
         contact_name: state.contact_name || null,
         business_name: state.business_name || null,
@@ -1407,9 +1411,7 @@
         services_summary:
           state.preferred_jobs && state.preferred_jobs.length
             ? state.preferred_jobs.join(", ")
-            : null,
-        callout_notes: state.callout_style || null,
-        pricing_notes: state.callout_band || null
+            : null
       };
 
       // CASE A: No user_id → INSERT new business_profiles row (new enquiry)
@@ -1508,8 +1510,8 @@
     setupChips();
     setupTextInputs();
     showStep(1);
-    loadDraftFromBrowser();     // will only do anything when user_id exists
-    loadFromBusinessProfile();  // will only do anything when user_id exists
+    loadDraftFromBrowser();     // only does anything when user_id exists
+    loadFromBusinessProfile();  // only does anything when user_id exists
   })();
 </script>
 
