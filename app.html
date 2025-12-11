@@ -986,8 +986,8 @@
   <!-- 🔐 SUPABASE CONFIG – must be before the wizard script -->
 <script>
   // ⬇️ Replace these two lines with your real Supabase values:
-  window.SUPABASE_URL = "https://YOURPROJECTID.supabase.co";  // <--- change this
-  window.SUPABASE_KEY = "YOUR_PUBLIC_ANON_KEY";               // <--- change this
+ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   // ⬆️ Use the PUBLIC anon key, NOT the service role key.
 
   async function supabaseFetch(path, options = {}) {
