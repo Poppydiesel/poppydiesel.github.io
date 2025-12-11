@@ -986,11 +986,24 @@
 <!-- 🔐 SUPABASE CONFIG – must be before the wizard script -->
 <script>
   // ⬇️ Replace these two lines with your real Supabase values:
- const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8
   // ⬆️ Use the PUBLIC anon key, NOT the service role key.
 
   async function supabaseFetch(path, options = {}) {
+    // Fail fast if not configured properly
+    if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
+      console.error("Supabase is not configured. Check SUPABASE_URL and SUPABASE_KEY.");
+      return {
+        data: null,
+        error: {
+          status: 0,
+          statusText: "Supabase config missing",
+          details: null
+        }
+      };
+    }
+
     const res = await fetch(`${window.SUPABASE_URL}/rest/v1${path}`, {
       ...options,
       headers: {
@@ -1008,6 +1021,7 @@
     }
 
     if (!res.ok) {
+      console.error("Supabase HTTP error", res.status, res.statusText, data);
       return {
         data: null,
         error: {
@@ -1499,10 +1513,6 @@
     loadFromBusinessProfile();  // will only do anything when user_id exists
   })();
 </script>
-
-
-
-
 
 </body>
 </html>
