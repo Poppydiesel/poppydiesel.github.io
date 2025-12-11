@@ -201,7 +201,6 @@
       background: #f8fafc;
     }
 
-    /* TABLE */
     .table-wrapper {
       border-radius: 12px;
       border: 1px solid var(--border-subtle);
@@ -622,6 +621,7 @@
                   <div id="dashboard-status-message" class="dashboard-status-message"></div>
                 </div>
                 <div style="display:flex; gap:8px;">
+                  <button id="detail-open-wizard" class="btn btn-ghost">Open in wizard</button>
                   <button id="detail-save" class="btn btn-primary">Save changes</button>
                 </div>
               </div>
@@ -635,7 +635,7 @@
   <script>
     // 🔑 SUPABASE CONFIG – REPLACE WITH YOUR REAL VALUES
     window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  // <--- YOUR URL in quotes
-  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";  
+    window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
     // ---- Supabase helper ----
     async function supabaseFetch(path, options = {}) {
@@ -701,6 +701,7 @@
       const detailIsActive = document.getElementById("detail-is-active");
       const detailRecordId = document.getElementById("detail-record-id");
       const detailSave = document.getElementById("detail-save");
+      const detailOpenWizard = document.getElementById("detail-open-wizard");
       const dashboardStatusMessage = document.getElementById("dashboard-status-message");
 
       let allClients = [];
@@ -940,10 +941,17 @@
           "dashboard-status-message dashboard-status-message--success";
       }
 
+      function openClientInWizard() {
+        if (!selectedClient) return;
+        const url = `app.html?user_id=${encodeURIComponent(selectedClient.id)}`;
+        window.open(url, "_blank");
+      }
+
       // Event wiring
       searchInput.addEventListener("input", () => applyFilters());
       planFilter.addEventListener("change", () => applyFilters());
       detailSave.addEventListener("click", saveCurrentClient);
+      detailOpenWizard.addEventListener("click", openClientInWizard);
 
       // Initial load
       loadClients();
