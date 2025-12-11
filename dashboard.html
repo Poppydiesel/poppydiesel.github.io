@@ -4,15 +4,22 @@
   <meta charset="UTF-8" />
   <title>TradeBotPro — Client Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="TradeBotPro dashboard to manage clients, see onboarding status and open the setup wizard."
+  />
+
   <style>
     :root {
       --primary-blue: #1f4e79;
       --accent-blue: #00a3ff;
-      --bg-light: #f5f7fa;
-      --bg-card: #ffffff;
-      --text-dark: #1b1b1f;
-      --border-subtle: rgba(15, 23, 42, 0.08);
-      --radius-lg: 14px;
+      --dark-text: #1b1b1f;
+      --muted-text: #666a73;
+      --light-bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --border-subtle: #e0e3eb;
+      --radius-lg: 16px;
+      --danger: #d9534f;
     }
 
     * {
@@ -22,940 +29,587 @@
     body {
       margin: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: var(--bg-light);
-      color: var(--text-dark);
+      background: var(--light-bg);
+      color: var(--dark-text);
+      line-height: 1.5;
     }
 
-    .app-shell {
-      display: grid;
-      grid-template-columns: 260px minmax(0, 1fr);
-      min-height: 100vh;
-    }
-
-    .sidebar {
-      background: #0b1c32;
-      color: #e5ecf7;
-      padding: 24px 20px;
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 24px;
       display: flex;
-      flex-direction: column;
-      gap: 24px;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
-    .sidebar-logo {
-      font-size: 1.2rem;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, var(--accent-blue), var(--primary-blue));
+    }
+
+    .brand-title {
+      font-size: 1rem;
       font-weight: 600;
-      letter-spacing: 0.03em;
-      color: #ffffff;
     }
 
-    .sidebar-logo span {
-      color: var(--accent-blue);
-    }
-
-    .sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      font-size: 0.9rem;
-    }
-
-    .sidebar-nav button,
-    .sidebar-nav a {
-      text-align: left;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: none;
-      background: transparent;
-      color: inherit;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-    }
-
-    .sidebar-nav button.is-active,
-    .sidebar-nav a.is-active {
-      background: rgba(0, 163, 255, 0.15);
-      color: #ffffff;
-    }
-
-    .sidebar-footer {
+    .brand-subtitle {
       font-size: 0.8rem;
-      opacity: 0.7;
-      margin-top: auto;
+      color: var(--muted-text);
     }
 
-    /* MAIN LAYOUT */
-    .main {
-      padding: 24px 24px 32px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    main {
+      max-width: 1200px;
+      margin: 16px auto 32px;
+      padding: 0 16px;
     }
 
-    .main-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .main-header-titles h1 {
-      font-size: 1.4rem;
-      margin: 0;
-    }
-
-    .main-header-titles p {
-      margin: 4px 0 0;
-      font-size: 0.9rem;
-      opacity: 0.8;
-    }
-
-    .badge-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      background: rgba(31, 78, 121, 0.08);
-      color: var(--primary-blue);
-    }
-
-    .layout-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 2.2fr) minmax(280px, 1.1fr);
-      gap: 18px;
-      align-items: flex-start;
-    }
-
-    .card {
-      background: var(--bg-card);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-subtle);
-      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
-      padding: 14px 16px 16px;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      gap: 8px;
-    }
-
-    .card-header h2 {
-      font-size: 0.98rem;
-      margin: 0;
-    }
-
-    .card-header span {
-      font-size: 0.8rem;
-      opacity: 0.8;
-    }
-
-    /* FILTER BAR */
-    .filter-bar {
+    .top-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 12px;
       align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .filters {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      padding: 10px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      align-items: flex-end;
+      margin-bottom: 16px;
     }
 
     .filter-group {
       display: flex;
-      align-items: center;
-      gap: 6px;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 140px;
+      font-size: 0.85rem;
+    }
+
+    label {
       font-size: 0.8rem;
+      font-weight: 500;
     }
 
-    .filter-group label {
-      opacity: 0.8;
-    }
-
-    .filter-input,
-    .filter-select {
+    select,
+    input[type="text"] {
       border-radius: 999px;
       border: 1px solid var(--border-subtle);
       padding: 6px 10px;
-      font-size: 0.82rem;
-      background: #ffffff;
-      min-width: 140px;
-    }
-
-    .filter-input {
-      min-width: 220px;
-    }
-
-    .chip-mini {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 9px;
-      border-radius: 999px;
-      border: 1px solid var(--border-subtle);
-      font-size: 0.74rem;
-      background: #f8fafc;
-    }
-
-    .table-wrapper {
-      border-radius: 12px;
-      border: 1px solid var(--border-subtle);
-      overflow: hidden;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.82rem;
-    }
-
-    thead {
-      background: #f1f5f9;
-    }
-
-    th,
-    td {
-      padding: 8px 10px;
-      text-align: left;
-      border-bottom: 1px solid rgba(15, 23, 42, 0.05);
-      vertical-align: middle;
-    }
-
-    th {
-      font-weight: 600;
-      font-size: 0.78rem;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      opacity: 0.8;
-    }
-
-    tbody tr {
-      cursor: pointer;
-    }
-
-    tbody tr:hover {
-      background: rgba(15, 23, 42, 0.02);
-    }
-
-    .cell-business {
-      font-weight: 500;
-    }
-
-    .pill-status {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 0.72rem;
-      font-weight: 500;
-    }
-
-    .pill-status.trial {
-      background: rgba(0, 163, 255, 0.14);
-      color: #05548a;
-    }
-
-    .pill-status.paid {
-      background: rgba(22, 163, 74, 0.14);
-      color: #166534;
-    }
-
-    .pill-status.cancelled {
-      background: rgba(220, 38, 38, 0.12);
-      color: #b91c1c;
-    }
-
-    .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: #22c55e;
-    }
-
-    .dot.red {
-      background: #ef4444;
-    }
-
-    .dot.amber {
-      background: #f97316;
-    }
-
-    .muted {
-      opacity: 0.7;
-    }
-
-    .empty-state {
-      padding: 18px;
-      text-align: center;
-      font-size: 0.9rem;
-      opacity: 0.8;
-    }
-
-    /* DETAIL PANEL */
-    .detail-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      font-size: 0.84rem;
-    }
-
-    .detail-row {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .detail-label {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      opacity: 0.7;
-    }
-
-    .detail-value {
-      font-weight: 500;
-      word-break: break-word;
-    }
-
-    .detail-input,
-    .detail-select,
-    .detail-textarea {
-      border-radius: 10px;
-      border: 1px solid var(--border-subtle);
-      padding: 6px 8px;
-      font-size: 0.82rem;
-      width: 100%;
+      font-size: 0.85rem;
       font-family: inherit;
+      outline: none;
+      background: #fff;
     }
 
-    .detail-textarea {
-      min-height: 60px;
-      resize: vertical;
+    select:focus,
+    input[type="text"]:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 2px rgba(0, 163, 255, 0.15);
     }
 
-    .toggle-row {
+    .filter-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+    }
+
+    .summary-bar {
+      font-size: 0.85rem;
+      color: var(--muted-text);
+      margin-bottom: 10px;
       display: flex;
+      flex-wrap: wrap;
       gap: 8px;
       align-items: center;
+      justify-content: space-between;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 3px 8px;
       font-size: 0.8rem;
+      border: 1px solid var(--border-subtle);
+      background: #f9fafc;
+      color: var(--muted-text);
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+    }
+
+    .clients-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .client-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      padding: 12px 14px 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .client-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .client-name {
+      font-size: 0.98rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .client-trade {
+      font-size: 0.85rem;
+      color: var(--muted-text);
+    }
+
+    .client-meta {
+      font-size: 0.78rem;
+      color: var(--muted-text);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      border: 1px solid var(--border-subtle);
+      background: #f1f3fa;
+      color: var(--muted-text);
+    }
+
+    .plan-chip {
+      border-color: var(--accent-blue);
+      color: var(--primary-blue);
+      background: #edf5ff;
+    }
+
+    .stage-chip {
+      border-color: #d2c6ff;
+      background: #f3efff;
+      color: #5b4bb5;
+    }
+
+    .trial-chip {
+      border-color: #ffd27f;
+      background: #fff7e6;
+      color: #a16207;
     }
 
     .btn {
       border-radius: 999px;
       border: none;
-      padding: 7px 14px;
-      font-size: 0.82rem;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
       cursor: pointer;
+      font-family: inherit;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
 
-    .btn-primary {
-      background: var(--primary-blue);
-      color: #ffffff;
-    }
-
-    .btn-ghost {
-      background: transparent;
+    .btn-secondary {
+      background: #f5f7fa;
+      color: var(--dark-text);
       border: 1px solid var(--border-subtle);
-      color: var(--text-dark);
     }
 
-    .detail-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .btn-secondary:hover {
+      background: #eef1f7;
+    }
+
+    .status-text {
+      font-size: 0.85rem;
+      min-height: 18px;
       margin-top: 8px;
-      gap: 8px;
     }
 
-    .status-banner {
-      font-size: 0.8rem;
-      padding: 6px 9px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.03);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+    .status-text .error {
+      color: var(--danger);
     }
 
-    .status-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      opacity: 0.8;
+    .status-text .ok {
+      color: var(--primary-blue);
     }
 
-    .detail-subtitle {
-      font-size: 0.8rem;
-      opacity: 0.7;
-      margin-top: 4px;
+    .empty-state {
+      text-align: center;
+      padding: 30px 10px;
+      font-size: 0.9rem;
+      color: var(--muted-text);
     }
 
-    .dashboard-status-message {
-      font-size: 0.8rem;
-      margin-top: 6px;
-    }
-
-    .dashboard-status-message--success {
-      color: #15803d;
-    }
-
-    .dashboard-status-message--error {
-      color: #b91c1c;
-    }
-
-    .dashboard-status-message--saving {
-      color: #0f172a;
-      opacity: 0.8;
-    }
-
-    @media (max-width: 900px) {
-      .app-shell {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .sidebar-nav {
-        flex-direction: row;
-        flex-wrap: wrap;
-      }
-
-      .sidebar-footer {
-        display: none;
-      }
-
-      .layout-grid {
-        grid-template-columns: 1fr;
+    @media (max-width: 700px) {
+      .filters {
+        flex-direction: column;
+        align-items: stretch;
       }
     }
   </style>
 </head>
 <body>
-  <div class="app-shell">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="sidebar-logo">
-        TradeBot<span>Pro</span>
+  <header>
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div>
+        <div class="brand-title">TradeBotPro — Client Dashboard</div>
+        <div class="brand-subtitle">See who’s where in onboarding and open the setup wizard in one click.</div>
       </div>
-      <nav class="sidebar-nav">
-        <a href="app.html" class="">Onboarding wizard</a>
-        <button class="is-active">Client dashboard</button>
-      </nav>
-      <div class="sidebar-footer">
-        v1 Client Dashboard · Business profiles only
+    </div>
+  </header>
+
+  <main>
+    <div class="top-row">
+      <h1>Clients</h1>
+      <div class="badge">
+        <span class="badge-dot"></span>
+        <span>Live Supabase data</span>
       </div>
-    </aside>
+    </div>
 
-    <!-- MAIN -->
-    <main class="main">
-      <header class="main-header">
-        <div class="main-header-titles">
-          <h1>Client dashboard</h1>
-          <p>See everyone who has signed up and where they are in onboarding.</p>
+    <section class="filters">
+      <div class="filter-group">
+        <label for="filter_search">Search</label>
+        <input id="filter_search" type="text" placeholder="Business, contact or postcode…" />
+      </div>
+
+      <div class="filter-group">
+        <label for="filter_trade">Trade</label>
+        <select id="filter_trade">
+          <option value="">All trades</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter_plan">Plan</label>
+        <select id="filter_plan">
+          <option value="">All plans</option>
+          <option value="Free trial">Free trial</option>
+          <option value="Starter">Starter</option>
+          <option value="Pro">Pro</option>
+          <option value="Agency / Custom">Agency / Custom</option>
+          <option value="No plan chosen yet">No plan chosen yet</option>
+          <option value="Demo only">Demo only</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter_stage">Stage</label>
+        <select id="filter_stage">
+          <option value="">All stages</option>
+          <option value="Lead – New">Lead – New</option>
+          <option value="Lead – Contacted">Lead – Contacted</option>
+          <option value="Demo booked">Demo booked</option>
+          <option value="Demo completed">Demo completed</option>
+          <option value="Free trial – Active">Free trial – Active</option>
+          <option value="Free trial – Ended">Free trial – Ended</option>
+          <option value="Subscribed – Live">Subscribed – Live</option>
+          <option value="Offer upgrade to additional areas">Offer upgrade to additional areas</option>
+          <option value="Subscribed – Paused">Subscribed – Paused</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>&nbsp;</label>
+        <div class="filter-inline">
+          <input id="filter_trial_only" type="checkbox" />
+          <span>Free trial only</span>
         </div>
-        <div class="badge-pill">
-          <span id="badge-total">0</span> clients
-        </div>
-      </header>
+      </div>
+    </section>
 
-      <section class="layout-grid">
-        <!-- LEFT: TABLE CARD -->
-        <section class="card">
-          <div class="card-header">
-            <div>
-              <h2>Clients</h2>
-              <span id="card-subtitle">Loading from Supabase…</span>
-            </div>
-          </div>
+    <div class="summary-bar">
+      <div id="summary-left">Loading clients…</div>
+      <div id="summary-right"></div>
+    </div>
 
-          <div class="filter-bar">
-            <div class="filter-group">
-              <label for="search-input">Search</label>
-              <input
-                id="search-input"
-                class="filter-input"
-                type="text"
-                placeholder="Business, contact, email or postcode"
-              />
-            </div>
-            <div class="filter-group">
-              <label for="plan-filter">Plan</label>
-              <select id="plan-filter" class="filter-select">
-                <option value="">All</option>
-                <option value="Trial">Trial</option>
-                <option value="Paid">Paid</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <span class="chip-mini">
-                <span class="dot"></span> Active
-              </span>
-              <span class="chip-mini">
-                <span class="dot amber"></span> Pending setup
-              </span>
-              <span class="chip-mini">
-                <span class="dot red"></span> Inactive
-              </span>
-            </div>
-          </div>
+    <section id="clients-section">
+      <div id="clients-grid" class="clients-grid"></div>
+      <div id="empty-state" class="empty-state" style="display:none;">
+        No clients match your filters yet.
+      </div>
+      <div id="dashboard-status" class="status-text"></div>
+    </section>
+  </main>
 
-          <div class="table-wrapper" id="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Business</th>
-                  <th>Contact</th>
-                  <th>Email</th>
-                  <th>Postcode</th>
-                  <th>Plan</th>
-                  <th>Setup</th>
-                  <th>Active</th>
-                  <th>Joined</th>
-                </tr>
-              </thead>
-              <tbody id="client-table-body">
-                <tr>
-                  <td colspan="8" class="empty-state">
-                    Loading clients…
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.0";
 
-        <!-- RIGHT: DETAIL PANEL -->
-        <section class="card">
-          <div class="card-header">
-            <div>
-              <h2 id="detail-title">No client selected</h2>
-              <p id="detail-subtitle" class="detail-subtitle">
-                Click a row in the table to open full details and update status.
-              </p>
-            </div>
-          </div>
+  window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co"; 
+  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";  
 
-          <div id="detail-content">
-            <div class="empty-state" id="detail-empty">
-              No client selected yet. Pick one from the table.
-            </div>
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            <div id="detail-form" style="display:none;">
-              <div class="detail-grid">
-                <div class="detail-row">
-                  <span class="detail-label">Business name</span>
-                  <input id="detail-business-name" class="detail-input" type="text" disabled />
-                </div>
-
-                <div class="detail-row">
-                  <span class="detail-label">Primary contact</span>
-                  <input id="detail-contact-name" class="detail-input" type="text" disabled />
-                </div>
-
-                <div class="detail-row">
-                  <span class="detail-label">Email</span>
-                  <input id="detail-email" class="detail-input" type="email" disabled />
-                </div>
-
-                <div class="detail-row">
-                  <span class="detail-label">Phone</span>
-                  <input id="detail-phone" class="detail-input" type="text" disabled />
-                </div>
-
-                <div class="detail-row">
-                  <span class="detail-label">Base postcode</span>
-                  <input id="detail-postcode" class="detail-input" type="text" disabled />
-                </div>
-
-                <div class="detail-row">
-                  <span class="detail-label">Plan status</span>
-                  <select id="detail-plan-status" class="detail-select">
-                    <option value="Trial">Trial</option>
-                    <option value="Paid">Paid</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
-                </div>
-
-                <div class="detail-row">
-                  <span class="detail-label">Account status reason</span>
-                  <textarea
-                    id="detail-account-reason"
-                    class="detail-textarea"
-                    placeholder="Optional note e.g. 'Paused for summer', 'Card failed', etc."
-                  ></textarea>
-                </div>
-
-                <div class="detail-row">
-                  <span class="detail-label">Flags</span>
-                  <div class="toggle-row">
-                    <label>
-                      <input type="checkbox" id="detail-pending-setup" />
-                      Pending setup
-                    </label>
-                    <label>
-                      <input type="checkbox" id="detail-is-active" />
-                      Active
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div class="detail-footer">
-                <div>
-                  <div class="status-banner">
-                    <span class="status-label">Record</span>
-                    <span id="detail-record-id" class="muted"></span>
-                  </div>
-                  <div id="dashboard-status-message" class="dashboard-status-message"></div>
-                </div>
-                <div style="display:flex; gap:8px;">
-                  <button id="detail-open-wizard" class="btn btn-ghost">Open in wizard</button>
-                  <button id="detail-save" class="btn btn-primary">Save changes</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </section>
-    </main>
-  </div>
-
-  <script>
-    // 🔑 SUPABASE CONFIG – REPLACE WITH YOUR REAL VALUES
-    window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  // <--- YOUR URL in quotes
-    window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-
-    // ---- Supabase helper ----
-    async function supabaseFetch(path, options = {}) {
-      if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
-        console.error("Supabase is not configured. Check SUPABASE_URL and SUPABASE_KEY.");
-        return {
-          data: null,
-          error: { status: 0, statusText: "Supabase config missing", details: null }
-        };
-      }
-
-      const res = await fetch(`${window.SUPABASE_URL}/rest/v1${path}`, {
-        ...options,
-        headers: {
-          apikey: window.SUPABASE_KEY,
-          Authorization: `Bearer ${window.SUPABASE_KEY}`,
-          ...(options.headers || {})
-        }
-      });
-
-      let data = null;
-      try {
-        data = await res.json();
-      } catch (e) {
-        // no JSON body
-      }
-
-      if (!res.ok) {
-        console.error("Supabase HTTP error", res.status, res.statusText, data);
-        return {
-          data: null,
-          error: {
-            status: res.status,
-            statusText: res.statusText,
-            details: data
-          }
-        };
-      }
-
-      return { data, error: null };
-    }
+    const state = {
+      clients: [],
+      filtered: [],
+    };
 
     document.addEventListener("DOMContentLoaded", () => {
-      const tableBody = document.getElementById("client-table-body");
-      const badgeTotal = document.getElementById("badge-total");
-      const cardSubtitle = document.getElementById("card-subtitle");
-
-      const searchInput = document.getElementById("search-input");
-      const planFilter = document.getElementById("plan-filter");
-
-      const detailTitle = document.getElementById("detail-title");
-      const detailSubtitle = document.getElementById("detail-subtitle");
-      const detailEmpty = document.getElementById("detail-empty");
-      const detailForm = document.getElementById("detail-form");
-      const detailBusinessName = document.getElementById("detail-business-name");
-      const detailContactName = document.getElementById("detail-contact-name");
-      const detailEmail = document.getElementById("detail-email");
-      const detailPhone = document.getElementById("detail-phone");
-      const detailPostcode = document.getElementById("detail-postcode");
-      const detailPlanStatus = document.getElementById("detail-plan-status");
-      const detailAccountReason = document.getElementById("detail-account-reason");
-      const detailPendingSetup = document.getElementById("detail-pending-setup");
-      const detailIsActive = document.getElementById("detail-is-active");
-      const detailRecordId = document.getElementById("detail-record-id");
-      const detailSave = document.getElementById("detail-save");
-      const detailOpenWizard = document.getElementById("detail-open-wizard");
-      const dashboardStatusMessage = document.getElementById("dashboard-status-message");
-
-      let allClients = [];
-      let filteredClients = [];
-      let selectedClient = null;
-
-      function formatDate(dateStr) {
-        if (!dateStr) return "";
-        const d = new Date(dateStr);
-        if (Number.isNaN(d.getTime())) return "";
-        return d.toLocaleDateString("en-GB", {
-          year: "numeric",
-          month: "short",
-          day: "numeric"
-        });
-      }
-
-      function planStatusClass(plan) {
-        if (!plan) return "";
-        const val = plan.toLowerCase();
-        if (val.includes("trial")) return "trial";
-        if (val.includes("paid") || val.includes("active")) return "paid";
-        if (val.includes("cancel")) return "cancelled";
-        return "";
-      }
-
-      function renderTable() {
-        tableBody.innerHTML = "";
-
-        if (!filteredClients.length) {
-          const tr = document.createElement("tr");
-          const td = document.createElement("td");
-          td.colSpan = 8;
-          td.className = "empty-state";
-          td.textContent = "No clients match your filters yet.";
-          tr.appendChild(td);
-          tableBody.appendChild(tr);
-          cardSubtitle.textContent = "0 clients";
-          return;
-        }
-
-        filteredClients.forEach((client) => {
-          const tr = document.createElement("tr");
-
-          // business
-          const tdBusiness = document.createElement("td");
-          tdBusiness.className = "cell-business";
-          tdBusiness.textContent = client.business_name || "(no name)";
-          tr.appendChild(tdBusiness);
-
-          // contact
-          const tdContact = document.createElement("td");
-          tdContact.textContent = client.contact_name || client.owner_name || "";
-          tr.appendChild(tdContact);
-
-          // email
-          const tdEmail = document.createElement("td");
-          tdEmail.textContent = client.email || "";
-          tr.appendChild(tdEmail);
-
-          // postcode
-          const tdPostcode = document.createElement("td");
-          tdPostcode.textContent = client.base_postcode || "";
-          tr.appendChild(tdPostcode);
-
-          // plan
-          const tdPlan = document.createElement("td");
-          const spanPlan = document.createElement("span");
-          const planClass = planStatusClass(client.plan_status || "");
-          spanPlan.className = `pill-status ${planClass}`;
-          spanPlan.textContent = client.plan_status || "Trial";
-          tdPlan.appendChild(spanPlan);
-          tr.appendChild(tdPlan);
-
-          // pending_setup
-          const tdPending = document.createElement("td");
-          const pendingDot = document.createElement("span");
-          pendingDot.className = "dot " + (client.pending_setup ? "amber" : "");
-          tdPending.appendChild(pendingDot);
-          tr.appendChild(tdPending);
-
-          // is_active
-          const tdActive = document.createElement("td");
-          const activeDot = document.createElement("span");
-          activeDot.className = "dot " + (client.is_active ? "" : "red");
-          tdActive.appendChild(activeDot);
-          tr.appendChild(tdActive);
-
-          // created_at
-          const tdCreated = document.createElement("td");
-          tdCreated.textContent = formatDate(client.created_at);
-          tr.appendChild(tdCreated);
-
-          tr.addEventListener("click", () => {
-            openClientDetail(client);
-          });
-
-          tableBody.appendChild(tr);
-        });
-
-        cardSubtitle.textContent = `${filteredClients.length} client${filteredClients.length === 1 ? "" : "s"}`;
-      }
-
-      function applyFilters() {
-        const query = (searchInput.value || "").toLowerCase().trim();
-        const plan = planFilter.value;
-
-        filteredClients = allClients.filter((client) => {
-          let ok = true;
-
-          if (query) {
-            const haystack = [
-              client.business_name,
-              client.contact_name,
-              client.owner_name,
-              client.email,
-              client.phone,
-              client.base_postcode
-            ]
-              .filter(Boolean)
-              .join(" ")
-              .toLowerCase();
-            if (!haystack.includes(query)) ok = false;
-          }
-
-          if (plan) {
-            if (!client.plan_status || client.plan_status !== plan) ok = false;
-          }
-
-          return ok;
-        });
-
-        renderTable();
-      }
-
-      function openClientDetail(client) {
-        selectedClient = client;
-        detailBusinessName.value = client.business_name || "";
-        detailContactName.value = client.contact_name || client.owner_name || "";
-        detailEmail.value = client.email || "";
-        detailPhone.value = client.phone || "";
-        detailPostcode.value = client.base_postcode || "";
-        detailPlanStatus.value = client.plan_status || "Trial";
-        detailAccountReason.value = client.account_status_reason || "";
-        detailPendingSetup.checked = !!client.pending_setup;
-        detailIsActive.checked = !!client.is_active;
-        detailRecordId.textContent = client.id || "";
-
-        detailTitle.textContent = client.business_name || "(no business name)";
-        detailSubtitle.textContent = client.email || "";
-        detailEmpty.style.display = "none";
-        detailForm.style.display = "block";
-
-        dashboardStatusMessage.textContent = "";
-        dashboardStatusMessage.className = "dashboard-status-message";
-      }
-
-      async function loadClients() {
-        cardSubtitle.textContent = "Loading from Supabase…";
-
-        const { data, error } = await supabaseFetch(
-          `/business_profiles?select=*&order=created_at.desc`,
-          { method: "GET" }
-        );
-
-        if (error) {
-          console.error("Load clients error:", error);
-          tableBody.innerHTML = "";
-          const tr = document.createElement("tr");
-          const td = document.createElement("td");
-          td.colSpan = 8;
-          td.className = "empty-state";
-          td.textContent = "Could not load clients from Supabase.";
-          tr.appendChild(td);
-          tableBody.appendChild(tr);
-          cardSubtitle.textContent = "Error loading clients";
-          return;
-        }
-
-        allClients = data || [];
-        filteredClients = [...allClients];
-        badgeTotal.textContent = allClients.length;
-        renderTable();
-      }
-
-      async function saveCurrentClient() {
-        if (!selectedClient) return;
-
-        const id = selectedClient.id;
-        const payload = {
-          plan_status: detailPlanStatus.value || null,
-          pending_setup: detailPendingSetup.checked,
-          is_active: detailIsActive.checked,
-          account_status_reason: detailAccountReason.value || null
-        };
-
-        dashboardStatusMessage.textContent = "Saving changes…";
-        dashboardStatusMessage.className =
-          "dashboard-status-message dashboard-status-message--saving";
-
-        const { data, error } = await supabaseFetch(
-          `/business_profiles?id=eq.${encodeURIComponent(id)}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Prefer: "return=representation"
-            },
-            body: JSON.stringify(payload)
-          }
-        );
-
-        if (error) {
-          console.error("Save client error:", error);
-          dashboardStatusMessage.textContent = "Error saving changes.";
-          dashboardStatusMessage.className =
-            "dashboard-status-message dashboard-status-message--error";
-          return;
-        }
-
-        const updated = data && data[0] ? data[0] : null;
-        if (updated) {
-          // Update in local arrays
-          const idx = allClients.findIndex((c) => c.id === id);
-          if (idx !== -1) allClients[idx] = updated;
-
-          const fIdx = filteredClients.findIndex((c) => c.id === id);
-          if (fIdx !== -1) filteredClients[fIdx] = updated;
-
-          selectedClient = updated;
-          openClientDetail(updated);
-          renderTable();
-        }
-
-        dashboardStatusMessage.textContent = "Changes saved.";
-        dashboardStatusMessage.className =
-          "dashboard-status-message dashboard-status-message--success";
-      }
-
-      function openClientInWizard() {
-        if (!selectedClient) return;
-        const url = `app.html?user_id=${encodeURIComponent(selectedClient.id)}`;
-        window.open(url, "_blank");
-      }
-
-      // Event wiring
-      searchInput.addEventListener("input", () => applyFilters());
-      planFilter.addEventListener("change", () => applyFilters());
-      detailSave.addEventListener("click", saveCurrentClient);
-      detailOpenWizard.addEventListener("click", openClientInWizard);
-
-      // Initial load
+      setupFilters();
       loadClients();
     });
+
+    function setupFilters() {
+      const search = document.getElementById("filter_search");
+      const trade = document.getElementById("filter_trade");
+      const plan = document.getElementById("filter_plan");
+      const stage = document.getElementById("filter_stage");
+      const trial = document.getElementById("filter_trial_only");
+
+      [search, trade, plan, stage, trial].forEach((el) => {
+        el.addEventListener("input", applyFilters);
+        el.addEventListener("change", applyFilters);
+      });
+    }
+
+    async function loadClients() {
+      setDashboardStatus("Loading clients…", false);
+
+      try {
+        const { data, error } = await supabase
+          .from("tradebotpro_signups")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error loading clients:", error);
+          setDashboardStatus("Error loading clients from Supabase.", true);
+          return;
+        }
+
+        state.clients = data || [];
+        buildTradeFilterOptions();
+        applyFilters();
+        setDashboardStatus("Clients loaded.", false, "ok");
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        setDashboardStatus("Unexpected error loading clients.", true);
+      }
+    }
+
+    function buildTradeFilterOptions() {
+      const tradeSelect = document.getElementById("filter_trade");
+      const trades = new Set();
+
+      state.clients.forEach((c) => {
+        if (c.trade_type) trades.add(c.trade_type);
+      });
+
+      tradeSelect.innerHTML = '<option value="">All trades</option>';
+      Array.from(trades)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((t) => {
+          const opt = document.createElement("option");
+          opt.value = t;
+          opt.textContent = t;
+          tradeSelect.appendChild(opt);
+        });
+    }
+
+    function applyFilters() {
+      const search = document.getElementById("filter_search").value.trim().toLowerCase();
+      const trade = document.getElementById("filter_trade").value;
+      const plan = document.getElementById("filter_plan").value;
+      const stage = document.getElementById("filter_stage").value;
+      const trialOnly = document.getElementById("filter_trial_only").checked;
+
+      let filtered = state.clients.slice();
+
+      filtered = filtered.filter((c) => {
+        if (search) {
+          const haystack = [
+            c.business_name,
+            c.contact_name,
+            c.email,
+            c.phone,
+            c.base_postcode,
+            c.primary_service_area,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          if (!haystack.includes(search)) return false;
+        }
+
+        if (trade && c.trade_type !== trade) return false;
+        if (plan && c.plan_status !== plan) return false;
+        if (stage && c.account_status !== stage) return false;
+        if (trialOnly && !c.wants_free_trial) return false;
+
+        return true;
+      });
+
+      state.filtered = filtered;
+      renderClients();
+      updateSummary();
+    }
+
+    function renderClients() {
+      const grid = document.getElementById("clients-grid");
+      const empty = document.getElementById("empty-state");
+
+      grid.innerHTML = "";
+
+      if (!state.filtered.length) {
+        empty.style.display = "block";
+        return;
+      } else {
+        empty.style.display = "none";
+      }
+
+      state.filtered.forEach((c) => {
+        const card = document.createElement("div");
+        card.className = "client-card";
+
+        const headerRow = document.createElement("div");
+        headerRow.className = "client-header-row";
+
+        const left = document.createElement("div");
+        const nameEl = document.createElement("p");
+        nameEl.className = "client-name";
+        nameEl.textContent = c.business_name || "(No business name)";
+
+        const tradeEl = document.createElement("div");
+        tradeEl.className = "client-trade";
+        const parts = [];
+        if (c.trade_type) parts.push(c.trade_type);
+        if (c.primary_service_area) parts.push(c.primary_service_area);
+        else if (c.base_postcode) parts.push(c.base_postcode);
+        tradeEl.textContent = parts.join(" · ") || "Trade / area not set";
+
+        left.appendChild(nameEl);
+        left.appendChild(tradeEl);
+
+        const right = document.createElement("div");
+        const openBtn = document.createElement("button");
+        openBtn.className = "btn btn-secondary";
+        openBtn.type = "button";
+        openBtn.textContent = "Open in wizard";
+        openBtn.addEventListener("click", () => {
+          if (!c.id) return;
+          window.location.href = `app.html?user_id=${encodeURIComponent(c.id)}`;
+        });
+        right.appendChild(openBtn);
+
+        headerRow.appendChild(left);
+        headerRow.appendChild(right);
+
+        const meta = document.createElement("div");
+        meta.className = "client-meta";
+        const metaBits = [];
+        if (c.contact_name) metaBits.push(c.contact_name);
+        if (c.email) metaBits.push(c.email);
+        if (c.phone) metaBits.push(c.phone);
+        meta.textContent = metaBits.join(" · ");
+
+        const chipRow = document.createElement("div");
+        chipRow.className = "chip-row";
+
+        if (c.plan_status) {
+          const chip = document.createElement("span");
+          chip.className = "chip plan-chip";
+          chip.textContent = c.plan_status;
+          chipRow.appendChild(chip);
+        }
+
+        if (c.account_status) {
+          const chip = document.createElement("span");
+          chip.className = "chip stage-chip";
+          chip.textContent = c.account_status;
+          chipRow.appendChild(chip);
+        }
+
+        if (c.wants_free_trial) {
+          const chip = document.createElement("span");
+          chip.className = "chip trial-chip";
+          chip.textContent = "Free trial";
+          chipRow.appendChild(chip);
+        }
+
+        card.appendChild(headerRow);
+        card.appendChild(meta);
+        card.appendChild(chipRow);
+
+        grid.appendChild(card);
+      });
+    }
+
+    function updateSummary() {
+      const total = state.clients.length;
+      const visible = state.filtered.length;
+      const freeTrials = state.filtered.filter((c) => c.wants_free_trial).length;
+      const live = state.filtered.filter((c) => c.account_status === "Subscribed – Live").length;
+
+      const left = document.getElementById("summary-left");
+      const right = document.getElementById("summary-right");
+
+      left.textContent = `${visible} client${visible === 1 ? "" : "s"} shown (of ${total})`;
+
+      right.innerHTML = `
+        <span class="badge"><span class="badge-dot"></span><span>${live} live</span></span>
+        <span class="badge"><span class="badge-dot"></span><span>${freeTrials} on free trial</span></span>
+      `;
+    }
+
+    function setDashboardStatus(message, isError = false, style = "error") {
+      const el = document.getElementById("dashboard-status");
+      if (!el) return;
+      if (!message) {
+        el.textContent = "";
+        return;
+      }
+      const cls = isError || style === "error" ? "error" : "ok";
+      el.innerHTML = `<span class="${cls}">${message}</span>`;
+    }
   </script>
 </body>
 </html>
