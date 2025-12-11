@@ -1236,7 +1236,7 @@
       if (step === 2) {
         if (!state.base_postcode || !state.coverage_radius) {
           statusMessage.textContent = "Please choose a base postcode and coverage area.";
-          statusMessage.classList.add("wizard-status-message--error");
+          statusMessage.classList.add("wizard-status-message--error";
           return false;
         }
       }
@@ -1395,7 +1395,7 @@
         return;
       }
 
-      // Build payload once
+      // Build payload once – NOTE: no ai_style_notes field here now
       const payload = {
         contact_name: state.contact_name || null,
         business_name: state.business_name || null,
@@ -1403,7 +1403,6 @@
         phone: state.contact_mobile || null,
         base_postcode: state.base_postcode || null,
         service_radius: state.coverage_radius || null,
-        ai_style_notes: state.tone_of_voice || null,
         notes: state.extra_notes || null,
         services_summary:
           state.preferred_jobs && state.preferred_jobs.length
@@ -1513,6 +1512,7 @@
     loadFromBusinessProfile();  // will only do anything when user_id exists
   })();
 </script>
+
 
 
 </body>
