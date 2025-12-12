@@ -34,6 +34,23 @@ main{max-width:1200px;margin:0 auto;padding:1.2rem}
 h1{margin:.15rem 0 .35rem;color:var(--primary-blue)}
 .subtitle{font-size:.9rem;color:var(--muted-text);margin:0 0 .9rem}
 
+/* Debug banner (prevents white-page guessing) */
+.debug{
+  margin:0 auto;
+  max-width:1200px;
+  padding:.75rem 1.2rem;
+}
+.debug-box{
+  background:#0b1220;
+  color:#e5e7eb;
+  border-radius:1rem;
+  padding:.75rem .85rem;
+  font-size:.85rem;
+  border:1px solid rgba(255,255,255,.08);
+  white-space:pre-wrap;
+}
+.debug-box b{color:#93c5fd}
+
 /* status strip */
 .status-strip{display:flex;gap:.55rem;flex-wrap:wrap;margin-bottom:.75rem}
 .status-chip{
@@ -96,7 +113,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
 }
 .backdrop.show{opacity:1;pointer-events:auto}
 
-/* drawer (WIDER 900px) */
+/* === WIDE DRAWER (900px) === */
 .drawer{
   position:fixed;top:0;
   right:-900px;
@@ -111,7 +128,6 @@ tr:hover{background:#f7fbff;cursor:pointer}
   flex-direction:column;
 }
 .drawer.open{right:0}
-
 .drawer-header{padding:1rem;border-bottom:1px solid var(--border-subtle);background:#f8fafc}
 .drawer-title{font-weight:800;color:var(--primary-blue);font-size:1.05rem}
 .drawer-sub{font-size:.85rem;color:var(--muted-text);margin-top:.25rem}
@@ -122,14 +138,12 @@ tr:hover{background:#f7fbff;cursor:pointer}
 }
 .drawer-hint{font-size:.82rem;color:var(--muted-text)}
 .section-title{font-weight:800;color:var(--primary-blue);font-size:.9rem;margin:.8rem 0 .4rem}
-
 .chip-row{display:flex;flex-wrap:wrap;gap:8px}
 .chip{
   padding:.45rem .8rem;border-radius:999px;border:1px solid rgba(15,23,42,.12);
   background:#fff;cursor:pointer;font-weight:650;font-size:.85rem;
 }
 .chip.is-active{background:#eef2ff;border-color:var(--primary-blue)}
-
 .checklist{border:1px solid rgba(15,23,42,.08);border-radius:.9rem;padding:.65rem .75rem}
 .check-item{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.55rem 0;cursor:pointer}
 .check-item:not(:last-child){border-bottom:1px dashed rgba(148,163,184,.55)}
@@ -141,7 +155,6 @@ tr:hover{background:#f7fbff;cursor:pointer}
 .check-badge.done{border-color:rgba(15,123,70,0.35);background:#ecfdf5;color:#14532d}
 .check-name{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .check-state{font-size:.82rem;color:var(--muted-text);flex:0 0 auto}
-
 .drawer-body label{display:block;font-size:.78rem;color:var(--muted-text);margin:.6rem 0 .25rem}
 .drawer-body textarea{
   width:100%;min-height:110px;border-radius:.85rem;border:1px solid var(--border-subtle);
@@ -158,11 +171,15 @@ tr:hover{background:#f7fbff;cursor:pointer}
   </div>
 </header>
 
+<div class="debug">
+  <div class="debug-box" id="debugBox">Booting…</div>
+</div>
+
 <main>
   <div class="panel">
     <div class="kicker">Customers</div>
     <h1>Customers by onboarding status (sales) + setup tasks (ops)</h1>
-    <p class="subtitle">Click a row to open the side panel. Press <b>Esc</b> to close.</p>
+    <p class="subtitle">If this page breaks, the debug box above will tell you why.</p>
 
     <div class="status-strip" id="status-strip"></div>
 
@@ -220,10 +237,10 @@ tr:hover{background:#f7fbff;cursor:pointer}
 
     <div class="section-title">Notes</div>
     <label for="drawerNotes">Internal notes (autosaves)</label>
-    <textarea id="drawerNotes" placeholder="Sales notes / objections / follow-up plan…"></textarea>
+    <textarea id="drawerNotes"></textarea>
 
     <label for="drawerLeadNotes">Lead notes (autosaves)</label>
-    <textarea id="drawerLeadNotes" placeholder="Lead context, specifics…"></textarea>
+    <textarea id="drawerLeadNotes"></textarea>
   </div>
 
   <div class="drawer-footer">
@@ -235,23 +252,37 @@ tr:hover{background:#f7fbff;cursor:pointer}
   </div>
 </div>
 
-<!-- Supabase (NON-MODULE, avoids white page from import/module issues) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
-(() => {
-  const SALES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
+  // Hard stop “white page”: show JS errors on-screen.
+  (function(){
+    const dbg = document.getElementById("debugBox");
+    function setDbg(msg){ dbg.textContent = msg; }
+    window.__setDbg = setDbg;
 
-  // ✅ PUT YOUR REAL VALUES HERE (Project Settings → API)
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    window.addEventListener("error", (e)=>{
+      setDbg("💥 JS Error:\n" + (e.message || e.error || "Unknown") + "\n\nCheck you didn't paste a stray <script> tag or missing quote.");
+    });
+    window.addEventListener("unhandledrejection", (e)=>{
+      setDbg("💥 Promise Error:\n" + (e.reason?.message || String(e.reason)));
+    });
+
+    setDbg("Booting… (page rendered OK)");
+  })();
+</script>
+
+<script type="module">
+  const dbg = window.__setDbg || (()=>{});
+
+  // ✅ Paste from Supabase → Project Settings → API
+  const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";
   const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_PUBLIC_KEY_HERE";
 
-  // DOM
   const tbody = document.getElementById("tbody");
   const statusStrip = document.getElementById("status-strip");
   const search = document.getElementById("search");
   const statusBar = document.getElementById("status-bar");
   const banner = document.getElementById("banner");
+
   const btnRefresh = document.getElementById("btn-refresh");
   const btnNew = document.getElementById("btn-new");
   const btnClear = document.getElementById("btn-clear-filter");
@@ -268,17 +299,18 @@ tr:hover{background:#f7fbff;cursor:pointer}
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
   const btnOpenWizard = document.getElementById("btnOpenWizard");
 
-  // State
   let sb = null;
   let rows = [];
   let activeStatus = null;
   let activeRow = null;
   let noteTimer = null;
 
+  const SALES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
+
   function showError(msg){ banner.textContent = msg; banner.classList.add("show"); }
   function clearError(){ banner.textContent = ""; banner.classList.remove("show"); }
-  const safeText = v => (v ?? "").toString();
-  const stageOf = r => safeText(r.onboarding_status).trim() || "New Signup";
+  function safeText(v){ return (v ?? "").toString(); }
+  function stageOf(r){ return safeText(r.onboarding_status).trim() || "New Signup"; }
 
   function setupTasks(r){
     return [
@@ -288,7 +320,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
       { key:"payments_connected", label:"Payments connected", done: !!r.payments_connected },
     ];
   }
-  const allDone = r => setupTasks(r).every(x=>x.done);
+  function allDone(r){ return setupTasks(r).every(x => x.done); }
 
   function attentionBadges(r){
     const stage = stageOf(r);
@@ -298,6 +330,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
     if(stage === "Needs Convincing") badges.push(`<span class="badge follow">Follow-up</span>`);
     return badges.length ? `<span class="badges">${badges.join("")}</span>` : "—";
   }
+
   function opsDots(r){
     const items = setupTasks(r);
     return `<span class="pipe">${
@@ -401,8 +434,9 @@ tr:hover{background:#f7fbff;cursor:pointer}
       b.textContent = stage;
       b.onclick = async (e)=>{
         e.stopPropagation();
-        if(!activeRow || !sb) return;
+        if(!activeRow) return;
         if(stageOf(activeRow) === stage) return;
+
         const updated = await updateCustomer(activeRow.id, { onboarding_status: stage });
         if(updated){
           activeRow = updated;
@@ -444,7 +478,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
   }
 
   async function saveNotesNow(){
-    if(!activeRow || !sb) return;
+    if(!activeRow) return;
     drawerHint.textContent = "Saving…";
     const patch = { notes: drawerNotes.value, lead_notes: drawerLeadNotes.value };
     const { error } = await sb.from("customers").update(patch).eq("id", activeRow.id);
@@ -462,6 +496,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
       rows[idx].lead_notes = patch.lead_notes;
     }
   }
+
   function queueNotesSave(){ clearTimeout(noteTimer); noteTimer = setTimeout(saveNotesNow, 450); }
 
   function fmtErr(err){
@@ -478,10 +513,11 @@ tr:hover{background:#f7fbff;cursor:pointer}
     statusBar.textContent = "Loading…";
     tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
 
-    if(!sb){
-      showError("Supabase client not ready. Check URL/key.");
+    if(SUPABASE_URL.includes("PASTE_") || SUPABASE_ANON_KEY.includes("PASTE_")){
+      showError("Supabase credentials not set.\n\nPaste Project URL + anon public key into SUPABASE_URL and SUPABASE_ANON_KEY.");
       rows = [];
-      render();
+      renderStatuses(); render();
+      dbg("✅ Page rendered. ❌ Missing Supabase credentials.");
       return;
     }
 
@@ -491,11 +527,12 @@ tr:hover{background:#f7fbff;cursor:pointer}
       const msg = fmtErr(error);
       showError(
         "Failed to load customers:\n\n" + msg + "\n\n" +
-        "If it says Invalid API key: your URL and anon key do not match.\n" +
-        "If it says permission denied: your RLS SELECT policy for anon is missing."
+        "If it says Invalid API key: your URL + key are from different Supabase projects.\n" +
+        "If it says permission denied: RLS SELECT policy missing for anon."
       );
       rows = [];
-      render();
+      renderStatuses(); render();
+      dbg("✅ Page rendered. ❌ Supabase error:\n" + msg);
       return;
     }
 
@@ -503,9 +540,10 @@ tr:hover{background:#f7fbff;cursor:pointer}
     renderStatuses();
     render();
     statusBar.textContent = `${rows.length} total`;
+    dbg("✅ Loaded. Rows: " + rows.length);
   }
 
-  // Wire events
+  // wire UI
   btnRefresh.onclick = load;
   btnNew.onclick = ()=> window.open("app.html", "_blank", "noopener");
   btnClear.onclick = ()=>{ activeStatus=null; search.value=""; renderStatuses(); render(); };
@@ -530,7 +568,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
 
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-key]");
-    if(!item || !activeRow || !sb) return;
+    if(!item || !activeRow) return;
     const key = item.dataset.key;
     const patch = {}; patch[key] = !activeRow[key];
     const updated = await updateCustomer(activeRow.id, patch);
@@ -542,23 +580,21 @@ tr:hover{background:#f7fbff;cursor:pointer}
     }
   }, true);
 
-  // Boot: create client safely
+  // Boot
   try{
-    if(typeof window.supabase === "undefined"){
-      showError("Supabase library failed to load (CDN). Refresh or check network.");
-      return;
-    }
-    if(!SUPABASE_URL.startsWith("https://") || SUPABASE_ANON_KEY.includes("PASTE_")){
-      showError("Supabase credentials not set.\n\nPaste your anon public key into SUPABASE_ANON_KEY.");
-      return;
-    }
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    dbg("✅ Page rendered. Importing Supabase…");
+    const mod = await import("https://esm.sh/@supabase/supabase-js@2");
+    const { createClient } = mod;
+    sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    dbg("✅ Supabase imported. Loading customers…");
     renderStatuses();
-    load();
+    await load();
+    window.__tbp = { sb };
   }catch(err){
-    showError("Fatal startup error:\n\n" + (err?.message || String(err)));
+    const msg = (err?.message || String(err));
+    showError("Supabase import failed:\n\n" + msg + "\n\nThis would normally cause a white screen — now you can see it.");
+    dbg("❌ Supabase import failed:\n" + msg);
   }
-})();
 </script>
 
 </body>
