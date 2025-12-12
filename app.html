@@ -1059,162 +1059,116 @@
 </div>
 
 <script>
+  
   window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // ---- Required elements (safe if missing) ----
-  const form = document.getElementById("profileForm");
+  // ---------- helpers ----------
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-  const pillCustomerId = document.getElementById("pillCustomerId");
-  const pillStatus     = document.getElementById("pillStatus");
-  const pillLocked     = document.getElementById("pillLocked");
-
-  const pillWhatsApp   = document.getElementById("pillWhatsApp");
-  const pillCalendar   = document.getElementById("pillCalendar");
-  const pillPayments   = document.getElementById("pillPayments");
-
-  const lockBanner  = document.getElementById("lockBanner");
-
-  const btnNew      = document.getElementById("btnNew");
-  const btnComplete = document.getElementById("btnComplete");  // your "Next step"/Complete button
-  const btnUnlock   = document.getElementById("btnUnlock");
-
-  const btnMarkWhatsApp = document.getElementById("btnMarkWhatsApp");
-  const btnMarkCalendar = document.getElementById("btnMarkCalendar");
-  const btnMarkPayments = document.getElementById("btnMarkPayments");
-  const btnPause        = document.getElementById("btnPause");
-
-  let customerId = null;
-  let autoSaveTimer = null;
-  let isBootstrapping = true;
-  let isLocked = false;
-
-  // =========================
-  // Helpers
-  // =========================
   function qs(name){
     const u = new URL(window.location.href);
     return u.searchParams.get(name);
   }
-
   function setUrlCustomerId(id){
     const u = new URL(window.location.href);
     if (id) u.searchParams.set("id", id);
     else u.searchParams.delete("id");
     window.history.replaceState({}, "", u.toString());
   }
-
   function toNullIfEmpty(v){
     const s = (v ?? "").toString().trim();
     return s.length ? s : null;
   }
-
   function toNumberOrNull(v){
     const s = (v ?? "").toString().trim();
     if (!s) return null;
     const n = Number(s);
     return Number.isFinite(n) ? n : null;
   }
+  function safeSetText(el, txt){ if (el) el.textContent = txt; }
 
-  function safeSetText(el, txt){
-    if (el) el.textContent = txt;
+  // Find buttons by ID OR by text label (so it works with your current UI)
+  function findButton(ids, textIncludes){
+    for (const id of ids){
+      const el = document.getElementById(id);
+      if (el) return el;
+    }
+    const candidates = $$("button, a").filter(el => (el.textContent || "").trim().toLowerCase().includes(textIncludes.toLowerCase()));
+    return candidates[0] || null;
   }
 
-  // =========================
-  // Locking (IMPORTANT FIX)
-  // Only disable form fields (input/select/textarea).
-  // Do NOT disable buttons (chips are often buttons).
-  // =========================
+  // ---------- required form ----------
+  const form = document.getElementById("profileForm");
+  if (!form) {
+    console.error("profileForm not found. Your form must have id='profileForm'.");
+  }
+
+  // Pills (optional)
+  const pillCustomerId = document.getElementById("pillCustomerId");
+  const pillStatus     = document.getElementById("pillStatus");
+  const pillLocked     = document.getElementById("pillLocked");
+  const pillWhatsApp   = document.getElementById("pillWhatsApp");
+  const pillCalendar   = document.getElementById("pillCalendar");
+  const pillPayments   = document.getElementById("pillPayments");
+  const lockBanner     = document.getElementById("lockBanner");
+
+  // Buttons (ID or text fallback)
+  const btnNew      = findButton(["btnNew"], "new");
+  const btnComplete = findButton(["btnComplete"], "next") || findButton(["btnComplete"], "complete");
+  const btnUnlock   = findButton(["btnUnlock"], "unlock");
+
+  const btnMarkWhatsApp = findButton(["btnMarkWhatsApp"], "whatsapp");
+  const btnMarkCalendar = findButton(["btnMarkCalendar"], "calendar");
+  const btnMarkPayments = findButton(["btnMarkPayments"], "payments");
+  const btnPause        = findButton(["btnPause"], "pause");
+
+  // Force key buttons to NOT submit the form
+  [btnNew, btnComplete, btnUnlock, btnMarkWhatsApp, btnMarkCalendar, btnMarkPayments, btnPause].forEach(b => {
+    if (b && b.tagName === "BUTTON") b.type = "button";
+  });
+
+  // Diagnostics (so we stop guessing)
+  const missing = [];
+  if (!form) missing.push("profileForm");
+  if (!btnComplete) missing.push("Complete/Next button (id btnComplete OR text contains 'Next'/'Complete')");
+  if (!btnNew) missing.push("New button (id btnNew OR text contains 'New')");
+  if (!btnUnlock) missing.push("Unlock button (id btnUnlock OR text contains 'Unlock')");
+  if (missing.length) {
+    console.warn("APP wiring: missing elements:", missing);
+  } else {
+    console.log("APP wiring: buttons found OK");
+  }
+
+  // ---------- state ----------
+  let customerId = null;
+  let autoSaveTimer = null;
+  let isBootstrapping = true;
+  let isLocked = false;
+
   function applyLock(locked){
     isLocked = !!locked;
 
-    const fields = form.querySelectorAll("input, select, textarea");
-    fields.forEach(el => {
-      // allow Unlock to remain clickable (it's a button anyway)
-      el.disabled = isLocked;
-    });
+    // Only disable fields (chips are often buttons)
+    if (form) {
+      form.querySelectorAll("input, select, textarea").forEach(el => {
+        el.disabled = isLocked;
+      });
+    }
 
     if (lockBanner) lockBanner.style.display = isLocked ? "block" : "none";
-    if (btnUnlock) btnUnlock.style.display = isLocked ? "inline-block" : "none";
+    if (btnUnlock && btnUnlock.style) btnUnlock.style.display = isLocked ? "inline-block" : "none";
 
     safeSetText(pillLocked, `Locked: ${isLocked ? "Yes" : "No"}`);
 
-    // If you want to stop completing/saving while locked:
-    if (btnComplete) btnComplete.disabled = isLocked;
-    const btnSave = document.getElementById("btnSave");
-    if (btnSave) btnSave.disabled = isLocked;
+    // stop next/complete while locked
+    if (btnComplete && btnComplete.tagName === "BUTTON") btnComplete.disabled = isLocked;
   }
 
-  // =========================
-  // Chip click handler (FIX)
-  // Supports:
-  //  - <button class="chip" data-name="onboarding_status" data-value="Demo Booked">
-  //  - Labels wrapping radios
-  // =========================
-  function setControlValue(name, value){
-    const el = form.elements[name];
-    if (!el) return false;
-
-    // Radio group
-    if (el instanceof RadioNodeList || (el.length && el[0] && el[0].type === "radio")) {
-      const radios = el instanceof RadioNodeList ? Array.from(el) : Array.from(el);
-      radios.forEach(r => r.checked = (r.value === value));
-      return true;
-    }
-
-    // Normal input/select/textarea
-    el.value = value;
-    el.dispatchEvent(new Event("input", { bubbles:true }));
-    el.dispatchEvent(new Event("change", { bubbles:true }));
-    return true;
-  }
-
-  function activateChipUI(chip){
-    // If chips are grouped, we remove active from siblings in same container
-    const group = chip.closest("[data-chip-group]") || chip.parentElement;
-    if (group) {
-      group.querySelectorAll(".active, [aria-pressed='true']").forEach(x => {
-        x.classList.remove("active");
-        x.setAttribute("aria-pressed", "false");
-      });
-    }
-    chip.classList.add("active");
-    chip.setAttribute("aria-pressed", "true");
-  }
-
-  function wireChips(){
-    // Event delegation: any element with data-name + data-value acts as a chip
-    document.addEventListener("click", (e) => {
-      const chip = e.target.closest("[data-name][data-value]");
-      if (!chip) return;
-      if (isLocked) return;
-
-      const name = chip.getAttribute("data-name");
-      const value = chip.getAttribute("data-value");
-
-      const ok = setControlValue(name, value);
-      if (ok) {
-        activateChipUI(chip);
-        debounceAutosave();
-      }
-    }, true);
-
-    // Also support label-wrapped radios:
-    // if a label is clicked, browser will check the radio; we just autosave.
-    document.addEventListener("change", (e) => {
-      if (isLocked) return;
-      const t = e.target;
-      if (t && t.matches && (t.matches("input[type='radio']") || t.matches("input[type='checkbox']") || t.matches("select"))) {
-        debounceAutosave();
-      }
-    }, true);
-  }
-
-  // =========================
-  // Payload mapping
-  // =========================
+  // ---------- payload ----------
   function buildPayloadFromForm(){
     const fd = new FormData(form);
 
@@ -1240,12 +1194,11 @@
       pricing_notes: toNullIfEmpty(fd.get("pricing_notes")),
 
       services_summary: toNullIfEmpty(fd.get("services_summary")),
+      ai_style_notes: toNullIfEmpty(fd.get("ai_style_notes")),
+      notes: toNullIfEmpty(fd.get("notes")),
 
       onboarding_status: toNullIfEmpty(fd.get("onboarding_status")) || "New Signup",
-      wizard_completed: (fd.get("wizard_completed") === "true"),
-
-      ai_style_notes: toNullIfEmpty(fd.get("ai_style_notes")),
-      notes: toNullIfEmpty(fd.get("notes"))
+      wizard_completed: (fd.get("wizard_completed") === "true")
     };
   }
 
@@ -1258,13 +1211,11 @@
 
     setVal("business_name", row.business_name);
     setVal("trade_type", row.trade_type);
-
     setVal("contact_name", row.contact_name);
     setVal("owner_name", row.owner_name);
     setVal("email", row.email);
     setVal("phone", row.phone);
     setVal("whatsapp_number", row.whatsapp_number);
-
     setVal("lead_source", row.lead_source || "TradeBotPro Website");
 
     setVal("base_postcode", row.base_postcode);
@@ -1277,39 +1228,26 @@
     setVal("pricing_notes", row.pricing_notes);
 
     setVal("services_summary", row.services_summary);
+    setVal("ai_style_notes", row.ai_style_notes);
+    setVal("notes", row.notes);
 
     setVal("onboarding_status", row.onboarding_status || "New Signup");
     setVal("wizard_completed", row.wizard_completed ? "true" : "false");
-
-    setVal("ai_style_notes", row.ai_style_notes);
-    setVal("notes", row.notes);
   }
 
   function updatePillsFromRow(row){
     safeSetText(pillCustomerId, `Customer: ${row?.id ? row.id : "—"}`);
     safeSetText(pillStatus, `Status: ${row?.onboarding_status || "New Signup"}`);
-
     safeSetText(pillWhatsApp, `WhatsApp: ${row?.whatsapp_connected ? "Connected" : "Not connected"}`);
     safeSetText(pillCalendar, `Calendar: ${row?.calendar_connected ? "Connected" : "Not connected"}`);
     safeSetText(pillPayments, `Payments: ${row?.payments_connected ? "Connected" : "Not connected"}`);
-
     applyLock(!!row?.wizard_completed);
   }
 
-  // =========================
-  // DB
-  // =========================
+  // ---------- DB ----------
   async function loadCustomer(id){
-    const { data, error } = await supabase
-      .from("customers")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error){
-      console.error("Load customer error:", error);
-      return null;
-    }
+    const { data, error } = await supabase.from("customers").select("*").eq("id", id).single();
+    if (error) { console.error("Load customer error:", error); return null; }
     return data;
   }
 
@@ -1324,10 +1262,7 @@
       .select("*")
       .single();
 
-    if (error){
-      console.error("Save customer error:", error);
-      throw error;
-    }
+    if (error){ console.error("Save customer error:", error); throw error; }
 
     customerId = data.id;
     setUrlCustomerId(customerId);
@@ -1336,24 +1271,44 @@
   }
 
   function debounceAutosave(){
-    if (isBootstrapping) return;
-    if (isLocked) return;
-
+    if (isBootstrapping || isLocked) return;
     clearTimeout(autoSaveTimer);
     autoSaveTimer = setTimeout(async () => {
-      try{
-        await saveCustomer(buildPayloadFromForm());
-      }catch(e){
-        // quiet UI
-      }
+      try { await saveCustomer(buildPayloadFromForm()); } catch(e) {}
     }, 650);
   }
 
-  // =========================
-  // INIT
-  // =========================
-  wireChips();
+  // ---------- CHIP SUPPORT (click anything with data-name/data-value) ----------
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-name][data-value]");
+    if (!chip || isLocked || !form) return;
 
+    e.preventDefault();
+    e.stopPropagation();
+
+    const name = chip.getAttribute("data-name");
+    const value = chip.getAttribute("data-value");
+    const el = form.elements[name];
+
+    if (!el) return;
+
+    // set value
+    if (el instanceof RadioNodeList || (el.length && el[0] && el[0].type === "radio")){
+      const radios = Array.from(el);
+      radios.forEach(r => r.checked = (r.value === value));
+    } else {
+      el.value = value;
+    }
+
+    // UI active class (optional)
+    const group = chip.closest("[data-chip-group]") || chip.parentElement;
+    if (group) group.querySelectorAll(".active").forEach(x => x.classList.remove("active"));
+    chip.classList.add("active");
+
+    debounceAutosave();
+  }, true);
+
+  // ---------- init ----------
   (async function init(){
     customerId = qs("id");
 
@@ -1373,82 +1328,87 @@
     }
   })();
 
-  form.addEventListener("input", debounceAutosave);
-  form.addEventListener("change", debounceAutosave);
+  if (form){
+    form.addEventListener("input", debounceAutosave);
+    form.addEventListener("change", debounceAutosave);
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (isLocked) return;
-    await saveCustomer(buildPayloadFromForm());
-  });
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (isLocked) return;
+      await saveCustomer(buildPayloadFromForm());
+    });
+  }
 
+  // ---------- button actions ----------
   if (btnNew){
-    btnNew.addEventListener("click", () => {
+    btnNew.addEventListener("click", (e) => {
+      e.preventDefault();
       customerId = null;
       setUrlCustomerId(null);
-      form.reset();
+      if (form) form.reset();
       updatePillsFromRow({});
     });
   }
 
-  // =========================
-  // COMPLETE / NEXT STEP (FIX)
-  // =========================
   if (btnComplete){
-    btnComplete.addEventListener("click", async () => {
-      if (isLocked) return;
+    btnComplete.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (isLocked || !form) return;
 
-      // ensure record exists
-      if (!customerId){
-        await saveCustomer(buildPayloadFromForm());
-      }
+      // ensure row exists
+      if (!customerId) await saveCustomer(buildPayloadFromForm());
 
-      // force UI controls if they exist
+      // set status + lock
       if (form.elements["onboarding_status"]) form.elements["onboarding_status"].value = "Demo Booked";
       if (form.elements["wizard_completed"]) form.elements["wizard_completed"].value = "true";
 
-      // write DB + lock
-      const payload = {
+      const saved = await saveCustomer({
         ...buildPayloadFromForm(),
         onboarding_status: "Demo Booked",
         wizard_completed: true,
         pending_setup: true
-      };
+      });
 
-      const saved = await saveCustomer(payload);
       setFormFromRow(saved);
       applyLock(true);
     });
   }
 
   if (btnUnlock){
-    btnUnlock.addEventListener("click", async () => {
+    btnUnlock.addEventListener("click", async (e) => {
+      e.preventDefault();
       if (!confirm("Unlock this setup to allow editing?")) return;
-      if (form.elements["wizard_completed"]) form.elements["wizard_completed"].value = "false";
+      if (form && form.elements["wizard_completed"]) form.elements["wizard_completed"].value = "false";
       const saved = await saveCustomer({ wizard_completed: false });
       applyLock(false);
       updatePillsFromRow(saved);
     });
   }
 
-  // Quick flags
   if (btnMarkWhatsApp){
-    btnMarkWhatsApp.addEventListener("click", async () => {
+    btnMarkWhatsApp.addEventListener("click", async (e) => {
+      e.preventDefault();
       await saveCustomer({ whatsapp_connected: true, onboarding_status: "WhatsApp Connected" });
     });
   }
+
   if (btnMarkCalendar){
-    btnMarkCalendar.addEventListener("click", async () => {
+    btnMarkCalendar.addEventListener("click", async (e) => {
+      e.preventDefault();
       await saveCustomer({ calendar_connected: true, onboarding_status: "Calendar Linked" });
     });
   }
+
   if (btnMarkPayments){
-    btnMarkPayments.addEventListener("click", async () => {
+    btnMarkPayments.addEventListener("click", async (e) => {
+      e.preventDefault();
       await saveCustomer({ payments_connected: true, onboarding_status: "Payments Connected" });
     });
   }
+
   if (btnPause){
-    btnPause.addEventListener("click", async () => {
+    btnPause.addEventListener("click", async (e) => {
+      e.preventDefault();
       await saveCustomer({ account_status: "Paused", onboarding_status: "Paused" });
     });
   }
