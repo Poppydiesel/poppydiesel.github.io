@@ -202,7 +202,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
 .dot.done{background:#dcfce7;border-color:rgba(15,123,70,.55)}
 .dot.need{background:#fff1f2;border-color:rgba(179,38,30,.35)}
 
-/* BACKDROP */
+/* BACKDROP (click outside to close) */
 .backdrop{
   position:fixed;
   inset:0;
@@ -221,7 +221,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
 .drawer{
   position:fixed;
   top:0;
-  right:-720px;
+  right:-720px;            /* match width */
   width:720px;
   max-width:98vw;
   height:100%;
@@ -317,8 +317,6 @@ tr:hover{background:#f7fbff;cursor:pointer}
   background:#fff;
   resize:vertical;
 }
-.small-note{font-size:.78rem;color:var(--muted-text);margin-top:.35rem}
-code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.85em}
 </style>
 </head>
 
@@ -377,13 +375,14 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
   </div>
 </main>
 
+<!-- Backdrop -->
 <div class="backdrop" id="backdrop" aria-hidden="true"></div>
 
+<!-- Drawer -->
 <div class="drawer" id="drawer" aria-hidden="true">
   <div class="drawer-header">
     <div class="drawer-title" id="drawerTitle">Customer</div>
     <div class="drawer-sub" id="drawerSub">—</div>
-    <div class="small-note">If data is blank, check RLS SELECT for anon on <code class="inline">public.customers</code>.</div>
   </div>
 
   <div class="drawer-body">
@@ -414,7 +413,7 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // DOM
@@ -468,6 +467,7 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
       { key:"payments_connected", label:"Payments connected", done: !!r.payments_connected },
     ];
   }
+
   function allDone(r){
     return setupTasks(r).every(x => x.done);
   }
@@ -555,7 +555,9 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
         <td>${updTxt}</td>
       `;
 
+      // Row click opens drawer (NOT wizard)
       tr.onclick = ()=> openDrawer(r);
+
       tbody.appendChild(tr);
     }
 
@@ -580,6 +582,7 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
     drawerLeadNotes.value = r.lead_notes || "";
     drawerHint.textContent = "Autosaves";
 
+    // Show
     drawer.classList.add("open");
     drawer.setAttribute("aria-hidden","false");
     backdrop.classList.add("show");
@@ -679,12 +682,13 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
     noteTimer = setTimeout(saveNotesNow, 450);
   }
 
-  // UI events
+  // Controls
   btnRefresh.onclick = load;
   btnNew.onclick = ()=> window.open("app.html", "_blank", "noopener");
   btnClear.onclick = ()=>{ activeStatus=null; search.value=""; renderStatuses(); render(); };
   search.oninput = render;
 
+  // Drawer buttons
   btnCloseDrawer.onclick = closeDrawer;
   btnOpenWizard.onclick = (e)=>{
     e.stopPropagation();
@@ -694,8 +698,10 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
   drawerNotes.addEventListener("input", queueNotesSave);
   drawerLeadNotes.addEventListener("input", queueNotesSave);
 
+  // Click outside closes
   backdrop.addEventListener("click", closeDrawer);
 
+  // ESC closes (ONLY when drawer is open)
   document.addEventListener("keydown", (e)=>{
     if(e.key === "Escape" && drawer.classList.contains("open")){
       e.preventDefault();
@@ -703,7 +709,7 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
     }
   });
 
-  // Toggle ops tasks
+  // Toggle ops tasks in drawer
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-key]");
     if(!item || !activeRow) return;
@@ -722,63 +728,28 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
     }
   }, true);
 
-  function formatSupabaseError(error){
-    try{
-      const parts = [];
-      if(error?.message) parts.push(error.message);
-      if(error?.details) parts.push(error.details);
-      if(error?.hint) parts.push(error.hint);
-      if(error?.code) parts.push("code: " + error.code);
-      return parts.length ? parts.join("\n") : JSON.stringify(error);
-    }catch{
-      return String(error);
-    }
-  }
-
   async function load(){
     clearError();
     statusBar.textContent = "Loading…";
     tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
 
-    // Fetch + show useful diagnostics if empty
-    const { data, error } = await sb.from("customers").select("*").order("updated_at", { ascending:false });
-
+    const { data, error } = await sb.from("customers").select("*");
     if(error){
-      console.error("[customers select] error", error);
-      showError(
-        "Failed to load customers.\n\n" +
-        formatSupabaseError(error) +
-        "\n\nMost common cause: RLS is blocking SELECT for anon on public.customers."
-      );
+      console.error(error);
+      showError("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
       rows = [];
       render();
       return;
     }
 
     rows = Array.isArray(data) ? data : [];
-
-    // If empty, show guidance (so you don't think the UI is broken)
-    if(rows.length === 0){
-      showError(
-        "Customers returned 0 rows.\n\n" +
-        "If you CAN see rows in Supabase Table Editor but NOT here, it's RLS.\n" +
-        "Make sure you have a SELECT policy for role 'anon' on public.customers."
-      );
-    }
-
     renderStatuses();
     render();
-
-    // Debug line (handy)
-    console.log("[dashboard] loaded customers:", rows.length);
   }
 
   // Init
   renderStatuses();
   load();
-
-  // expose sb for quick console tests if needed
-  window.__tbp = { sb };
 </script>
 
 </body>
