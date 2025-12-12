@@ -83,14 +83,25 @@
       color:var(--primary-blue);font-weight:800;font-size:.85rem;
     }
 
+    /* ✅ CONTROLS: ONE ROW ON DESKTOP */
     .controls{
-      display:flex;flex-wrap:wrap;gap:.65rem;
-      align-items:center;justify-content:space-between;
+      display:flex;
+      align-items:center;
+      gap:.65rem;
       margin-bottom:.85rem;
+      flex-wrap:nowrap;
     }
-    .controls-left{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center}
+    .controls-left,
+    .controls-right{
+      display:flex;
+      align-items:center;
+      gap:.55rem;
+      flex-wrap:nowrap;
+    }
+    .controls-left{flex:1; min-width:0;}
     .search{
-      width:min(520px,100%);
+      flex:1;
+      min-width:260px;
       display:flex;gap:.5rem;align-items:center;
       padding:.6rem .7rem;border-radius:.75rem;
       border:1px solid var(--border-subtle);background:var(--white);
@@ -103,6 +114,7 @@
       cursor:pointer;display:inline-flex;align-items:center;gap:.35rem;
       background:transparent;
       user-select:none;
+      white-space:nowrap;
     }
     .btn-secondary{border-color:var(--border-subtle);background:#f9fafb;color:var(--dark-text)}
     .btn-secondary:hover{background:#e5e7eb}
@@ -112,6 +124,13 @@
       box-shadow:0 12px 28px rgba(15,23,42,0.35);
     }
     .btn-primary:hover{filter:brightness(1.03);box-shadow:0 16px 34px rgba(15,23,42,0.4)}
+
+    @media (max-width: 900px){
+      .controls{flex-wrap:wrap;}
+      .controls-left{flex:1 1 100%;}
+      .controls-right{width:100%; justify-content:flex-end;}
+      .search{min-width:0;}
+    }
 
     .banner{
       display:none;margin:0 0 .85rem;
@@ -263,14 +282,17 @@
 
     <div class="status-strip" id="status-strip"></div>
 
+    <!-- ✅ ONE ROW: Clear filters | Search | Refresh | New customer -->
     <div class="controls">
       <div class="controls-left">
+        <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filters</button>
+
         <div class="search">
           <span style="opacity:.7">🔎</span>
           <input id="search" type="text" placeholder="Search name, business, email, phone, postcode…" />
         </div>
-        <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filters</button>
       </div>
+
       <div class="controls-right">
         <button class="btn btn-secondary" id="btn-refresh" type="button">↻ Refresh</button>
         <button class="btn btn-primary" id="btn-new" type="button">+ New customer</button>
