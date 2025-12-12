@@ -112,8 +112,6 @@
       box-shadow:0 12px 28px rgba(15,23,42,0.35);
     }
     .btn-primary:hover{filter:brightness(1.03);box-shadow:0 16px 34px rgba(15,23,42,0.4)}
-    .btn-danger{border-color:rgba(179,38,30,0.28);background:#fff1f2;color:#7f1d1d}
-    .btn-danger:hover{background:#ffe4e6}
 
     .banner{
       display:none;margin:0 0 .85rem;
@@ -205,6 +203,7 @@
     .check-item{
       display:flex;align-items:center;justify-content:space-between;gap:.6rem;
       padding:.45rem 0;border-bottom:1px dashed rgba(148,163,184,0.55);
+      cursor:pointer;
     }
     .check-item:last-child{border-bottom:0}
     .check-left{display:flex;align-items:center;gap:.55rem;min-width:0}
@@ -259,8 +258,8 @@
 <main>
   <section class="panel">
     <div class="kicker">Sales stage</div>
-    <h1 class="title">Customers by onboarding status (sales) + setup pipeline (ops)</h1>
-    <p class="subtitle">Filter by sales stage. Pipeline dots + ops buttons toggle setup flags only.</p>
+    <h1 class="title">Customers by onboarding status (sales) + setup tasks (ops)</h1>
+    <p class="subtitle">Filter by sales stage. Dots/toggles are ops tasks only.</p>
 
     <div class="status-strip" id="status-strip"></div>
 
@@ -285,7 +284,7 @@
         <thead>
           <tr>
             <th>Onboarding status (sales)</th>
-            <th>Setup pipeline (ops)</th>
+            <th>Setup tasks (ops)</th>
             <th>Business</th>
             <th>Contact</th>
             <th>Email</th>
@@ -310,24 +309,25 @@
   </div>
 
   <div class="drawer-body">
+
     <div class="drawer-row">
-      <div class="drawer-field">
-        <label>Onboarding status (sales)</label>
-        <div class="action-grid" id="salesButtons"></div>
+      <div>
+        <div class="drawer-section-title">Sales stage</div>
+        <div class="checklist" id="salesChecklist"></div>
       </div>
 
-      <div class="drawer-field">
-        <label>Actions</label>
+      <div>
+        <div class="drawer-section-title">Actions</div>
         <div class="action-grid">
           <button class="btn btn-secondary" id="btnOpenWizard" type="button">Open wizard</button>
         </div>
       </div>
     </div>
 
-    <div class="drawer-section-title">Setup pipeline (ops)</div>
+    <div class="drawer-section-title">Setup tasks (ops)</div>
     <div class="checklist" id="pipelineChecklist"></div>
 
-    <div class="drawer-section-title">Mark setup complete (one click)</div>
+    <div class="drawer-section-title">Setup tasks (one-click actions)</div>
     <div class="action-grid" id="opsButtons"></div>
 
     <div class="drawer-row" style="margin-top:.8rem;">
@@ -400,20 +400,19 @@
   const drawerHint = document.getElementById("drawerHint");
   const pipelineChecklist = document.getElementById("pipelineChecklist");
   const opsButtons = document.getElementById("opsButtons");
-  const salesButtons = document.getElementById("salesButtons");
+  const salesChecklist = document.getElementById("salesChecklist");
 
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
   const btnOpenWizard = document.getElementById("btnOpenWizard");
 
   // State
   let allRows = [];
-  let activeStatus = null;   // SALES filter only
+  let activeStatus = null;
   let statusOrder = [];
   let activeRow = null;
   let noteTimer = null;
 
-  // Sales stages (buttons only)
-  const DEFAULT_STATUSES = [
+  const SALES_STAGES = [
     "New Signup",
     "In Setup",
     "Demo",
@@ -470,13 +469,13 @@
   }
 
   function computeStatusOrder(distinctFromDb){
-    const set = new Set(DEFAULT_STATUSES);
+    const set = new Set(SALES_STAGES);
     (distinctFromDb||[]).forEach(s=>set.add(s));
 
     const all = Array.from(set);
     all.sort((a,b)=>{
-      const ia = DEFAULT_STATUSES.indexOf(a);
-      const ib = DEFAULT_STATUSES.indexOf(b);
+      const ia = SALES_STAGES.indexOf(a);
+      const ib = SALES_STAGES.indexOf(b);
       if(ia!==-1 && ib!==-1) return ia-ib;
       if(ia!==-1) return -1;
       if(ib!==-1) return 1;
@@ -510,8 +509,8 @@
     statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
   }
 
-  // -------- SETUP PIPELINE (OPS) --------
-  function setupPipeline(row){
+  // OPS checklist
+  function setupTasks(row){
     return [
       { key:"wizard",   label:"Wizard completed",   col:"wizard_completed",   done: !!row?.wizard_completed },
       { key:"whatsapp", label:"WhatsApp connected", col:"whatsapp_connected", done: !!row?.whatsapp_connected },
@@ -520,36 +519,49 @@
     ];
   }
 
-  function pipelineDotsHTML(row){
-    const items = setupPipeline(row);
+  function tasksDotsHTML(row){
+    const items = setupTasks(row);
     const dots = items.map(i => `
-      <span
-        class="dot ${i.done ? "done" : "need"}"
-        data-pipe="${i.key}"
-        data-id="${row.id}"
-        title="${escapeHtml(i.label)} — click to toggle"
-      ></span>
+      <span class="dot ${i.done ? "done" : "need"}"
+            data-task="${i.key}" data-id="${row.id}"
+            title="${escapeHtml(i.label)} — click to toggle"></span>
     `).join("");
 
     const doneCount = items.filter(i => i.done).length;
-    const totalCount = items.length;
-
-    return `<span class="pipe">${dots}<span class="dot-label">${doneCount}/${totalCount}</span></span>`;
+    return `<span class="pipe">${dots}<span class="dot-label">${doneCount}/${items.length}</span></span>`;
   }
 
-  function renderChecklist(row){
-    const items = setupPipeline(row);
+  function renderTasksChecklist(row){
+    const items = setupTasks(row);
     pipelineChecklist.innerHTML = items.map(i=>{
-      const badge = i.done ? "✓" : "•";
+      const badge = i.done ? "✓" : "";
       const badgeCls = i.done ? "check-badge done" : "check-badge";
-      const state = i.done ? "Completed" : "Needs doing";
+      const state = i.done ? "Completed" : "Click to toggle";
       return `
-        <div class="check-item">
+        <div class="check-item" data-task="${i.key}">
           <div class="check-left">
             <div class="${badgeCls}">${badge}</div>
             <div class="check-name">${escapeHtml(i.label)}</div>
           </div>
           <div class="check-state">${escapeHtml(state)}</div>
+        </div>`;
+    }).join("");
+  }
+
+  // SALES checklist (single-select)
+  function renderSalesChecklist(row){
+    const current = salesStatus(row);
+    salesChecklist.innerHTML = SALES_STAGES.map(stage=>{
+      const done = current === stage;
+      const badgeCls = done ? "check-badge done" : "check-badge";
+      const state = done ? "Current" : "Click to set";
+      return `
+        <div class="check-item" data-sales="${escapeHtml(stage)}">
+          <div class="check-left">
+            <div class="${badgeCls}">${done ? "✓" : ""}</div>
+            <div class="check-name">${escapeHtml(stage)}</div>
+          </div>
+          <div class="check-state">${state}</div>
         </div>`;
     }).join("");
   }
@@ -570,65 +582,34 @@
 
   function renderOpsButtons(row){
     opsButtons.innerHTML = "";
-    const mk = (label, cls, onClick) => {
+    const mk = (label, onClick) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "btn " + cls;
+      b.className = "btn btn-secondary";
       b.textContent = label;
       b.addEventListener("click", (e)=>{ e.stopPropagation(); onClick(); });
       opsButtons.appendChild(b);
     };
 
-    mk(row.wizard_completed ? "Unmark Wizard" : "Mark Wizard", "btn-secondary", async ()=>{
+    mk(row.wizard_completed ? "Unmark Wizard" : "Mark Wizard", async ()=>{
       const updated = await updateCustomer(row.id, { wizard_completed: !row.wizard_completed });
       if(updated){ render(); openDrawer(updated); }
     });
 
-    mk(row.whatsapp_connected ? "WhatsApp ✅ (toggle)" : "WhatsApp ❌ (toggle)", "btn-secondary", async ()=>{
+    mk(row.whatsapp_connected ? "WhatsApp ✅ (toggle)" : "WhatsApp ❌ (toggle)", async ()=>{
       const updated = await updateCustomer(row.id, { whatsapp_connected: !row.whatsapp_connected });
       if(updated){ render(); openDrawer(updated); }
     });
 
-    mk(row.calendar_connected ? "Calendar ✅ (toggle)" : "Calendar ❌ (toggle)", "btn-secondary", async ()=>{
+    mk(row.calendar_connected ? "Calendar ✅ (toggle)" : "Calendar ❌ (toggle)", async ()=>{
       const updated = await updateCustomer(row.id, { calendar_connected: !row.calendar_connected });
       if(updated){ render(); openDrawer(updated); }
     });
 
-    mk(row.payments_connected ? "Payments ✅ (toggle)" : "Payments ❌ (toggle)", "btn-secondary", async ()=>{
+    mk(row.payments_connected ? "Payments ✅ (toggle)" : "Payments ❌ (toggle)", async ()=>{
       const updated = await updateCustomer(row.id, { payments_connected: !row.payments_connected });
       if(updated){ render(); openDrawer(updated); }
     });
-  }
-
-  function renderSalesButtons(row){
-    salesButtons.innerHTML = "";
-
-    const current = salesStatus(row);
-
-    const mk = (label, status, primary=false) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "btn " + (primary ? "btn-primary" : "btn-secondary");
-      b.textContent = label;
-      b.addEventListener("click", async (e)=>{
-        e.stopPropagation();
-        const updated = await updateCustomer(row.id, { onboarding_status: status });
-        if(updated){ render(); openDrawer(updated); }
-      });
-      // subtle visual hint for current status
-      if(status === current){
-        b.style.boxShadow = "0 0 0 2px rgba(31, 78, 121, 0.15)";
-        b.style.borderColor = "rgba(31, 78, 121, 0.45)";
-      }
-      salesButtons.appendChild(b);
-    };
-
-    mk("New Signup", "New Signup");
-    mk("In Setup", "In Setup");
-    mk("Demo", "Demo");
-    mk("Free Trial", "Free Trial");
-    mk("Needs Convincing", "Needs Convincing");
-    mk("Live", "Live", true);
   }
 
   function openDrawer(row){
@@ -648,8 +629,8 @@
     drawerNotes.value = row.notes || "";
     drawerLeadNotes.value = row.lead_notes || "";
 
-    renderSalesButtons(row);
-    renderChecklist(row);
+    renderSalesChecklist(row);
+    renderTasksChecklist(row);
     renderOpsButtons(row);
 
     drawerHint.textContent = "Autosaves";
@@ -715,7 +696,7 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${escapeHtml(salesStatus(r))}</td>
-        <td>${pipelineDotsHTML(r)}</td>
+        <td>${tasksDotsHTML(r)}</td>
         <td>${escapeHtml(r.business_name || "—")}</td>
         <td>${escapeHtml(r.contact_name || "—")}</td>
         <td>${escapeHtml(r.email || "—")}</td>
@@ -737,22 +718,10 @@
     statusBar.textContent = "Loading…";
     tbody.innerHTML = `<tr><td colspan="8">Loading…</td></tr>`;
 
-    let res;
-    try{
-      res = await sb.from("customers").select("*");
-    }catch(err){
-      console.error("LOAD THROW:", err);
-      setBanner("Failed to load customers (JS exception).\n\n" + (err?.message || String(err)));
-      allRows = [];
-      tbody.innerHTML = `<tr><td colspan="8">No data loaded.</td></tr>`;
-      statusBar.textContent = "Load failed.";
-      return;
-    }
-
-    const { data, error } = res;
+    const { data, error } = await sb.from("customers").select("*");
     if(error){
       console.error("LOAD ERROR:", error);
-      setBanner("Failed to load customers (Supabase).\n\n" + (error.message || JSON.stringify(error)));
+      setBanner("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
       allRows = [];
       tbody.innerHTML = `<tr><td colspan="8">No data loaded.</td></tr>`;
       statusBar.textContent = "Load failed.";
@@ -784,16 +753,28 @@
     window.open(`app.html?id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
   });
 
-  // ✅ Clickable pipeline dots (OPS toggles ONLY)
+  // Click sales checklist to set status (single-select)
   document.addEventListener("click", async (e)=>{
-    const dot = e.target.closest(".dot[data-pipe][data-id]");
+    const item = e.target.closest(".check-item[data-sales]");
+    if(!item || !activeRow) return;
+    e.stopPropagation();
+
+    const stage = item.dataset.sales;
+    if(salesStatus(activeRow) === stage) return;
+
+    const updated = await updateCustomer(activeRow.id, { onboarding_status: stage });
+    if(updated){ render(); openDrawer(updated); }
+  }, true);
+
+  // Click task dots in table to toggle
+  document.addEventListener("click", async (e)=>{
+    const dot = e.target.closest(".dot[data-task][data-id]");
     if(!dot) return;
 
-    e.stopPropagation(); // prevent opening the drawer row
+    e.stopPropagation();
 
     const id = dot.dataset.id;
-    const key = dot.dataset.pipe;
-
+    const key = dot.dataset.task;
     const row = allRows.find(r => r.id === id);
     if(!row) return;
 
@@ -808,6 +789,27 @@
       render();
       if(activeRow && activeRow.id === id) openDrawer(updated);
     }
+  }, true);
+
+  // Click task checklist in drawer to toggle
+  document.addEventListener("click", async (e)=>{
+    const item = e.target.closest(".check-item[data-task]");
+    if(!item || !activeRow) return;
+
+    // if it's inside sales checklist, ignore (handled above)
+    if(item.hasAttribute("data-sales")) return;
+
+    e.stopPropagation();
+
+    const key = item.dataset.task;
+    const patch = {};
+    if(key === "wizard")   patch.wizard_completed   = !activeRow.wizard_completed;
+    if(key === "whatsapp") patch.whatsapp_connected = !activeRow.whatsapp_connected;
+    if(key === "calendar") patch.calendar_connected = !activeRow.calendar_connected;
+    if(key === "payments") patch.payments_connected = !activeRow.payments_connected;
+
+    const updated = await updateCustomer(activeRow.id, patch);
+    if(updated){ render(); openDrawer(updated); }
   }, true);
 
   // Init
