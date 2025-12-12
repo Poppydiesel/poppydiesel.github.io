@@ -425,7 +425,20 @@
     let activeRow = null;
     let noteTimer = null;
 
-   const DEFAULT_STATUSES 
+ const DEFAULT_STATUSES = [
+  "New Signup",
+  "In Setup",
+  "Wizard Started",
+  "Wizard Completed",
+  "Demo",
+  "Free Trial",
+  "Needs Convincing",
+  "WhatsApp Connected",
+  "Calendar Connected",
+  "Live",
+  "Paused / Not Proceeding"
+];
+
 
     function setBanner(msg){
       if(!msg){ banner.textContent=""; banner.classList.remove("show"); return; }
