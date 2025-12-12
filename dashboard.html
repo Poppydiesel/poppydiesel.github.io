@@ -34,23 +34,6 @@ main{max-width:1200px;margin:0 auto;padding:1.2rem}
 h1{margin:.15rem 0 .35rem;color:var(--primary-blue)}
 .subtitle{font-size:.9rem;color:var(--muted-text);margin:0 0 .9rem}
 
-/* Debug banner (prevents white-page guessing) */
-.debug{
-  margin:0 auto;
-  max-width:1200px;
-  padding:.75rem 1.2rem;
-}
-.debug-box{
-  background:#0b1220;
-  color:#e5e7eb;
-  border-radius:1rem;
-  padding:.75rem .85rem;
-  font-size:.85rem;
-  border:1px solid rgba(255,255,255,.08);
-  white-space:pre-wrap;
-}
-.debug-box b{color:#93c5fd}
-
 /* status strip */
 .status-strip{display:flex;gap:.55rem;flex-wrap:wrap;margin-bottom:.75rem}
 .status-chip{
@@ -113,11 +96,11 @@ tr:hover{background:#f7fbff;cursor:pointer}
 }
 .backdrop.show{opacity:1;pointer-events:auto}
 
-/* === WIDE DRAWER (900px) === */
+/* === DRAWER (WIDER) === */
 .drawer{
   position:fixed;top:0;
-  right:-900px;
-  width:900px;
+  right:-900px;         /* must match width */
+  width:900px;          /* WIDER */
   max-width:98vw;
   height:100%;
   background:#fff;
@@ -128,6 +111,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
   flex-direction:column;
 }
 .drawer.open{right:0}
+
 .drawer-header{padding:1rem;border-bottom:1px solid var(--border-subtle);background:#f8fafc}
 .drawer-title{font-weight:800;color:var(--primary-blue);font-size:1.05rem}
 .drawer-sub{font-size:.85rem;color:var(--muted-text);margin-top:.25rem}
@@ -137,6 +121,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
   display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;
 }
 .drawer-hint{font-size:.82rem;color:var(--muted-text)}
+
 .section-title{font-weight:800;color:var(--primary-blue);font-size:.9rem;margin:.8rem 0 .4rem}
 .chip-row{display:flex;flex-wrap:wrap;gap:8px}
 .chip{
@@ -144,6 +129,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
   background:#fff;cursor:pointer;font-weight:650;font-size:.85rem;
 }
 .chip.is-active{background:#eef2ff;border-color:var(--primary-blue)}
+
 .checklist{border:1px solid rgba(15,23,42,.08);border-radius:.9rem;padding:.65rem .75rem}
 .check-item{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.55rem 0;cursor:pointer}
 .check-item:not(:last-child){border-bottom:1px dashed rgba(148,163,184,.55)}
@@ -155,6 +141,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
 .check-badge.done{border-color:rgba(15,123,70,0.35);background:#ecfdf5;color:#14532d}
 .check-name{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .check-state{font-size:.82rem;color:var(--muted-text);flex:0 0 auto}
+
 .drawer-body label{display:block;font-size:.78rem;color:var(--muted-text);margin:.6rem 0 .25rem}
 .drawer-body textarea{
   width:100%;min-height:110px;border-radius:.85rem;border:1px solid var(--border-subtle);
@@ -171,15 +158,11 @@ tr:hover{background:#f7fbff;cursor:pointer}
   </div>
 </header>
 
-<div class="debug">
-  <div class="debug-box" id="debugBox">Booting…</div>
-</div>
-
 <main>
   <div class="panel">
     <div class="kicker">Customers</div>
     <h1>Customers by onboarding status (sales) + setup tasks (ops)</h1>
-    <p class="subtitle">If this page breaks, the debug box above will tell you why.</p>
+    <p class="subtitle">Click a row to open the side panel. Press <b>Esc</b> to close.</p>
 
     <div class="status-strip" id="status-strip"></div>
 
@@ -237,10 +220,10 @@ tr:hover{background:#f7fbff;cursor:pointer}
 
     <div class="section-title">Notes</div>
     <label for="drawerNotes">Internal notes (autosaves)</label>
-    <textarea id="drawerNotes"></textarea>
+    <textarea id="drawerNotes" placeholder="Sales notes / objections / follow-up plan…"></textarea>
 
     <label for="drawerLeadNotes">Lead notes (autosaves)</label>
-    <textarea id="drawerLeadNotes"></textarea>
+    <textarea id="drawerLeadNotes" placeholder="Lead context, specifics…"></textarea>
   </div>
 
   <div class="drawer-footer">
@@ -252,30 +235,15 @@ tr:hover{background:#f7fbff;cursor:pointer}
   </div>
 </div>
 
-<script>
-  // Hard stop “white page”: show JS errors on-screen.
-  (function(){
-    const dbg = document.getElementById("debugBox");
-    function setDbg(msg){ dbg.textContent = msg; }
-    window.__setDbg = setDbg;
-
-    window.addEventListener("error", (e)=>{
-      setDbg("💥 JS Error:\n" + (e.message || e.error || "Unknown") + "\n\nCheck you didn't paste a stray <script> tag or missing quote.");
-    });
-    window.addEventListener("unhandledrejection", (e)=>{
-      setDbg("💥 Promise Error:\n" + (e.reason?.message || String(e.reason)));
-    });
-
-    setDbg("Booting… (page rendered OK)");
-  })();
-</script>
-
 <script type="module">
-  const dbg = window.__setDbg || (()=>{});
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   // ✅ Paste from Supabase → Project Settings → API
+  // Use Project URL + anon public key (NOT service_role)
   const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";
   const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_PUBLIC_KEY_HERE";
+
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const tbody = document.getElementById("tbody");
   const statusStrip = document.getElementById("status-strip");
@@ -299,7 +267,6 @@ tr:hover{background:#f7fbff;cursor:pointer}
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
   const btnOpenWizard = document.getElementById("btnOpenWizard");
 
-  let sb = null;
   let rows = [];
   let activeStatus = null;
   let activeRow = null;
@@ -471,6 +438,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
     clearError();
     const { data, error } = await sb.from("customers").update(patch).eq("id", id).select("*").single();
     if(error){
+      console.error(error);
       showError("Save failed:\n\n" + (error.message || JSON.stringify(error)));
       return null;
     }
@@ -483,6 +451,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
     const patch = { notes: drawerNotes.value, lead_notes: drawerLeadNotes.value };
     const { error } = await sb.from("customers").update(patch).eq("id", activeRow.id);
     if(error){
+      console.error(error);
       showError("Failed to save notes:\n\n" + (error.message || JSON.stringify(error)));
       drawerHint.textContent = "Save failed";
       return;
@@ -499,51 +468,6 @@ tr:hover{background:#f7fbff;cursor:pointer}
 
   function queueNotesSave(){ clearTimeout(noteTimer); noteTimer = setTimeout(saveNotesNow, 450); }
 
-  function fmtErr(err){
-    const parts=[];
-    if(err?.message) parts.push(err.message);
-    if(err?.details) parts.push(err.details);
-    if(err?.hint) parts.push(err.hint);
-    if(err?.code) parts.push("code: "+err.code);
-    return parts.filter(Boolean).join("\n") || JSON.stringify(err);
-  }
-
-  async function load(){
-    clearError();
-    statusBar.textContent = "Loading…";
-    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
-
-    if(SUPABASE_URL.includes("PASTE_") || SUPABASE_ANON_KEY.includes("PASTE_")){
-      showError("Supabase credentials not set.\n\nPaste Project URL + anon public key into SUPABASE_URL and SUPABASE_ANON_KEY.");
-      rows = [];
-      renderStatuses(); render();
-      dbg("✅ Page rendered. ❌ Missing Supabase credentials.");
-      return;
-    }
-
-    const { data, error } = await sb.from("customers").select("*").order("updated_at", { ascending:false });
-
-    if(error){
-      const msg = fmtErr(error);
-      showError(
-        "Failed to load customers:\n\n" + msg + "\n\n" +
-        "If it says Invalid API key: your URL + key are from different Supabase projects.\n" +
-        "If it says permission denied: RLS SELECT policy missing for anon."
-      );
-      rows = [];
-      renderStatuses(); render();
-      dbg("✅ Page rendered. ❌ Supabase error:\n" + msg);
-      return;
-    }
-
-    rows = Array.isArray(data) ? data : [];
-    renderStatuses();
-    render();
-    statusBar.textContent = `${rows.length} total`;
-    dbg("✅ Loaded. Rows: " + rows.length);
-  }
-
-  // wire UI
   btnRefresh.onclick = load;
   btnNew.onclick = ()=> window.open("app.html", "_blank", "noopener");
   btnClear.onclick = ()=>{ activeStatus=null; search.value=""; renderStatuses(); render(); };
@@ -580,21 +504,55 @@ tr:hover{background:#f7fbff;cursor:pointer}
     }
   }, true);
 
-  // Boot
-  try{
-    dbg("✅ Page rendered. Importing Supabase…");
-    const mod = await import("https://esm.sh/@supabase/supabase-js@2");
-    const { createClient } = mod;
-    sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    dbg("✅ Supabase imported. Loading customers…");
-    renderStatuses();
-    await load();
-    window.__tbp = { sb };
-  }catch(err){
-    const msg = (err?.message || String(err));
-    showError("Supabase import failed:\n\n" + msg + "\n\nThis would normally cause a white screen — now you can see it.");
-    dbg("❌ Supabase import failed:\n" + msg);
+  function fmtErr(err){
+    const parts=[];
+    if(err?.message) parts.push(err.message);
+    if(err?.details) parts.push(err.details);
+    if(err?.hint) parts.push(err.hint);
+    if(err?.code) parts.push("code: "+err.code);
+    return parts.filter(Boolean).join("\n") || JSON.stringify(err);
   }
+
+  async function load(){
+    clearError();
+    statusBar.textContent = "Loading…";
+    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
+
+    // 🔥 If you forgot to paste credentials, don’t silently hang
+    if(SUPABASE_URL.includes("PASTE_") || SUPABASE_ANON_KEY.includes("PASTE_")){
+      showError(
+        "Supabase credentials not set.\n\n" +
+        "Paste your Project URL + anon public key into SUPABASE_URL and SUPABASE_ANON_KEY in dashboard.html."
+      );
+      rows = [];
+      renderStatuses(); render();
+      return;
+    }
+
+    const { data, error } = await sb.from("customers").select("*").order("updated_at", { ascending:false });
+
+    if(error){
+      const msg = fmtErr(error);
+      showError(
+        "Failed to load customers:\n\n" + msg + "\n\n" +
+        "If it says Invalid API key: your URL and anon key are from different Supabase projects.\n" +
+        "If it says permission denied: RLS SELECT policy is missing for anon."
+      );
+      rows = [];
+      renderStatuses(); render();
+      return;
+    }
+
+    rows = Array.isArray(data) ? data : [];
+    renderStatuses();
+    render();
+    statusBar.textContent = `${rows.length} total`;
+    console.log("[dashboard] loaded customers:", rows.length);
+  }
+
+  renderStatuses();
+  load();
+  window.__tbp = { sb };
 </script>
 
 </body>
