@@ -111,6 +111,8 @@
       box-shadow:0 12px 28px rgba(15,23,42,0.35);
     }
     .btn-primary:hover{filter:brightness(1.03);box-shadow:0 16px 34px rgba(15,23,42,0.4)}
+    .btn-danger{border-color:rgba(179,38,30,0.28);background:#fff1f2;color:#7f1d1d}
+    .btn-danger:hover{background:#ffe4e6}
 
     .banner{
       display:none;margin:0 0 .85rem;
@@ -131,7 +133,7 @@
     table{
       width:100%;
       border-collapse:collapse;
-      min-width: 980px; /* alignment fix */
+      min-width: 980px;
     }
     thead th{
       position:sticky;top:0;
@@ -153,18 +155,7 @@
     tbody tr{cursor:pointer}
     tbody tr:hover{background:#f7fbff}
 
-    .pill{
-      display:inline-flex;align-items:center;gap:.35rem;
-      padding:.22rem .55rem;border-radius:999px;
-      border:1px solid rgba(148,163,184,0.55);
-      background:rgba(241,245,249,0.9);
-      font-size:.8rem;color:var(--dark-text);
-    }
-    .pill.ok{border-color:rgba(15,123,70,0.45);background:#ecfdf5;color:#14532d}
-    .pill.no{border-color:rgba(179,38,30,0.35);background:#fff1f2;color:#7f1d1d}
-    .pill.na{border-color:rgba(148,163,184,0.45);background:#f1f5f9;color:#475569}
-
-    /* Pipeline dots (SETUP ONLY) */
+    /* Pipeline dots (OPS only) */
     .pipe{display:inline-flex;align-items:center;gap:6px}
     .dot{
       width:10px;height:10px;border-radius:999px;
@@ -230,6 +221,12 @@
     }
     .check-state{font-size:.82rem;color:var(--muted-text);flex:0 0 auto}
 
+    .action-grid{
+      display:flex;flex-wrap:wrap;gap:.5rem;
+      margin:.4rem 0 .2rem;
+    }
+    .action-grid .btn{padding:.48rem .85rem;font-size:.84rem}
+
     .drawer-footer{
       padding:1rem;border-top:1px solid var(--border-subtle);
       display:flex;justify-content:space-between;align-items:center;gap:.6rem;
@@ -262,7 +259,7 @@
   <section class="panel">
     <div class="kicker">Sales stage</div>
     <h1 class="title">Customers by onboarding status (sales) + setup pipeline (ops)</h1>
-    <p class="subtitle">Filter by sales stage. Pipeline dots are ops toggles only (Wizard / WhatsApp / Calendar / Payments).</p>
+    <p class="subtitle">Filter by sales stage. Pipeline dots + ops buttons toggle setup flags only.</p>
 
     <div class="status-strip" id="status-strip"></div>
 
@@ -320,7 +317,7 @@
 
       <div class="drawer-field">
         <label>Actions</label>
-        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+        <div class="action-grid">
           <button class="btn btn-secondary" id="btnOpenWizard" type="button">Open wizard</button>
         </div>
       </div>
@@ -328,6 +325,12 @@
 
     <div class="drawer-section-title">Setup pipeline (ops)</div>
     <div class="checklist" id="pipelineChecklist"></div>
+
+    <div class="drawer-section-title">Mark setup complete (one click)</div>
+    <div class="action-grid" id="opsButtons"></div>
+
+    <div class="drawer-section-title">Set onboarding status (sales)</div>
+    <div class="action-grid" id="salesButtons"></div>
 
     <div class="drawer-row" style="margin-top:.8rem;">
       <div class="drawer-field">
@@ -399,6 +402,8 @@
   const drawerLeadNotes = document.getElementById("drawer_lead_notes");
   const drawerHint = document.getElementById("drawerHint");
   const pipelineChecklist = document.getElementById("pipelineChecklist");
+  const opsButtons = document.getElementById("opsButtons");
+  const salesButtons = document.getElementById("salesButtons");
 
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
   const btnOpenWizard = document.getElementById("btnOpenWizard");
@@ -509,7 +514,6 @@
   }
 
   // -------- SETUP PIPELINE (OPS) --------
-  // These are toggled by clickable dots and DO NOT touch onboarding_status.
   function setupPipeline(row){
     return [
       { key:"wizard",   label:"Wizard completed",   col:"wizard_completed",   done: !!row?.wizard_completed },
@@ -567,6 +571,59 @@
     return data;
   }
 
+  function renderOpsButtons(row){
+    opsButtons.innerHTML = "";
+    const mk = (label, cls, onClick) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn " + cls;
+      b.textContent = label;
+      b.addEventListener("click", onClick);
+      opsButtons.appendChild(b);
+    };
+
+    mk(row.wizard_completed ? "Unmark Wizard" : "Mark Wizard", "btn-secondary", async ()=>{
+      const updated = await updateCustomer(row.id, { wizard_completed: !row.wizard_completed });
+      if(updated){ render(); openDrawer(updated); }
+    });
+
+    mk(row.whatsapp_connected ? "WhatsApp ✅ (toggle)" : "WhatsApp ❌ (toggle)", "btn-secondary", async ()=>{
+      const updated = await updateCustomer(row.id, { whatsapp_connected: !row.whatsapp_connected });
+      if(updated){ render(); openDrawer(updated); }
+    });
+
+    mk(row.calendar_connected ? "Calendar ✅ (toggle)" : "Calendar ❌ (toggle)", "btn-secondary", async ()=>{
+      const updated = await updateCustomer(row.id, { calendar_connected: !row.calendar_connected });
+      if(updated){ render(); openDrawer(updated); }
+    });
+
+    mk(row.payments_connected ? "Payments ✅ (toggle)" : "Payments ❌ (toggle)", "btn-secondary", async ()=>{
+      const updated = await updateCustomer(row.id, { payments_connected: !row.payments_connected });
+      if(updated){ render(); openDrawer(updated); }
+    });
+  }
+
+  function renderSalesButtons(row){
+    salesButtons.innerHTML = "";
+    const mk = (label, status, primary=false) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn " + (primary ? "btn-primary" : "btn-secondary");
+      b.textContent = label;
+      b.addEventListener("click", async ()=>{
+        const updated = await updateCustomer(row.id, { onboarding_status: status });
+        if(updated){ render(); openDrawer(updated); }
+      });
+      salesButtons.appendChild(b);
+    };
+
+    mk("In Setup", "In Setup");
+    mk("Demo", "Demo");
+    mk("Free Trial", "Free Trial");
+    mk("Needs Convincing", "Needs Convincing");
+    mk("Live", "Live", true);
+  }
+
   function openDrawer(row){
     activeRow = row;
 
@@ -605,6 +662,8 @@
     drawerLeadNotes.value = row.lead_notes || "";
 
     renderChecklist(row);
+    renderOpsButtons(row);
+    renderSalesButtons(row);
 
     drawerHint.textContent = "Autosaves";
     drawer.classList.add("open");
@@ -761,7 +820,7 @@
     window.open(`app.html?id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
   });
 
-  // ✅ Clickable pipeline dots (ops toggles only)
+  // ✅ Clickable pipeline dots (OPS toggles ONLY)
   document.addEventListener("click", async (e)=>{
     const dot = e.target.closest(".dot[data-pipe][data-id]");
     if(!dot) return;
@@ -775,7 +834,6 @@
     if(!row) return;
 
     const patch = {};
-    // Toggle the boolean flags only
     if(key === "wizard")   patch.wizard_completed   = !row.wizard_completed;
     if(key === "whatsapp") patch.whatsapp_connected = !row.whatsapp_connected;
     if(key === "calendar") patch.calendar_connected = !row.calendar_connected;
