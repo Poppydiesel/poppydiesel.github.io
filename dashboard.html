@@ -1,3 +1,9 @@
+<!-- =========================================================
+     TradeBotPro Dashboard — FULL FILE
+     Adds: "Add new status…" option (typed on the spot)
+     Lead source editing REMOVED
+     Status list pulled from DB + defaults
+========================================================= -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,331 +13,251 @@
   <meta name="description" content="TradeBotPro customer onboarding dashboard." />
 
   <style>
-    :root {
-      --primary-blue: #1f4e79;
-      --accent-blue: #00a3ff;
-      --dark-text: #151820;
-      --muted-text: #6b7280;
-      --light-bg: #f3f4f9;
-      --white: #ffffff;
-      --border-subtle: rgba(15, 23, 42, 0.12);
-      --success-green: #0f7b46;
-      --error-red: #b3261e;
-      --shadow:
-        0 24px 60px rgba(15, 23, 42, 0.15),
-        0 0 0 1px rgba(15, 23, 42, 0.03);
+    :root{
+      --primary-blue:#1f4e79;
+      --accent-blue:#00a3ff;
+      --dark-text:#151820;
+      --muted-text:#6b7280;
+      --light-bg:#f3f4f9;
+      --white:#ffffff;
+      --border-subtle:rgba(15,23,42,0.12);
+      --success-green:#0f7b46;
+      --error-red:#b3261e;
+      --shadow:0 24px 60px rgba(15,23,42,0.15),0 0 0 1px rgba(15,23,42,0.03);
     }
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: radial-gradient(circle at top left, #e0ebff 0, #f3f4f9 40%, #fdfdfd 100%);
-      color: var(--dark-text);
-      line-height: 1.5;
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 40%,#fdfdfd 100%);
+      color:var(--dark-text);
+      line-height:1.5;
     }
 
-    header {
-      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-      background: rgba(248, 250, 252, 0.96);
-      backdrop-filter: blur(6px);
-      position: sticky;
-      top: 0;
-      z-index: 20;
+    header{
+      border-bottom:1px solid rgba(15,23,42,0.06);
+      background:rgba(248,250,252,0.96);
+      backdrop-filter:blur(6px);
+      position:sticky;
+      top:0;
+      z-index:20;
     }
-    .header-inner {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 0.6rem 1.25rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
+    .header-inner{
+      max-width:1180px;
+      margin:0 auto;
+      padding:.6rem 1.25rem;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:.75rem;
     }
-    .logo-wrap { display: flex; align-items: center; gap: 0.6rem; }
-    .logo-icon {
-      width: 30px; height: 30px; border-radius: 9px;
-      background: var(--primary-blue); position: relative;
-    }
-    .logo-icon::before, .logo-icon::after {
-      content:""; position:absolute; background: var(--white); border-radius: 4px;
-    }
-    .logo-icon::before { width: 11px; height: 17px; left: 7px; top: 6px; }
-    .logo-icon::after { width: 6px; height: 11px; right: 7px; top: 9px; }
-    .logo-main { font-weight: 700; font-size: 1rem; color: var(--primary-blue); }
-    .logo-tag { font-size: 0.75rem; color: var(--muted-text); }
-    .header-note { font-size: 0.75rem; color: var(--muted-text); }
-    .header-note strong { color: var(--primary-blue); font-weight: 600; }
+    .logo-wrap{display:flex;align-items:center;gap:.6rem}
+    .logo-icon{width:30px;height:30px;border-radius:9px;background:var(--primary-blue);position:relative}
+    .logo-icon::before,.logo-icon::after{content:"";position:absolute;background:var(--white);border-radius:4px}
+    .logo-icon::before{width:11px;height:17px;left:7px;top:6px}
+    .logo-icon::after{width:6px;height:11px;right:7px;top:9px}
+    .logo-main{font-weight:700;font-size:1rem;color:var(--primary-blue)}
+    .logo-tag{font-size:.75rem;color:var(--muted-text)}
+    .header-note{font-size:.75rem;color:var(--muted-text)}
+    .header-note strong{color:var(--primary-blue);font-weight:600}
 
-    main {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 1.2rem 1.25rem 2.2rem;
+    main{max-width:1180px;margin:0 auto;padding:1.2rem 1.25rem 2.2rem}
+
+    .panel{
+      border-radius:1.2rem;
+      background:rgba(248,250,252,0.96);
+      border:1px solid rgba(148,163,184,0.35);
+      padding:1.1rem 1.1rem;
     }
 
-    .panel {
-      border-radius: 1.2rem;
-      background: rgba(248, 250, 252, 0.96);
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      padding: 1.1rem 1.1rem;
+    .kicker{
+      font-size:.75rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--accent-blue);
+      margin-bottom:.35rem;
+    }
+    .title{margin:0 0 .35rem;font-size:1.35rem;color:var(--primary-blue)}
+    .subtitle{margin:0 0 .85rem;font-size:.9rem;color:var(--muted-text)}
+
+    .status-strip{display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:.95rem}
+    .status-chip{
+      border-radius:999px;
+      padding:.55rem .85rem;
+      border:1px solid rgba(15,23,42,0.10);
+      background:#fff;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:.5rem;
+      transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;
+      user-select:none;
+    }
+    .status-chip:hover{
+      transform:translateY(-1px);
+      box-shadow:0 12px 26px rgba(15,23,42,0.12);
+      border-color:rgba(31,78,121,0.35);
+    }
+    .status-chip.is-active{
+      border-color:rgba(31,78,121,0.8);
+      box-shadow:0 0 0 2px rgba(31,78,121,0.12);
+      background:#f3f7ff;
+    }
+    .status-chip-name{font-weight:650;font-size:.9rem;color:var(--dark-text)}
+    .status-chip-count{
+      min-width:38px;
+      text-align:center;
+      padding:.15rem .45rem;
+      border-radius:999px;
+      background:#eef2ff;
+      border:1px solid rgba(37,99,235,0.22);
+      color:var(--primary-blue);
+      font-weight:800;
+      font-size:.85rem;
     }
 
-    .kicker {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--accent-blue);
-      margin-bottom: 0.35rem;
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.65rem;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:.85rem;
     }
-    .title {
-      margin: 0 0 0.35rem;
-      font-size: 1.35rem;
-      color: var(--primary-blue);
+    .controls-left{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center}
+    .search{
+      width:min(520px,100%);
+      display:flex;
+      gap:.5rem;
+      align-items:center;
+      padding:.6rem .7rem;
+      border-radius:.75rem;
+      border:1px solid var(--border-subtle);
+      background:var(--white);
     }
-    .subtitle {
-      margin: 0 0 0.85rem;
-      font-size: 0.9rem;
-      color: var(--muted-text);
-    }
-
-    /* TOP STATUS STRIP */
-    .status-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem;
-      margin-bottom: 0.95rem;
-    }
-    .status-chip {
-      border-radius: 999px;
-      padding: 0.55rem 0.85rem;
-      border: 1px solid rgba(15, 23, 42, 0.10);
-      background: #ffffff;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
-      user-select: none;
-    }
-    .status-chip:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
-      border-color: rgba(31, 78, 121, 0.35);
-    }
-    .status-chip.is-active {
-      border-color: rgba(31, 78, 121, 0.8);
-      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.12);
-      background: #f3f7ff;
-    }
-    .status-chip-name {
-      font-weight: 650;
-      font-size: 0.9rem;
-      color: var(--dark-text);
-    }
-    .status-chip-count {
-      min-width: 38px;
-      text-align: center;
-      padding: 0.15rem 0.45rem;
-      border-radius: 999px;
-      background: #eef2ff;
-      border: 1px solid rgba(37, 99, 235, 0.22);
-      color: var(--primary-blue);
-      font-weight: 800;
-      font-size: 0.85rem;
+    .search input{
+      border:0;outline:0;width:100%;
+      font:inherit;font-size:.92rem;background:transparent;
     }
 
-    /* Controls */
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.85rem;
+    .btn{
+      border-radius:999px;
+      border:1px solid transparent;
+      padding:.55rem 1.05rem;
+      font-size:.86rem;
+      font-weight:550;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      background:transparent;
     }
-    .controls-left {
-      display: flex;
-      gap: 0.55rem;
-      flex-wrap: wrap;
-      align-items: center;
+    .btn-secondary{border-color:var(--border-subtle);background:#f9fafb;color:var(--dark-text)}
+    .btn-secondary:hover{background:#e5e7eb}
+    .btn-primary{
+      background:linear-gradient(135deg,var(--primary-blue),#163857);
+      color:var(--white);
+      border-color:transparent;
+      box-shadow:0 12px 28px rgba(15,23,42,0.35);
     }
-    .search {
-      width: min(520px, 100%);
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      padding: 0.6rem 0.7rem;
-      border-radius: 0.75rem;
-      border: 1px solid var(--border-subtle);
-      background: var(--white);
-    }
-    .search input {
-      border: 0;
-      outline: 0;
-      width: 100%;
-      font: inherit;
-      font-size: 0.92rem;
-      background: transparent;
-    }
+    .btn-primary:hover{filter:brightness(1.03);box-shadow:0 16px 34px rgba(15,23,42,0.4)}
 
-    .btn {
-      border-radius: 999px;
-      border: 1px solid transparent;
-      padding: 0.55rem 1.05rem;
-      font-size: 0.86rem;
-      font-weight: 550;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      background: transparent;
+    .banner{
+      display:none;
+      margin:0 0 .85rem;
+      padding:.75rem .85rem;
+      border-radius:.9rem;
+      border:1px solid rgba(179,38,30,0.25);
+      background:#fff1f2;
+      color:#7f1d1d;
+      font-size:.88rem;
+      white-space:pre-wrap;
     }
-    .btn-secondary { border-color: var(--border-subtle); background: #f9fafb; color: var(--dark-text); }
-    .btn-secondary:hover { background: #e5e7eb; }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary-blue), #163857);
-      color: var(--white);
-      border-color: transparent;
-      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.35);
-    }
-    .btn-primary:hover { filter: brightness(1.03); box-shadow: 0 16px 34px rgba(15, 23, 42, 0.4); }
+    .banner.show{display:block}
 
-    /* Error banner */
-    .banner {
-      display: none;
-      margin: 0 0 0.85rem;
-      padding: 0.75rem 0.85rem;
-      border-radius: 0.9rem;
-      border: 1px solid rgba(179, 38, 30, 0.25);
-      background: #fff1f2;
-      color: #7f1d1d;
-      font-size: 0.88rem;
-      white-space: pre-wrap;
+    .table-wrap{
+      overflow:auto;
+      border-radius:1rem;
+      border:1px solid rgba(15,23,42,0.08);
+      background:#fff;
     }
-    .banner.show { display: block; }
+    table{width:100%;border-collapse:collapse;min-width:1150px}
+    thead th{
+      position:sticky;top:0;
+      background:#f8fafc;
+      border-bottom:1px solid rgba(15,23,42,0.08);
+      font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;
+      color:var(--muted-text);
+      text-align:left;
+      padding:.75rem .85rem;
+      white-space:nowrap;
+    }
+    tbody td{
+      border-bottom:1px solid rgba(15,23,42,0.06);
+      padding:.75rem .85rem;
+      font-size:.9rem;
+      vertical-align:middle;
+      white-space:nowrap;
+    }
+    tbody tr{cursor:pointer}
+    tbody tr:hover{background:#f7fbff}
 
-    /* Table */
-    .table-wrap {
-      overflow: auto;
-      border-radius: 1rem;
-      border: 1px solid rgba(15, 23, 42, 0.08);
-      background: #fff;
+    .pill{
+      display:inline-flex;align-items:center;gap:.35rem;
+      padding:.22rem .55rem;border-radius:999px;
+      border:1px solid rgba(148,163,184,0.55);
+      background:rgba(241,245,249,0.9);
+      font-size:.8rem;color:var(--dark-text);
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1150px;
-    }
-    thead th {
-      position: sticky;
-      top: 0;
-      background: #f8fafc;
-      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--muted-text);
-      text-align: left;
-      padding: 0.75rem 0.85rem;
-      white-space: nowrap;
-    }
-    tbody td {
-      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-      padding: 0.75rem 0.85rem;
-      font-size: 0.9rem;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
-    tbody tr { cursor: pointer; }
-    tbody tr:hover { background: #f7fbff; }
+    .pill.ok{border-color:rgba(15,123,70,0.45);background:#ecfdf5;color:#14532d}
+    .pill.no{border-color:rgba(179,38,30,0.35);background:#fff1f2;color:#7f1d1d}
+    .pill.na{border-color:rgba(148,163,184,0.45);background:#f1f5f9;color:#475569}
 
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.22rem 0.55rem;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.55);
-      background: rgba(241, 245, 249, 0.9);
-      font-size: 0.8rem;
-      color: var(--dark-text);
+    .drawer{
+      position:fixed;top:0;right:-520px;
+      width:520px;max-width:96vw;height:100%;
+      background:#fff;
+      box-shadow:-20px 0 40px rgba(0,0,0,.15);
+      transition:right .22s ease;
+      z-index:999;
+      display:flex;flex-direction:column;
     }
-    .pill.ok { border-color: rgba(15, 123, 70, 0.45); background: #ecfdf5; color: #14532d; }
-    .pill.no { border-color: rgba(179, 38, 30, 0.35); background: #fff1f2; color: #7f1d1d; }
-    .pill.na { border-color: rgba(148, 163, 184, 0.45); background: #f1f5f9; color: #475569; }
+    .drawer.open{right:0}
+    .drawer-header{
+      padding:1rem;border-bottom:1px solid var(--border-subtle);
+      background:#f8fafc;
+    }
+    .drawer-title{font-weight:750;color:var(--primary-blue);font-size:1.05rem}
+    .drawer-sub{margin-top:.25rem;font-size:.85rem;color:var(--muted-text)}
+    .drawer-body{padding:1rem;flex:1;overflow:auto}
+    .drawer-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.9rem}
+    .drawer-field label{display:block;font-size:.78rem;color:var(--muted-text);margin:0 0 .25rem}
+    .drawer-field select,.drawer-field input,.drawer-body textarea{
+      width:100%;
+      padding:.6rem .7rem;
+      border-radius:.85rem;
+      border:1px solid var(--border-subtle);
+      font:inherit;
+      outline:none;
+      background:#fff;
+    }
+    .drawer-body textarea{min-height:120px;resize:vertical}
+    .drawer-field select:focus,.drawer-field input:focus,.drawer-body textarea:focus{
+      border-color:rgba(37,99,235,0.7);
+      box-shadow:0 0 0 1px rgba(37,99,235,0.35);
+    }
+    .drawer-footer{
+      padding:1rem;border-top:1px solid var(--border-subtle);
+      display:flex;justify-content:space-between;align-items:center;gap:.6rem;
+      background:#fff;
+    }
+    .drawer-hint{font-size:.82rem;color:var(--muted-text)}
 
-    /* Drawer (edit customer) */
-    .drawer {
-      position: fixed;
-      top: 0;
-      right: -520px;
-      width: 520px;
-      max-width: 96vw;
-      height: 100%;
-      background: #fff;
-      box-shadow: -20px 0 40px rgba(0,0,0,.15);
-      transition: right 0.22s ease;
-      z-index: 999;
-      display: flex;
-      flex-direction: column;
-    }
-    .drawer.open { right: 0; }
-    .drawer-header {
-      padding: 1rem;
-      border-bottom: 1px solid var(--border-subtle);
-      background: #f8fafc;
-    }
-    .drawer-title { font-weight: 750; color: var(--primary-blue); font-size: 1.05rem; }
-    .drawer-sub { margin-top: 0.25rem; font-size: 0.85rem; color: var(--muted-text); }
-    .drawer-body { padding: 1rem; flex: 1; overflow: auto; }
-    .drawer-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.7rem;
-      margin-bottom: 0.9rem;
-    }
-    .drawer-field label {
-      display:block;
-      font-size: 0.78rem;
-      color: var(--muted-text);
-      margin: 0 0 0.25rem;
-    }
-    .drawer-field select,
-    .drawer-field input,
-    .drawer-body textarea {
-      width: 100%;
-      padding: 0.6rem 0.7rem;
-      border-radius: 0.85rem;
-      border: 1px solid var(--border-subtle);
-      font: inherit;
-      outline: none;
-      background: #fff;
-    }
-    .drawer-body textarea { min-height: 120px; resize: vertical; }
-    .drawer-field select:focus,
-    .drawer-field input:focus,
-    .drawer-body textarea:focus {
-      border-color: rgba(37, 99, 235, 0.7);
-      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35);
-    }
-    .drawer-footer {
-      padding: 1rem;
-      border-top: 1px solid var(--border-subtle);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.6rem;
-      background: #fff;
-    }
-    .drawer-hint {
-      font-size: 0.82rem;
-      color: var(--muted-text);
-    }
-
-    @media (max-width: 900px) {
-      table { min-width: 980px; }
-      .drawer-row { grid-template-columns: 1fr; }
+    @media (max-width:900px){
+      table{min-width:980px}
+      .drawer-row{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -469,7 +395,6 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // DOM
     const statusStrip = document.getElementById("status-strip");
     const tbody = document.getElementById("tbody");
     const banner = document.getElementById("banner");
@@ -479,7 +404,6 @@
     const btnNew = document.getElementById("btn-new");
     const btnClear = document.getElementById("btn-clear-filter");
 
-    // Drawer
     const drawer = document.getElementById("drawer");
     const drawerTitle = document.getElementById("drawerTitle");
     const drawerSub = document.getElementById("drawerSub");
@@ -495,24 +419,30 @@
     const btnOpenWizard = document.getElementById("btnOpenWizard");
     const btnMarkLive = document.getElementById("btnMarkLive");
 
-    // State
     let allRows = [];
     let activeStatus = null;
     let statusOrder = [];
     let activeRow = null;
     let noteTimer = null;
 
-    function setBanner(msg) {
-      if (!msg) {
-        banner.textContent = "";
-        banner.classList.remove("show");
-        return;
-      }
-      banner.textContent = msg;
+    const DEFAULT_STATUSES = [
+      "New Signup",
+      "Wizard Started",
+      "Wizard Completed",
+      "Demo Booked",
+      "WhatsApp Connected",
+      "Calendar Connected",
+      "Live",
+      "Paused / Not Proceeding"
+    ];
+
+    function setBanner(msg){
+      if(!msg){ banner.textContent=""; banner.classList.remove("show"); return; }
+      banner.textContent=msg;
       banner.classList.add("show");
     }
 
-    function escapeHtml(s) {
+    function escapeHtml(s){
       return String(s ?? "")
         .replaceAll("&","&amp;")
         .replaceAll("<","&lt;")
@@ -521,121 +451,89 @@
         .replaceAll("'","&#039;");
     }
 
-    function fmtDate(iso) {
-      if (!iso) return "—";
-      try {
+    function fmtDate(iso){
+      if(!iso) return "—";
+      try{
         const d = new Date(iso);
-        return d.toLocaleString(undefined, { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
-      } catch { return "—"; }
+        return d.toLocaleString(undefined,{year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+      }catch{ return "—"; }
     }
 
-    function normalizeStatus(row) {
+    function normalizeStatus(row){
       const raw = (row?.onboarding_status ?? "").toString().trim();
-      if (raw) return raw;
-      if (row?.wizard_completed) return "Wizard Completed";
-
+      if(raw) return raw;
+      if(row?.wizard_completed) return "Wizard Completed";
       const wa = row?.wizard_answers;
-      const hasAnswers = wa && typeof wa === "object" && !Array.isArray(wa) && Object.keys(wa).length > 0;
-      if (hasAnswers) return "Wizard Started";
-
+      const hasAnswers = wa && typeof wa==="object" && !Array.isArray(wa) && Object.keys(wa).length>0;
+      if(hasAnswers) return "Wizard Started";
       return "New Signup";
     }
 
-    function pillFromBool(v) {
-      if (v === true) return `<span class="pill ok">✅ Connected</span>`;
-      if (v === false) return `<span class="pill no">✖ Not yet</span>`;
+    function pillFromBool(v){
+      if(v===true) return `<span class="pill ok">✅ Connected</span>`;
+      if(v===false) return `<span class="pill no">✖ Not yet</span>`;
       return `<span class="pill na">—</span>`;
     }
 
-    function rowMatchesSearch(row, q) {
-      if (!q) return true;
-      const hay = [
-        row.business_name, row.contact_name, row.email, row.phone, row.base_postcode,
-        normalizeStatus(row)
-      ].join(" ").toLowerCase();
+    function rowMatchesSearch(row,q){
+      if(!q) return true;
+      const hay = [row.business_name,row.contact_name,row.email,row.phone,row.base_postcode,normalizeStatus(row)].join(" ").toLowerCase();
       return hay.includes(q.toLowerCase());
     }
 
-    // ✅ Pull REAL statuses from DB (distinct onboarding_status) + guaranteed defaults
-    async function loadDistinctStatuses() {
-      const { data, error } = await sb
-        .from("customers")
-        .select("onboarding_status");
-
-      if (error) {
-        console.warn("Status distinct load failed, falling back to local:", error);
+    async function loadDistinctStatuses(){
+      // Pull onboarding_status values (we dedupe client-side)
+      const { data, error } = await sb.from("customers").select("onboarding_status");
+      if(error){
+        console.warn("Status load failed:", error);
         return null;
       }
-
       const set = new Set();
-      for (const r of (data || [])) {
+      for(const r of (data||[])){
         const s = (r.onboarding_status ?? "").toString().trim();
-        if (s) set.add(s);
+        if(s) set.add(s);
       }
       return Array.from(set);
     }
 
-    function computeStatusOrder(distinctFromDb, rows) {
+    function computeStatusOrder(distinctFromDb, rows){
       const set = new Set();
 
-      // from DB distinct
+      DEFAULT_STATUSES.forEach(s => set.add(s));
       (distinctFromDb || []).forEach(s => set.add(s));
+      for(const r of rows) set.add(normalizeStatus(r));
 
-      // from current rows (also covers weird cases)
-      for (const r of rows) set.add(normalizeStatus(r));
-
-      // guaranteed defaults
-      ["New Signup", "Wizard Started", "Wizard Completed", "Live"].forEach(s => set.add(s));
-
-      // Priority
-      const priority = [
-        "New Signup",
-        "Wizard Started",
-        "Wizard Completed",
-        "Demo Booked",
-        "WhatsApp Connected",
-        "Calendar Connected",
-        "Live",
-        "Paused / Not Proceeding"
-      ];
-
-      const statuses = Array.from(set);
-      statuses.sort((a,b) => {
-        const ia = priority.indexOf(a);
-        const ib = priority.indexOf(b);
-        if (ia !== -1 && ib !== -1) return ia - ib;
-        if (ia !== -1) return -1;
-        if (ib !== -1) return 1;
+      // Sort: defaults first in their order, then alpha for extras
+      const all = Array.from(set);
+      all.sort((a,b) => {
+        const ia = DEFAULT_STATUSES.indexOf(a);
+        const ib = DEFAULT_STATUSES.indexOf(b);
+        if(ia !== -1 && ib !== -1) return ia - ib;
+        if(ia !== -1) return -1;
+        if(ib !== -1) return 1;
         return a.localeCompare(b);
       });
-
-      return statuses;
+      return all;
     }
 
-    function computeCounts() {
+    function computeCounts(){
       const counts = {};
-      for (const r of allRows) {
+      for(const r of allRows){
         const s = normalizeStatus(r);
         counts[s] = (counts[s] || 0) + 1;
       }
       return counts;
     }
 
-    function buildStatusStrip() {
+    function buildStatusStrip(){
       const counts = computeCounts();
       statusStrip.innerHTML = "";
 
-      const addChip = (label, count, value) => {
+      const addChip = (label,count,value) => {
         const el = document.createElement("div");
-        el.className = "status-chip" + ((activeStatus === value) ? " is-active" : "");
-        el.innerHTML = `
-          <span class="status-chip-name">${escapeHtml(label)}</span>
-          <span class="status-chip-count">${count}</span>
-        `;
-        el.addEventListener("click", () => {
-          activeStatus = value;
-          render();
-        });
+        el.className = "status-chip" + ((activeStatus===value) ? " is-active" : "");
+        el.innerHTML = `<span class="status-chip-name">${escapeHtml(label)}</span><span class="status-chip-count">${count}</span>`;
+        el.addEventListener("click", () => { activeStatus = value; render(); });
         statusStrip.appendChild(el);
       };
 
@@ -643,29 +541,21 @@
       statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
     }
 
-    async function updateCustomer(id, patch) {
+    async function updateCustomer(id, patch){
       setBanner("");
-      const { data, error } = await sb
-        .from("customers")
-        .update(patch)
-        .eq("id", id)
-        .select("*")
-        .single();
-
-      if (error) {
+      const { data, error } = await sb.from("customers").update(patch).eq("id", id).select("*").single();
+      if(error){
         console.error("UPDATE ERROR:", error);
         setBanner("Save failed:\n\n" + (error.message || JSON.stringify(error)));
         return null;
       }
-
       const idx = allRows.findIndex(r => r.id === id);
-      if (idx !== -1) allRows[idx] = data;
-      if (activeRow && activeRow.id === id) activeRow = data;
-
+      if(idx !== -1) allRows[idx] = data;
+      if(activeRow && activeRow.id === id) activeRow = data;
       return data;
     }
 
-    function openDrawer(row) {
+    function openDrawer(row){
       activeRow = row;
 
       drawerTitle.textContent = row.business_name || "Customer";
@@ -675,17 +565,29 @@
         row.id ? `ID: ${row.id}` : ""
       ].filter(Boolean).join(" • ");
 
-      // IMPORTANT: Ensure current status is always in the dropdown
       const currentStatus = normalizeStatus(row);
+
+      // Ensure dropdown contains: all statuses + current + "Add new…"
       const set = new Set(statusOrder);
       set.add(currentStatus);
       const options = Array.from(set);
-      options.sort((a,b) => statusOrder.indexOf(a) - statusOrder.indexOf(b));
 
-      drawerStatus.innerHTML = options.map(s => {
-        const sel = (s === currentStatus) ? "selected" : "";
-        return `<option value="${escapeHtml(s)}" ${sel}>${escapeHtml(s)}</option>`;
-      }).join("");
+      // stable order: statusOrder first, then extras
+      options.sort((a,b) => {
+        const ia = statusOrder.indexOf(a);
+        const ib = statusOrder.indexOf(b);
+        if(ia !== -1 && ib !== -1) return ia - ib;
+        if(ia !== -1) return -1;
+        if(ib !== -1) return 1;
+        return a.localeCompare(b);
+      });
+
+      drawerStatus.innerHTML =
+        options.map(s => {
+          const sel = (s === currentStatus) ? "selected" : "";
+          return `<option value="${escapeHtml(s)}" ${sel}>${escapeHtml(s)}</option>`;
+        }).join("") +
+        `<option value="__new__">+ Add new status…</option>`;
 
       drawerBusiness.value = row.business_name || "";
       drawerContact.value = row.contact_name || "";
@@ -700,24 +602,21 @@
       drawer.setAttribute("aria-hidden", "false");
     }
 
-    function closeDrawer() {
+    function closeDrawer(){
       drawer.classList.remove("open");
       drawer.setAttribute("aria-hidden", "true");
       activeRow = null;
     }
 
-    async function saveNotesNow() {
-      if (!activeRow) return;
+    async function saveNotesNow(){
+      if(!activeRow) return;
       drawerHint.textContent = "Saving…";
-      const id = activeRow.id;
 
-      const patch = {
-        notes: drawerNotes.value,
-        lead_notes: drawerLeadNotes.value
-      };
+      const id = activeRow.id;
+      const patch = { notes: drawerNotes.value, lead_notes: drawerLeadNotes.value };
 
       const { error } = await sb.from("customers").update(patch).eq("id", id);
-      if (error) {
+      if(error){
         console.error("NOTES SAVE ERROR:", error);
         setBanner("Failed to save notes:\n\n" + (error.message || JSON.stringify(error)));
         drawerHint.textContent = "Save failed";
@@ -725,28 +624,24 @@
       }
 
       drawerHint.textContent = "Saved";
-
       const idx = allRows.findIndex(r => r.id === id);
-      if (idx !== -1) {
+      if(idx !== -1){
         allRows[idx].notes = patch.notes;
         allRows[idx].lead_notes = patch.lead_notes;
       }
-      if (activeRow && activeRow.id === id) {
-        activeRow.notes = patch.notes;
-        activeRow.lead_notes = patch.lead_notes;
-      }
+      activeRow.notes = patch.notes;
+      activeRow.lead_notes = patch.lead_notes;
     }
 
-    function queueNotesSave() {
+    function queueNotesSave(){
       clearTimeout(noteTimer);
       noteTimer = setTimeout(saveNotesNow, 450);
     }
 
-    function render() {
+    function render(){
       buildStatusStrip();
 
       const q = (search.value || "").trim();
-
       const rows = allRows
         .filter(r => (activeStatus ? normalizeStatus(r) === activeStatus : true))
         .filter(r => rowMatchesSearch(r, q))
@@ -758,13 +653,13 @@
 
       tbody.innerHTML = "";
 
-      if (!rows.length) {
+      if(!rows.length){
         tbody.innerHTML = `<tr><td colspan="10">No matches.</td></tr>`;
         statusBar.textContent = `0 shown • ${allRows.length} total`;
         return;
       }
 
-      for (const r of rows) {
+      for(const r of rows){
         const st = normalizeStatus(r);
         const wizardPill = r.wizard_completed
           ? `<span class="pill ok">✅ Complete</span>`
@@ -795,14 +690,13 @@
         (activeStatus ? ` • Stage: ${activeStatus}` : "");
     }
 
-    async function loadCustomersAndStatuses() {
+    async function loadCustomersAndStatuses(){
       setBanner("");
       statusBar.textContent = "Loading…";
       tbody.innerHTML = `<tr><td colspan="10">Loading…</td></tr>`;
 
-      // 1) load customers
       const { data, error } = await sb.from("customers").select("*");
-      if (error) {
+      if(error){
         console.error("LOAD ERROR:", error);
         setBanner("Failed to load customers.\n\n" + (error.message || JSON.stringify(error)));
         allRows = [];
@@ -810,58 +704,71 @@
         statusBar.textContent = "Load failed.";
         return;
       }
+
       allRows = Array.isArray(data) ? data : [];
-
-      // 2) load distinct statuses from DB (to ensure rare statuses appear)
       const distinctStatuses = await loadDistinctStatuses();
-
-      // 3) compute status order from BOTH
       statusOrder = computeStatusOrder(distinctStatuses, allRows);
-
       render();
     }
 
     // Controls
     btnRefresh.addEventListener("click", loadCustomersAndStatuses);
     btnNew.addEventListener("click", () => window.open("app.html", "_blank", "noopener"));
-    btnClear.addEventListener("click", () => {
-      activeStatus = null;
-      search.value = "";
-      render();
-    });
+    btnClear.addEventListener("click", () => { activeStatus = null; search.value=""; render(); });
     search.addEventListener("input", render);
 
-    // Drawer actions
+    // Drawer events
     btnCloseDrawer.addEventListener("click", closeDrawer);
     drawerNotes.addEventListener("input", queueNotesSave);
     drawerLeadNotes.addEventListener("input", queueNotesSave);
 
     drawerStatus.addEventListener("change", async () => {
-      if (!activeRow) return;
+      if(!activeRow) return;
+
+      if(drawerStatus.value === "__new__"){
+        const newStatus = prompt("New onboarding status name:");
+        if(!newStatus){
+          openDrawer(activeRow);
+          return;
+        }
+        const clean = newStatus.trim();
+        if(!clean){
+          openDrawer(activeRow);
+          return;
+        }
+
+        const updated = await updateCustomer(activeRow.id, { onboarding_status: clean });
+        if(updated){
+          // ensure we keep it in our list immediately
+          if(!statusOrder.includes(clean)) statusOrder.push(clean);
+          render();
+          openDrawer(updated);
+        }
+        return;
+      }
+
       const updated = await updateCustomer(activeRow.id, { onboarding_status: drawerStatus.value });
-      if (updated) {
-        // Rebuild status order in case a brand-new status was typed elsewhere
-        statusOrder = computeStatusOrder(null, allRows);
+      if(updated){
         render();
         openDrawer(updated);
       }
     });
 
     btnOpenWizard.addEventListener("click", () => {
-      if (!activeRow) return;
+      if(!activeRow) return;
       window.open(`app.html?id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
     });
 
     btnMarkLive.addEventListener("click", async () => {
-      if (!activeRow) return;
+      if(!activeRow) return;
       const updated = await updateCustomer(activeRow.id, {
         onboarding_status: "Live",
         whatsapp_connected: true,
         calendar_connected: true,
         live_at: new Date().toISOString()
       });
-      if (updated) {
-        statusOrder = computeStatusOrder(null, allRows);
+      if(updated){
+        if(!statusOrder.includes("Live")) statusOrder.unshift("Live");
         render();
         openDrawer(updated);
       }
