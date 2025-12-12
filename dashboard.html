@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <title>TradeBotPro — Customers Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+
 <style>
 :root{
   --primary-blue:#1f4e79;
@@ -17,153 +18,269 @@
   --success:#0f7b46;
 }
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 40%,#fdfdfd 100%);
   color:var(--dark-text);
 }
-header{background:#f8fafc;border-bottom:1px solid rgba(15,23,42,.08)}
+
+header{
+  background:#f8fafc;
+  border-bottom:1px solid rgba(15,23,42,.08);
+}
 .header-inner{
-  max-width:1200px;margin:0 auto;padding:.7rem 1.25rem;
-  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  max-width:1200px;
+  margin:0 auto;
+  padding:.7rem 1.25rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
 .logo{font-weight:800;color:var(--primary-blue)}
-main{max-width:1200px;margin:0 auto;padding:1.2rem}
+
+main{
+  max-width:1200px;
+  margin:0 auto;
+  padding:1.2rem;
+}
+
 .panel{
-  background:#fff;border-radius:1.1rem;border:1px solid rgba(15,23,42,.08);
+  background:#fff;
+  border-radius:1.1rem;
+  border:1px solid rgba(15,23,42,.08);
   padding:1.1rem;
 }
-.kicker{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-blue)}
-h1{margin:.15rem 0 .35rem;color:var(--primary-blue)}
-.subtitle{font-size:.9rem;color:var(--muted-text);margin:0 0 .9rem}
+
+.kicker{
+  font-size:.72rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--accent-blue);
+}
+h1{
+  margin:.15rem 0 .35rem;
+  color:var(--primary-blue);
+}
+.subtitle{
+  font-size:.9rem;
+  color:var(--muted-text);
+  margin-bottom:.9rem;
+}
 
 /* STATUS STRIP */
-.status-strip{display:flex;gap:.55rem;flex-wrap:wrap;margin-bottom:.75rem}
-.status-chip{
-  padding:.45rem .8rem;border-radius:999px;border:1px solid rgba(15,23,42,.12);
-  background:#fff;cursor:pointer;font-weight:650;font-size:.85rem;
+.status-strip{
+  display:flex;
+  gap:.55rem;
+  flex-wrap:wrap;
+  margin-bottom:.75rem;
 }
-.status-chip.is-active{background:#eef2ff;border-color:var(--primary-blue)}
+.status-chip{
+  padding:.45rem .8rem;
+  border-radius:999px;
+  border:1px solid rgba(15,23,42,.12);
+  background:#fff;
+  cursor:pointer;
+  font-weight:650;
+  font-size:.85rem;
+}
+.status-chip.is-active{
+  background:#eef2ff;
+  border-color:var(--primary-blue);
+}
 
-/* CONTROLS ONE ROW */
+/* CONTROLS */
 .controls{
-  display:flex;align-items:center;gap:.6rem;
-  margin:.8rem 0 .9rem;flex-wrap:nowrap;
+  display:flex;
+  align-items:center;
+  gap:.6rem;
+  margin:.8rem 0 .9rem;
+  flex-wrap:nowrap;
 }
 .search{
-  flex:1;display:flex;align-items:center;gap:.45rem;
-  padding:.55rem .65rem;border:1px solid var(--border-subtle);
-  border-radius:999px;background:#fff;min-width:320px;
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:.45rem;
+  padding:.55rem .65rem;
+  border:1px solid var(--border-subtle);
+  border-radius:999px;
+  background:#fff;
+  min-width:320px;
 }
-.search input{border:0;outline:0;width:100%;font-size:.9rem;background:transparent}
+.search input{
+  border:0;
+  outline:0;
+  width:100%;
+  font-size:.9rem;
+  background:transparent;
+}
 .btn{
-  padding:.5rem 1rem;border-radius:999px;border:1px solid transparent;
-  cursor:pointer;font-weight:650;font-size:.85rem;white-space:nowrap;
+  padding:.5rem 1rem;
+  border-radius:999px;
+  border:1px solid transparent;
+  cursor:pointer;
+  font-weight:650;
+  font-size:.85rem;
+  white-space:nowrap;
 }
-.btn-secondary{background:#f3f4f6;border-color:var(--border-subtle)}
-.btn-primary{background:linear-gradient(135deg,var(--primary-blue),#163857);color:#fff}
+.btn-secondary{
+  background:#f3f4f6;
+  border-color:var(--border-subtle);
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary-blue),#163857);
+  color:#fff;
+}
 
 @media(max-width:900px){
   .controls{flex-wrap:wrap}
   .search{order:10;width:100%;min-width:0}
 }
 
-/* BANNER */
-.banner{
-  display:none;margin:.6rem 0 .9rem;
-  padding:.75rem .9rem;border-radius:.9rem;
-  border:1px solid rgba(179,38,30,0.25);
-  background:#fff1f2;color:#7f1d1d;font-size:.88rem;white-space:pre-wrap;
-}
-.banner.show{display:block}
-
 /* TABLE */
-.table-wrap{border-radius:.9rem;overflow:auto;border:1px solid rgba(15,23,42,.08)}
-table{width:100%;border-collapse:collapse;min-width:1100px}
-th,td{padding:.65rem .75rem;border-bottom:1px solid rgba(15,23,42,.06);font-size:.9rem;white-space:nowrap}
-th{background:#f8fafc;font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted-text)}
-tr:hover{background:#f7fbff;cursor:pointer}
+.table-wrap{
+  border-radius:.9rem;
+  overflow:auto;
+  border:1px solid rgba(15,23,42,.08);
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1100px;
+}
+th,td{
+  padding:.65rem .75rem;
+  border-bottom:1px solid rgba(15,23,42,.06);
+  font-size:.9rem;
+  white-space:nowrap;
+}
+th{
+  background:#f8fafc;
+  font-size:.75rem;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  color:var(--muted-text);
+}
+tr:hover{
+  background:#f7fbff;
+  cursor:pointer;
+}
 
-/* ATTENTION BADGES */
-.badge{padding:.2rem .55rem;border-radius:999px;font-size:.75rem;font-weight:750;display:inline-block}
+/* BADGES */
+.badge{
+  padding:.2rem .55rem;
+  border-radius:999px;
+  font-size:.75rem;
+  font-weight:750;
+}
 .badge.new{background:#eef2ff;color:var(--primary-blue)}
 .badge.demo{background:#fffbeb;color:var(--amber)}
-.badge.overdue{background:#fff1f2;color:var(--danger-red)}
-.badges{display:flex;gap:6px;flex-wrap:wrap}
+.badges{display:flex;gap:6px}
 
 /* OPS DOTS */
-.pipe{display:inline-flex;gap:6px;align-items:center}
+.pipe{display:inline-flex;gap:6px}
 .dot{
-  width:10px;height:10px;border-radius:999px;border:2px solid rgba(148,163,184,.9);
-  background:#fff;cursor:pointer;
+  width:10px;height:10px;border-radius:999px;
+  border:2px solid rgba(148,163,184,.9);
+  background:#fff;
 }
-.dot.done{border-color:rgba(15,123,70,.55);background:#dcfce7}
-.dot.need{border-color:rgba(179,38,30,.35);background:#fff1f2}
+.dot.done{background:#dcfce7;border-color:rgba(15,123,70,.55)}
+.dot.need{background:#fff1f2;border-color:rgba(179,38,30,.35)}
 
-/* DRAWER */
+/* =========================
+   WIDE DRAWER (NO SLIDER)
+   ========================= */
 .drawer{
-  position:fixed;top:0;right:-520px;
-  width:520px;max-width:96vw;height:100%;
+  position:fixed;
+  top:0;
+  right:-720px;
+  width:720px;
+  max-width:98vw;
+  height:100%;
   background:#fff;
   box-shadow:-20px 0 40px rgba(0,0,0,.15);
   transition:right .22s ease;
   z-index:999;
-  display:flex;flex-direction:column;
+  display:flex;
+  flex-direction:column;
 }
 .drawer.open{right:0}
-.drawer-header{padding:1rem;border-bottom:1px solid var(--border-subtle);background:#f8fafc}
-.drawer-title{font-weight:800;color:var(--primary-blue);font-size:1.05rem}
-.drawer-sub{margin-top:.25rem;font-size:.85rem;color:var(--muted-text)}
-.drawer-body{padding:1rem;flex:1;overflow:auto}
-.drawer-footer{
-  padding:1rem;border-top:1px solid var(--border-subtle);
-  display:flex;justify-content:space-between;align-items:center;gap:.6rem;
+
+.drawer-header{
+  padding:1rem;
+  border-bottom:1px solid var(--border-subtle);
+  background:#f8fafc;
 }
-.drawer-hint{font-size:.82rem;color:var(--muted-text)}
+.drawer-title{
+  font-weight:800;
+  color:var(--primary-blue);
+}
+.drawer-sub{
+  font-size:.85rem;
+  color:var(--muted-text);
+}
+
+.drawer-body{
+  padding:1rem;
+  flex:1;
+  overflow-y:auto;
+}
+
+.drawer-footer{
+  padding:1rem;
+  border-top:1px solid var(--border-subtle);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:.6rem;
+}
 
 .section-title{
-  margin:.2rem 0 .5rem;
-  font-weight:800;color:var(--primary-blue);font-size:.9rem;
+  font-weight:800;
+  color:var(--primary-blue);
+  font-size:.9rem;
+  margin:.8rem 0 .4rem;
 }
-.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin:.4rem 0 .8rem}
+
+.chip-row{display:flex;flex-wrap:wrap;gap:8px}
 .chip{
-  border-radius:999px;padding:.45rem .8rem;border:1px solid rgba(15,23,42,.12);
-  background:#fff;cursor:pointer;font-weight:650;font-size:.85rem;
+  padding:.45rem .8rem;
+  border-radius:999px;
+  border:1px solid rgba(15,23,42,.12);
+  background:#fff;
+  cursor:pointer;
+  font-weight:650;
 }
-.chip.is-active{background:#eef2ff;border-color:var(--primary-blue)}
+.chip.is-active{
+  background:#eef2ff;
+  border-color:var(--primary-blue);
+}
 
 .checklist{
   border:1px solid rgba(15,23,42,.08);
-  border-radius:.9rem;background:#fff;
-  padding:.65rem .75rem;margin:0 0 .9rem;
+  border-radius:.9rem;
+  padding:.6rem;
 }
 .check-item{
-  display:flex;align-items:center;justify-content:space-between;gap:.6rem;
-  padding:.5rem 0;border-bottom:1px dashed rgba(148,163,184,0.55);
+  display:flex;
+  justify-content:space-between;
+  padding:.5rem 0;
   cursor:pointer;
 }
-.check-item:last-child{border-bottom:0}
-.check-left{display:flex;align-items:center;gap:.55rem;min-width:0}
-.check-badge{
-  width:22px;height:22px;border-radius:8px;
-  display:inline-flex;align-items:center;justify-content:center;
-  font-size:.85rem;
-  border:1px solid rgba(148,163,184,0.55);
-  background:#f1f5f9;color:#475569;flex:0 0 auto;
+.check-item:not(:last-child){
+  border-bottom:1px dashed rgba(148,163,184,.5);
 }
-.check-badge.done{border-color:rgba(15,123,70,0.35);background:#ecfdf5;color:#14532d}
-.check-name{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.check-state{font-size:.82rem;color:var(--muted-text);flex:0 0 auto}
 
-.drawer-body textarea{
+textarea{
   width:100%;
-  padding:.6rem .7rem;border-radius:.85rem;
+  min-height:120px;
+  border-radius:.8rem;
   border:1px solid var(--border-subtle);
-  font:inherit;outline:none;background:#fff;
-  min-height:110px;resize:vertical;
+  padding:.6rem;
+  font:inherit;
 }
-.drawer-body label{display:block;font-size:.78rem;color:var(--muted-text);margin:0 0 .25rem}
 </style>
 </head>
 
@@ -179,397 +296,116 @@ tr:hover{background:#f7fbff;cursor:pointer}
   <div class="panel">
     <div class="kicker">Customers</div>
     <h1>Customers by onboarding status (sales) + setup tasks (ops)</h1>
-    <p class="subtitle">Click a row to open the side panel. Use “Open wizard” only when needed.</p>
+    <p class="subtitle">Click a row to open the side panel. Wizard opens only from the button.</p>
 
     <div class="status-strip" id="status-strip"></div>
 
     <div class="controls">
-      <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filters</button>
-
+      <button class="btn btn-secondary" id="btn-clear">Clear filters</button>
       <div class="search">
-        <span style="opacity:.7">🔎</span>
-        <input id="search" type="text" placeholder="Search business, contact, email, phone…" />
+        🔎 <input id="search" placeholder="Search business, contact, email…" />
       </div>
-
-      <button class="btn btn-secondary" id="btn-refresh" type="button">↻ Refresh</button>
-      <button class="btn btn-primary" id="btn-new" type="button">+ New customer</button>
+      <button class="btn btn-secondary" id="btn-refresh">↻ Refresh</button>
+      <button class="btn btn-primary" id="btn-new">+ New customer</button>
     </div>
-
-    <div id="banner" class="banner"></div>
 
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
             <th>Attention</th>
-            <th>Status (sales)</th>
-            <th>Setup (ops)</th>
+            <th>Status</th>
+            <th>Setup</th>
             <th>Business</th>
             <th>Contact</th>
             <th>Email</th>
             <th>Phone</th>
-            <th>Postcode</th>
-            <th>Updated</th>
           </tr>
         </thead>
-        <tbody id="tbody">
-          <tr><td colspan="9">Loading…</td></tr>
-        </tbody>
+        <tbody id="tbody"></tbody>
       </table>
     </div>
-
-    <div id="status-bar" style="margin-top:.6rem;font-size:.8rem;color:#6b7280"></div>
   </div>
 </main>
 
-<!-- Drawer -->
-<div class="drawer" id="drawer" aria-hidden="true">
+<div class="drawer" id="drawer">
   <div class="drawer-header">
-    <div class="drawer-title" id="drawerTitle">Customer</div>
-    <div class="drawer-sub" id="drawerSub">—</div>
+    <div class="drawer-title" id="dTitle"></div>
+    <div class="drawer-sub" id="dSub"></div>
   </div>
 
   <div class="drawer-body">
     <div class="section-title">Sales stage</div>
     <div class="chip-row" id="salesChips"></div>
 
-    <div class="section-title">Setup tasks (ops)</div>
-    <div class="checklist" id="opsChecklist"></div>
+    <div class="section-title">Setup tasks</div>
+    <div class="checklist" id="opsList"></div>
 
     <div class="section-title">Notes</div>
-    <label for="drawerNotes">Internal notes (autosaves)</label>
-    <textarea id="drawerNotes" placeholder="Sales notes / objections / follow-up plan…"></textarea>
-
-    <div style="height:.6rem"></div>
-    <label for="drawerLeadNotes">Lead notes (autosaves)</label>
-    <textarea id="drawerLeadNotes" placeholder="Lead context, where they came from, specifics…"></textarea>
+    <textarea id="notes"></textarea>
   </div>
 
   <div class="drawer-footer">
-    <div class="drawer-hint" id="drawerHint">Autosaves</div>
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end">
-      <button class="btn btn-secondary" id="btnOpenWizard" type="button">Open wizard</button>
-      <button class="btn btn-secondary" id="btnCloseDrawer" type="button">Close</button>
+    <div style="font-size:.8rem;color:#6b7280;">Autosaves</div>
+    <div>
+      <button class="btn btn-secondary" id="btnWizard">Open wizard</button>
+      <button class="btn btn-secondary" id="btnClose">Close</button>
     </div>
   </div>
 </div>
 
 <script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = createClient(
+  "https://yaiutswdcbfwkxfqxkzy.supabase.co",
+  "PASTE_YOUR_ANON_KEY"
+);
 
-  const SALES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
+const SALES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
+let rows=[], active=null;
 
-  // DOM
-  const tbody = document.getElementById("tbody");
-  const statusStrip = document.getElementById("status-strip");
-  const search = document.getElementById("search");
-  const statusBar = document.getElementById("status-bar");
-  const banner = document.getElementById("banner");
+const tbody=document.getElementById("tbody");
+const drawer=document.getElementById("drawer");
 
-  const btnRefresh = document.getElementById("btn-refresh");
-  const btnNew = document.getElementById("btn-new");
-  const btnClear = document.getElementById("btn-clear-filter");
-
-  // Drawer DOM
-  const drawer = document.getElementById("drawer");
-  const drawerTitle = document.getElementById("drawerTitle");
-  const drawerSub = document.getElementById("drawerSub");
-  const salesChips = document.getElementById("salesChips");
-  const opsChecklist = document.getElementById("opsChecklist");
-  const drawerNotes = document.getElementById("drawerNotes");
-  const drawerLeadNotes = document.getElementById("drawerLeadNotes");
-  const drawerHint = document.getElementById("drawerHint");
-  const btnCloseDrawer = document.getElementById("btnCloseDrawer");
-  const btnOpenWizard = document.getElementById("btnOpenWizard");
-
-  // State
-  let rows = [];
-  let activeStatus = null;
-  let activeRow = null;
-  let noteTimer = null;
-
-  function showError(msg){
-    banner.textContent = msg;
-    banner.classList.add("show");
-  }
-  function clearError(){
-    banner.textContent = "";
-    banner.classList.remove("show");
-  }
-  function safeText(v){ return (v ?? "").toString(); }
-  function stageOf(r){ return safeText(r.onboarding_status).trim() || "New Signup"; }
-
-  function setupTasks(r){
-    return [
-      { key:"wizard_completed",   label:"Wizard submitted",   done: !!r.wizard_completed },
-      { key:"whatsapp_connected", label:"WhatsApp connected", done: !!r.whatsapp_connected },
-      { key:"calendar_connected", label:"Calendar connected", done: !!r.calendar_connected },
-      { key:"payments_connected", label:"Payments connected", done: !!r.payments_connected },
-    ];
-  }
-
-  function allDone(r){
-    const t = setupTasks(r);
-    return t.every(x => x.done);
-  }
-
-  function attentionBadges(r){
-    const badges = [];
-    if(stageOf(r) === "New Signup") badges.push(`<span class="badge new">New</span>`);
-    if((stageOf(r) === "Demo" || stageOf(r) === "Free Trial") && !allDone(r)) badges.push(`<span class="badge demo">Setup gap</span>`);
-    return badges.length ? `<span class="badges">${badges.join("")}</span>` : "—";
-  }
-
-  function opsDots(r){
-    const items = setupTasks(r);
-    return `
-      <span class="pipe">
-        ${items.map(i => `<span class="dot ${i.done ? "done":"need"}" title="${i.label}"></span>`).join("")}
-      </span>
+function render(){
+  tbody.innerHTML="";
+  rows.forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${r.onboarding_status==="New Signup"?'<span class="badge new">New</span>':'—'}</td>
+      <td>${r.onboarding_status||"New Signup"}</td>
+      <td><span class="pipe">
+        ${["wizard_completed","whatsapp_connected","calendar_connected","payments_connected"]
+          .map(k=>`<span class="dot ${r[k]?"done":"need"}"></span>`).join("")}
+      </span></td>
+      <td>${r.business_name||"—"}</td>
+      <td>${r.contact_name||"—"}</td>
+      <td>${r.email||"—"}</td>
+      <td>${r.phone||"—"}</td>
     `;
-  }
+    tr.onclick=()=>openDrawer(r);
+    tbody.appendChild(tr);
+  });
+}
 
-  function renderStatuses(){
-    statusStrip.innerHTML = "";
+function openDrawer(r){
+  active=r;
+  drawer.classList.add("open");
+}
 
-    const mk = (label, value) => {
-      const el = document.createElement("div");
-      el.className = "status-chip" + ((activeStatus===value) ? " is-active" : "");
-      el.textContent = label;
-      el.onclick = ()=>{ activeStatus=value; renderStatuses(); render(); };
-      statusStrip.appendChild(el);
-    };
+async function load(){
+  const {data}=await sb.from("customers").select("*");
+  rows=data||[];
+  render();
+}
 
-    mk("All", null);
-    SALES.forEach(s => mk(s, s));
-  }
+document.getElementById("btnClose").onclick=()=>drawer.classList.remove("open");
+document.getElementById("btnWizard").onclick=()=>window.open(`app.html?id=${active.id}`,"_blank");
+document.getElementById("btnRefresh").onclick=load;
+document.getElementById("btnNew").onclick=()=>window.open("app.html","_blank");
 
-  function rowMatches(r,q){
-    if(!q) return true;
-    const hay = [
-      r.business_name, r.contact_name, r.email, r.phone, r.base_postcode, stageOf(r)
-    ].map(safeText).join(" ").toLowerCase();
-    return hay.includes(q.toLowerCase());
-  }
-
-  function render(){
-    const q = (search.value || "").trim();
-    const filtered = rows.filter(r=>{
-      if(activeStatus && stageOf(r) !== activeStatus) return false;
-      return rowMatches(r,q);
-    });
-
-    tbody.innerHTML = "";
-    if(!filtered.length){
-      tbody.innerHTML = `<tr><td colspan="9">No matches.</td></tr>`;
-      statusBar.textContent = `0 shown • ${rows.length} total`;
-      return;
-    }
-
-    for(const r of filtered){
-      const upd = r.updated_at || r.created_at || null;
-      const updTxt = upd ? new Date(upd).toLocaleString() : "—";
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${attentionBadges(r)}</td>
-        <td>${stageOf(r)}</td>
-        <td>${opsDots(r)}</td>
-        <td>${safeText(r.business_name) || "—"}</td>
-        <td>${safeText(r.contact_name) || "—"}</td>
-        <td>${safeText(r.email) || "—"}</td>
-        <td>${safeText(r.phone) || "—"}</td>
-        <td>${safeText(r.base_postcode) || "—"}</td>
-        <td>${updTxt}</td>
-      `;
-
-      // IMPORTANT: row click opens drawer (not wizard)
-      tr.onclick = ()=> openDrawer(r);
-
-      tbody.appendChild(tr);
-    }
-
-    statusBar.textContent =
-      `${filtered.length} shown • ${rows.length} total` + (activeStatus ? ` • Stage: ${activeStatus}` : "");
-  }
-
-  function openDrawer(r){
-    activeRow = r;
-
-    drawerTitle.textContent = r.business_name || "Customer";
-    drawerSub.textContent = [
-      r.contact_name ? `Contact: ${r.contact_name}` : "",
-      r.base_postcode ? `Postcode: ${r.base_postcode}` : "",
-      r.id ? `ID: ${r.id}` : ""
-    ].filter(Boolean).join(" • ");
-
-    renderSalesChips(r);
-    renderOpsChecklist(r);
-
-    drawerNotes.value = r.notes || "";
-    drawerLeadNotes.value = r.lead_notes || "";
-    drawerHint.textContent = "Autosaves";
-
-    drawer.classList.add("open");
-    drawer.setAttribute("aria-hidden","false");
-  }
-
-  function closeDrawer(){
-    drawer.classList.remove("open");
-    drawer.setAttribute("aria-hidden","true");
-    activeRow = null;
-  }
-
-  function renderSalesChips(r){
-    const current = stageOf(r);
-    salesChips.innerHTML = "";
-
-    SALES.forEach(stage=>{
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "chip" + (current === stage ? " is-active" : "");
-      b.textContent = stage;
-      b.onclick = async (e)=>{
-        e.stopPropagation();
-        if(!activeRow) return;
-        if(stageOf(activeRow) === stage) return;
-
-        const updated = await updateCustomer(activeRow.id, { onboarding_status: stage });
-        if(updated){
-          // update state, rerender
-          activeRow = updated;
-          const idx = rows.findIndex(x=>x.id===updated.id);
-          if(idx !== -1) rows[idx] = updated;
-          renderStatuses();
-          render();
-          openDrawer(updated);
-        }
-      };
-      salesChips.appendChild(b);
-    });
-  }
-
-  function renderOpsChecklist(r){
-    const items = setupTasks(r);
-    opsChecklist.innerHTML = items.map(i=>{
-      const badge = i.done ? "✓" : "";
-      const badgeCls = i.done ? "check-badge done" : "check-badge";
-      const state = i.done ? "Completed" : "Click to toggle";
-      return `
-        <div class="check-item" data-key="${i.key}">
-          <div class="check-left">
-            <div class="${badgeCls}">${badge}</div>
-            <div class="check-name">${i.label}</div>
-          </div>
-          <div class="check-state">${state}</div>
-        </div>
-      `;
-    }).join("");
-  }
-
-  async function updateCustomer(id, patch){
-    clearError();
-    const { data, error } = await sb.from("customers").update(patch).eq("id", id).select("*").single();
-    if(error){
-      console.error(error);
-      showError("Save failed:\n\n" + (error.message || JSON.stringify(error)));
-      return null;
-    }
-    return data;
-  }
-
-  async function saveNotesNow(){
-    if(!activeRow) return;
-    drawerHint.textContent = "Saving…";
-
-    const patch = { notes: drawerNotes.value, lead_notes: drawerLeadNotes.value };
-    const { error } = await sb.from("customers").update(patch).eq("id", activeRow.id);
-    if(error){
-      console.error(error);
-      showError("Failed to save notes:\n\n" + (error.message || JSON.stringify(error)));
-      drawerHint.textContent = "Save failed";
-      return;
-    }
-
-    drawerHint.textContent = "Saved";
-
-    // update local row copy so attention rules stay correct later
-    activeRow.notes = patch.notes;
-    activeRow.lead_notes = patch.lead_notes;
-    const idx = rows.findIndex(x=>x.id===activeRow.id);
-    if(idx !== -1){
-      rows[idx].notes = patch.notes;
-      rows[idx].lead_notes = patch.lead_notes;
-    }
-  }
-
-  function queueNotesSave(){
-    clearTimeout(noteTimer);
-    noteTimer = setTimeout(saveNotesNow, 450);
-  }
-
-  // Events
-  btnRefresh.onclick = load;
-  btnNew.onclick = ()=> window.open("app.html", "_blank", "noopener");
-  btnClear.onclick = ()=>{ activeStatus=null; search.value=""; renderStatuses(); render(); };
-  search.oninput = render;
-
-  btnCloseDrawer.onclick = closeDrawer;
-  drawerNotes.addEventListener("input", queueNotesSave);
-  drawerLeadNotes.addEventListener("input", queueNotesSave);
-
-  btnOpenWizard.onclick = (e)=>{
-    e.stopPropagation();
-    if(!activeRow) return;
-    window.open(`app.html?id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
-  };
-
-  // Toggle ops items in drawer
-  document.addEventListener("click", async (e)=>{
-    const item = e.target.closest(".check-item[data-key]");
-    if(!item || !activeRow) return;
-
-    const key = item.dataset.key;
-    const patch = {};
-    patch[key] = !activeRow[key];
-
-    const updated = await updateCustomer(activeRow.id, patch);
-    if(updated){
-      activeRow = updated;
-      const idx = rows.findIndex(x=>x.id===updated.id);
-      if(idx !== -1) rows[idx] = updated;
-      render();
-      openDrawer(updated);
-    }
-  }, true);
-
-  async function load(){
-    clearError();
-    statusBar.textContent = "Loading…";
-    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
-
-    const { data, error } = await sb.from("customers").select("*");
-    if(error){
-      console.error(error);
-      showError("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
-      rows = [];
-      render();
-      return;
-    }
-
-    rows = Array.isArray(data) ? data : [];
-    renderStatuses();
-    render();
-  }
-
-  // INIT
-  renderStatuses();
-  load();
+load();
 </script>
-
 </body>
 </html>
