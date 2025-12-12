@@ -1059,13 +1059,13 @@
 </div>
 
  <script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  import { createClient } from "https://esm.sh/@sb./sb.-js@2";
 
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb._URL = "https://yaiutswdcbfwkxfqxkzy.sb..co";
+  const sb._ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
    console.log("SCRIPT VERSION: A-2025-12-12");
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = createClient(sb._URL, sb._ANON_KEY);
 window.sb = sb;
 
 
@@ -1239,7 +1239,7 @@ window.sb = sb;
   // - wizard_answers jsonb (recommended)
   // =========================
   async function loadCustomer(id){
-    const { data, error } = await supabase.from("customers").select("*").eq("id", id).single();
+    const { data, error } = await sb..from("customers").select("*").eq("id", id).single();
     if (error){ console.error("LOAD ERROR:", error); msg("Load failed (see console)", "error"); return null; }
     return data;
   }
@@ -1250,7 +1250,7 @@ window.sb = sb;
 
     console.log("[SAVE]", reason, payload);
 
-    const { data, error } = await supabase
+    const { data, error } = await sb.
       .from("customers")
       .upsert(payload, { onConflict: "id" })
       .select("*")
@@ -1293,7 +1293,7 @@ window.sb = sb;
     const saved = await saveNow("finish");
     if (saved){
       // mark as completed + move status
-      await supabase.from("customers").update({
+      await sb..from("customers").update({
         wizard_completed: true,
         onboarding_status: "Demo Booked"
       }).eq("id", customerId);
