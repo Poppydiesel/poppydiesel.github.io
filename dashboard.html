@@ -111,8 +111,6 @@
       box-shadow:0 12px 28px rgba(15,23,42,0.35);
     }
     .btn-primary:hover{filter:brightness(1.03);box-shadow:0 16px 34px rgba(15,23,42,0.4)}
-    .btn-danger{border-color:rgba(179,38,30,0.28);background:#fff1f2;color:#7f1d1d}
-    .btn-danger:hover{background:#ffe4e6}
 
     .banner{
       display:none;margin:0 0 .85rem;
@@ -133,8 +131,7 @@
     table{
       width:100%;
       border-collapse:collapse;
-      /* Key fix: no massive min-width, just allow scroll when needed */
-      min-width: 980px;
+      min-width: 980px; /* alignment fix */
     }
     thead th{
       position:sticky;top:0;
@@ -167,11 +164,13 @@
     .pill.no{border-color:rgba(179,38,30,0.35);background:#fff1f2;color:#7f1d1d}
     .pill.na{border-color:rgba(148,163,184,0.45);background:#f1f5f9;color:#475569}
 
+    /* Pipeline dots (SETUP ONLY) */
     .pipe{display:inline-flex;align-items:center;gap:6px}
     .dot{
       width:10px;height:10px;border-radius:999px;
       border:2px solid rgba(148,163,184,0.9);
       background:#fff;
+      cursor:pointer;
     }
     .dot.done{border-color:rgba(15,123,70,0.65);background:#dcfce7}
     .dot.need{border-color:rgba(179,38,30,0.45);background:#fff1f2}
@@ -231,12 +230,6 @@
     }
     .check-state{font-size:.82rem;color:var(--muted-text);flex:0 0 auto}
 
-    .action-grid{
-      display:flex;flex-wrap:wrap;gap:.5rem;
-      margin:.4rem 0 0;
-    }
-    .action-grid .btn{padding:.48rem .85rem;font-size:.84rem}
-
     .drawer-footer{
       padding:1rem;border-top:1px solid var(--border-subtle);
       display:flex;justify-content:space-between;align-items:center;gap:.6rem;
@@ -267,9 +260,9 @@
 
 <main>
   <section class="panel">
-    <div class="kicker">Pipeline</div>
-    <h1 class="title">Onboarding stages + setup pipeline</h1>
-    <p class="subtitle">Click a status to filter. Click a customer row to see what’s done vs what’s needed.</p>
+    <div class="kicker">Sales stage</div>
+    <h1 class="title">Customers by onboarding status (sales) + setup pipeline (ops)</h1>
+    <p class="subtitle">Filter by sales stage. Pipeline dots are ops toggles only (Wizard / WhatsApp / Calendar / Payments).</p>
 
     <div class="status-strip" id="status-strip"></div>
 
@@ -293,17 +286,13 @@
       <table>
         <thead>
           <tr>
-            <th>Status</th>
-            <th>Pipeline</th>
+            <th>Onboarding status (sales)</th>
+            <th>Setup pipeline (ops)</th>
             <th>Business</th>
             <th>Contact</th>
             <th>Email</th>
             <th>Phone</th>
             <th>Postcode</th>
-            <th>Wizard</th>
-            <th>WhatsApp</th>
-            <th>Calendar</th>
-            <th>Payments</th>
             <th>Updated</th>
           </tr>
         </thead>
@@ -325,25 +314,20 @@
   <div class="drawer-body">
     <div class="drawer-row">
       <div class="drawer-field">
-        <label for="drawer_status">Onboarding status</label>
+        <label for="drawer_status">Onboarding status (sales)</label>
         <select id="drawer_status"></select>
       </div>
 
       <div class="drawer-field">
-        <label>Quick actions</label>
-        <div class="action-grid">
+        <label>Actions</label>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
           <button class="btn btn-secondary" id="btnOpenWizard" type="button">Open wizard</button>
-          <button class="btn btn-primary" id="btnMarkLive" type="button">Mark Live</button>
-          <button class="btn btn-danger" id="btnResetFlags" type="button">Reset setup flags</button>
         </div>
       </div>
     </div>
 
-    <div class="drawer-section-title">Setup pipeline</div>
+    <div class="drawer-section-title">Setup pipeline (ops)</div>
     <div class="checklist" id="pipelineChecklist"></div>
-
-    <div class="drawer-section-title">Mark stages complete (one click)</div>
-    <div class="action-grid" id="stageButtons"></div>
 
     <div class="drawer-row" style="margin-top:.8rem;">
       <div class="drawer-field">
@@ -388,7 +372,6 @@
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  // IMPORTANT: this is your real project + anon key
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -416,30 +399,25 @@
   const drawerLeadNotes = document.getElementById("drawer_lead_notes");
   const drawerHint = document.getElementById("drawerHint");
   const pipelineChecklist = document.getElementById("pipelineChecklist");
-  const stageButtons = document.getElementById("stageButtons");
 
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
   const btnOpenWizard = document.getElementById("btnOpenWizard");
-  const btnMarkLive = document.getElementById("btnMarkLive");
-  const btnResetFlags = document.getElementById("btnResetFlags");
 
   // State
   let allRows = [];
-  let activeStatus = null;
+  let activeStatus = null;   // SALES filter only
   let statusOrder = [];
   let activeRow = null;
   let noteTimer = null;
 
+  // Sales stages (not pipeline)
   const DEFAULT_STATUSES = [
     "New Signup",
     "In Setup",
-    "Wizard Started",
-    "Wizard Completed",
-    "Demo",
     "Free Trial",
+    "Demo",
     "Needs Convincing",
-    "Live",
-    "Paused / Not Proceeding"
+    "Live"
   ];
 
   function setBanner(msg){
@@ -465,28 +443,17 @@
     }catch{ return "—"; }
   }
 
-  function normalizeStatus(row){
+  function salesStatus(row){
     const raw = (row?.onboarding_status ?? "").toString().trim();
-    if(raw) return raw;
-    if(row?.wizard_completed) return "Wizard Completed";
-    const wa = row?.wizard_answers;
-    const hasAnswers = wa && typeof wa === "object" && !Array.isArray(wa) && Object.keys(wa).length > 0;
-    if(hasAnswers) return "Wizard Started";
-    return "New Signup";
+    return raw || "New Signup";
   }
 
   function rowMatchesSearch(row,q){
     if(!q) return true;
     const hay = [
-      row.business_name,row.contact_name,row.email,row.phone,row.base_postcode,normalizeStatus(row)
+      row.business_name,row.contact_name,row.email,row.phone,row.base_postcode,salesStatus(row)
     ].join(" ").toLowerCase();
     return hay.includes(q.toLowerCase());
-  }
-
-  function pillFromBool(v){
-    if(v===true) return `<span class="pill ok">✅ Connected</span>`;
-    if(v===false) return `<span class="pill no">✖ Not yet</span>`;
-    return `<span class="pill na">—</span>`;
   }
 
   async function loadDistinctStatuses(){
@@ -500,11 +467,9 @@
     return Array.from(set);
   }
 
-  function computeStatusOrder(distinctFromDb, rows){
-    const set = new Set();
-    DEFAULT_STATUSES.forEach(s=>set.add(s));
+  function computeStatusOrder(distinctFromDb){
+    const set = new Set(DEFAULT_STATUSES);
     (distinctFromDb||[]).forEach(s=>set.add(s));
-    for(const r of rows) set.add(normalizeStatus(r));
 
     const all = Array.from(set);
     all.sort((a,b)=>{
@@ -521,7 +486,7 @@
   function computeCounts(){
     const counts = {};
     for(const r of allRows){
-      const s = normalizeStatus(r);
+      const s = salesStatus(r);
       counts[s] = (counts[s] || 0) + 1;
     }
     return counts;
@@ -543,47 +508,36 @@
     statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
   }
 
-  function pipelineForRow(row){
-    const status = normalizeStatus(row);
-
-    // If columns don't exist in DB, these evaluate false and UI still works.
-    const wizardDone = !!row?.wizard_completed;
-    const waDone = !!row?.whatsapp_connected;
-    const calDone = !!row?.calendar_connected;
-    const payDone = !!row?.payments_connected;
-
-    const demoDone = (status === "Demo") || !!row?.demo_booked_at;
-    const trialDone = (status === "Free Trial") || !!row?.free_trial_started_at;
-    const liveDone = (status === "Live") || !!row?.live_at;
-
-    const setupDone = wizardDone || demoDone || trialDone || liveDone || (status !== "New Signup" && status !== "In Setup");
-
+  // -------- SETUP PIPELINE (OPS) --------
+  // These are toggled by clickable dots and DO NOT touch onboarding_status.
+  function setupPipeline(row){
     return [
-      { key:"setup", label:"In Setup", done: setupDone },
-      { key:"wizard", label:"Wizard", done: wizardDone },
-      { key:"whatsapp", label:"WhatsApp connected", done: waDone },
-      { key:"calendar", label:"Calendar connected", done: calDone },
-      { key:"payments", label:"Payments connected", done: payDone },
-      { key:"demo", label:"Demo", done: demoDone },
-      { key:"trial", label:"Free Trial", done: trialDone },
-      { key:"live", label:"Live", done: liveDone }
+      { key:"wizard",   label:"Wizard completed",   col:"wizard_completed",   done: !!row?.wizard_completed },
+      { key:"whatsapp", label:"WhatsApp connected", col:"whatsapp_connected", done: !!row?.whatsapp_connected },
+      { key:"calendar", label:"Calendar connected", col:"calendar_connected", done: !!row?.calendar_connected },
+      { key:"payments", label:"Payments connected", col:"payments_connected", done: !!row?.payments_connected },
     ];
   }
 
   function pipelineDotsHTML(row){
-    const items = pipelineForRow(row);
-    const show = ["wizard","whatsapp","calendar","payments","demo","trial","live"];
-    const dots = items.filter(i=>show.includes(i.key))
-      .map(i=>`<span class="dot ${i.done ? "done":"need"}" title="${escapeHtml(i.label)}: ${i.done ? "Done":"Needed"}"></span>`)
-      .join("");
+    const items = setupPipeline(row);
+    const dots = items.map(i => `
+      <span
+        class="dot ${i.done ? "done" : "need"}"
+        data-pipe="${i.key}"
+        data-id="${row.id}"
+        title="${escapeHtml(i.label)} — click to toggle"
+      ></span>
+    `).join("");
 
-    const doneCount = items.filter(i=>i.key!=="setup" && i.done).length;
-    const totalCount = items.filter(i=>i.key!=="setup").length;
+    const doneCount = items.filter(i => i.done).length;
+    const totalCount = items.length;
+
     return `<span class="pipe">${dots}<span class="dot-label">${doneCount}/${totalCount}</span></span>`;
   }
 
   function renderChecklist(row){
-    const items = pipelineForRow(row);
+    const items = setupPipeline(row);
     pipelineChecklist.innerHTML = items.map(i=>{
       const badge = i.done ? "✓" : "•";
       const badgeCls = i.done ? "check-badge done" : "check-badge";
@@ -597,83 +551,6 @@
           <div class="check-state">${escapeHtml(state)}</div>
         </div>`;
     }).join("");
-  }
-
-  function renderStageButtons(row){
-    // These are the “one click” actions you asked for.
-    // They update the DB booleans + set onboarding_status where sensible.
-    stageButtons.innerHTML = "";
-
-    const btn = (label, cls, onClick) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "btn " + cls;
-      b.textContent = label;
-      b.addEventListener("click", onClick);
-      stageButtons.appendChild(b);
-    };
-
-    const has = (k) => row && Object.prototype.hasOwnProperty.call(row, k);
-
-    btn("Mark In Setup", "btn-secondary", async ()=>{
-      if(!activeRow) return;
-      const updated = await updateCustomer(activeRow.id, { onboarding_status: "In Setup" });
-      if(updated){ render(); openDrawer(updated); }
-    });
-
-    btn("Mark Demo", "btn-secondary", async ()=>{
-      if(!activeRow) return;
-      const patch = { onboarding_status: "Demo" };
-      if(has("demo_booked_at")) patch.demo_booked_at = new Date().toISOString();
-      const updated = await updateCustomer(activeRow.id, patch);
-      if(updated){ render(); openDrawer(updated); }
-    });
-
-    btn("Start Free Trial", "btn-secondary", async ()=>{
-      if(!activeRow) return;
-      const patch = { onboarding_status: "Free Trial" };
-      if(has("free_trial_started_at")) patch.free_trial_started_at = new Date().toISOString();
-      const updated = await updateCustomer(activeRow.id, patch);
-      if(updated){ render(); openDrawer(updated); }
-    });
-
-    btn("Needs Convincing", "btn-secondary", async ()=>{
-      if(!activeRow) return;
-      const updated = await updateCustomer(activeRow.id, { onboarding_status: "Needs Convincing" });
-      if(updated){ render(); openDrawer(updated); }
-    });
-
-    btn("Toggle WhatsApp", "btn-secondary", async ()=>{
-      if(!activeRow) return;
-      const patch = { whatsapp_connected: !activeRow.whatsapp_connected };
-      const updated = await updateCustomer(activeRow.id, patch);
-      if(updated){ render(); openDrawer(updated); }
-    });
-
-    btn("Toggle Calendar", "btn-secondary", async ()=>{
-      if(!activeRow) return;
-      const patch = { calendar_connected: !activeRow.calendar_connected };
-      const updated = await updateCustomer(activeRow.id, patch);
-      if(updated){ render(); openDrawer(updated); }
-    });
-
-    btn("Toggle Payments", "btn-secondary", async ()=>{
-      if(!activeRow) return;
-      const patch = { payments_connected: !activeRow.payments_connected };
-      const updated = await updateCustomer(activeRow.id, patch);
-      if(updated){ render(); openDrawer(updated); }
-    });
-
-    btn("Mark Live", "btn-primary", async ()=>{
-      if(!activeRow) return;
-      const patch = { onboarding_status: "Live" };
-      if(has("live_at")) patch.live_at = new Date().toISOString();
-      // Optionally auto-mark connections when going live:
-      if(has("whatsapp_connected")) patch.whatsapp_connected = true;
-      if(has("calendar_connected")) patch.calendar_connected = true;
-      const updated = await updateCustomer(activeRow.id, patch);
-      if(updated){ render(); openDrawer(updated); }
-    });
   }
 
   async function updateCustomer(id, patch){
@@ -700,9 +577,9 @@
       row.id ? `ID: ${row.id}` : ""
     ].filter(Boolean).join(" • ");
 
-    const currentStatus = normalizeStatus(row);
+    const current = salesStatus(row);
     const set = new Set(statusOrder);
-    set.add(currentStatus);
+    set.add(current);
 
     const options = Array.from(set).sort((a,b)=>{
       const ia = statusOrder.indexOf(a);
@@ -715,7 +592,7 @@
 
     drawerStatus.innerHTML =
       options.map(s=>{
-        const sel = s===currentStatus ? "selected" : "";
+        const sel = s===current ? "selected" : "";
         return `<option value="${escapeHtml(s)}" ${sel}>${escapeHtml(s)}</option>`;
       }).join("") +
       `<option value="__new__">+ Add new status…</option>`;
@@ -728,7 +605,6 @@
     drawerLeadNotes.value = row.lead_notes || "";
 
     renderChecklist(row);
-    renderStageButtons(row);
 
     drawerHint.textContent = "Autosaves";
     drawer.classList.add("open");
@@ -754,7 +630,6 @@
       return;
     }
     drawerHint.textContent = "Saved";
-
     const idx = allRows.findIndex(r=>r.id===id);
     if(idx !== -1){
       allRows[idx].notes = patch.notes;
@@ -774,47 +649,33 @@
 
     const q = (search.value || "").trim();
     const rows = allRows
-      .filter(r => (activeStatus ? normalizeStatus(r)===activeStatus : true))
+      .filter(r => (activeStatus ? salesStatus(r)===activeStatus : true))
       .filter(r => rowMatchesSearch(r,q))
       .sort((a,b)=>{
-        const ta = new Date(a.updated_at || a.created_at || a.live_at || 0).getTime();
-        const tb = new Date(b.updated_at || b.created_at || b.live_at || 0).getTime();
+        const ta = new Date(a.updated_at || a.created_at || 0).getTime();
+        const tb = new Date(b.updated_at || b.created_at || 0).getTime();
         return tb - ta;
       });
 
     tbody.innerHTML = "";
 
     if(!rows.length){
-      tbody.innerHTML = `<tr><td colspan="12">No matches.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8">No matches.</td></tr>`;
       statusBar.textContent = `0 shown • ${allRows.length} total`;
       return;
     }
 
     for(const r of rows){
-      const st = normalizeStatus(r);
-
-      const wizardPill = r.wizard_completed
-        ? `<span class="pill ok">✅ Complete</span>`
-        : `<span class="pill no">⏳ In progress</span>`;
-
-      const wa = (typeof r.whatsapp_connected === "boolean") ? r.whatsapp_connected : null;
-      const cal = (typeof r.calendar_connected === "boolean") ? r.calendar_connected : null;
-      const pay = (typeof r.payments_connected === "boolean") ? r.payments_connected : null;
-
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${escapeHtml(st)}</td>
+        <td>${escapeHtml(salesStatus(r))}</td>
         <td>${pipelineDotsHTML(r)}</td>
         <td>${escapeHtml(r.business_name || "—")}</td>
         <td>${escapeHtml(r.contact_name || "—")}</td>
         <td>${escapeHtml(r.email || "—")}</td>
         <td>${escapeHtml(r.phone || "—")}</td>
         <td>${escapeHtml(r.base_postcode || "—")}</td>
-        <td>${wizardPill}</td>
-        <td>${pillFromBool(wa)}</td>
-        <td>${pillFromBool(cal)}</td>
-        <td>${pillFromBool(pay)}</td>
-        <td>${escapeHtml(fmtDate(r.updated_at || r.created_at || r.live_at))}</td>
+        <td>${escapeHtml(fmtDate(r.updated_at || r.created_at))}</td>
       `;
       tr.addEventListener("click", ()=>openDrawer(r));
       tbody.appendChild(tr);
@@ -828,9 +689,8 @@
   async function loadCustomersAndStatuses(){
     setBanner("");
     statusBar.textContent = "Loading…";
-    tbody.innerHTML = `<tr><td colspan="12">Loading…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8">Loading…</td></tr>`;
 
-    // If there’s ANY issue, we show it on page (no silent white screen)
     let res;
     try{
       res = await sb.from("customers").select("*");
@@ -838,7 +698,7 @@
       console.error("LOAD THROW:", err);
       setBanner("Failed to load customers (JS exception).\n\n" + (err?.message || String(err)));
       allRows = [];
-      tbody.innerHTML = `<tr><td colspan="12">No data loaded.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8">No data loaded.</td></tr>`;
       statusBar.textContent = "Load failed.";
       return;
     }
@@ -848,7 +708,7 @@
       console.error("LOAD ERROR:", error);
       setBanner("Failed to load customers (Supabase).\n\n" + (error.message || JSON.stringify(error)));
       allRows = [];
-      tbody.innerHTML = `<tr><td colspan="12">No data loaded.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8">No data loaded.</td></tr>`;
       statusBar.textContent = "Load failed.";
       return;
     }
@@ -856,7 +716,7 @@
     allRows = Array.isArray(data) ? data : [];
 
     const distinct = await loadDistinctStatuses();
-    statusOrder = computeStatusOrder(distinct, allRows);
+    statusOrder = computeStatusOrder(distinct);
 
     render();
   }
@@ -867,7 +727,7 @@
   btnClear.addEventListener("click", ()=>{ activeStatus=null; search.value=""; render(); });
   search.addEventListener("input", render);
 
-  // Drawer events
+  // Drawer
   btnCloseDrawer.addEventListener("click", closeDrawer);
   drawerNotes.addEventListener("input", queueNotesSave);
   drawerLeadNotes.addEventListener("input", queueNotesSave);
@@ -880,7 +740,7 @@
       const clean = (newStatus || "").trim();
       if(!clean){ openDrawer(activeRow); return; }
 
-      const updated = await updateCustomer(activeRow.id, ( { onboarding_status: clean } ));
+      const updated = await updateCustomer(activeRow.id, { onboarding_status: clean });
       if(updated){
         if(!statusOrder.includes(clean)) statusOrder.push(clean);
         render();
@@ -901,29 +761,32 @@
     window.open(`app.html?id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
   });
 
-  btnMarkLive.addEventListener("click", async ()=>{
-    if(!activeRow) return;
-    const patch = { onboarding_status: "Live" };
-    if(Object.prototype.hasOwnProperty.call(activeRow, "live_at")) patch.live_at = new Date().toISOString();
-    const updated = await updateCustomer(activeRow.id, patch);
-    if(updated){ render(); openDrawer(updated); }
-  });
+  // ✅ Clickable pipeline dots (ops toggles only)
+  document.addEventListener("click", async (e)=>{
+    const dot = e.target.closest(".dot[data-pipe][data-id]");
+    if(!dot) return;
 
-  btnResetFlags.addEventListener("click", async ()=>{
-    if(!activeRow) return;
+    e.stopPropagation(); // prevent opening the drawer row
+
+    const id = dot.dataset.id;
+    const key = dot.dataset.pipe;
+
+    const row = allRows.find(r => r.id === id);
+    if(!row) return;
+
     const patch = {};
-    if(Object.prototype.hasOwnProperty.call(activeRow, "wizard_completed")) patch.wizard_completed = false;
-    if(Object.prototype.hasOwnProperty.call(activeRow, "whatsapp_connected")) patch.whatsapp_connected = false;
-    if(Object.prototype.hasOwnProperty.call(activeRow, "calendar_connected")) patch.calendar_connected = false;
-    if(Object.prototype.hasOwnProperty.call(activeRow, "payments_connected")) patch.payments_connected = false;
-    if(Object.prototype.hasOwnProperty.call(activeRow, "demo_booked_at")) patch.demo_booked_at = null;
-    if(Object.prototype.hasOwnProperty.call(activeRow, "free_trial_started_at")) patch.free_trial_started_at = null;
-    if(Object.prototype.hasOwnProperty.call(activeRow, "live_at")) patch.live_at = null;
-    patch.onboarding_status = "In Setup";
+    // Toggle the boolean flags only
+    if(key === "wizard")   patch.wizard_completed   = !row.wizard_completed;
+    if(key === "whatsapp") patch.whatsapp_connected = !row.whatsapp_connected;
+    if(key === "calendar") patch.calendar_connected = !row.calendar_connected;
+    if(key === "payments") patch.payments_connected = !row.payments_connected;
 
-    const updated = await updateCustomer(activeRow.id, patch);
-    if(updated){ render(); openDrawer(updated); }
-  });
+    const updated = await updateCustomer(id, patch);
+    if(updated){
+      render();
+      if(activeRow && activeRow.id === id) openDrawer(updated);
+    }
+  }, true);
 
   // Init
   loadCustomersAndStatuses();
