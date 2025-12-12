@@ -102,6 +102,7 @@
       padding:.55rem 1.05rem;font-size:.86rem;font-weight:550;
       cursor:pointer;display:inline-flex;align-items:center;gap:.35rem;
       background:transparent;
+      user-select:none;
     }
     .btn-secondary{border-color:var(--border-subtle);background:#f9fafb;color:var(--dark-text)}
     .btn-secondary:hover{background:#e5e7eb}
@@ -185,7 +186,7 @@
 
     .drawer-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.9rem}
     .drawer-field label{display:block;font-size:.78rem;color:var(--muted-text);margin:0 0 .25rem}
-    .drawer-field select,.drawer-field input,.drawer-body textarea{
+    .drawer-field input,.drawer-body textarea{
       width:100%;padding:.6rem .7rem;border-radius:.85rem;
       border:1px solid var(--border-subtle);font:inherit;outline:none;background:#fff;
     }
@@ -311,8 +312,8 @@
   <div class="drawer-body">
     <div class="drawer-row">
       <div class="drawer-field">
-        <label for="drawer_status">Onboarding status (sales)</label>
-        <select id="drawer_status"></select>
+        <label>Onboarding status (sales)</label>
+        <div class="action-grid" id="salesButtons"></div>
       </div>
 
       <div class="drawer-field">
@@ -328,9 +329,6 @@
 
     <div class="drawer-section-title">Mark setup complete (one click)</div>
     <div class="action-grid" id="opsButtons"></div>
-
-    <div class="drawer-section-title">Set onboarding status (sales)</div>
-    <div class="action-grid" id="salesButtons"></div>
 
     <div class="drawer-row" style="margin-top:.8rem;">
       <div class="drawer-field">
@@ -393,7 +391,6 @@
   const drawer = document.getElementById("drawer");
   const drawerTitle = document.getElementById("drawerTitle");
   const drawerSub = document.getElementById("drawerSub");
-  const drawerStatus = document.getElementById("drawer_status");
   const drawerBusiness = document.getElementById("drawer_business");
   const drawerContact = document.getElementById("drawer_contact");
   const drawerEmail = document.getElementById("drawer_email");
@@ -415,12 +412,12 @@
   let activeRow = null;
   let noteTimer = null;
 
-  // Sales stages (not pipeline)
+  // Sales stages (buttons only)
   const DEFAULT_STATUSES = [
     "New Signup",
     "In Setup",
-    "Free Trial",
     "Demo",
+    "Free Trial",
     "Needs Convincing",
     "Live"
   ];
@@ -578,7 +575,7 @@
       b.type = "button";
       b.className = "btn " + cls;
       b.textContent = label;
-      b.addEventListener("click", onClick);
+      b.addEventListener("click", (e)=>{ e.stopPropagation(); onClick(); });
       opsButtons.appendChild(b);
     };
 
@@ -605,18 +602,28 @@
 
   function renderSalesButtons(row){
     salesButtons.innerHTML = "";
+
+    const current = salesStatus(row);
+
     const mk = (label, status, primary=false) => {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "btn " + (primary ? "btn-primary" : "btn-secondary");
       b.textContent = label;
-      b.addEventListener("click", async ()=>{
+      b.addEventListener("click", async (e)=>{
+        e.stopPropagation();
         const updated = await updateCustomer(row.id, { onboarding_status: status });
         if(updated){ render(); openDrawer(updated); }
       });
+      // subtle visual hint for current status
+      if(status === current){
+        b.style.boxShadow = "0 0 0 2px rgba(31, 78, 121, 0.15)";
+        b.style.borderColor = "rgba(31, 78, 121, 0.45)";
+      }
       salesButtons.appendChild(b);
     };
 
+    mk("New Signup", "New Signup");
     mk("In Setup", "In Setup");
     mk("Demo", "Demo");
     mk("Free Trial", "Free Trial");
@@ -634,26 +641,6 @@
       row.id ? `ID: ${row.id}` : ""
     ].filter(Boolean).join(" • ");
 
-    const current = salesStatus(row);
-    const set = new Set(statusOrder);
-    set.add(current);
-
-    const options = Array.from(set).sort((a,b)=>{
-      const ia = statusOrder.indexOf(a);
-      const ib = statusOrder.indexOf(b);
-      if(ia!==-1 && ib!==-1) return ia-ib;
-      if(ia!==-1) return -1;
-      if(ib!==-1) return 1;
-      return a.localeCompare(b);
-    });
-
-    drawerStatus.innerHTML =
-      options.map(s=>{
-        const sel = s===current ? "selected" : "";
-        return `<option value="${escapeHtml(s)}" ${sel}>${escapeHtml(s)}</option>`;
-      }).join("") +
-      `<option value="__new__">+ Add new status…</option>`;
-
     drawerBusiness.value = row.business_name || "";
     drawerContact.value = row.contact_name || "";
     drawerEmail.value = row.email || "";
@@ -661,9 +648,9 @@
     drawerNotes.value = row.notes || "";
     drawerLeadNotes.value = row.lead_notes || "";
 
+    renderSalesButtons(row);
     renderChecklist(row);
     renderOpsButtons(row);
-    renderSalesButtons(row);
 
     drawerHint.textContent = "Autosaves";
     drawer.classList.add("open");
@@ -791,31 +778,8 @@
   drawerNotes.addEventListener("input", queueNotesSave);
   drawerLeadNotes.addEventListener("input", queueNotesSave);
 
-  drawerStatus.addEventListener("change", async ()=>{
-    if(!activeRow) return;
-
-    if(drawerStatus.value === "__new__"){
-      const newStatus = prompt("New onboarding status name:");
-      const clean = (newStatus || "").trim();
-      if(!clean){ openDrawer(activeRow); return; }
-
-      const updated = await updateCustomer(activeRow.id, { onboarding_status: clean });
-      if(updated){
-        if(!statusOrder.includes(clean)) statusOrder.push(clean);
-        render();
-        openDrawer(updated);
-      }
-      return;
-    }
-
-    const updated = await updateCustomer(activeRow.id, { onboarding_status: drawerStatus.value });
-    if(updated){
-      render();
-      openDrawer(updated);
-    }
-  });
-
-  btnOpenWizard.addEventListener("click", ()=>{
+  btnOpenWizard.addEventListener("click", (e)=>{
+    e.stopPropagation();
     if(!activeRow) return;
     window.open(`app.html?id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
   });
