@@ -1067,14 +1067,14 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   window.sb = sb;
 
-  console.log("SCRIPT VERSION: WIZARD-STABLE-2025-12-12");
+  console.log("SCRIPT VERSION: WIZARD-RESET-SCROLL-2025-12-12");
 
-  // ✅ Your DOM
+  // ✅ DOM
   const root = document.querySelector(".wizard-right") || document.body;
 
   const btnBack = document.getElementById("btn-back");
   const btnNext = document.getElementById("btn-next");
-  const btnSave = document.getElementById("btn-save-draft"); // we repurpose this to save to Supabase
+  const btnNewCustomer = document.getElementById("btn-save-draft"); // reuse this button
   const statusMsg = document.getElementById("wizard-status-message");
 
   const progressPercent = document.getElementById("progress-percent");
@@ -1113,8 +1113,20 @@
     history.replaceState({}, "", u.toString());
   }
 
+  // ✅ Scroll to top of wizard panel on every step change
+  function scrollWizardTop() {
+    const target = document.querySelector("header") || document.body;
+    // Scroll the page to the top area (keeps header visible)
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    // Also ensure the right panel top is visible
+    if (root && root.scrollIntoView) {
+      root.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   // ✅ Step UI
-  function setStep(n) {
+  function setStep(n, { scroll = true } = {}) {
     currentStep = Math.max(1, Math.min(totalSteps, n));
 
     document.querySelectorAll(".step-panel").forEach((p) => {
@@ -1141,44 +1153,38 @@
     if (stepSubtitle) stepSubtitle.textContent = stepMeta[currentStep]?.subtitle || "";
 
     if (summaryBox) summaryBox.hidden = true;
+
+    if (scroll) scrollWizardTop();
   }
 
-  // ✅ Chips (hard fix: capture-phase, always toggles)
-  function chipText(chip) {
-    return (chip.textContent || "").trim();
-  }
+  // ✅ Chips
+  function chipText(chip) { return (chip.textContent || "").trim(); }
   function setChipActive(chip, on) {
     chip.classList.toggle("is-active", !!on);
     chip.setAttribute("aria-pressed", on ? "true" : "false");
   }
 
-  document.addEventListener(
-    "click",
-    (e) => {
-      const chip = e.target.closest("button.chip");
-      if (!chip) return;
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest("button.chip");
+    if (!chip) return;
 
-      const row = chip.closest(".chip-row");
-      if (!row) return;
+    const row = chip.closest(".chip-row");
+    if (!row) return;
 
-      e.preventDefault();
-      e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
 
-      const mode = (row.dataset.select || "single").toLowerCase();
+    const mode = (row.dataset.select || "single").toLowerCase();
+    if (mode === "single") {
+      row.querySelectorAll("button.chip").forEach((c) => setChipActive(c, false));
+      setChipActive(chip, true);
+    } else {
+      setChipActive(chip, !chip.classList.contains("is-active"));
+    }
 
-      if (mode === "single") {
-        row.querySelectorAll("button.chip").forEach((c) => setChipActive(c, false));
-        setChipActive(chip, true);
-      } else {
-        setChipActive(chip, !chip.classList.contains("is-active"));
-      }
+    queueSave("chip");
+  }, true);
 
-      queueSave("chip");
-    },
-    true
-  );
-
-  // ✅ Collect + hydrate
   function collectAnswers() {
     const answers = {};
     document.querySelectorAll(".chip-row[data-field]").forEach((row) => {
@@ -1196,7 +1202,6 @@
 
   function collectData() {
     return {
-      // ✅ your real input IDs
       contact_name: valById("contact_name"),
       business_name: valById("business_name"),
       email: valById("contact_email"),
@@ -1208,8 +1213,6 @@
 
       onboarding_status: "New Signup",
       wizard_completed: false,
-
-      // ✅ all chips in one place
       wizard_answers: collectAnswers()
     };
   }
@@ -1242,6 +1245,21 @@
         });
       }
     });
+  }
+
+  function clearWizardUI() {
+    // clear inputs/textareas
+    const ids = [
+      "contact_name","business_name","contact_email","contact_mobile",
+      "base_postcode","review_link","ai_avoid","extra_notes"
+    ];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+
+    // clear chips
+    document.querySelectorAll("button.chip.is-active").forEach(chip => chip.classList.remove("is-active"));
   }
 
   // ✅ DB
@@ -1286,18 +1304,22 @@
   }
 
   // ✅ Buttons
-  if (btnSave) {
-    btnSave.textContent = "Save now"; // change label
-    btnSave.addEventListener("click", async (e) => {
+  if (btnNewCustomer) {
+    btnNewCustomer.textContent = "New customer";
+    btnNewCustomer.addEventListener("click", (e) => {
       e.preventDefault();
-      await saveNow("manual");
+      customerId = null;
+      setUrlCustomerId(null);
+      clearWizardUI();
+      uiMsg("New customer started.", "success");
+      setStep(1, { scroll: true });
     });
   }
 
   if (btnBack) {
     btnBack.addEventListener("click", (e) => {
       e.preventDefault();
-      setStep(currentStep - 1);
+      setStep(currentStep - 1, { scroll: true });
     });
   }
 
@@ -1306,7 +1328,7 @@
       e.preventDefault();
 
       if (currentStep < totalSteps) {
-        setStep(currentStep + 1);
+        setStep(currentStep + 1, { scroll: true });
         return;
       }
 
@@ -1327,6 +1349,7 @@
 
       uiMsg("Wizard complete. We’ll confirm your demo evening next.", "success");
       if (summaryBox) summaryBox.hidden = false;
+      scrollWizardTop();
     });
   }
 
@@ -1335,7 +1358,7 @@
   root.addEventListener("change", () => queueSave("change"), true);
 
   // ✅ Start
-  setStep(1);
+  setStep(1, { scroll: false });
 
   (async () => {
     if (customerId) {
@@ -1350,6 +1373,9 @@
     console.log("APP ready. customerId =", customerId || "(new)");
   })();
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
