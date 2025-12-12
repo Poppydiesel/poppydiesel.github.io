@@ -6,1005 +6,927 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    :root {
-      --primary-blue: #1f4e79;
-      --accent-blue: #00a3ff;
-      --dark-text: #151820;
-      --muted-text: #6b7280;
-      --light-bg: #f3f4f9;
-      --white: #ffffff;
-      --border-subtle: rgba(15, 23, 42, 0.12);
-      --success-green: #0f7b46;
-      --error-red: #b3261e;
-      --shadow:
-        0 24px 60px rgba(15, 23, 42, 0.15),
-        0 0 0 1px rgba(15, 23, 42, 0.03);
+    :root{
+      --primary-blue:#1f4e79;
+      --accent-blue:#00a3ff;
+      --dark-text:#151820;
+      --muted-text:#6b7280;
+      --light-bg:#f3f4f9;
+      --white:#ffffff;
+      --border-subtle:rgba(15,23,42,0.12);
+      --success-green:#0f7b46;
+      --error-red:#b3261e;
     }
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: radial-gradient(circle at top left, #e0ebff 0, #f3f4f9 40%, #fdfdfd 100%);
-      color: var(--dark-text);
-      line-height: 1.5;
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 40%,#fdfdfd 100%);
+      color:var(--dark-text);
+      line-height:1.5;
     }
 
-    header {
-      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-      background: rgba(248, 250, 252, 0.96);
-      backdrop-filter: blur(6px);
-      position: sticky;
-      top: 0;
-      z-index: 20;
+    header{
+      border-bottom:1px solid rgba(15,23,42,0.06);
+      background:rgba(248,250,252,0.96);
+      backdrop-filter:blur(6px);
+      position:sticky;top:0;z-index:20;
     }
-    .header-inner {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 0.6rem 1.25rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
+    .header-inner{
+      max-width:1180px;margin:0 auto;
+      padding:.6rem 1.25rem;
+      display:flex;align-items:center;justify-content:space-between;gap:.75rem;
     }
-    .logo-wrap { display: flex; align-items: center; gap: 0.6rem; }
-    .logo-icon {
-      width: 30px; height: 30px; border-radius: 9px;
-      background: var(--primary-blue); position: relative;
-    }
-    .logo-icon::before, .logo-icon::after {
-      content:""; position:absolute; background: var(--white); border-radius: 4px;
-    }
-    .logo-icon::before { width: 11px; height: 17px; left: 7px; top: 6px; }
-    .logo-icon::after { width: 6px; height: 11px; right: 7px; top: 9px; }
-    .logo-main { font-weight: 700; font-size: 1rem; color: var(--primary-blue); }
-    .logo-tag { font-size: 0.75rem; color: var(--muted-text); }
-    .header-note { font-size: 0.75rem; color: var(--muted-text); }
-    .header-note strong { color: var(--primary-blue); font-weight: 600; }
+    .logo-wrap{display:flex;align-items:center;gap:.6rem}
+    .logo-icon{width:30px;height:30px;border-radius:9px;background:var(--primary-blue);position:relative}
+    .logo-icon::before,.logo-icon::after{content:"";position:absolute;background:var(--white);border-radius:4px}
+    .logo-icon::before{width:11px;height:17px;left:7px;top:6px}
+    .logo-icon::after{width:6px;height:11px;right:7px;top:9px}
+    .logo-main{font-weight:700;font-size:1rem;color:var(--primary-blue)}
+    .logo-tag{font-size:.75rem;color:var(--muted-text)}
+    .header-note{font-size:.75rem;color:var(--muted-text)}
+    .header-note strong{color:var(--primary-blue);font-weight:600}
 
-    main {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 1.2rem 1.25rem 2.2rem;
-    }
+    main{max-width:1180px;margin:0 auto;padding:1.2rem 1.25rem 2.2rem}
 
-    .panel {
-      border-radius: 1.2rem;
-      background: rgba(248, 250, 252, 0.96);
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      padding: 1.1rem 1.1rem;
+    .panel{
+      border-radius:1.2rem;
+      background:rgba(248,250,252,0.96);
+      border:1px solid rgba(148,163,184,0.35);
+      padding:1.1rem 1.1rem;
     }
+    .kicker{
+      font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;
+      color:var(--accent-blue);margin-bottom:.35rem;
+    }
+    .title{margin:0 0 .35rem;font-size:1.35rem;color:var(--primary-blue)}
+    .subtitle{margin:0 0 .85rem;font-size:.9rem;color:var(--muted-text)}
 
-    .kicker {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--accent-blue);
-      margin-bottom: 0.35rem;
+    .status-strip{display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:.95rem}
+    .status-chip{
+      border-radius:999px;padding:.55rem .85rem;
+      border:1px solid rgba(15,23,42,0.10);
+      background:#fff;cursor:pointer;
+      display:inline-flex;align-items:center;gap:.5rem;
+      transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;
+      user-select:none;
     }
-    .title {
-      margin: 0 0 0.35rem;
-      font-size: 1.35rem;
-      color: var(--primary-blue);
-    }
-    .subtitle {
-      margin: 0 0 0.85rem;
-      font-size: 0.9rem;
-      color: var(--muted-text);
+    .status-chip:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(15,23,42,0.12);border-color:rgba(31,78,121,0.35)}
+    .status-chip.is-active{border-color:rgba(31,78,121,0.8);box-shadow:0 0 0 2px rgba(31,78,121,0.12);background:#f3f7ff}
+    .status-chip-name{font-weight:650;font-size:.9rem}
+    .status-chip-count{
+      min-width:38px;text-align:center;
+      padding:.15rem .45rem;border-radius:999px;
+      background:#eef2ff;border:1px solid rgba(37,99,235,0.22);
+      color:var(--primary-blue);font-weight:800;font-size:.85rem;
     }
 
-    .status-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem;
-      margin-bottom: 0.95rem;
+    .controls{
+      display:flex;flex-wrap:wrap;gap:.65rem;
+      align-items:center;justify-content:space-between;
+      margin-bottom:.85rem;
     }
-    .status-chip {
-      border-radius: 999px;
-      padding: 0.55rem 0.85rem;
-      border: 1px solid rgba(15, 23, 42, 0.10);
-      background: #ffffff;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
-      user-select: none;
+    .controls-left{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center}
+    .search{
+      width:min(520px,100%);
+      display:flex;gap:.5rem;align-items:center;
+      padding:.6rem .7rem;border-radius:.75rem;
+      border:1px solid var(--border-subtle);background:var(--white);
     }
-    .status-chip:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
-      border-color: rgba(31, 78, 121, 0.35);
-    }
-    .status-chip.is-active {
-      border-color: rgba(31, 78, 121, 0.8);
-      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.12);
-      background: #f3f7ff;
-    }
-    .status-chip-name { font-weight: 650; font-size: 0.9rem; color: var(--dark-text); }
-    .status-chip-count {
-      min-width: 38px;
-      text-align: center;
-      padding: 0.15rem 0.45rem;
-      border-radius: 999px;
-      background: #eef2ff;
-      border: 1px solid rgba(37, 99, 235, 0.22);
-      color: var(--primary-blue);
-      font-weight: 800;
-      font-size: 0.85rem;
-    }
+    .search input{border:0;outline:0;width:100%;font:inherit;font-size:.92rem;background:transparent}
 
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.85rem;
+    .btn{
+      border-radius:999px;border:1px solid transparent;
+      padding:.55rem 1.05rem;font-size:.86rem;font-weight:550;
+      cursor:pointer;display:inline-flex;align-items:center;gap:.35rem;
+      background:transparent;
     }
-    .controls-left { display: flex; gap: 0.55rem; flex-wrap: wrap; align-items: center; }
-    .search {
-      width: min(520px, 100%);
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      padding: 0.6rem 0.7rem;
-      border-radius: 0.75rem;
-      border: 1px solid var(--border-subtle);
-      background: var(--white);
+    .btn-secondary{border-color:var(--border-subtle);background:#f9fafb;color:var(--dark-text)}
+    .btn-secondary:hover{background:#e5e7eb}
+    .btn-primary{
+      background:linear-gradient(135deg,var(--primary-blue),#163857);
+      color:var(--white);
+      box-shadow:0 12px 28px rgba(15,23,42,0.35);
     }
-    .search input {
-      border: 0;
-      outline: 0;
-      width: 100%;
-      font: inherit;
-      font-size: 0.92rem;
-      background: transparent;
-    }
+    .btn-primary:hover{filter:brightness(1.03);box-shadow:0 16px 34px rgba(15,23,42,0.4)}
+    .btn-danger{border-color:rgba(179,38,30,0.28);background:#fff1f2;color:#7f1d1d}
+    .btn-danger:hover{background:#ffe4e6}
 
-    .btn {
-      border-radius: 999px;
-      border: 1px solid transparent;
-      padding: 0.55rem 1.05rem;
-      font-size: 0.86rem;
-      font-weight: 550;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      background: transparent;
+    .banner{
+      display:none;margin:0 0 .85rem;
+      padding:.75rem .85rem;border-radius:.9rem;
+      border:1px solid rgba(179,38,30,0.25);
+      background:#fff1f2;color:#7f1d1d;
+      font-size:.88rem;white-space:pre-wrap;
     }
-    .btn-secondary { border-color: var(--border-subtle); background: #f9fafb; color: var(--dark-text); }
-    .btn-secondary:hover { background: #e5e7eb; }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary-blue), #163857);
-      color: var(--white);
-      border-color: transparent;
-      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.35);
-    }
-    .btn-primary:hover { filter: brightness(1.03); box-shadow: 0 16px 34px rgba(15, 23, 42, 0.4); }
+    .banner.show{display:block}
 
-    .banner {
-      display: none;
-      margin: 0 0 0.85rem;
-      padding: 0.75rem 0.85rem;
-      border-radius: 0.9rem;
-      border: 1px solid rgba(179, 38, 30, 0.25);
-      background: #fff1f2;
-      color: #7f1d1d;
-      font-size: 0.88rem;
-      white-space: pre-wrap;
+    .table-wrap{
+      width:100%;
+      overflow:auto;
+      border-radius:1rem;
+      border:1px solid rgba(15,23,42,0.08);
+      background:#fff;
     }
-    .banner.show { display: block; }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      /* Key fix: no massive min-width, just allow scroll when needed */
+      min-width: 980px;
+    }
+    thead th{
+      position:sticky;top:0;
+      background:#f8fafc;
+      border-bottom:1px solid rgba(15,23,42,0.08);
+      font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;
+      color:var(--muted-text);
+      text-align:left;
+      padding:.75rem .85rem;
+      white-space:nowrap;
+    }
+    tbody td{
+      border-bottom:1px solid rgba(15,23,42,0.06);
+      padding:.75rem .85rem;
+      font-size:.9rem;
+      vertical-align:middle;
+      white-space:nowrap;
+    }
+    tbody tr{cursor:pointer}
+    tbody tr:hover{background:#f7fbff}
 
-    .table-wrap {
-      overflow: auto;
-      border-radius: 1rem;
-      border: 1px solid rgba(15, 23, 42, 0.08);
-      background: #fff;
+    .pill{
+      display:inline-flex;align-items:center;gap:.35rem;
+      padding:.22rem .55rem;border-radius:999px;
+      border:1px solid rgba(148,163,184,0.55);
+      background:rgba(241,245,249,0.9);
+      font-size:.8rem;color:var(--dark-text);
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1280px;
-    }
-    thead th {
-      position: sticky;
-      top: 0;
-      background: #f8fafc;
-      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--muted-text);
-      text-align: left;
-      padding: 0.75rem 0.85rem;
-      white-space: nowrap;
-    }
-    tbody td {
-      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-      padding: 0.75rem 0.85rem;
-      font-size: 0.9rem;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
-    tbody tr { cursor: pointer; }
-    tbody tr:hover { background: #f7fbff; }
+    .pill.ok{border-color:rgba(15,123,70,0.45);background:#ecfdf5;color:#14532d}
+    .pill.no{border-color:rgba(179,38,30,0.35);background:#fff1f2;color:#7f1d1d}
+    .pill.na{border-color:rgba(148,163,184,0.45);background:#f1f5f9;color:#475569}
 
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.22rem 0.55rem;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.55);
-      background: rgba(241, 245, 249, 0.9);
-      font-size: 0.8rem;
-      color: var(--dark-text);
+    .pipe{display:inline-flex;align-items:center;gap:6px}
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      border:2px solid rgba(148,163,184,0.9);
+      background:#fff;
     }
-    .pill.ok { border-color: rgba(15, 123, 70, 0.45); background: #ecfdf5; color: #14532d; }
-    .pill.no { border-color: rgba(179, 38, 30, 0.35); background: #fff1f2; color: #7f1d1d; }
-    .pill.na { border-color: rgba(148, 163, 184, 0.45); background: #f1f5f9; color: #475569; }
-
-    /* Pipeline dots */
-    .pipe {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      border: 2px solid rgba(148, 163, 184, 0.9);
-      background: #fff;
-      position: relative;
-    }
-    .dot.done {
-      border-color: rgba(15, 123, 70, 0.65);
-      background: #dcfce7;
-    }
-    .dot.need {
-      border-color: rgba(179, 38, 30, 0.45);
-      background: #fff1f2;
-    }
-    .dot-label {
-      font-size: 0.75rem;
-      color: var(--muted-text);
-      margin-left: 6px;
-      white-space: nowrap;
-    }
+    .dot.done{border-color:rgba(15,123,70,0.65);background:#dcfce7}
+    .dot.need{border-color:rgba(179,38,30,0.45);background:#fff1f2}
+    .dot-label{font-size:.75rem;color:var(--muted-text);margin-left:6px;white-space:nowrap}
 
     /* Drawer */
-    .drawer {
-      position: fixed;
-      top: 0;
-      right: -520px;
-      width: 520px;
-      max-width: 96vw;
-      height: 100%;
-      background: #fff;
-      box-shadow: -20px 0 40px rgba(0,0,0,.15);
-      transition: right 0.22s ease;
-      z-index: 999;
-      display: flex;
-      flex-direction: column;
+    .drawer{
+      position:fixed;top:0;right:-520px;
+      width:520px;max-width:96vw;height:100%;
+      background:#fff;
+      box-shadow:-20px 0 40px rgba(0,0,0,.15);
+      transition:right .22s ease;
+      z-index:999;
+      display:flex;flex-direction:column;
     }
-    .drawer.open { right: 0; }
-    .drawer-header {
-      padding: 1rem;
-      border-bottom: 1px solid var(--border-subtle);
-      background: #f8fafc;
-    }
-    .drawer-title { font-weight: 750; color: var(--primary-blue); font-size: 1.05rem; }
-    .drawer-sub { margin-top: 0.25rem; font-size: 0.85rem; color: var(--muted-text); }
-    .drawer-body { padding: 1rem; flex: 1; overflow: auto; }
+    .drawer.open{right:0}
+    .drawer-header{padding:1rem;border-bottom:1px solid var(--border-subtle);background:#f8fafc}
+    .drawer-title{font-weight:750;color:var(--primary-blue);font-size:1.05rem}
+    .drawer-sub{margin-top:.25rem;font-size:.85rem;color:var(--muted-text)}
+    .drawer-body{padding:1rem;flex:1;overflow:auto}
 
-    .drawer-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.7rem;
-      margin-bottom: 0.9rem;
+    .drawer-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.9rem}
+    .drawer-field label{display:block;font-size:.78rem;color:var(--muted-text);margin:0 0 .25rem}
+    .drawer-field select,.drawer-field input,.drawer-body textarea{
+      width:100%;padding:.6rem .7rem;border-radius:.85rem;
+      border:1px solid var(--border-subtle);font:inherit;outline:none;background:#fff;
     }
-    .drawer-field label {
-      display:block;
-      font-size: 0.78rem;
-      color: var(--muted-text);
-      margin: 0 0 0.25rem;
-    }
-    .drawer-field select,
-    .drawer-field input,
-    .drawer-body textarea {
-      width: 100%;
-      padding: 0.6rem 0.7rem;
-      border-radius: 0.85rem;
-      border: 1px solid var(--border-subtle);
-      font: inherit;
-      outline: none;
-      background: #fff;
-    }
-    .drawer-body textarea { min-height: 110px; resize: vertical; }
+    .drawer-body textarea{min-height:110px;resize:vertical}
 
-    .drawer-section-title {
-      margin: 0.8rem 0 0.35rem;
-      font-weight: 750;
-      color: var(--primary-blue);
-      font-size: 0.92rem;
-    }
-    .checklist {
-      border: 1px solid rgba(15, 23, 42, 0.08);
-      border-radius: 0.9rem;
-      background: #fff;
-      padding: 0.75rem 0.8rem;
-      margin-bottom: 0.9rem;
-    }
-    .check-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.6rem;
-      padding: 0.45rem 0;
-      border-bottom: 1px dashed rgba(148, 163, 184, 0.55);
-    }
-    .check-item:last-child { border-bottom: 0; }
-    .check-left {
-      display: flex;
-      align-items: center;
-      gap: 0.55rem;
-      min-width: 0;
-    }
-    .check-badge {
-      width: 22px;
-      height: 22px;
-      border-radius: 8px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.85rem;
-      border: 1px solid rgba(148, 163, 184, 0.55);
-      background: #f1f5f9;
-      color: #475569;
-      flex: 0 0 auto;
-    }
-    .check-badge.done {
-      border-color: rgba(15, 123, 70, 0.35);
-      background: #ecfdf5;
-      color: #14532d;
-    }
-    .check-name {
-      font-weight: 650;
-      font-size: 0.9rem;
-      color: var(--dark-text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .check-state {
-      font-size: 0.82rem;
-      color: var(--muted-text);
-      flex: 0 0 auto;
+    .drawer-section-title{
+      margin:.8rem 0 .35rem;
+      font-weight:750;color:var(--primary-blue);font-size:.92rem;
     }
 
-    .drawer-footer {
-      padding: 1rem;
-      border-top: 1px solid var(--border-subtle);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.6rem;
-      background: #fff;
+    .checklist{
+      border:1px solid rgba(15,23,42,0.08);
+      border-radius:.9rem;background:#fff;
+      padding:.75rem .8rem;margin-bottom:.9rem;
     }
-    .drawer-hint { font-size: 0.82rem; color: var(--muted-text); }
+    .check-item{
+      display:flex;align-items:center;justify-content:space-between;gap:.6rem;
+      padding:.45rem 0;border-bottom:1px dashed rgba(148,163,184,0.55);
+    }
+    .check-item:last-child{border-bottom:0}
+    .check-left{display:flex;align-items:center;gap:.55rem;min-width:0}
+    .check-badge{
+      width:22px;height:22px;border-radius:8px;
+      display:inline-flex;align-items:center;justify-content:center;
+      font-size:.85rem;
+      border:1px solid rgba(148,163,184,0.55);
+      background:#f1f5f9;color:#475569;flex:0 0 auto;
+    }
+    .check-badge.done{border-color:rgba(15,123,70,0.35);background:#ecfdf5;color:#14532d}
+    .check-name{
+      font-weight:650;font-size:.9rem;color:var(--dark-text);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .check-state{font-size:.82rem;color:var(--muted-text);flex:0 0 auto}
 
-    @media (max-width: 900px) {
-      table { min-width: 1100px; }
-      .drawer-row { grid-template-columns: 1fr; }
+    .action-grid{
+      display:flex;flex-wrap:wrap;gap:.5rem;
+      margin:.4rem 0 0;
+    }
+    .action-grid .btn{padding:.48rem .85rem;font-size:.84rem}
+
+    .drawer-footer{
+      padding:1rem;border-top:1px solid var(--border-subtle);
+      display:flex;justify-content:space-between;align-items:center;gap:.6rem;
+      background:#fff;
+    }
+    .drawer-hint{font-size:.82rem;color:var(--muted-text)}
+
+    @media (max-width: 900px){
+      .drawer-row{grid-template-columns:1fr}
+      table{min-width:900px}
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="header-inner">
-      <div class="logo-wrap">
-        <div class="logo-icon" aria-hidden="true"></div>
-        <div>
-          <div class="logo-main">TradeBotPro</div>
-          <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
-        </div>
+<header>
+  <div class="header-inner">
+    <div class="logo-wrap">
+      <div class="logo-icon" aria-hidden="true"></div>
+      <div>
+        <div class="logo-main">TradeBotPro</div>
+        <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
       </div>
-      <div class="header-note">View: <strong>Onboarding Dashboard</strong></div>
     </div>
-  </header>
+    <div class="header-note">View: <strong>Onboarding Dashboard</strong></div>
+  </div>
+</header>
 
-  <main>
-    <section class="panel">
-      <div class="kicker">Pipeline</div>
-      <h1 class="title">Onboarding stages + setup pipeline</h1>
-      <p class="subtitle">Click a status to filter. Click a customer row to see what’s done vs what’s needed.</p>
+<main>
+  <section class="panel">
+    <div class="kicker">Pipeline</div>
+    <h1 class="title">Onboarding stages + setup pipeline</h1>
+    <p class="subtitle">Click a status to filter. Click a customer row to see what’s done vs what’s needed.</p>
 
-      <div class="status-strip" id="status-strip"></div>
+    <div class="status-strip" id="status-strip"></div>
 
-      <div class="controls">
-        <div class="controls-left">
-          <div class="search">
-            <span style="opacity:.7">🔎</span>
-            <input id="search" type="text" placeholder="Search name, business, email, phone, postcode…" />
-          </div>
-          <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filters</button>
+    <div class="controls">
+      <div class="controls-left">
+        <div class="search">
+          <span style="opacity:.7">🔎</span>
+          <input id="search" type="text" placeholder="Search name, business, email, phone, postcode…" />
         </div>
-
-        <div class="controls-right">
-          <button class="btn btn-secondary" id="btn-refresh" type="button">↻ Refresh</button>
-          <button class="btn btn-primary" id="btn-new" type="button">+ New customer</button>
-        </div>
+        <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filters</button>
       </div>
-
-      <div id="banner" class="banner"></div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Pipeline</th>
-              <th>Business</th>
-              <th>Contact</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Postcode</th>
-              <th>Wizard</th>
-              <th>WhatsApp</th>
-              <th>Calendar</th>
-              <th>Payments</th>
-              <th>Updated</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
+      <div class="controls-right">
+        <button class="btn btn-secondary" id="btn-refresh" type="button">↻ Refresh</button>
+        <button class="btn btn-primary" id="btn-new" type="button">+ New customer</button>
       </div>
-
-      <div class="logo-tag" id="status-bar" style="margin-top:.75rem;">Loading…</div>
-    </section>
-  </main>
-
-  <!-- EDIT DRAWER -->
-  <div class="drawer" id="drawer" aria-hidden="true">
-    <div class="drawer-header">
-      <div class="drawer-title" id="drawerTitle">Customer</div>
-      <div class="drawer-sub" id="drawerSub">—</div>
     </div>
 
-    <div class="drawer-body">
-      <div class="drawer-row">
-        <div class="drawer-field">
-          <label for="drawer_status">Onboarding status</label>
-          <select id="drawer_status"></select>
-        </div>
+    <div id="banner" class="banner"></div>
 
-        <div class="drawer-field">
-          <label>Quick actions</label>
-          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
-            <button class="btn btn-secondary" id="btnOpenWizard" type="button">Open wizard</button>
-            <button class="btn btn-primary" id="btnMarkLive" type="button">Mark Live</button>
-          </div>
-        </div>
-      </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Pipeline</th>
+            <th>Business</th>
+            <th>Contact</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Postcode</th>
+            <th>Wizard</th>
+            <th>WhatsApp</th>
+            <th>Calendar</th>
+            <th>Payments</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
 
-      <div class="drawer-section-title">Setup pipeline</div>
-      <div class="checklist" id="pipelineChecklist"></div>
+    <div class="logo-tag" id="status-bar" style="margin-top:.75rem;">Loading…</div>
+  </section>
+</main>
 
-      <div class="drawer-row">
-        <div class="drawer-field">
-          <label for="drawer_business">Business name</label>
-          <input id="drawer_business" type="text" disabled />
-        </div>
-        <div class="drawer-field">
-          <label for="drawer_contact">Contact name</label>
-          <input id="drawer_contact" type="text" disabled />
-        </div>
-      </div>
+<!-- Drawer -->
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-header">
+    <div class="drawer-title" id="drawerTitle">Customer</div>
+    <div class="drawer-sub" id="drawerSub">—</div>
+  </div>
 
-      <div class="drawer-field" style="margin-bottom:.9rem;">
-        <label for="drawer_email">Email</label>
-        <input id="drawer_email" type="text" disabled />
-      </div>
-
-      <div class="drawer-field" style="margin-bottom:.9rem;">
-        <label for="drawer_phone">Phone</label>
-        <input id="drawer_phone" type="text" disabled />
-      </div>
-
-      <div class="drawer-field" style="margin-bottom:.9rem;">
-        <label for="drawer_notes">Internal notes</label>
-        <textarea id="drawer_notes" placeholder="Sales notes / setup notes / follow-ups…"></textarea>
+  <div class="drawer-body">
+    <div class="drawer-row">
+      <div class="drawer-field">
+        <label for="drawer_status">Onboarding status</label>
+        <select id="drawer_status"></select>
       </div>
 
       <div class="drawer-field">
-        <label for="drawer_lead_notes">Lead notes</label>
-        <textarea id="drawer_lead_notes" placeholder="Lead context, objections, reminders…"></textarea>
+        <label>Quick actions</label>
+        <div class="action-grid">
+          <button class="btn btn-secondary" id="btnOpenWizard" type="button">Open wizard</button>
+          <button class="btn btn-primary" id="btnMarkLive" type="button">Mark Live</button>
+          <button class="btn btn-danger" id="btnResetFlags" type="button">Reset setup flags</button>
+        </div>
       </div>
     </div>
 
-    <div class="drawer-footer">
-      <div class="drawer-hint" id="drawerHint">Autosaves</div>
-      <div>
-        <button class="btn btn-secondary" id="btnCloseDrawer" type="button">Close</button>
+    <div class="drawer-section-title">Setup pipeline</div>
+    <div class="checklist" id="pipelineChecklist"></div>
+
+    <div class="drawer-section-title">Mark stages complete (one click)</div>
+    <div class="action-grid" id="stageButtons"></div>
+
+    <div class="drawer-row" style="margin-top:.8rem;">
+      <div class="drawer-field">
+        <label for="drawer_business">Business name</label>
+        <input id="drawer_business" type="text" disabled />
       </div>
+      <div class="drawer-field">
+        <label for="drawer_contact">Contact name</label>
+        <input id="drawer_contact" type="text" disabled />
+      </div>
+    </div>
+
+    <div class="drawer-field" style="margin-bottom:.9rem;">
+      <label for="drawer_email">Email</label>
+      <input id="drawer_email" type="text" disabled />
+    </div>
+
+    <div class="drawer-field" style="margin-bottom:.9rem;">
+      <label for="drawer_phone">Phone</label>
+      <input id="drawer_phone" type="text" disabled />
+    </div>
+
+    <div class="drawer-field" style="margin-bottom:.9rem;">
+      <label for="drawer_notes">Internal notes</label>
+      <textarea id="drawer_notes" placeholder="Sales notes / setup notes / follow-ups…"></textarea>
+    </div>
+
+    <div class="drawer-field">
+      <label for="drawer_lead_notes">Lead notes</label>
+      <textarea id="drawer_lead_notes" placeholder="Lead context, objections, reminders…"></textarea>
     </div>
   </div>
 
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  <div class="drawer-footer">
+    <div class="drawer-hint" id="drawerHint">Autosaves</div>
+    <div>
+      <button class="btn btn-secondary" id="btnCloseDrawer" type="button">Close</button>
+    </div>
+  </div>
+</div>
 
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    // DOM
-    const statusStrip = document.getElementById("status-strip");
-    const tbody = document.getElementById("tbody");
-    const banner = document.getElementById("banner");
-    const search = document.getElementById("search");
-    const statusBar = document.getElementById("status-bar");
-    const btnRefresh = document.getElementById("btn-refresh");
-    const btnNew = document.getElementById("btn-new");
-    const btnClear = document.getElementById("btn-clear-filter");
+  // IMPORTANT: this is your real project + anon key
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Drawer
-    const drawer = document.getElementById("drawer");
-    const drawerTitle = document.getElementById("drawerTitle");
-    const drawerSub = document.getElementById("drawerSub");
-    const drawerStatus = document.getElementById("drawer_status");
-    const drawerBusiness = document.getElementById("drawer_business");
-    const drawerContact = document.getElementById("drawer_contact");
-    const drawerEmail = document.getElementById("drawer_email");
-    const drawerPhone = document.getElementById("drawer_phone");
-    const drawerNotes = document.getElementById("drawer_notes");
-    const drawerLeadNotes = document.getElementById("drawer_lead_notes");
-    const drawerHint = document.getElementById("drawerHint");
-    const pipelineChecklist = document.getElementById("pipelineChecklist");
+  // DOM
+  const statusStrip = document.getElementById("status-strip");
+  const tbody = document.getElementById("tbody");
+  const banner = document.getElementById("banner");
+  const search = document.getElementById("search");
+  const statusBar = document.getElementById("status-bar");
+  const btnRefresh = document.getElementById("btn-refresh");
+  const btnNew = document.getElementById("btn-new");
+  const btnClear = document.getElementById("btn-clear-filter");
 
-    const btnCloseDrawer = document.getElementById("btnCloseDrawer");
-    const btnOpenWizard = document.getElementById("btnOpenWizard");
-    const btnMarkLive = document.getElementById("btnMarkLive");
+  // Drawer
+  const drawer = document.getElementById("drawer");
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerSub = document.getElementById("drawerSub");
+  const drawerStatus = document.getElementById("drawer_status");
+  const drawerBusiness = document.getElementById("drawer_business");
+  const drawerContact = document.getElementById("drawer_contact");
+  const drawerEmail = document.getElementById("drawer_email");
+  const drawerPhone = document.getElementById("drawer_phone");
+  const drawerNotes = document.getElementById("drawer_notes");
+  const drawerLeadNotes = document.getElementById("drawer_lead_notes");
+  const drawerHint = document.getElementById("drawerHint");
+  const pipelineChecklist = document.getElementById("pipelineChecklist");
+  const stageButtons = document.getElementById("stageButtons");
 
-    // State
-    let allRows = [];
-    let activeStatus = null;
-    let statusOrder = [];
-    let activeRow = null;
-    let noteTimer = null;
+  const btnCloseDrawer = document.getElementById("btnCloseDrawer");
+  const btnOpenWizard = document.getElementById("btnOpenWizard");
+  const btnMarkLive = document.getElementById("btnMarkLive");
+  const btnResetFlags = document.getElementById("btnResetFlags");
 
-    const DEFAULT_STATUSES = [
-      "New Signup",
-      "In Setup",
-      "Wizard Started",
-      "Wizard Completed",
-      "Demo",
-      "Free Trial",
-      "Needs Convincing",
-      "Live",
-      "Paused / Not Proceeding"
+  // State
+  let allRows = [];
+  let activeStatus = null;
+  let statusOrder = [];
+  let activeRow = null;
+  let noteTimer = null;
+
+  const DEFAULT_STATUSES = [
+    "New Signup",
+    "In Setup",
+    "Wizard Started",
+    "Wizard Completed",
+    "Demo",
+    "Free Trial",
+    "Needs Convincing",
+    "Live",
+    "Paused / Not Proceeding"
+  ];
+
+  function setBanner(msg){
+    if(!msg){ banner.textContent=""; banner.classList.remove("show"); return; }
+    banner.textContent = msg;
+    banner.classList.add("show");
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function fmtDate(iso){
+    if(!iso) return "—";
+    try{
+      const d = new Date(iso);
+      return d.toLocaleString(undefined,{year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+    }catch{ return "—"; }
+  }
+
+  function normalizeStatus(row){
+    const raw = (row?.onboarding_status ?? "").toString().trim();
+    if(raw) return raw;
+    if(row?.wizard_completed) return "Wizard Completed";
+    const wa = row?.wizard_answers;
+    const hasAnswers = wa && typeof wa === "object" && !Array.isArray(wa) && Object.keys(wa).length > 0;
+    if(hasAnswers) return "Wizard Started";
+    return "New Signup";
+  }
+
+  function rowMatchesSearch(row,q){
+    if(!q) return true;
+    const hay = [
+      row.business_name,row.contact_name,row.email,row.phone,row.base_postcode,normalizeStatus(row)
+    ].join(" ").toLowerCase();
+    return hay.includes(q.toLowerCase());
+  }
+
+  function pillFromBool(v){
+    if(v===true) return `<span class="pill ok">✅ Connected</span>`;
+    if(v===false) return `<span class="pill no">✖ Not yet</span>`;
+    return `<span class="pill na">—</span>`;
+  }
+
+  async function loadDistinctStatuses(){
+    const { data, error } = await sb.from("customers").select("onboarding_status");
+    if(error) return null;
+    const set = new Set();
+    for(const r of (data||[])){
+      const s = (r.onboarding_status ?? "").toString().trim();
+      if(s) set.add(s);
+    }
+    return Array.from(set);
+  }
+
+  function computeStatusOrder(distinctFromDb, rows){
+    const set = new Set();
+    DEFAULT_STATUSES.forEach(s=>set.add(s));
+    (distinctFromDb||[]).forEach(s=>set.add(s));
+    for(const r of rows) set.add(normalizeStatus(r));
+
+    const all = Array.from(set);
+    all.sort((a,b)=>{
+      const ia = DEFAULT_STATUSES.indexOf(a);
+      const ib = DEFAULT_STATUSES.indexOf(b);
+      if(ia!==-1 && ib!==-1) return ia-ib;
+      if(ia!==-1) return -1;
+      if(ib!==-1) return 1;
+      return a.localeCompare(b);
+    });
+    return all;
+  }
+
+  function computeCounts(){
+    const counts = {};
+    for(const r of allRows){
+      const s = normalizeStatus(r);
+      counts[s] = (counts[s] || 0) + 1;
+    }
+    return counts;
+  }
+
+  function buildStatusStrip(){
+    const counts = computeCounts();
+    statusStrip.innerHTML = "";
+
+    const addChip = (label, count, value) => {
+      const el = document.createElement("div");
+      el.className = "status-chip" + ((activeStatus===value) ? " is-active" : "");
+      el.innerHTML = `<span class="status-chip-name">${escapeHtml(label)}</span><span class="status-chip-count">${count}</span>`;
+      el.addEventListener("click", ()=>{ activeStatus=value; render(); });
+      statusStrip.appendChild(el);
+    };
+
+    addChip("All", allRows.length, null);
+    statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
+  }
+
+  function pipelineForRow(row){
+    const status = normalizeStatus(row);
+
+    // If columns don't exist in DB, these evaluate false and UI still works.
+    const wizardDone = !!row?.wizard_completed;
+    const waDone = !!row?.whatsapp_connected;
+    const calDone = !!row?.calendar_connected;
+    const payDone = !!row?.payments_connected;
+
+    const demoDone = (status === "Demo") || !!row?.demo_booked_at;
+    const trialDone = (status === "Free Trial") || !!row?.free_trial_started_at;
+    const liveDone = (status === "Live") || !!row?.live_at;
+
+    const setupDone = wizardDone || demoDone || trialDone || liveDone || (status !== "New Signup" && status !== "In Setup");
+
+    return [
+      { key:"setup", label:"In Setup", done: setupDone },
+      { key:"wizard", label:"Wizard", done: wizardDone },
+      { key:"whatsapp", label:"WhatsApp connected", done: waDone },
+      { key:"calendar", label:"Calendar connected", done: calDone },
+      { key:"payments", label:"Payments connected", done: payDone },
+      { key:"demo", label:"Demo", done: demoDone },
+      { key:"trial", label:"Free Trial", done: trialDone },
+      { key:"live", label:"Live", done: liveDone }
     ];
+  }
 
-    function setBanner(msg) {
-      if (!msg) {
-        banner.textContent = "";
-        banner.classList.remove("show");
-        return;
-      }
-      banner.textContent = msg;
-      banner.classList.add("show");
-    }
+  function pipelineDotsHTML(row){
+    const items = pipelineForRow(row);
+    const show = ["wizard","whatsapp","calendar","payments","demo","trial","live"];
+    const dots = items.filter(i=>show.includes(i.key))
+      .map(i=>`<span class="dot ${i.done ? "done":"need"}" title="${escapeHtml(i.label)}: ${i.done ? "Done":"Needed"}"></span>`)
+      .join("");
 
-    function escapeHtml(s) {
-      return String(s ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
+    const doneCount = items.filter(i=>i.key!=="setup" && i.done).length;
+    const totalCount = items.filter(i=>i.key!=="setup").length;
+    return `<span class="pipe">${dots}<span class="dot-label">${doneCount}/${totalCount}</span></span>`;
+  }
 
-    function fmtDate(iso) {
-      if (!iso) return "—";
-      try {
-        const d = new Date(iso);
-        return d.toLocaleString(undefined, { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
-      } catch { return "—"; }
-    }
-
-    function normalizeStatus(row) {
-      const raw = (row?.onboarding_status ?? "").toString().trim();
-      if (raw) return raw;
-      if (row?.wizard_completed) return "Wizard Completed";
-      const wa = row?.wizard_answers;
-      const hasAnswers = wa && typeof wa === "object" && !Array.isArray(wa) && Object.keys(wa).length > 0;
-      if (hasAnswers) return "Wizard Started";
-      return "New Signup";
-    }
-
-    function rowMatchesSearch(row, q) {
-      if (!q) return true;
-      const hay = [
-        row.business_name, row.contact_name, row.email, row.phone, row.base_postcode,
-        normalizeStatus(row)
-      ].join(" ").toLowerCase();
-      return hay.includes(q.toLowerCase());
-    }
-
-    function pillFromBool(v) {
-      if (v === true) return `<span class="pill ok">✅ Connected</span>`;
-      if (v === false) return `<span class="pill no">✖ Not yet</span>`;
-      return `<span class="pill na">—</span>`;
-    }
-
-    async function loadDistinctStatuses() {
-      const { data, error } = await sb.from("customers").select("onboarding_status");
-      if (error) return null;
-      const set = new Set();
-      for (const r of (data || [])) {
-        const s = (r.onboarding_status ?? "").toString().trim();
-        if (s) set.add(s);
-      }
-      return Array.from(set);
-    }
-
-    function computeStatusOrder(distinctFromDb, rows) {
-      const set = new Set();
-      DEFAULT_STATUSES.forEach(s => set.add(s));
-      (distinctFromDb || []).forEach(s => set.add(s));
-      for (const r of rows) set.add(normalizeStatus(r));
-
-      const all = Array.from(set);
-      all.sort((a,b) => {
-        const ia = DEFAULT_STATUSES.indexOf(a);
-        const ib = DEFAULT_STATUSES.indexOf(b);
-        if (ia !== -1 && ib !== -1) return ia - ib;
-        if (ia !== -1) return -1;
-        if (ib !== -1) return 1;
-        return a.localeCompare(b);
-      });
-      return all;
-    }
-
-    function computeCounts() {
-      const counts = {};
-      for (const r of allRows) {
-        const s = normalizeStatus(r);
-        counts[s] = (counts[s] || 0) + 1;
-      }
-      return counts;
-    }
-
-    function buildStatusStrip() {
-      const counts = computeCounts();
-      statusStrip.innerHTML = "";
-
-      const addChip = (label, count, value) => {
-        const el = document.createElement("div");
-        el.className = "status-chip" + ((activeStatus === value) ? " is-active" : "");
-        el.innerHTML = `
-          <span class="status-chip-name">${escapeHtml(label)}</span>
-          <span class="status-chip-count">${count}</span>
-        `;
-        el.addEventListener("click", () => {
-          activeStatus = value;
-          render();
-        });
-        statusStrip.appendChild(el);
-      };
-
-      addChip("All", allRows.length, null);
-      statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
-    }
-
-    function pipelineForRow(row) {
-      const status = normalizeStatus(row);
-
-      // these are safe reads (if a column doesn't exist, it'll just be undefined/false)
-      const wizardDone = !!row?.wizard_completed;
-      const waDone = !!row?.whatsapp_connected;
-      const calDone = !!row?.calendar_connected;
-      const payDone = !!row?.payments_connected;
-
-      const demoDone = (status === "Demo") || !!row?.demo_booked_at;
-      const trialDone = (status === "Free Trial") || !!row?.free_trial_started_at;
-      const liveDone = (status === "Live") || !!row?.live_at;
-
-      // “In Setup” is a state; mark it as done when they move beyond it
-      const setupDone = wizardDone || demoDone || trialDone || liveDone || (status !== "New Signup" && status !== "In Setup");
-
-      return [
-        { key:"setup", label:"In Setup", done: setupDone },
-        { key:"wizard", label:"Wizard", done: wizardDone },
-        { key:"whatsapp", label:"WhatsApp", done: waDone },
-        { key:"calendar", label:"Calendar", done: calDone },
-        { key:"payments", label:"Payments", done: payDone },
-        { key:"demo", label:"Demo", done: demoDone },
-        { key:"trial", label:"Free Trial", done: trialDone },
-        { key:"live", label:"Live", done: liveDone }
-      ];
-    }
-
-    function pipelineDotsHTML(row) {
-      const items = pipelineForRow(row);
-
-      // Keep table compact: show 6 key ones as dots
-      const show = ["wizard","whatsapp","calendar","payments","demo","trial","live"];
-      const dots = items
-        .filter(i => show.includes(i.key))
-        .map(i => `<span class="dot ${i.done ? "done" : "need"}" title="${escapeHtml(i.label)}: ${i.done ? "Done" : "Needed"}"></span>`)
-        .join("");
-
-      const doneCount = items.filter(i => i.key !== "setup" && i.done).length;
-      const totalCount = items.filter(i => i.key !== "setup").length;
-
-      return `<span class="pipe">${dots}<span class="dot-label">${doneCount}/${totalCount}</span></span>`;
-    }
-
-    function renderChecklist(row) {
-      const items = pipelineForRow(row);
-
-      pipelineChecklist.innerHTML = items.map(i => {
-        const badge = i.done ? "✓" : "•";
-        const badgeCls = i.done ? "check-badge done" : "check-badge";
-        const state = i.done ? "Completed" : "Needs doing";
-        return `
-          <div class="check-item">
-            <div class="check-left">
-              <div class="${badgeCls}">${badge}</div>
-              <div class="check-name">${escapeHtml(i.label)}</div>
-            </div>
-            <div class="check-state">${escapeHtml(state)}</div>
+  function renderChecklist(row){
+    const items = pipelineForRow(row);
+    pipelineChecklist.innerHTML = items.map(i=>{
+      const badge = i.done ? "✓" : "•";
+      const badgeCls = i.done ? "check-badge done" : "check-badge";
+      const state = i.done ? "Completed" : "Needs doing";
+      return `
+        <div class="check-item">
+          <div class="check-left">
+            <div class="${badgeCls}">${badge}</div>
+            <div class="check-name">${escapeHtml(i.label)}</div>
           </div>
-        `;
-      }).join("");
+          <div class="check-state">${escapeHtml(state)}</div>
+        </div>`;
+    }).join("");
+  }
+
+  function renderStageButtons(row){
+    // These are the “one click” actions you asked for.
+    // They update the DB booleans + set onboarding_status where sensible.
+    stageButtons.innerHTML = "";
+
+    const btn = (label, cls, onClick) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn " + cls;
+      b.textContent = label;
+      b.addEventListener("click", onClick);
+      stageButtons.appendChild(b);
+    };
+
+    const has = (k) => row && Object.prototype.hasOwnProperty.call(row, k);
+
+    btn("Mark In Setup", "btn-secondary", async ()=>{
+      if(!activeRow) return;
+      const updated = await updateCustomer(activeRow.id, { onboarding_status: "In Setup" });
+      if(updated){ render(); openDrawer(updated); }
+    });
+
+    btn("Mark Demo", "btn-secondary", async ()=>{
+      if(!activeRow) return;
+      const patch = { onboarding_status: "Demo" };
+      if(has("demo_booked_at")) patch.demo_booked_at = new Date().toISOString();
+      const updated = await updateCustomer(activeRow.id, patch);
+      if(updated){ render(); openDrawer(updated); }
+    });
+
+    btn("Start Free Trial", "btn-secondary", async ()=>{
+      if(!activeRow) return;
+      const patch = { onboarding_status: "Free Trial" };
+      if(has("free_trial_started_at")) patch.free_trial_started_at = new Date().toISOString();
+      const updated = await updateCustomer(activeRow.id, patch);
+      if(updated){ render(); openDrawer(updated); }
+    });
+
+    btn("Needs Convincing", "btn-secondary", async ()=>{
+      if(!activeRow) return;
+      const updated = await updateCustomer(activeRow.id, { onboarding_status: "Needs Convincing" });
+      if(updated){ render(); openDrawer(updated); }
+    });
+
+    btn("Toggle WhatsApp", "btn-secondary", async ()=>{
+      if(!activeRow) return;
+      const patch = { whatsapp_connected: !activeRow.whatsapp_connected };
+      const updated = await updateCustomer(activeRow.id, patch);
+      if(updated){ render(); openDrawer(updated); }
+    });
+
+    btn("Toggle Calendar", "btn-secondary", async ()=>{
+      if(!activeRow) return;
+      const patch = { calendar_connected: !activeRow.calendar_connected };
+      const updated = await updateCustomer(activeRow.id, patch);
+      if(updated){ render(); openDrawer(updated); }
+    });
+
+    btn("Toggle Payments", "btn-secondary", async ()=>{
+      if(!activeRow) return;
+      const patch = { payments_connected: !activeRow.payments_connected };
+      const updated = await updateCustomer(activeRow.id, patch);
+      if(updated){ render(); openDrawer(updated); }
+    });
+
+    btn("Mark Live", "btn-primary", async ()=>{
+      if(!activeRow) return;
+      const patch = { onboarding_status: "Live" };
+      if(has("live_at")) patch.live_at = new Date().toISOString();
+      // Optionally auto-mark connections when going live:
+      if(has("whatsapp_connected")) patch.whatsapp_connected = true;
+      if(has("calendar_connected")) patch.calendar_connected = true;
+      const updated = await updateCustomer(activeRow.id, patch);
+      if(updated){ render(); openDrawer(updated); }
+    });
+  }
+
+  async function updateCustomer(id, patch){
+    setBanner("");
+    const { data, error } = await sb.from("customers").update(patch).eq("id", id).select("*").single();
+    if(error){
+      console.error("UPDATE ERROR:", error);
+      setBanner("Save failed:\n\n" + (error.message || JSON.stringify(error)));
+      return null;
     }
+    const idx = allRows.findIndex(r=>r.id===id);
+    if(idx !== -1) allRows[idx] = data;
+    if(activeRow && activeRow.id===id) activeRow = data;
+    return data;
+  }
 
-    async function updateCustomer(id, patch) {
-      setBanner("");
-      const { data, error } = await sb
-        .from("customers")
-        .update(patch)
-        .eq("id", id)
-        .select("*")
-        .single();
+  function openDrawer(row){
+    activeRow = row;
 
-      if (error) {
-        console.error("UPDATE ERROR:", error);
-        setBanner("Save failed:\n\n" + (error.message || JSON.stringify(error)));
-        return null;
-      }
+    drawerTitle.textContent = row.business_name || "Customer";
+    drawerSub.textContent = [
+      row.contact_name ? `Contact: ${row.contact_name}` : "",
+      row.base_postcode ? `Postcode: ${row.base_postcode}` : "",
+      row.id ? `ID: ${row.id}` : ""
+    ].filter(Boolean).join(" • ");
 
-      const idx = allRows.findIndex(r => r.id === id);
-      if (idx !== -1) allRows[idx] = data;
-      if (activeRow && activeRow.id === id) activeRow = data;
+    const currentStatus = normalizeStatus(row);
+    const set = new Set(statusOrder);
+    set.add(currentStatus);
 
-      return data;
-    }
+    const options = Array.from(set).sort((a,b)=>{
+      const ia = statusOrder.indexOf(a);
+      const ib = statusOrder.indexOf(b);
+      if(ia!==-1 && ib!==-1) return ia-ib;
+      if(ia!==-1) return -1;
+      if(ib!==-1) return 1;
+      return a.localeCompare(b);
+    });
 
-    function openDrawer(row) {
-      activeRow = row;
-
-      drawerTitle.textContent = row.business_name || "Customer";
-      drawerSub.textContent = [
-        row.contact_name ? `Contact: ${row.contact_name}` : "",
-        row.base_postcode ? `Postcode: ${row.base_postcode}` : "",
-        row.id ? `ID: ${row.id}` : ""
-      ].filter(Boolean).join(" • ");
-
-      const currentStatus = normalizeStatus(row);
-      const set = new Set(statusOrder);
-      set.add(currentStatus);
-      const options = Array.from(set);
-
-      options.sort((a,b) => {
-        const ia = statusOrder.indexOf(a);
-        const ib = statusOrder.indexOf(b);
-        if (ia !== -1 && ib !== -1) return ia - ib;
-        if (ia !== -1) return -1;
-        if (ib !== -1) return 1;
-        return a.localeCompare(b);
-      });
-
-      drawerStatus.innerHTML = options.map(s => {
-        const sel = (s === currentStatus) ? "selected" : "";
+    drawerStatus.innerHTML =
+      options.map(s=>{
+        const sel = s===currentStatus ? "selected" : "";
         return `<option value="${escapeHtml(s)}" ${sel}>${escapeHtml(s)}</option>`;
-      }).join("") + `<option value="__new__">+ Add new status…</option>`;
+      }).join("") +
+      `<option value="__new__">+ Add new status…</option>`;
 
-      drawerBusiness.value = row.business_name || "";
-      drawerContact.value = row.contact_name || "";
-      drawerEmail.value = row.email || "";
-      drawerPhone.value = row.phone || "";
+    drawerBusiness.value = row.business_name || "";
+    drawerContact.value = row.contact_name || "";
+    drawerEmail.value = row.email || "";
+    drawerPhone.value = row.phone || "";
+    drawerNotes.value = row.notes || "";
+    drawerLeadNotes.value = row.lead_notes || "";
 
-      drawerNotes.value = row.notes || "";
-      drawerLeadNotes.value = row.lead_notes || "";
+    renderChecklist(row);
+    renderStageButtons(row);
 
-      renderChecklist(row);
+    drawerHint.textContent = "Autosaves";
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden","false");
+  }
 
-      drawerHint.textContent = "Autosaves";
-      drawer.classList.add("open");
-      drawer.setAttribute("aria-hidden", "false");
+  function closeDrawer(){
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden","true");
+    activeRow = null;
+  }
+
+  async function saveNotesNow(){
+    if(!activeRow) return;
+    drawerHint.textContent = "Saving…";
+    const id = activeRow.id;
+    const patch = { notes: drawerNotes.value, lead_notes: drawerLeadNotes.value };
+    const { error } = await sb.from("customers").update(patch).eq("id", id);
+    if(error){
+      console.error("NOTES SAVE ERROR:", error);
+      setBanner("Failed to save notes:\n\n" + (error.message || JSON.stringify(error)));
+      drawerHint.textContent = "Save failed";
+      return;
     }
+    drawerHint.textContent = "Saved";
 
-    function closeDrawer() {
-      drawer.classList.remove("open");
-      drawer.setAttribute("aria-hidden", "true");
-      activeRow = null;
+    const idx = allRows.findIndex(r=>r.id===id);
+    if(idx !== -1){
+      allRows[idx].notes = patch.notes;
+      allRows[idx].lead_notes = patch.lead_notes;
     }
+    activeRow.notes = patch.notes;
+    activeRow.lead_notes = patch.lead_notes;
+  }
 
-    async function saveNotesNow() {
-      if (!activeRow) return;
-      drawerHint.textContent = "Saving…";
-      const id = activeRow.id;
+  function queueNotesSave(){
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(saveNotesNow, 450);
+  }
 
-      const patch = {
-        notes: drawerNotes.value,
-        lead_notes: drawerLeadNotes.value
-      };
+  function render(){
+    buildStatusStrip();
 
-      const { error } = await sb.from("customers").update(patch).eq("id", id);
-      if (error) {
-        console.error("NOTES SAVE ERROR:", error);
-        setBanner("Failed to save notes:\n\n" + (error.message || JSON.stringify(error)));
-        drawerHint.textContent = "Save failed";
-        return;
-      }
-
-      drawerHint.textContent = "Saved";
-
-      const idx = allRows.findIndex(r => r.id === id);
-      if (idx !== -1) {
-        allRows[idx].notes = patch.notes;
-        allRows[idx].lead_notes = patch.lead_notes;
-      }
-      if (activeRow && activeRow.id === id) {
-        activeRow.notes = patch.notes;
-        activeRow.lead_notes = patch.lead_notes;
-      }
-    }
-
-    function queueNotesSave() {
-      clearTimeout(noteTimer);
-      noteTimer = setTimeout(saveNotesNow, 450);
-    }
-
-    function render() {
-      buildStatusStrip();
-
-      const q = (search.value || "").trim();
-      const rows = allRows
-        .filter(r => (activeStatus ? normalizeStatus(r) === activeStatus : true))
-        .filter(r => rowMatchesSearch(r, q))
-        .sort((a,b) => {
-          const ta = new Date(a.updated_at || a.created_at || a.live_at || 0).getTime();
-          const tb = new Date(b.updated_at || b.created_at || b.live_at || 0).getTime();
-          return tb - ta;
-        });
-
-      tbody.innerHTML = "";
-
-      if (!rows.length) {
-        tbody.innerHTML = `<tr><td colspan="12">No matches.</td></tr>`;
-        statusBar.textContent = `0 shown • ${allRows.length} total`;
-        return;
-      }
-
-      for (const r of rows) {
-        const st = normalizeStatus(r);
-
-        const wizardPill = r.wizard_completed
-          ? `<span class="pill ok">✅ Complete</span>`
-          : `<span class="pill no">⏳ In progress</span>`;
-
-        const wa = (typeof r.whatsapp_connected === "boolean") ? r.whatsapp_connected : null;
-        const cal = (typeof r.calendar_connected === "boolean") ? r.calendar_connected : null;
-        const pay = (typeof r.payments_connected === "boolean") ? r.payments_connected : null;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${escapeHtml(st)}</td>
-          <td>${pipelineDotsHTML(r)}</td>
-          <td>${escapeHtml(r.business_name || "—")}</td>
-          <td>${escapeHtml(r.contact_name || "—")}</td>
-          <td>${escapeHtml(r.email || "—")}</td>
-          <td>${escapeHtml(r.phone || "—")}</td>
-          <td>${escapeHtml(r.base_postcode || "—")}</td>
-          <td>${wizardPill}</td>
-          <td>${pillFromBool(wa)}</td>
-          <td>${pillFromBool(cal)}</td>
-          <td>${pillFromBool(pay)}</td>
-          <td>${escapeHtml(fmtDate(r.updated_at || r.created_at || r.live_at))}</td>
-        `;
-        tr.addEventListener("click", () => openDrawer(r));
-        tbody.appendChild(tr);
-      }
-
-      statusBar.textContent =
-        `${rows.length} shown • ${allRows.length} total` +
-        (activeStatus ? ` • Stage: ${activeStatus}` : "");
-    }
-
-    async function loadCustomersAndStatuses() {
-      setBanner("");
-      statusBar.textContent = "Loading…";
-      tbody.innerHTML = `<tr><td colspan="12">Loading…</td></tr>`;
-
-      const { data, error } = await sb.from("customers").select("*");
-      if (error) {
-        console.error("LOAD ERROR:", error);
-        setBanner("Failed to load customers.\n\n" + (error.message || JSON.stringify(error)));
-        allRows = [];
-        tbody.innerHTML = `<tr><td colspan="12">No data loaded.</td></tr>`;
-        statusBar.textContent = "Load failed.";
-        return;
-      }
-
-      allRows = Array.isArray(data) ? data : [];
-
-      const distinct = await loadDistinctStatuses();
-      statusOrder = computeStatusOrder(distinct, allRows);
-
-      render();
-    }
-
-    // Controls
-    btnRefresh.addEventListener("click", loadCustomersAndStatuses);
-    btnNew.addEventListener("click", () => window.open("app.html", "_blank", "noopener"));
-    btnClear.addEventListener("click", () => { activeStatus = null; search.value = ""; render(); });
-    search.addEventListener("input", render);
-
-    // Drawer events
-    btnCloseDrawer.addEventListener("click", closeDrawer);
-    drawerNotes.addEventListener("input", queueNotesSave);
-    drawerLeadNotes.addEventListener("input", queueNotesSave);
-
-    drawerStatus.addEventListener("change", async () => {
-      if (!activeRow) return;
-
-      if (drawerStatus.value === "__new__") {
-        const newStatus = prompt("New onboarding status name:");
-        const clean = (newStatus || "").trim();
-        if (!clean) { openDrawer(activeRow); return; }
-
-        const updated = await updateCustomer(activeRow.id, { onboarding_status: clean });
-        if (updated) {
-          if (!statusOrder.includes(clean)) statusOrder.push(clean);
-          render();
-          openDrawer(updated);
-        }
-        return;
-      }
-
-      const updated = await updateCustomer(activeRow.id, { onboarding_status: drawerStatus.value });
-      if (updated) {
-        render();
-        openDrawer(updated);
-      }
-    });
-
-    btnOpenWizard.addEventListener("click", () => {
-      if (!activeRow) return;
-      window.open(`app.html?id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
-    });
-
-    btnMarkLive.addEventListener("click", async () => {
-      if (!activeRow) return;
-      const updated = await updateCustomer(activeRow.id, {
-        onboarding_status: "Live",
-        live_at: new Date().toISOString()
+    const q = (search.value || "").trim();
+    const rows = allRows
+      .filter(r => (activeStatus ? normalizeStatus(r)===activeStatus : true))
+      .filter(r => rowMatchesSearch(r,q))
+      .sort((a,b)=>{
+        const ta = new Date(a.updated_at || a.created_at || a.live_at || 0).getTime();
+        const tb = new Date(b.updated_at || b.created_at || b.live_at || 0).getTime();
+        return tb - ta;
       });
-      if (updated) {
+
+    tbody.innerHTML = "";
+
+    if(!rows.length){
+      tbody.innerHTML = `<tr><td colspan="12">No matches.</td></tr>`;
+      statusBar.textContent = `0 shown • ${allRows.length} total`;
+      return;
+    }
+
+    for(const r of rows){
+      const st = normalizeStatus(r);
+
+      const wizardPill = r.wizard_completed
+        ? `<span class="pill ok">✅ Complete</span>`
+        : `<span class="pill no">⏳ In progress</span>`;
+
+      const wa = (typeof r.whatsapp_connected === "boolean") ? r.whatsapp_connected : null;
+      const cal = (typeof r.calendar_connected === "boolean") ? r.calendar_connected : null;
+      const pay = (typeof r.payments_connected === "boolean") ? r.payments_connected : null;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHtml(st)}</td>
+        <td>${pipelineDotsHTML(r)}</td>
+        <td>${escapeHtml(r.business_name || "—")}</td>
+        <td>${escapeHtml(r.contact_name || "—")}</td>
+        <td>${escapeHtml(r.email || "—")}</td>
+        <td>${escapeHtml(r.phone || "—")}</td>
+        <td>${escapeHtml(r.base_postcode || "—")}</td>
+        <td>${wizardPill}</td>
+        <td>${pillFromBool(wa)}</td>
+        <td>${pillFromBool(cal)}</td>
+        <td>${pillFromBool(pay)}</td>
+        <td>${escapeHtml(fmtDate(r.updated_at || r.created_at || r.live_at))}</td>
+      `;
+      tr.addEventListener("click", ()=>openDrawer(r));
+      tbody.appendChild(tr);
+    }
+
+    statusBar.textContent =
+      `${rows.length} shown • ${allRows.length} total` +
+      (activeStatus ? ` • Stage: ${activeStatus}` : "");
+  }
+
+  async function loadCustomersAndStatuses(){
+    setBanner("");
+    statusBar.textContent = "Loading…";
+    tbody.innerHTML = `<tr><td colspan="12">Loading…</td></tr>`;
+
+    // If there’s ANY issue, we show it on page (no silent white screen)
+    let res;
+    try{
+      res = await sb.from("customers").select("*");
+    }catch(err){
+      console.error("LOAD THROW:", err);
+      setBanner("Failed to load customers (JS exception).\n\n" + (err?.message || String(err)));
+      allRows = [];
+      tbody.innerHTML = `<tr><td colspan="12">No data loaded.</td></tr>`;
+      statusBar.textContent = "Load failed.";
+      return;
+    }
+
+    const { data, error } = res;
+    if(error){
+      console.error("LOAD ERROR:", error);
+      setBanner("Failed to load customers (Supabase).\n\n" + (error.message || JSON.stringify(error)));
+      allRows = [];
+      tbody.innerHTML = `<tr><td colspan="12">No data loaded.</td></tr>`;
+      statusBar.textContent = "Load failed.";
+      return;
+    }
+
+    allRows = Array.isArray(data) ? data : [];
+
+    const distinct = await loadDistinctStatuses();
+    statusOrder = computeStatusOrder(distinct, allRows);
+
+    render();
+  }
+
+  // Controls
+  btnRefresh.addEventListener("click", loadCustomersAndStatuses);
+  btnNew.addEventListener("click", ()=>window.open("app.html", "_blank", "noopener"));
+  btnClear.addEventListener("click", ()=>{ activeStatus=null; search.value=""; render(); });
+  search.addEventListener("input", render);
+
+  // Drawer events
+  btnCloseDrawer.addEventListener("click", closeDrawer);
+  drawerNotes.addEventListener("input", queueNotesSave);
+  drawerLeadNotes.addEventListener("input", queueNotesSave);
+
+  drawerStatus.addEventListener("change", async ()=>{
+    if(!activeRow) return;
+
+    if(drawerStatus.value === "__new__"){
+      const newStatus = prompt("New onboarding status name:");
+      const clean = (newStatus || "").trim();
+      if(!clean){ openDrawer(activeRow); return; }
+
+      const updated = await updateCustomer(activeRow.id, ( { onboarding_status: clean } ));
+      if(updated){
+        if(!statusOrder.includes(clean)) statusOrder.push(clean);
         render();
         openDrawer(updated);
       }
-    });
+      return;
+    }
 
-    // Init
-    loadCustomersAndStatuses();
-  </script>
+    const updated = await updateCustomer(activeRow.id, { onboarding_status: drawerStatus.value });
+    if(updated){
+      render();
+      openDrawer(updated);
+    }
+  });
+
+  btnOpenWizard.addEventListener("click", ()=>{
+    if(!activeRow) return;
+    window.open(`app.html?id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
+  });
+
+  btnMarkLive.addEventListener("click", async ()=>{
+    if(!activeRow) return;
+    const patch = { onboarding_status: "Live" };
+    if(Object.prototype.hasOwnProperty.call(activeRow, "live_at")) patch.live_at = new Date().toISOString();
+    const updated = await updateCustomer(activeRow.id, patch);
+    if(updated){ render(); openDrawer(updated); }
+  });
+
+  btnResetFlags.addEventListener("click", async ()=>{
+    if(!activeRow) return;
+    const patch = {};
+    if(Object.prototype.hasOwnProperty.call(activeRow, "wizard_completed")) patch.wizard_completed = false;
+    if(Object.prototype.hasOwnProperty.call(activeRow, "whatsapp_connected")) patch.whatsapp_connected = false;
+    if(Object.prototype.hasOwnProperty.call(activeRow, "calendar_connected")) patch.calendar_connected = false;
+    if(Object.prototype.hasOwnProperty.call(activeRow, "payments_connected")) patch.payments_connected = false;
+    if(Object.prototype.hasOwnProperty.call(activeRow, "demo_booked_at")) patch.demo_booked_at = null;
+    if(Object.prototype.hasOwnProperty.call(activeRow, "free_trial_started_at")) patch.free_trial_started_at = null;
+    if(Object.prototype.hasOwnProperty.call(activeRow, "live_at")) patch.live_at = null;
+    patch.onboarding_status = "In Setup";
+
+    const updated = await updateCustomer(activeRow.id, patch);
+    if(updated){ render(); openDrawer(updated); }
+  });
+
+  // Init
+  loadCustomersAndStatuses();
+</script>
 </body>
 </html>
