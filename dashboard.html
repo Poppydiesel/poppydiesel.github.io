@@ -1,579 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>TradeBotPro — Customers Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+:root{
+  --primary-blue:#1f4e79;
+  --accent-blue:#00a3ff;
+  --dark-text:#151820;
+  --muted-text:#6b7280;
+  --light-bg:#f3f4f9;
+  --white:#ffffff;
+  --border-subtle:rgba(15,23,42,0.12);
+  --success-green:#0f7b46;
+  --danger-red:#b3261e;
+  --amber:#b45309;
+}
+
+/* ---------- BASE ---------- */
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 40%,#fdfdfd 100%);
+  color:var(--dark-text);
+}
+header{
+  background:#f8fafc;
+  border-bottom:1px solid rgba(15,23,42,.08);
+}
+.header-inner{
+  max-width:1200px;
+  margin:0 auto;
+  padding:.7rem 1.25rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.logo{
+  font-weight:800;
+  color:var(--primary-blue);
+}
+main{
+  max-width:1200px;
+  margin:0 auto;
+  padding:1.2rem;
+}
+
+/* ---------- PANEL ---------- */
+.panel{
+  background:#fff;
+  border-radius:1.1rem;
+  border:1px solid rgba(15,23,42,.08);
+  padding:1.1rem;
+}
+.kicker{
+  font-size:.72rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--accent-blue);
+}
+h1{
+  margin:.15rem 0 .4rem;
+  color:var(--primary-blue);
+}
+.subtitle{
+  font-size:.9rem;
+  color:var(--muted-text);
+  margin-bottom:.9rem;
+}
+
+/* ---------- STATUS STRIP ---------- */
+.status-strip{
+  display:flex;
+  gap:.55rem;
+  flex-wrap:wrap;
+  margin-bottom:.75rem;
+}
+.status-chip{
+  padding:.45rem .8rem;
+  border-radius:999px;
+  border:1px solid rgba(15,23,42,.12);
+  background:#fff;
+  cursor:pointer;
+  font-weight:600;
+  font-size:.85rem;
+}
+.status-chip.is-active{
+  background:#eef2ff;
+  border-color:var(--primary-blue);
+}
+
+/* ---------- CONTROLS (ONE ROW) ---------- */
+.controls{
+  display:flex;
+  align-items:center;
+  gap:.6rem;
+  margin:.8rem 0 .9rem;
+}
+.search{
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:.45rem;
+  padding:.55rem .65rem;
+  border:1px solid var(--border-subtle);
+  border-radius:999px;
+}
+.search input{
+  border:0;
+  outline:0;
+  width:100%;
+  font-size:.9rem;
+}
+.btn{
+  padding:.5rem 1rem;
+  border-radius:999px;
+  border:1px solid transparent;
+  cursor:pointer;
+  font-weight:600;
+  font-size:.85rem;
+}
+.btn-secondary{
+  background:#f3f4f6;
+  border-color:var(--border-subtle);
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary-blue),#163857);
+  color:#fff;
+}
+
+/* ---------- TABLE ---------- */
+.table-wrap{
+  border-radius:.9rem;
+  overflow:auto;
+  border:1px solid rgba(15,23,42,.08);
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1000px;
+}
+th,td{
+  padding:.65rem .75rem;
+  border-bottom:1px solid rgba(15,23,42,.06);
+  font-size:.9rem;
+}
+th{
+  background:#f8fafc;
+  font-size:.75rem;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  color:var(--muted-text);
+}
+tr:hover{
+  background:#f7fbff;
+  cursor:pointer;
+}
+
+/* ---------- BADGES ---------- */
+.badge{
+  padding:.2rem .55rem;
+  border-radius:999px;
+  font-size:.75rem;
+  font-weight:700;
+}
+.badge.new{background:#eef2ff;color:var(--primary-blue)}
+.badge.overdue{background:#fff1f2;color:var(--danger-red)}
+.badge.demo{background:#fffbeb;color:var(--amber)}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:900px){
+  .controls{
+    flex-wrap:wrap;
+  }
+  .search{
+    order:10;
+    width:100%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">TradeBotPro</div>
+    <div style="font-size:.8rem;color:#6b7280;">Onboarding Dashboard</div>
+  </div>
+</header>
+
+<main>
+  <div class="panel">
+    <div class="kicker">Customers</div>
+    <h1>Customers by onboarding status (sales) + setup tasks (ops)</h1>
+    <p class="subtitle">
+      Filter by sales stage. Pipeline dots manage setup tasks only.
+    </p>
+
+    <!-- STATUS FILTERS -->
+    <div class="status-strip" id="status-strip"></div>
+
+    <!-- CONTROLS ROW -->
+    <div class="controls">
+      <button class="btn btn-secondary" id="btn-clear-filter">Clear filters</button>
+
+      <div class="search">
+        🔎
+        <input id="search" placeholder="Search business, contact, email, phone…" />
+      </div>
+
+      <button class="btn btn-secondary" id="btn-refresh">↻ Refresh</button>
+      <button class="btn btn-primary" id="btn-new">+ New customer</button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Attention</th>
+            <th>Status</th>
+            <th>Business</th>
+            <th>Contact</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div id="status-bar" style="margin-top:.6rem;font-size:.8rem;color:#6b7280"></div>
+  </div>
+</main>
+
 <script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = createClient(
+  "https://yaiutswdcbfwkxfqxkzy.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8"
+);
 
-  // DOM
-  const statusStrip = document.getElementById("status-strip");
-  const attentionStrip = document.getElementById("attention-strip");
-  const tbody = document.getElementById("tbody");
-  const banner = document.getElementById("banner");
-  const search = document.getElementById("search");
-  const statusBar = document.getElementById("status-bar");
-  const btnRefresh = document.getElementById("btn-refresh");
-  const btnNew = document.getElementById("btn-new");
-  const btnClear = document.getElementById("btn-clear-filter");
+const tbody = document.getElementById("tbody");
+const statusStrip = document.getElementById("status-strip");
+const search = document.getElementById("search");
+const statusBar = document.getElementById("status-bar");
 
-  // Drawer
-  const drawer = document.getElementById("drawer");
-  const drawerTitle = document.getElementById("drawerTitle");
-  const drawerSub = document.getElementById("drawerSub");
-  const drawerBusiness = document.getElementById("drawer_business");
-  const drawerContact = document.getElementById("drawer_contact");
-  const drawerEmail = document.getElementById("drawer_email");
-  const drawerPhone = document.getElementById("drawer_phone");
-  const drawerNotes = document.getElementById("drawer_notes");
-  const drawerLeadNotes = document.getElementById("drawer_lead_notes");
-  const drawerHint = document.getElementById("drawerHint");
-  const tasksChecklist = document.getElementById("tasksChecklist");
-  const opsButtons = document.getElementById("opsButtons");
-  const salesChecklist = document.getElementById("salesChecklist");
+let rows = [];
+let activeStatus = null;
 
-  const btnCloseDrawer = document.getElementById("btnCloseDrawer");
-  const btnOpenWizard = document.getElementById("btnOpenWizard");
+const SALES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
 
-  // State
-  let allRows = [];
-  let activeStatus = null;
-  let statusOrder = [];
-  let activeRow = null;
-  let noteTimer = null;
+function badge(row){
+  if(row.onboarding_status === "Demo" && !row.wizard_completed)
+    return `<span class="badge demo">Demo gap</span>`;
+  if(row.onboarding_status === "New Signup")
+    return `<span class="badge new">New</span>`;
+  return "—";
+}
 
-  // NEW: “smart middle-ground” attention filter
-  // null = none, 'today' | 'overdue' | 'demo_gap'
-  let attentionFilter = null;
+function render(){
+  tbody.innerHTML = "";
+  const q = search.value.toLowerCase();
 
-  const SALES_STAGES = [
-    "New Signup",
-    "In Setup",
-    "Demo",
-    "Free Trial",
-    "Needs Convincing",
-    "Live"
-  ];
-
-  function setBanner(msg){
-    if(!msg){ banner.textContent=""; banner.classList.remove("show"); return; }
-    banner.textContent = msg;
-    banner.classList.add("show");
-  }
-
-  function escapeHtml(s){
-    return String(s ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  function fmtDate(iso){
-    if(!iso) return "—";
-    try{
-      const d = new Date(iso);
-      return d.toLocaleString(undefined,{year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"});
-    }catch{ return "—"; }
-  }
-
-  function toDate(iso){
-    const d = iso ? new Date(iso) : null;
-    return (d && !isNaN(d.getTime())) ? d : null;
-  }
-
-  function isSameLocalDay(a,b){
-    return a.getFullYear()===b.getFullYear()
-      && a.getMonth()===b.getMonth()
-      && a.getDate()===b.getDate();
-  }
-
-  function salesStatus(row){
-    const raw = (row?.onboarding_status ?? "").toString().trim();
-    return raw || "New Signup";
-  }
-
-  function rowMatchesSearch(row,q){
-    if(!q) return true;
-    const hay = [
-      row.business_name,row.contact_name,row.email,row.phone,row.base_postcode,salesStatus(row)
-    ].join(" ").toLowerCase();
-    return hay.includes(q.toLowerCase());
-  }
-
-  async function loadDistinctStatuses(){
-    const { data, error } = await sb.from("customers").select("onboarding_status");
-    if(error) return null;
-    const set = new Set();
-    for(const r of (data||[])){
-      const s = (r.onboarding_status ?? "").toString().trim();
-      if(s) set.add(s);
-    }
-    return Array.from(set);
-  }
-
-  function computeStatusOrder(distinctFromDb){
-    const set = new Set(SALES_STAGES);
-    (distinctFromDb||[]).forEach(s=>set.add(s));
-
-    const all = Array.from(set);
-    all.sort((a,b)=>{
-      const ia = SALES_STAGES.indexOf(a);
-      const ib = SALES_STAGES.indexOf(b);
-      if(ia!==-1 && ib!==-1) return ia-ib;
-      if(ia!==-1) return -1;
-      if(ib!==-1) return 1;
-      return a.localeCompare(b);
-    });
-    return all;
-  }
-
-  function computeCounts(){
-    const counts = {};
-    for(const r of allRows){
-      const s = salesStatus(r);
-      counts[s] = (counts[s] || 0) + 1;
-    }
-    return counts;
-  }
-
-  function buildStatusStrip(){
-    const counts = computeCounts();
-    statusStrip.innerHTML = "";
-
-    const addChip = (label, count, value) => {
-      const el = document.createElement("div");
-      el.className = "status-chip" + ((activeStatus===value) ? " is-active" : "");
-      el.innerHTML = `<span class="status-chip-name">${escapeHtml(label)}</span><span class="status-chip-count">${count}</span>`;
-      el.addEventListener("click", ()=>{ activeStatus=value; render(); });
-      statusStrip.appendChild(el);
-    };
-
-    addChip("All", allRows.length, null);
-    statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
-  }
-
-  // OPS tasks
-  function setupTasks(row){
-    return [
-      { key:"wizard",   label:"Wizard submitted",   col:"wizard_completed",   done: !!row?.wizard_completed },
-      { key:"whatsapp", label:"WhatsApp connected", col:"whatsapp_connected", done: !!row?.whatsapp_connected },
-      { key:"calendar", label:"Calendar connected", col:"calendar_connected", done: !!row?.calendar_connected },
-      { key:"payments", label:"Payments connected", col:"payments_connected", done: !!row?.payments_connected },
-    ];
-  }
-
-  function allDone(row){
-    const tasks = setupTasks(row);
-    return tasks.every(t=>t.done);
-  }
-
-  function tasksDotsHTML(row){
-    const items = setupTasks(row);
-    const dots = items.map(i => `
-      <span class="dot ${i.done ? "done" : "need"}"
-            data-task="${i.key}" data-id="${row.id}"
-            title="${escapeHtml(i.label)} — click to toggle"></span>
-    `).join("");
-
-    const dc = items.filter(i => i.done).length;
-    return `<span class="pipe">${dots}<span class="dot-label">${dc}/${items.length}</span></span>`;
-  }
-
-  function renderTasksChecklist(row){
-    const items = setupTasks(row);
-    tasksChecklist.innerHTML = items.map(i=>{
-      const badge = i.done ? "✓" : "";
-      const badgeCls = i.done ? "check-badge done" : "check-badge";
-      const state = i.done ? "Completed" : "Click to toggle";
-      return `
-        <div class="check-item" data-task="${i.key}">
-          <div class="check-left">
-            <div class="${badgeCls}">${badge}</div>
-            <div class="check-name">${escapeHtml(i.label)}</div>
-          </div>
-          <div class="check-state">${escapeHtml(state)}</div>
-        </div>`;
-    }).join("");
-  }
-
-  // SALES checklist (single-select)
-  function renderSalesChecklist(row){
-    const current = salesStatus(row);
-    salesChecklist.innerHTML = SALES_STAGES.map(stage=>{
-      const done = current === stage;
-      const badgeCls = done ? "check-badge done" : "check-badge";
-      const state = done ? "Current" : "Click to set";
-      return `
-        <div class="check-item" data-sales="${escapeHtml(stage)}">
-          <div class="check-left">
-            <div class="${badgeCls}">${done ? "✓" : ""}</div>
-            <div class="check-name">${escapeHtml(stage)}</div>
-          </div>
-          <div class="check-state">${state}</div>
-        </div>`;
-    }).join("");
-  }
-
-  async function updateCustomer(id, patch){
-    setBanner("");
-    const { data, error } = await sb.from("customers").update(patch).eq("id", id).select("*").single();
-    if(error){
-      console.error("UPDATE ERROR:", error);
-      setBanner("Save failed:\n\n" + (error.message || JSON.stringify(error)));
-      return null;
-    }
-    const idx = allRows.findIndex(r=>r.id===id);
-    if(idx !== -1) allRows[idx] = data;
-    if(activeRow && activeRow.id===id) activeRow = data;
-    return data;
-  }
-
-  function renderOpsButtons(row){
-    opsButtons.innerHTML = "";
-    const mk = (label, onClick) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "btn btn-secondary";
-      b.textContent = label;
-      b.addEventListener("click", (e)=>{ e.stopPropagation(); onClick(); });
-      opsButtons.appendChild(b);
-    };
-
-    mk(row.wizard_completed ? "Unmark Wizard" : "Mark Wizard", async ()=>{
-      const updated = await updateCustomer(row.id, { wizard_completed: !row.wizard_completed });
-      if(updated){ render(); openDrawer(updated); }
-    });
-
-    mk(row.whatsapp_connected ? "WhatsApp ✅ (toggle)" : "WhatsApp ❌ (toggle)", async ()=>{
-      const updated = await updateCustomer(row.id, { whatsapp_connected: !row.whatsapp_connected });
-      if(updated){ render(); openDrawer(updated); }
-    });
-
-    mk(row.calendar_connected ? "Calendar ✅ (toggle)" : "Calendar ❌ (toggle)", async ()=>{
-      const updated = await updateCustomer(row.id, { calendar_connected: !row.calendar_connected });
-      if(updated){ render(); openDrawer(updated); }
-    });
-
-    mk(row.payments_connected ? "Payments ✅ (toggle)" : "Payments ❌ (toggle)", async ()=>{
-      const updated = await updateCustomer(row.id, { payments_connected: !row.payments_connected });
-      if(updated){ render(); openDrawer(updated); }
-    });
-  }
-
-  // --- SMART MIDDLE-GROUND RULES (no new DB columns needed) ---
-  function createdAt(row){
-    return toDate(row?.created_at) || toDate(row?.inserted_at) || null;
-  }
-
-  function updatedAt(row){
-    return toDate(row?.updated_at) || createdAt(row) || null;
-  }
-
-  function isNewToday(row){
-    const c = createdAt(row);
-    if(!c) return false;
-    return isSameLocalDay(c, new Date());
-  }
-
-  function isOverdueUntouched(row){
-    const c = createdAt(row);
-    if(!c) return false;
-    const ageMs = Date.now() - c.getTime();
-    const olderThan24h = ageMs > (24 * 60 * 60 * 1000);
-
-    const notesEmpty = !(row?.notes ?? "").toString().trim();
-    const leadNotesEmpty = !(row?.lead_notes ?? "").toString().trim();
-
-    return salesStatus(row) === "New Signup"
-      && olderThan24h
-      && !row?.wizard_completed
-      && notesEmpty
-      && leadNotesEmpty;
-  }
-
-  function isDemoGap(row){
-    const s = salesStatus(row);
-    const demoish = (s === "Demo" || s === "Free Trial");
-    return demoish && !allDone(row);
-  }
-
-  function attentionBadgesHTML(row){
-    const badges = [];
-    if(isNewToday(row)) badges.push(`<span class="badge today"><b>New</b> today</span>`);
-    if(isOverdueUntouched(row)) badges.push(`<span class="badge overdue"><b>Overdue</b> untouched</span>`);
-    if(isDemoGap(row)) badges.push(`<span class="badge demo"><b>Demo</b> setup gap</span>`);
-    if(!badges.length) return `<span class="logo-tag">—</span>`;
-    return `<span class="badges">${badges.join("")}</span>`;
-  }
-
-  function rowHighlightClass(row){
-    if(isOverdueUntouched(row)) return "row-overdue";
-    if(isDemoGap(row)) return "row-demo-gap";
-    if(isNewToday(row)) return "row-new-today";
-    return "";
-  }
-
-  function computeAttentionCounts(){
-    let today=0, overdue=0, demo=0;
-    for(const r of allRows){
-      if(isNewToday(r)) today++;
-      if(isOverdueUntouched(r)) overdue++;
-      if(isDemoGap(r)) demo++;
-    }
-    return { today, overdue, demo };
-  }
-
-  function buildAttentionStrip(){
-    const c = computeAttentionCounts();
-    attentionStrip.innerHTML = "";
-
-    const add = (key, label, dotClass, count) => {
-      const el = document.createElement("div");
-      el.className = "attention-chip" + (attentionFilter===key ? " is-active" : "");
-      el.innerHTML = `
-        <span class="attention-dot ${dotClass}"></span>
-        <span style="font-weight:750">${escapeHtml(label)}</span>
-        <span class="attention-count">${count}</span>
-      `;
-      el.addEventListener("click", ()=>{
-        attentionFilter = (attentionFilter === key) ? null : key;
-        render();
-      });
-      attentionStrip.appendChild(el);
-    };
-
-    add("today", "New today", "today", c.today);
-    add("overdue", "Overdue untouched", "overdue", c.overdue);
-    add("demo_gap", "Demo/Trial setup gap", "demo", c.demo);
-  }
-
-  function passAttentionFilter(row){
-    if(!attentionFilter) return true;
-    if(attentionFilter === "today") return isNewToday(row);
-    if(attentionFilter === "overdue") return isOverdueUntouched(row);
-    if(attentionFilter === "demo_gap") return isDemoGap(row);
+  const filtered = rows.filter(r=>{
+    if(activeStatus && r.onboarding_status !== activeStatus) return false;
+    if(q && !JSON.stringify(r).toLowerCase().includes(q)) return false;
     return true;
-  }
-
-  function openDrawer(row){
-    activeRow = row;
-
-    drawerTitle.textContent = row.business_name || "Customer";
-    drawerSub.textContent = [
-      row.contact_name ? `Contact: ${row.contact_name}` : "",
-      row.base_postcode ? `Postcode: ${row.base_postcode}` : "",
-      row.id ? `ID: ${row.id}` : ""
-    ].filter(Boolean).join(" • ");
-
-    drawerBusiness.value = row.business_name || "";
-    drawerContact.value = row.contact_name || "";
-    drawerEmail.value = row.email || "";
-    drawerPhone.value = row.phone || "";
-    drawerNotes.value = row.notes || "";
-    drawerLeadNotes.value = row.lead_notes || "";
-
-    renderSalesChecklist(row);
-    renderTasksChecklist(row);
-    renderOpsButtons(row);
-
-    drawerHint.textContent = "Autosaves";
-    drawer.classList.add("open");
-    drawer.setAttribute("aria-hidden","false");
-  }
-
-  function closeDrawer(){
-    drawer.classList.remove("open");
-    drawer.setAttribute("aria-hidden","true");
-    activeRow = null;
-  }
-
-  async function saveNotesNow(){
-    if(!activeRow) return;
-    drawerHint.textContent = "Saving…";
-    const id = activeRow.id;
-    const patch = { notes: drawerNotes.value, lead_notes: drawerLeadNotes.value };
-    const { error } = await sb.from("customers").update(patch).eq("id", id);
-    if(error){
-      console.error("NOTES SAVE ERROR:", error);
-      setBanner("Failed to save notes:\n\n" + (error.message || JSON.stringify(error)));
-      drawerHint.textContent = "Save failed";
-      return;
-    }
-    drawerHint.textContent = "Saved";
-    const idx = allRows.findIndex(r=>r.id===id);
-    if(idx !== -1){
-      allRows[idx].notes = patch.notes;
-      allRows[idx].lead_notes = patch.lead_notes;
-    }
-    activeRow.notes = patch.notes;
-    activeRow.lead_notes = patch.lead_notes;
-
-    buildAttentionStrip();
-    render();
-  }
-
-  function queueNotesSave(){
-    clearTimeout(noteTimer);
-    noteTimer = setTimeout(saveNotesNow, 450);
-  }
-
-  function render(){
-    buildStatusStrip();
-    buildAttentionStrip();
-
-    const q = (search.value || "").trim();
-
-    const rows = allRows
-      .filter(r => (activeStatus ? salesStatus(r)===activeStatus : true))
-      .filter(r => passAttentionFilter(r))
-      .filter(r => rowMatchesSearch(r,q))
-      .sort((a,b)=>{
-        const ta = (updatedAt(a)?.getTime() ?? 0);
-        const tb = (updatedAt(b)?.getTime() ?? 0);
-        return tb - ta;
-      });
-
-    tbody.innerHTML = "";
-
-    if(!rows.length){
-      tbody.innerHTML = `<tr><td colspan="9">No matches.</td></tr>`;
-      statusBar.textContent = `0 shown • ${allRows.length} total`;
-      return;
-    }
-
-    for(const r of rows){
-      const tr = document.createElement("tr");
-      const cls = rowHighlightClass(r);
-      if(cls) tr.classList.add(cls);
-
-      tr.innerHTML = `
-        <td>${attentionBadgesHTML(r)}</td>
-        <td>${escapeHtml(salesStatus(r))}</td>
-        <td>${tasksDotsHTML(r)}</td>
-        <td>${escapeHtml(r.business_name || "—")}</td>
-        <td>${escapeHtml(r.contact_name || "—")}</td>
-        <td>${escapeHtml(r.email || "—")}</td>
-        <td>${escapeHtml(r.phone || "—")}</td>
-        <td>${escapeHtml(r.base_postcode || "—")}</td>
-        <td>${escapeHtml(fmtDate(r.updated_at || r.created_at))}</td>
-      `;
-      tr.addEventListener("click", ()=>openDrawer(r));
-      tbody.appendChild(tr);
-    }
-
-    const att = attentionFilter
-      ? (attentionFilter === "today" ? " • New today"
-        : attentionFilter === "overdue" ? " • Overdue untouched"
-        : " • Demo/Trial setup gap")
-      : "";
-
-    statusBar.textContent =
-      `${rows.length} shown • ${allRows.length} total` +
-      (activeStatus ? ` • Stage: ${activeStatus}` : "") +
-      att;
-  }
-
-  async function loadCustomersAndStatuses(){
-    setBanner("");
-    statusBar.textContent = "Loading…";
-    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
-
-    const { data, error } = await sb.from("customers").select("*");
-    if(error){
-      console.error("LOAD ERROR:", error);
-      setBanner("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
-      allRows = [];
-      tbody.innerHTML = `<tr><td colspan="9">No data loaded.</td></tr>`;
-      statusBar.textContent = "Load failed.";
-      return;
-    }
-
-    allRows = Array.isArray(data) ? data : [];
-
-    const distinct = await loadDistinctStatuses();
-    statusOrder = computeStatusOrder(distinct);
-
-    render();
-  }
-
-  // Controls
-  btnRefresh.addEventListener("click", loadCustomersAndStatuses);
-  btnNew.addEventListener("click", ()=>window.open("app.html", "_blank", "noopener"));
-  btnClear.addEventListener("click", ()=>{
-    activeStatus=null;
-    attentionFilter=null;
-    search.value="";
-    render();
-  });
-  search.addEventListener("input", render);
-
-  // Drawer
-  btnCloseDrawer.addEventListener("click", closeDrawer);
-  drawerNotes.addEventListener("input", queueNotesSave);
-  drawerLeadNotes.addEventListener("input", queueNotesSave);
-
-  btnOpenWizard.addEventListener("click", (e)=>{
-    e.stopPropagation();
-    if(!activeRow) return;
-    window.open(`app.html?id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
   });
 
-  // Click sales checklist to set status (single-select)
-  document.addEventListener("click", async (e)=>{
-    const item = e.target.closest(".check-item[data-sales]");
-    if(!item || !activeRow) return;
-    e.stopPropagation();
+  filtered.forEach(r=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${badge(r)}</td>
+      <td>${r.onboarding_status}</td>
+      <td>${r.business_name || "—"}</td>
+      <td>${r.contact_name || "—"}</td>
+      <td>${r.email || "—"}</td>
+      <td>${r.phone || "—"}</td>
+      <td>${new Date(r.updated_at).toLocaleString()}</td>
+    `;
+    tr.onclick = ()=>window.open(`app.html?id=${r.id}`,"_blank");
+    tbody.appendChild(tr);
+  });
 
-    const stage = item.dataset.sales;
-    if(salesStatus(activeRow) === stage) return;
+  statusBar.textContent = `${filtered.length} shown • ${rows.length} total`;
+}
 
-    const updated = await updateCustomer(activeRow.id, { onboarding_status: stage });
-    if(updated){ render(); openDrawer(updated); }
-  }, true);
+function renderStatuses(){
+  statusStrip.innerHTML = "";
+  const allBtn = document.createElement("div");
+  allBtn.className = "status-chip" + (activeStatus===null?" is-active":"");
+  allBtn.textContent = "All";
+  allBtn.onclick = ()=>{activeStatus=null;renderStatuses();render()};
+  statusStrip.appendChild(allBtn);
 
-  // Click task dots in table to toggle
-  document.addEventListener("click", async (e)=>{
-    const dot = e.target.closest(".dot[data-task][data-id]");
-    if(!dot) return;
+  SALES.forEach(s=>{
+    const btn = document.createElement("div");
+    btn.className = "status-chip" + (activeStatus===s?" is-active":"");
+    btn.textContent = s;
+    btn.onclick = ()=>{activeStatus=s;renderStatuses();render()};
+    statusStrip.appendChild(btn);
+  });
+}
 
-    e.stopPropagation();
+async function load(){
+  const { data } = await sb.from("customers").select("*");
+  rows = data || [];
+  renderStatuses();
+  render();
+}
 
-    const id = dot.dataset.id;
-    const key = dot.dataset.task;
-    const row = allRows.find(r => r.id === id);
-    if(!row) return;
+document.getElementById("btn-refresh").onclick = load;
+document.getElementById("btn-clear-filter").onclick = ()=>{
+  activeStatus=null;
+  search.value="";
+  renderStatuses();
+  render();
+};
+document.getElementById("btn-new").onclick = ()=>window.open("app.html","_blank");
+search.oninput = render;
 
-    const patch = {};
-    if(key === "wizard")   patch.wizard_completed   = !row.wizard_completed;
-    if(key === "whatsapp") patch.whatsapp_connected = !row.whatsapp_connected;
-    if(key === "calendar") patch.calendar_connected = !row.calendar_connected;
-    if(key === "payments") patch.payments_connected = !row.payments_connected;
-
-    const updated = await updateCustomer(id, patch);
-    if(updated){
-      render();
-      if(activeRow && activeRow.id === id) openDrawer(updated);
-    }
-  }, true);
-
-  // Click tasks checklist in drawer to toggle
-  document.addEventListener("click", async (e)=>{
-    const item = e.target.closest(".check-item[data-task]");
-    if(!item || !activeRow) return;
-    e.stopPropagation();
-
-    const key = item.dataset.task;
-    const patch = {};
-    if(key === "wizard")   patch.wizard_completed   = !activeRow.wizard_completed;
-    if(key === "whatsapp") patch.whatsapp_connected = !activeRow.whatsapp_connected;
-    if(key === "calendar") patch.calendar_connected = !activeRow.calendar_connected;
-    if(key === "payments") patch.payments_connected = !activeRow.payments_connected;
-
-    const updated = await updateCustomer(activeRow.id, patch);
-    if(updated){ render(); openDrawer(updated); }
-  }, true);
-
-  // Init
-  loadCustomersAndStatuses();
+load();
 </script>
+
+</body>
+</html>
