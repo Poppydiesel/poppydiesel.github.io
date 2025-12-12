@@ -9,8 +9,10 @@
     :root{
       --primary-blue:#1f4e79;
       --accent-blue:#00a3ff;
-      --light-bg:#f5f7fa;
       --dark-text:#1b1b1f;
+      --light-bg:#f5f7fa;
+      --white:#ffffff;
+
       --card:#ffffff;
       --border:rgba(0,0,0,0.12);
       --shadow:0 8px 24px rgba(0,0,0,0.08);
@@ -24,14 +26,15 @@
       font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
       background:var(--light-bg);
       color:var(--dark-text);
+      line-height:1.5;
     }
 
+    /* Header - same vibe as app.html */
     header{
       padding:18px 16px;
       background:#fff;
       border-bottom:1px solid var(--border);
     }
-
     header .wrap{
       max-width:1200px;
       margin:0 auto;
@@ -40,22 +43,29 @@
       justify-content:space-between;
       gap:12px;
     }
-
     .brand{
-      font-weight:900;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
       color:var(--primary-blue);
       letter-spacing:.2px;
     }
-
     .pill{
-      display:inline-block;
-      padding:6px 12px;
-      border-radius:999px;
+      padding:6px 10px;
       border:1px solid var(--border);
+      border-radius:999px;
       background:#fff;
       font-weight:800;
       font-size:12px;
       white-space:nowrap;
+    }
+    .header-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
 
     main{
@@ -63,10 +73,9 @@
       margin:18px auto;
       padding:0 16px 40px;
       display:grid;
-      grid-template-columns:360px 1fr;
+      grid-template-columns: 360px 1fr;
       gap:16px;
     }
-
     @media (max-width:980px){
       main{ grid-template-columns:1fr; }
     }
@@ -83,59 +92,17 @@
       margin:0 0 12px;
       font-size:16px;
       color:var(--primary-blue);
+      letter-spacing:.2px;
     }
 
-    /* LEFT PANEL STATUS BOXES */
-    .status-boxes{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:10px;
+    .muted{
+      font-size:12px;
+      color:rgba(0,0,0,0.55);
+      line-height:1.5;
+      margin:8px 0 0;
     }
 
-    .status-box{
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:12px;
-      background:#fff;
-      cursor:pointer;
-      transition:transform .05s ease, box-shadow .05s ease;
-    }
-
-    .status-box:hover{
-      box-shadow:0 6px 18px rgba(0,0,0,0.08);
-      transform:translateY(-1px);
-    }
-
-    .status-box.active{
-      outline:2px solid var(--primary-blue);
-    }
-
-    .status-box .row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-
-    .status-box .name{
-      font-weight:900;
-      font-size:14px;
-    }
-
-    .status-box .count{
-      font-weight:900;
-      padding:4px 10px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background:#fff;
-      font-size:13px;
-    }
-
-    /* SEARCH */
-    .search{
-      margin-top:12px;
-    }
-
+    /* Inputs match app.html */
     input{
       width:100%;
       padding:11px 12px;
@@ -146,35 +113,91 @@
       font-size:14px;
     }
 
-    /* TABLE */
+    /* Status boxes – same “wizard card chip” feel */
+    .status-boxes{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .status-box{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+      cursor:pointer;
+      transition:transform .06s ease, box-shadow .06s ease, outline-color .06s ease;
+    }
+    .status-box:hover{
+      box-shadow:0 6px 18px rgba(0,0,0,0.08);
+      transform:translateY(-1px);
+    }
+
+    .status-box.active{
+      outline:2px solid rgba(31,78,121,0.55);
+    }
+
+    .status-box .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .status-box .name{
+      font-weight:900;
+      font-size:14px;
+      color:rgba(0,0,0,0.82);
+    }
+    .status-box .count{
+      font-weight:900;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#fff;
+      font-size:13px;
+    }
+
+    .search{ margin-top:12px; }
+
+    /* Table – cleaner + app-like */
     table{
       width:100%;
       border-collapse:separate;
       border-spacing:0;
-      border-radius:14px;
       overflow:hidden;
+      border-radius:14px;
       border:1px solid var(--border);
       background:#fff;
     }
-
     th, td{
       padding:12px 10px;
       border-bottom:1px solid rgba(0,0,0,0.08);
       font-size:14px;
       vertical-align:top;
     }
-
     th{
+      text-align:left;
       font-size:12px;
       letter-spacing:.4px;
       text-transform:uppercase;
       color:rgba(0,0,0,0.6);
       background:#fafbfc;
-      text-align:left;
     }
-
     tr:last-child td{ border-bottom:none; }
 
+    .tag{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#fff;
+      font-weight:800;
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    /* Buttons – match app.html */
     .btn{
       border:none;
       border-radius:12px;
@@ -183,27 +206,36 @@
       cursor:pointer;
       font-size:13px;
     }
-
     .btn-primary{
       background:var(--primary-blue);
       color:#fff;
     }
+    .btn-outline{
+      background:#fff;
+      border:1px solid var(--border);
+      color:var(--dark-text);
+    }
 
-    .muted{
-      color:rgba(0,0,0,0.55);
-      font-size:12px;
-      line-height:1.5;
-      margin-top:4px;
+    /* Small top action row inside right card */
+    .top-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
     }
   </style>
 </head>
 
 <body>
-
 <header>
   <div class="wrap">
     <div class="brand">TradeBotPro — Dashboard</div>
-    <div class="pill" id="pillFilter">Filter: All</div>
+    <div class="header-right">
+      <div class="pill" id="pillFilter">Filter: All</div>
+      <button class="btn btn-outline" id="btnNew" type="button">New customer</button>
+    </div>
   </div>
 </header>
 
@@ -215,10 +247,15 @@
     <div class="search">
       <input id="search" placeholder="Search name, email, phone, postcode…" />
     </div>
+
+    <p class="muted">Click a stage box to filter. Click again to clear.</p>
   </aside>
 
   <section class="card">
-    <h2>Customers</h2>
+    <div class="top-row">
+      <h2 style="margin:0;">Customers</h2>
+      <div class="pill" id="pillCount">0 customers</div>
+    </div>
     <div id="tableWrap"></div>
   </section>
 </main>
@@ -226,7 +263,10 @@
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
- window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  // <--- YOUR URL in quotes
+  // =========================
+  // SET YOUR SUPABASE KEYS
+  // =========================
+   window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  // <--- YOUR URL in quotes
   window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";  
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -246,7 +286,9 @@
   const statusBoxesEl = document.getElementById("statusBoxes");
   const tableWrap = document.getElementById("tableWrap");
   const pillFilter = document.getElementById("pillFilter");
+  const pillCount = document.getElementById("pillCount");
   const searchEl = document.getElementById("search");
+  const btnNew = document.getElementById("btnNew");
 
   let currentStatusFilter = null;
   let searchTerm = "";
@@ -261,6 +303,7 @@
     statusBoxesEl.innerHTML = "";
     for (const status of ONBOARDING_STATUSES){
       const count = counts[status] || 0;
+
       const box = document.createElement("div");
       box.className = "status-box" + (currentStatusFilter === status ? " active" : "");
       box.innerHTML = `
@@ -269,16 +312,20 @@
           <div class="count">${count}</div>
         </div>
       `;
+
       box.onclick = () => {
         currentStatusFilter = (currentStatusFilter === status) ? null : status;
         pillFilter.textContent = "Filter: " + (currentStatusFilter || "All");
         loadAll();
       };
+
       statusBoxesEl.appendChild(box);
     }
   }
 
   function renderTable(rows){
+    pillCount.textContent = `${rows.length} customer${rows.length === 1 ? "" : "s"}`;
+
     tableWrap.innerHTML = `
       <table>
         <thead>
@@ -295,21 +342,20 @@
           ${rows.map(r => `
             <tr>
               <td>
-                <strong>${esc(r.business_name || "—")}</strong>
+                <div style="font-weight:900">${esc(r.business_name || "—")}</div>
                 <div class="muted">${esc(r.trade_type || "")}</div>
               </td>
               <td>
-                ${esc(r.contact_name || r.owner_name || "—")}
+                <div>${esc(r.contact_name || r.owner_name || "—")}</div>
                 <div class="muted">${esc(r.email || "")}</div>
                 <div class="muted">${esc(r.phone || r.whatsapp_number || "")}</div>
+                <div class="muted">${esc(r.base_postcode || "")}</div>
               </td>
-              <td><span class="pill">${esc(r.onboarding_status || "New Signup")}</span></td>
-              <td><span class="pill">${esc(r.lead_source || "—")}</span></td>
-              <td class="muted">${r.updated_at ? new Date(r.updated_at).toLocaleString() : "—"}</td>
+              <td><span class="tag">${esc(r.onboarding_status || "New Signup")}</span></td>
+              <td><span class="tag">${esc(r.lead_source || "—")}</span></td>
+              <td class="muted">${esc(r.updated_at ? new Date(r.updated_at).toLocaleString() : "—")}</td>
               <td style="text-align:right">
-                <button class="btn btn-primary" onclick="window.open('app.html?id=${r.id}','_blank')">
-                  Open in wizard
-                </button>
+                <button class="btn btn-primary" onclick="window.open('app.html?id=${esc(r.id)}','_blank')">Open in wizard</button>
               </td>
             </tr>
           `).join("")}
@@ -319,31 +365,52 @@
   }
 
   async function loadCounts(){
-    const { data } = await supabase.from("customers").select("onboarding_status");
+    const { data, error } = await supabase.from("customers").select("onboarding_status");
+    if (error){ console.error("Load counts error:", error); return {}; }
+
     const counts = {};
-    data?.forEach(r => counts[r.onboarding_status || "New Signup"] = (counts[r.onboarding_status || "New Signup"] || 0) + 1);
-    ONBOARDING_STATUSES.forEach(s => counts[s] ||= 0);
+    for (const row of data){
+      const s = row.onboarding_status || "New Signup";
+      counts[s] = (counts[s] || 0) + 1;
+    }
+    for (const s of ONBOARDING_STATUSES) counts[s] ||= 0;
     return counts;
   }
 
   async function loadCustomers(){
     let q = supabase.from("customers").select("*").order("updated_at", { ascending:false });
     if (currentStatusFilter) q = q.eq("onboarding_status", currentStatusFilter);
-    const { data } = await q;
-    if (!searchTerm) return data || [];
+
+    const { data, error } = await q;
+    if (error){ console.error("Load customers error:", error); return []; }
+
+    const rows = data || [];
+    if (!searchTerm) return rows;
+
     const t = searchTerm.toLowerCase();
-    return (data || []).filter(r =>
-      [r.business_name,r.contact_name,r.owner_name,r.email,r.phone,r.whatsapp_number,r.trade_type,r.base_postcode].join(" ").toLowerCase().includes(t)
-    );
+    return rows.filter(r => {
+      const blob = [
+        r.business_name, r.trade_type, r.contact_name, r.owner_name,
+        r.email, r.phone, r.whatsapp_number, r.base_postcode,
+        r.lead_source, r.onboarding_status
+      ].join(" ").toLowerCase();
+      return blob.includes(t);
+    });
   }
 
   async function loadAll(){
-    const [counts, rows] = await Promise.all([loadCounts(), loadCustomers()]);
+    const [counts, customers] = await Promise.all([loadCounts(), loadCustomers()]);
     renderStatusBoxes(counts);
-    renderTable(rows);
+    renderTable(customers);
   }
 
   searchEl.oninput = () => { searchTerm = searchEl.value.trim(); loadAll(); };
+
+  btnNew.onclick = () => {
+    // open wizard without id -> it will create a new customer on first save/autosave
+    window.open("app.html", "_blank");
+  };
+
   loadAll();
 </script>
 
