@@ -1067,14 +1067,14 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   window.sb = sb;
 
-  console.log("SCRIPT VERSION: WIZARD-RESET-SCROLL-2025-12-12");
+  console.log("SCRIPT VERSION: WIZARD-LOCK-UNLOCK-2025-12-12");
 
   // ✅ DOM
   const root = document.querySelector(".wizard-right") || document.body;
 
   const btnBack = document.getElementById("btn-back");
   const btnNext = document.getElementById("btn-next");
-  const btnNewCustomer = document.getElementById("btn-save-draft"); // reuse this button
+  const btnLeft = document.getElementById("btn-save-draft"); // reuse this button area
   const statusMsg = document.getElementById("wizard-status-message");
 
   const progressPercent = document.getElementById("progress-percent");
@@ -1092,6 +1092,11 @@
   const totalSteps = 4;
   let isBootstrapping = true;
   let saveTimer = null;
+
+  // lock state
+  let isLocked = false;     // UI lock
+  let allowEdit = false;    // user-click unlock
+  let lastLoaded = null;    // last loaded row
 
   const stepMeta = {
     1: { label: "Step 1", title: "Business basics", subtitle: "Who are you, what do you do and how do you like to run things?" },
@@ -1113,16 +1118,11 @@
     history.replaceState({}, "", u.toString());
   }
 
-  // ✅ Scroll to top of wizard panel on every step change
+  // ✅ scroll to top on step change
   function scrollWizardTop() {
     const target = document.querySelector("header") || document.body;
-    // Scroll the page to the top area (keeps header visible)
     target.scrollIntoView({ behavior: "smooth", block: "start" });
-
-    // Also ensure the right panel top is visible
-    if (root && root.scrollIntoView) {
-      root.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    if (root && root.scrollIntoView) root.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   // ✅ Step UI
@@ -1145,16 +1145,52 @@
 
     if (footerText) footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${totalSteps}</strong>. You can tweak anything later.`;
 
-    if (btnBack) btnBack.disabled = currentStep === 1;
-    if (btnNext) btnNext.textContent = currentStep === totalSteps ? "Finish →" : "Next step →";
+    if (btnBack) btnBack.disabled = currentStep === 1 || isLocked;
+    if (btnNext) {
+      btnNext.textContent = currentStep === totalSteps ? "Finish →" : "Next step →";
+      btnNext.disabled = isLocked;
+    }
 
     if (stepLabel) stepLabel.textContent = stepMeta[currentStep]?.label || `Step ${currentStep}`;
     if (stepTitle) stepTitle.textContent = stepMeta[currentStep]?.title || "";
     if (stepSubtitle) stepSubtitle.textContent = stepMeta[currentStep]?.subtitle || "";
 
     if (summaryBox) summaryBox.hidden = true;
-
     if (scroll) scrollWizardTop();
+  }
+
+  // ✅ Lock / Unlock UI control
+  function applyLockState(locked) {
+    isLocked = !!locked;
+
+    // disable all inputs/textareas/selects within wizard-right
+    root.querySelectorAll("input, textarea, select").forEach(el => {
+      el.disabled = isLocked;
+    });
+
+    // chips: disable by pointer-events and aria-disabled
+    root.querySelectorAll("button.chip").forEach(btn => {
+      btn.disabled = isLocked;
+      btn.setAttribute("aria-disabled", isLocked ? "true" : "false");
+      btn.style.pointerEvents = isLocked ? "none" : "";
+      btn.style.opacity = isLocked ? "0.72" : "";
+    });
+
+    if (btnBack) btnBack.disabled = currentStep === 1 || isLocked;
+    if (btnNext) btnNext.disabled = isLocked;
+
+    // left button becomes Unlock if locked, otherwise New customer
+    if (btnLeft) {
+      if (isLocked) {
+        btnLeft.textContent = "Unlock";
+      } else {
+        btnLeft.textContent = "New customer";
+      }
+    }
+
+    if (isLocked) {
+      uiMsg("Wizard complete (locked). Click Unlock to edit.", "success");
+    }
   }
 
   // ✅ Chips
@@ -1165,6 +1201,8 @@
   }
 
   document.addEventListener("click", (e) => {
+    if (isLocked) return; // locked = ignore chip clicks
+
     const chip = e.target.closest("button.chip");
     if (!chip) return;
 
@@ -1211,8 +1249,9 @@
       ai_style_notes: (document.getElementById("ai_avoid")?.value || "").trim() || null,
       notes: (document.getElementById("extra_notes")?.value || "").trim() || null,
 
-      onboarding_status: "New Signup",
-      wizard_completed: false,
+      onboarding_status: (lastLoaded?.onboarding_status || "New Signup"),
+      wizard_completed: !!lastLoaded?.wizard_completed,
+
       wizard_answers: collectAnswers()
     };
   }
@@ -1248,7 +1287,6 @@
   }
 
   function clearWizardUI() {
-    // clear inputs/textareas
     const ids = [
       "contact_name","business_name","contact_email","contact_mobile",
       "base_postcode","review_link","ai_avoid","extra_notes"
@@ -1258,8 +1296,8 @@
       if (el) el.value = "";
     });
 
-    // clear chips
     document.querySelectorAll("button.chip.is-active").forEach(chip => chip.classList.remove("is-active"));
+    if (summaryBox) summaryBox.hidden = true;
   }
 
   // ✅ DB
@@ -1274,6 +1312,8 @@
   }
 
   async function saveNow(reason) {
+    if (isLocked) return null;
+
     const payload = collectData();
     if (customerId) payload.id = customerId;
 
@@ -1293,24 +1333,36 @@
 
     customerId = data.id;
     setUrlCustomerId(customerId);
+    lastLoaded = data;
     uiMsg("Saved", "success");
     return data;
   }
 
   function queueSave(reason) {
-    if (isBootstrapping) return;
+    if (isBootstrapping || isLocked) return;
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => saveNow(reason), 500);
   }
 
   // ✅ Buttons
-  if (btnNewCustomer) {
-    btnNewCustomer.textContent = "New customer";
-    btnNewCustomer.addEventListener("click", (e) => {
+  if (btnLeft) {
+    // starts as unlock/new customer depending on loaded record
+    btnLeft.addEventListener("click", async (e) => {
       e.preventDefault();
+
+      if (isLocked) {
+        // unlock mode
+        applyLockState(false);
+        uiMsg("Unlocked — you can edit now.", "success");
+        return;
+      }
+
+      // new customer mode
       customerId = null;
       setUrlCustomerId(null);
+      lastLoaded = null;
       clearWizardUI();
+      applyLockState(false);
       uiMsg("New customer started.", "success");
       setStep(1, { scroll: true });
     });
@@ -1319,6 +1371,7 @@
   if (btnBack) {
     btnBack.addEventListener("click", (e) => {
       e.preventDefault();
+      if (isLocked) return;
       setStep(currentStep - 1, { scroll: true });
     });
   }
@@ -1326,20 +1379,23 @@
   if (btnNext) {
     btnNext.addEventListener("click", async (e) => {
       e.preventDefault();
+      if (isLocked) return;
 
       if (currentStep < totalSteps) {
         setStep(currentStep + 1, { scroll: true });
         return;
       }
 
-      // Finish step 4
+      // Finish step 4: save, then mark completed + lock
       const saved = await saveNow("finish");
       if (!saved) return;
 
-      const { error } = await sb
+      const { data, error } = await sb
         .from("customers")
         .update({ wizard_completed: true, onboarding_status: "Demo Booked" })
-        .eq("id", customerId);
+        .eq("id", customerId)
+        .select("*")
+        .single();
 
       if (error) {
         console.error("FINISH UPDATE ERROR:", error);
@@ -1347,8 +1403,11 @@
         return;
       }
 
-      uiMsg("Wizard complete. We’ll confirm your demo evening next.", "success");
+      lastLoaded = data;
+      uiMsg("Wizard complete. Locked to prevent accidental edits.", "success");
       if (summaryBox) summaryBox.hidden = false;
+
+      applyLockState(true);
       scrollWizardTop();
     });
   }
@@ -1364,11 +1423,18 @@
     if (customerId) {
       const row = await loadCustomer(customerId);
       if (row) {
+        lastLoaded = row;
         isBootstrapping = true;
         hydrate(row);
         isBootstrapping = false;
+
+        // lock if completed
+        applyLockState(!!row.wizard_completed);
       }
+    } else {
+      applyLockState(false);
     }
+
     isBootstrapping = false;
     console.log("APP ready. customerId =", customerId || "(new)");
   })();
@@ -1377,5 +1443,3 @@
 </body>
 </html>
 
-</body>
-</html>
