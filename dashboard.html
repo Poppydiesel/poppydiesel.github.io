@@ -15,8 +15,6 @@
       --light-bg: #f3f4f9;
       --white: #ffffff;
       --border-subtle: rgba(15, 23, 42, 0.12);
-      --chip-bg: #eef2ff;
-      --chip-border: rgba(37, 99, 235, 0.3);
       --success-green: #0f7b46;
       --error-red: #b3261e;
       --shadow: 0 24px 60px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.03);
@@ -215,7 +213,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 860px;
+      min-width: 940px;
     }
     thead th {
       position: sticky;
@@ -271,6 +269,7 @@
 
     @media (max-width: 980px) {
       .shell { grid-template-columns: 1fr; }
+      table { min-width: 840px; }
     }
   </style>
 </head>
@@ -293,19 +292,15 @@
 
     <main>
       <div class="shell">
-
-        <!-- LEFT: STATUS COUNTS -->
         <aside class="panel">
           <div class="kicker">Pipeline</div>
           <h1 class="title">Onboarding stages</h1>
-          <p class="subtitle">Click a box to filter customers.</p>
+          <p class="subtitle">Boxes are built from your real DB statuses.</p>
 
           <div class="status-grid" id="status-grid"></div>
-
           <div class="status-bar muted" id="left-hint"></div>
         </aside>
 
-        <!-- RIGHT: LIST -->
         <section class="panel soft">
           <div class="controls">
             <div class="controls-left">
@@ -343,7 +338,6 @@
 
           <div class="status-bar muted" id="status-bar">Loading…</div>
         </section>
-
       </div>
     </main>
   </div>
@@ -351,51 +345,13 @@
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  // ✅ Put your live keys here (same project as app.html)
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  console.log("SCRIPT VERSION: DASHBOARD-STAGES-2025-12-12");
+  console.log("SCRIPT VERSION: DASHBOARD-REAL-STATUSES-2025-12-12");
 
-  // ---------- CONFIG ----------
-  // Keep this list stable. Add/rename here and it will appear as a box.
-  const ONBOARDING_STATUSES = [
-    "New Signup",
-    "Wizard Started",
-    "Wizard Completed",
-    "Demo Booked",
-    "WhatsApp Connected",
-    "Calendar Connected",
-    "Live",
-    "Paused / Not Proceeding"
-  ];
-
-  // We will *derive* Wizard Started/Completed if onboarding_status is missing.
-  function normalizeStatus(row) {
-    const s = (row?.onboarding_status || "").trim();
-    if (s) return s;
-
-    // fallback: if they have any wizard_answers, call it started
-    const hasAnswers =
-      row?.wizard_answers &&
-      typeof row.wizard_answers === "object" &&
-      Object.keys(row.wizard_answers || {}).length > 0;
-
-    if (row?.wizard_completed) return "Wizard Completed";
-    if (hasAnswers) return "Wizard Started";
-    return "New Signup";
-  }
-
-  function fmtDate(iso) {
-    if (!iso) return "—";
-    try {
-      const d = new Date(iso);
-      return d.toLocaleString(undefined, { year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" });
-    } catch { return "—"; }
-  }
-
-  // ---------- DOM ----------
+  // DOM
   const statusGrid = document.getElementById("status-grid");
   const leftHint = document.getElementById("left-hint");
   const tbody = document.getElementById("tbody");
@@ -406,53 +362,50 @@
   const btnNew = document.getElementById("btn-new");
   const btnClearFilter = document.getElementById("btn-clear-filter");
 
-  // ---------- STATE ----------
+  // State
   let allRows = [];
-  let activeStatus = null;
+  let activeStatus = null; // string status or null for all
+  let statusOrder = [];    // dynamic, pulled from DB rows
 
-  // ---------- UI ----------
   function setStatusBar(text, kind = "muted") {
     statusBar.textContent = text || "";
     statusBar.className = "status-bar " + (kind || "muted");
   }
 
-  function buildStatusCards(counts) {
-    statusGrid.innerHTML = "";
-
-    // Add an "All" card at top
-    const allCount = allRows.length;
-    statusGrid.appendChild(makeCard("All customers", allCount, "Show everyone", null));
-
-    ONBOARDING_STATUSES.forEach((s) => {
-      statusGrid.appendChild(
-        makeCard(
-          s,
-          counts[s] || 0,
-          s === "Live" ? "Already running" : "Needs action",
-          s
-        )
-      );
-    });
-
-    leftHint.textContent = activeStatus ? `Filtering: ${activeStatus}` : `Showing: All customers`;
+  function escapeHtml(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
-  function makeCard(name, count, meta, value) {
-    const card = document.createElement("button");
-    card.type = "button";
-    card.className = "status-card" + ((activeStatus === value) ? " is-active" : "");
-    card.innerHTML = `
-      <div>
-        <div class="status-name">${name}</div>
-        <div class="status-meta">${meta || ""}</div>
-      </div>
-      <div class="status-count">${count}</div>
-    `;
-    card.addEventListener("click", () => {
-      activeStatus = value; // null = all
-      render();
-    });
-    return card;
+  function fmtDate(iso) {
+    if (!iso) return "—";
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString(undefined, { year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+    } catch { return "—"; }
+  }
+
+  // IMPORTANT: this is the status shown + counted
+  // 1) if onboarding_status exists, we use it
+  // 2) else: if wizard_completed => "Wizard Completed"
+  // 3) else: if wizard_answers has any keys => "Wizard Started"
+  // 4) else => "New Signup"
+  function normalizeStatus(row) {
+    const raw = (row?.onboarding_status ?? "").toString().trim();
+    if (raw) return raw;
+
+    if (row?.wizard_completed) return "Wizard Completed";
+
+    const wa = row?.wizard_answers;
+    const hasAnswers =
+      wa && typeof wa === "object" && !Array.isArray(wa) && Object.keys(wa).length > 0;
+
+    if (hasAnswers) return "Wizard Started";
+    return "New Signup";
   }
 
   function rowMatchesSearch(row, q) {
@@ -468,34 +421,110 @@
     return hay.includes(q.toLowerCase());
   }
 
-  function render() {
-    // counts
+  function makeCard(name, count, meta, value) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "status-card" + ((activeStatus === value) ? " is-active" : "");
+    card.innerHTML = `
+      <div>
+        <div class="status-name">${escapeHtml(name)}</div>
+        <div class="status-meta">${escapeHtml(meta || "")}</div>
+      </div>
+      <div class="status-count">${count}</div>
+    `;
+    card.addEventListener("click", () => {
+      activeStatus = value; // null = all
+      render();
+    });
+    return card;
+  }
+
+  function buildStatusCards(counts) {
+    statusGrid.innerHTML = "";
+
+    // All customers card
+    statusGrid.appendChild(
+      makeCard("All customers", allRows.length, "Show everyone", null)
+    );
+
+    // Dynamic cards from DB
+    statusOrder.forEach((s) => {
+      statusGrid.appendChild(
+        makeCard(
+          s,
+          counts[s] || 0,
+          s === "Live" ? "Already running" : "Needs action",
+          s
+        )
+      );
+    });
+
+    leftHint.textContent = activeStatus ? `Filtering: ${activeStatus}` : `Showing: All customers`;
+  }
+
+  function computeStatusOrderAndCounts() {
     const counts = {};
+    const set = new Set();
+
     for (const r of allRows) {
       const s = normalizeStatus(r);
       counts[s] = (counts[s] || 0) + 1;
+      set.add(s);
     }
+
+    // Make sure core fallbacks always appear (even if currently 0)
+    set.add("New Signup");
+    set.add("Wizard Started");
+    set.add("Wizard Completed");
+
+    // Sort with a sensible priority, then alpha for any unknowns
+    const priority = [
+      "New Signup",
+      "Wizard Started",
+      "Wizard Completed",
+      "Demo Booked",
+      "WhatsApp Connected",
+      "Calendar Connected",
+      "Live",
+      "Paused / Not Proceeding"
+    ];
+
+    const all = Array.from(set);
+    all.sort((a, b) => {
+      const ia = priority.indexOf(a);
+      const ib = priority.indexOf(b);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
+      return a.localeCompare(b);
+    });
+
+    statusOrder = all;
+    return counts;
+  }
+
+  function render() {
+    const counts = computeStatusOrderAndCounts();
     buildStatusCards(counts);
 
-    // filter + search
     const q = (search.value || "").trim();
+
     const rows = allRows
       .filter(r => (activeStatus ? normalizeStatus(r) === activeStatus : true))
       .filter(r => rowMatchesSearch(r, q))
       .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
 
-    // table
     tbody.innerHTML = "";
-    for (const r of rows) {
-      const tr = document.createElement("tr");
-      const st = normalizeStatus(r);
 
+    for (const r of rows) {
+      const st = normalizeStatus(r);
       const wizardPill = r.wizard_completed
         ? `<span class="pill ok">✅ Complete</span>`
         : `<span class="pill no">⏳ In progress</span>`;
 
+      const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><span class="pill">${st}</span></td>
+        <td><span class="pill">${escapeHtml(st)}</span></td>
         <td>${escapeHtml(r.business_name || "—")}</td>
         <td>${escapeHtml(r.contact_name || "—")}</td>
         <td>${escapeHtml(r.email || "—")}</td>
@@ -518,20 +547,9 @@
     );
   }
 
-  function escapeHtml(s) {
-    return String(s ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-  // ---------- DATA ----------
   async function loadCustomers() {
     setStatusBar("Loading customers…", "muted");
 
-    // NOTE: you can add more columns any time; dashboard will ignore unknowns.
     const { data, error } = await sb
       .from("customers")
       .select("id, contact_name, business_name, email, phone, base_postcode, onboarding_status, wizard_completed, wizard_answers, created_at, updated_at")
@@ -547,18 +565,13 @@
     render();
   }
 
-  // ---------- EVENTS ----------
+  // Events
   btnRefresh.addEventListener("click", () => loadCustomers());
   btnClearFilter.addEventListener("click", () => { activeStatus = null; search.value = ""; render(); });
-
   search.addEventListener("input", () => render());
+  btnNew.addEventListener("click", () => window.open("app.html", "_blank", "noopener"));
 
-  // New customer = open wizard with no id (fresh)
-  btnNew.addEventListener("click", () => {
-    window.open("app.html", "_blank", "noopener");
-  });
-
-  // ---------- INIT ----------
+  // Init
   await loadCustomers();
 </script>
 
