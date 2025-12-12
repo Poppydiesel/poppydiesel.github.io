@@ -1057,32 +1057,54 @@
     </div>
   </main>
 </div>
+  
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
- <script type="module">
-  import { createClient } from "https://esm.sh/@sb./sb.-js@2";
-
-  const sb._URL = "https://yaiutswdcbfwkxfqxkzy.sb..co";
+ const sb._URL = "https://yaiutswdcbfwkxfqxkzy.sb..co";
   const sb._ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-   console.log("SCRIPT VERSION: A-2025-12-12");
-const sb = createClient(sb._URL, sb._ANON_KEY);
-window.sb = sb;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.sb = sb;
 
+  console.log("SCRIPT VERSION: WIZARD-NEXT-FIX-2025-12-12");
 
-  // Your page doesn't have <form id="profileForm">, so we treat the whole wizard-right as the "form".
+  // -------- DOM (your exact IDs/classes) --------
   const root = document.querySelector(".wizard-right") || document.body;
 
-  // Buttons you actually have:
   const btnBack = document.getElementById("btn-back");
   const btnNext = document.getElementById("btn-next");
   const btnSaveDraft = document.getElementById("btn-save-draft");
   const statusMsg = document.getElementById("wizard-status-message");
 
+  const progressPercent = document.getElementById("progress-percent");
+  const progressBarInner = document.getElementById("progress-bar-inner");
+  const footerText = document.getElementById("wizard-footer-text");
+
+  const stepLabel = document.getElementById("wizard-step-label");
+  const stepTitle = document.getElementById("wizard-step-title");
+  const stepSubtitle = document.getElementById("wizard-step-subtitle");
+  const summaryBox = document.getElementById("summary-box");
+
+  const stepMeta = {
+    1: { label: "Step 1", title: "Business basics", subtitle: "Who are you, what do you do and how do you like to run things?" },
+    2: { label: "Step 2", title: "Area & pricing", subtitle: "Coverage, call-outs and the type of work you want more of." },
+    3: { label: "Step 3", title: "Messaging & reviews", subtitle: "Tone of voice, channels and how you want reviews handled." },
+    4: { label: "Step 4", title: "Demo & go-live", subtitle: "Demo preferences and what happens next." }
+  };
+
+  // -------- state --------
   let customerId = new URL(location.href).searchParams.get("id");
-  let isBootstrapping = true;
   let currentStep = 1;
   const totalSteps = 4;
+  let isBootstrapping = true;
   let saveTimer = null;
+
+  function msg(text, type="") {
+    if (!statusMsg) return;
+    statusMsg.textContent = text || "";
+    statusMsg.className = "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
+  }
 
   function setUrlCustomerId(id){
     const u = new URL(location.href);
@@ -1091,15 +1113,7 @@ window.sb = sb;
     history.replaceState({}, "", u.toString());
   }
 
-  function msg(text, type=""){
-    if (!statusMsg) return;
-    statusMsg.textContent = text || "";
-    statusMsg.className = "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
-  }
-
-  // =========================
-  // STEP UI (your existing markup)
-  // =========================
+  // -------- step UI --------
   function setStep(n){
     currentStep = Math.max(1, Math.min(totalSteps, n));
 
@@ -1113,32 +1127,24 @@ window.sb = sb;
       dot.classList.toggle("is-complete", s < currentStep);
     });
 
-    const pct = Math.round((currentStep-1)/(totalSteps-1) * 100);
-    const bar = document.getElementById("progress-bar-inner");
-    if (bar) bar.style.width = pct + "%";
+    const pct = Math.round(((currentStep - 1) / (totalSteps - 1)) * 100);
+    if (progressBarInner) progressBarInner.style.width = pct + "%";
+    if (progressPercent) progressPercent.textContent = `Step ${currentStep} of ${totalSteps}`;
 
-    const percentLabel = document.getElementById("progress-percent");
-    if (percentLabel) percentLabel.textContent = `Step ${currentStep} of ${totalSteps}`;
-
-    const footerText = document.getElementById("wizard-footer-text");
     if (footerText) footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${totalSteps}</strong>. You can tweak anything later.`;
 
     if (btnBack) btnBack.disabled = currentStep === 1;
     if (btnNext) btnNext.textContent = currentStep === totalSteps ? "Finish →" : "Next step →";
 
-    const summary = document.getElementById("summary-box");
-    if (summary) summary.hidden = currentStep !== totalSteps;
+    if (stepLabel) stepLabel.textContent = stepMeta[currentStep]?.label || `Step ${currentStep}`;
+    if (stepTitle) stepTitle.textContent = stepMeta[currentStep]?.title || "";
+    if (stepSubtitle) stepSubtitle.textContent = stepMeta[currentStep]?.subtitle || "";
+
+    if (summaryBox) summaryBox.hidden = true;
   }
 
-  // =========================
-  // CHIP CLICK HANDLING (YOUR CHIP STRUCTURE)
-  // chip-row has data-field, chips are <button class="chip"><span>Text</span></button>
-  // =========================
-  function clearSingleRow(row){
-    row.querySelectorAll(".chip").forEach(c => c.classList.remove("is-active"));
-  }
-
-  function getChipValue(chip){
+  // -------- chips (your structure) --------
+  function chipText(chip){
     return (chip.textContent || "").trim();
   }
 
@@ -1146,6 +1152,7 @@ window.sb = sb;
     root.addEventListener("click", (e) => {
       const chip = e.target.closest(".chip");
       if (!chip) return;
+
       const row = chip.closest(".chip-row");
       if (!row) return;
 
@@ -1153,64 +1160,59 @@ window.sb = sb;
       const mode = row.dataset.select || "single";
       if (!field) return;
 
-      if (mode === "single"){
-        clearSingleRow(row);
+      if (mode === "single") {
+        row.querySelectorAll(".chip").forEach(c => c.classList.remove("is-active"));
         chip.classList.add("is-active");
       } else {
         chip.classList.toggle("is-active");
       }
 
-      // autosave after chip changes
       queueSave("chip");
     }, true);
   }
 
-  // =========================
-  // COLLECT DATA FROM YOUR ACTUAL INPUT IDs + CHIP ROWS
-  // =========================
+  // -------- collect/hydrate --------
+  function collectAnswers(){
+    const answers = {};
+    document.querySelectorAll(".chip-row[data-field]").forEach(row => {
+      const field = row.dataset.field;
+      const mode = row.dataset.select || "single";
+      const active = Array.from(row.querySelectorAll(".chip.is-active")).map(chipText);
+      answers[field] = (mode === "multi") ? active : (active[0] || null);
+    });
+    return answers;
+  }
+
   function collectData(){
-    // text inputs by id
-    const data = {
+    return {
       contact_name: (document.getElementById("contact_name")?.value || "").trim() || null,
       business_name: (document.getElementById("business_name")?.value || "").trim() || null,
       email: (document.getElementById("contact_email")?.value || "").trim() || null,
       phone: (document.getElementById("contact_mobile")?.value || "").trim() || null,
       base_postcode: (document.getElementById("base_postcode")?.value || "").trim() || null,
+
       review_link: (document.getElementById("review_link")?.value || "").trim() || null,
       ai_style_notes: (document.getElementById("ai_avoid")?.value || "").trim() || null,
       notes: (document.getElementById("extra_notes")?.value || "").trim() || null,
 
       onboarding_status: "New Signup",
-      wizard_completed: false
+      wizard_completed: false,
+
+      wizard_answers: collectAnswers()
     };
-
-    // chips into JSON column "wizard_answers" (recommended)
-    const answers = {};
-    document.querySelectorAll(".chip-row[data-field]").forEach(row => {
-      const field = row.dataset.field;
-      const mode = row.dataset.select || "single";
-      const active = Array.from(row.querySelectorAll(".chip.is-active")).map(getChipValue);
-
-      answers[field] = (mode === "multi") ? active : (active[0] || null);
-    });
-
-    data.wizard_answers = answers; // ✅ store all chip selections here
-
-    return data;
   }
 
-  function hydrateFromRow(row){
-    // inputs
+  function hydrate(row){
     if (row.contact_name) document.getElementById("contact_name").value = row.contact_name;
     if (row.business_name) document.getElementById("business_name").value = row.business_name;
     if (row.email) document.getElementById("contact_email").value = row.email;
     if (row.phone) document.getElementById("contact_mobile").value = row.phone;
     if (row.base_postcode) document.getElementById("base_postcode").value = row.base_postcode;
+
     if (row.review_link) document.getElementById("review_link").value = row.review_link;
     if (row.ai_style_notes) document.getElementById("ai_avoid").value = row.ai_style_notes;
     if (row.notes) document.getElementById("extra_notes").value = row.notes;
 
-    // chips from wizard_answers JSON
     const answers = row.wizard_answers || {};
     document.querySelectorAll(".chip-row[data-field]").forEach(rowEl => {
       const field = rowEl.dataset.field;
@@ -1219,27 +1221,21 @@ window.sb = sb;
 
       rowEl.querySelectorAll(".chip").forEach(chip => chip.classList.remove("is-active"));
 
-      if (mode === "multi" && Array.isArray(val)){
+      if (mode === "multi" && Array.isArray(val)) {
         rowEl.querySelectorAll(".chip").forEach(chip => {
-          if (val.includes(getChipValue(chip))) chip.classList.add("is-active");
+          if (val.includes(chipText(chip))) chip.classList.add("is-active");
         });
-      } else if (typeof val === "string" && val){
+      } else if (typeof val === "string" && val) {
         rowEl.querySelectorAll(".chip").forEach(chip => {
-          if (getChipValue(chip) === val) chip.classList.add("is-active");
+          if (chipText(chip) === val) chip.classList.add("is-active");
         });
       }
     });
   }
 
-  // =========================
-  // DB LOAD/SAVE
-  // Requires customers table to have:
-  // - id uuid
-  // - contact_name, business_name, email, phone, base_postcode, review_link, ai_style_notes, notes
-  // - wizard_answers jsonb (recommended)
-  // =========================
+  // -------- save/load --------
   async function loadCustomer(id){
-    const { data, error } = await sb..from("customers").select("*").eq("id", id).single();
+    const { data, error } = await sb.from("customers").select("*").eq("id", id).single();
     if (error){ console.error("LOAD ERROR:", error); msg("Load failed (see console)", "error"); return null; }
     return data;
   }
@@ -1250,7 +1246,7 @@ window.sb = sb;
 
     console.log("[SAVE]", reason, payload);
 
-    const { data, error } = await sb.
+    const { data, error } = await sb
       .from("customers")
       .upsert(payload, { onConflict: "id" })
       .select("*")
@@ -1274,41 +1270,57 @@ window.sb = sb;
     saveTimer = setTimeout(() => saveNow(reason), 500);
   }
 
-  // Save draft button = localStorage only (as your UI says)
+  // -------- buttons (THIS FIXES NEXT STEP) --------
   if (btnSaveDraft){
-    btnSaveDraft.addEventListener("click", () => {
+    btnSaveDraft.addEventListener("click", (e) => {
+      e.preventDefault();
       localStorage.setItem("tbp_wizard_draft", JSON.stringify(collectData()));
       msg("Draft saved in this browser.", "success");
     });
   }
 
-  // Next/Back wire-up
-  if (btnBack) btnBack.addEventListener("click", () => setStep(currentStep - 1));
-  if (btnNext) btnNext.addEventListener("click", async () => {
-    if (currentStep < totalSteps){
-      setStep(currentStep + 1);
-      return;
-    }
-    // Finish:
-    const saved = await saveNow("finish");
-    if (saved){
-      // mark as completed + move status
-      await sb..from("customers").update({
+  if (btnBack){
+    btnBack.addEventListener("click", (e) => {
+      e.preventDefault();
+      setStep(currentStep - 1);
+    });
+  }
+
+  if (btnNext){
+    btnNext.addEventListener("click", async (e) => {
+      e.preventDefault();
+      console.log("[NAV] Next clicked. step=", currentStep);
+
+      if (currentStep < totalSteps){
+        setStep(currentStep + 1);
+        return;
+      }
+
+      // Finish on step 4
+      const saved = await saveNow("finish");
+      if (!saved) return;
+
+      const { error } = await sb.from("customers").update({
         wizard_completed: true,
         onboarding_status: "Demo Booked"
       }).eq("id", customerId);
 
-      msg("Wizard complete. We’ll confirm your demo evening next.", "success");
-      const summary = document.getElementById("summary-box");
-      if (summary) summary.hidden = false;
-    }
-  });
+      if (error){
+        console.error("FINISH UPDATE ERROR:", error);
+        msg("Finish failed (see console)", "error");
+        return;
+      }
 
-  // Autosave on typing
+      msg("Wizard complete. We’ll confirm your demo evening next.", "success");
+      if (summaryBox) summaryBox.hidden = false;
+    });
+  }
+
+  // autosave on typing
   root.addEventListener("input", () => queueSave("input"), true);
   root.addEventListener("change", () => queueSave("change"), true);
 
-  // Start
+  // -------- start --------
   wireChips();
   setStep(1);
 
@@ -1317,7 +1329,7 @@ window.sb = sb;
       const row = await loadCustomer(customerId);
       if (row){
         isBootstrapping = true;
-        hydrateFromRow(row);
+        hydrate(row);
         isBootstrapping = false;
       }
     }
@@ -1325,6 +1337,7 @@ window.sb = sb;
     console.log("APP ready. customerId =", customerId || "(new)");
   })();
 </script>
+
 
 </body>
 </html>
