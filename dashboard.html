@@ -4,22 +4,17 @@
 <meta charset="UTF-8" />
 <title>TradeBotPro — Customers Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-
 <style>
 :root{
   --primary-blue:#1f4e79;
   --accent-blue:#00a3ff;
   --dark-text:#151820;
   --muted-text:#6b7280;
-  --light-bg:#f3f4f9;
-  --white:#ffffff;
   --border-subtle:rgba(15,23,42,0.12);
-  --success-green:#0f7b46;
+  --white:#ffffff;
   --danger-red:#b3261e;
   --amber:#b45309;
 }
-
-/* ---------- BASE ---------- */
 *{box-sizing:border-box}
 body{
   margin:0;
@@ -27,165 +22,71 @@ body{
   background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 40%,#fdfdfd 100%);
   color:var(--dark-text);
 }
-header{
-  background:#f8fafc;
-  border-bottom:1px solid rgba(15,23,42,.08);
-}
+header{background:#f8fafc;border-bottom:1px solid rgba(15,23,42,.08)}
 .header-inner{
-  max-width:1200px;
-  margin:0 auto;
-  padding:.7rem 1.25rem;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  max-width:1200px;margin:0 auto;padding:.7rem 1.25rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
 }
-.logo{
-  font-weight:800;
-  color:var(--primary-blue);
-}
-main{
-  max-width:1200px;
-  margin:0 auto;
-  padding:1.2rem;
-}
-
-/* ---------- PANEL ---------- */
+.logo{font-weight:800;color:var(--primary-blue)}
+main{max-width:1200px;margin:0 auto;padding:1.2rem}
 .panel{
-  background:#fff;
-  border-radius:1.1rem;
-  border:1px solid rgba(15,23,42,.08);
+  background:#fff;border-radius:1.1rem;border:1px solid rgba(15,23,42,.08);
   padding:1.1rem;
 }
-.kicker{
-  font-size:.72rem;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  color:var(--accent-blue);
-}
-h1{
-  margin:.15rem 0 .4rem;
-  color:var(--primary-blue);
-}
-.subtitle{
-  font-size:.9rem;
-  color:var(--muted-text);
-  margin-bottom:.9rem;
-}
+.kicker{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-blue)}
+h1{margin:.15rem 0 .35rem;color:var(--primary-blue)}
+.subtitle{font-size:.9rem;color:var(--muted-text);margin:0 0 .9rem}
 
-/* ---------- STATUS STRIP ---------- */
-.status-strip{
-  display:flex;
-  gap:.55rem;
-  flex-wrap:wrap;
-  margin-bottom:.75rem;
-}
+.status-strip{display:flex;gap:.55rem;flex-wrap:wrap;margin-bottom:.75rem}
 .status-chip{
-  padding:.45rem .8rem;
-  border-radius:999px;
-  border:1px solid rgba(15,23,42,.12);
-  background:#fff;
-  cursor:pointer;
-  font-weight:600;
-  font-size:.85rem;
+  padding:.45rem .8rem;border-radius:999px;border:1px solid rgba(15,23,42,.12);
+  background:#fff;cursor:pointer;font-weight:650;font-size:.85rem;
 }
-.status-chip.is-active{
-  background:#eef2ff;
-  border-color:var(--primary-blue);
-}
+.status-chip.is-active{background:#eef2ff;border-color:var(--primary-blue)}
 
-/* ---------- CONTROLS (ONE ROW) ---------- */
 .controls{
-  display:flex;
-  align-items:center;
-  gap:.6rem;
-  margin:.8rem 0 .9rem;
+  display:flex;align-items:center;gap:.6rem;
+  margin:.8rem 0 .9rem;flex-wrap:nowrap;
 }
 .search{
-  flex:1;
-  display:flex;
-  align-items:center;
-  gap:.45rem;
-  padding:.55rem .65rem;
-  border:1px solid var(--border-subtle);
-  border-radius:999px;
+  flex:1;display:flex;align-items:center;gap:.45rem;
+  padding:.55rem .65rem;border:1px solid var(--border-subtle);
+  border-radius:999px;background:#fff;min-width:320px;
 }
-.search input{
-  border:0;
-  outline:0;
-  width:100%;
-  font-size:.9rem;
-}
+.search input{border:0;outline:0;width:100%;font-size:.9rem;background:transparent}
 .btn{
-  padding:.5rem 1rem;
-  border-radius:999px;
-  border:1px solid transparent;
-  cursor:pointer;
-  font-weight:600;
-  font-size:.85rem;
+  padding:.5rem 1rem;border-radius:999px;border:1px solid transparent;
+  cursor:pointer;font-weight:650;font-size:.85rem;white-space:nowrap;
 }
-.btn-secondary{
-  background:#f3f4f6;
-  border-color:var(--border-subtle);
-}
-.btn-primary{
-  background:linear-gradient(135deg,var(--primary-blue),#163857);
-  color:#fff;
-}
+.btn-secondary{background:#f3f4f6;border-color:var(--border-subtle)}
+.btn-primary{background:linear-gradient(135deg,var(--primary-blue),#163857);color:#fff}
 
-/* ---------- TABLE ---------- */
-.table-wrap{
-  border-radius:.9rem;
-  overflow:auto;
-  border:1px solid rgba(15,23,42,.08);
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:1000px;
-}
-th,td{
-  padding:.65rem .75rem;
-  border-bottom:1px solid rgba(15,23,42,.06);
-  font-size:.9rem;
-}
-th{
-  background:#f8fafc;
-  font-size:.75rem;
-  text-transform:uppercase;
-  letter-spacing:.1em;
-  color:var(--muted-text);
-}
-tr:hover{
-  background:#f7fbff;
-  cursor:pointer;
-}
-
-/* ---------- BADGES ---------- */
-.badge{
-  padding:.2rem .55rem;
-  border-radius:999px;
-  font-size:.75rem;
-  font-weight:700;
-}
-.badge.new{background:#eef2ff;color:var(--primary-blue)}
-.badge.overdue{background:#fff1f2;color:var(--danger-red)}
-.badge.demo{background:#fffbeb;color:var(--amber)}
-
-/* ---------- RESPONSIVE ---------- */
 @media(max-width:900px){
-  .controls{
-    flex-wrap:wrap;
-  }
-  .search{
-    order:10;
-    width:100%;
-  }
+  .controls{flex-wrap:wrap}
+  .search{order:10;width:100%;min-width:0}
 }
+
+.banner{
+  display:none;margin:.6rem 0 .9rem;
+  padding:.75rem .9rem;border-radius:.9rem;
+  border:1px solid rgba(179,38,30,0.25);
+  background:#fff1f2;color:#7f1d1d;font-size:.88rem;white-space:pre-wrap;
+}
+.banner.show{display:block}
+
+.table-wrap{border-radius:.9rem;overflow:auto;border:1px solid rgba(15,23,42,.08)}
+table{width:100%;border-collapse:collapse;min-width:1000px}
+th,td{padding:.65rem .75rem;border-bottom:1px solid rgba(15,23,42,.06);font-size:.9rem;white-space:nowrap}
+th{background:#f8fafc;font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted-text)}
+tr:hover{background:#f7fbff;cursor:pointer}
+
+.badge{padding:.2rem .55rem;border-radius:999px;font-size:.75rem;font-weight:750;display:inline-block}
+.badge.new{background:#eef2ff;color:var(--primary-blue)}
+.badge.demo{background:#fffbeb;color:var(--amber)}
 </style>
 </head>
 
 <body>
-
 <header>
   <div class="header-inner">
     <div class="logo">TradeBotPro</div>
@@ -197,27 +98,24 @@ tr:hover{
   <div class="panel">
     <div class="kicker">Customers</div>
     <h1>Customers by onboarding status (sales) + setup tasks (ops)</h1>
-    <p class="subtitle">
-      Filter by sales stage. Pipeline dots manage setup tasks only.
-    </p>
+    <p class="subtitle">Clear filters, Search, Refresh, and New customer sit on one row.</p>
 
-    <!-- STATUS FILTERS -->
     <div class="status-strip" id="status-strip"></div>
 
-    <!-- CONTROLS ROW -->
     <div class="controls">
-      <button class="btn btn-secondary" id="btn-clear-filter">Clear filters</button>
+      <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filters</button>
 
       <div class="search">
-        🔎
-        <input id="search" placeholder="Search business, contact, email, phone…" />
+        <span style="opacity:.7">🔎</span>
+        <input id="search" type="text" placeholder="Search business, contact, email, phone…" />
       </div>
 
-      <button class="btn btn-secondary" id="btn-refresh">↻ Refresh</button>
-      <button class="btn btn-primary" id="btn-new">+ New customer</button>
+      <button class="btn btn-secondary" id="btn-refresh" type="button">↻ Refresh</button>
+      <button class="btn btn-primary" id="btn-new" type="button">+ New customer</button>
     </div>
 
-    <!-- TABLE -->
+    <div id="banner" class="banner"></div>
+
     <div class="table-wrap">
       <table>
         <thead>
@@ -231,7 +129,9 @@ tr:hover{
             <th>Updated</th>
           </tr>
         </thead>
-        <tbody id="tbody"></tbody>
+        <tbody id="tbody">
+          <tr><td colspan="7">Loading…</td></tr>
+        </tbody>
       </table>
     </div>
 
@@ -240,94 +140,133 @@ tr:hover{
 </main>
 
 <script type="module">
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const sb = createClient(
-  "https://yaiutswdcbfwkxfqxkzy.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8"
-);
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const tbody = document.getElementById("tbody");
-const statusStrip = document.getElementById("status-strip");
-const search = document.getElementById("search");
-const statusBar = document.getElementById("status-bar");
+  const tbody = document.getElementById("tbody");
+  const statusStrip = document.getElementById("status-strip");
+  const search = document.getElementById("search");
+  const statusBar = document.getElementById("status-bar");
+  const banner = document.getElementById("banner");
 
-let rows = [];
-let activeStatus = null;
+  const btnRefresh = document.getElementById("btn-refresh");
+  const btnNew = document.getElementById("btn-new");
+  const btnClear = document.getElementById("btn-clear-filter");
 
-const SALES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
+  let rows = [];
+  let activeStatus = null;
 
-function badge(row){
-  if(row.onboarding_status === "Demo" && !row.wizard_completed)
-    return `<span class="badge demo">Demo gap</span>`;
-  if(row.onboarding_status === "New Signup")
-    return `<span class="badge new">New</span>`;
-  return "—";
-}
+  const SALES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
 
-function render(){
-  tbody.innerHTML = "";
-  const q = search.value.toLowerCase();
+  function showError(msg){
+    banner.textContent = msg;
+    banner.classList.add("show");
+  }
+  function clearError(){
+    banner.textContent = "";
+    banner.classList.remove("show");
+  }
 
-  const filtered = rows.filter(r=>{
-    if(activeStatus && r.onboarding_status !== activeStatus) return false;
-    if(q && !JSON.stringify(r).toLowerCase().includes(q)) return false;
-    return true;
-  });
+  function badge(r){
+    if((r.onboarding_status || "New Signup") === "Demo" && !r.wizard_completed)
+      return `<span class="badge demo">Demo gap</span>`;
+    if((r.onboarding_status || "New Signup") === "New Signup")
+      return `<span class="badge new">New</span>`;
+    return "—";
+  }
 
-  filtered.forEach(r=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${badge(r)}</td>
-      <td>${r.onboarding_status}</td>
-      <td>${r.business_name || "—"}</td>
-      <td>${r.contact_name || "—"}</td>
-      <td>${r.email || "—"}</td>
-      <td>${r.phone || "—"}</td>
-      <td>${new Date(r.updated_at).toLocaleString()}</td>
-    `;
-    tr.onclick = ()=>window.open(`app.html?id=${r.id}`,"_blank");
-    tbody.appendChild(tr);
-  });
+  function safeText(v){ return (v ?? "").toString(); }
 
-  statusBar.textContent = `${filtered.length} shown • ${rows.length} total`;
-}
+  function renderStatuses(){
+    statusStrip.innerHTML = "";
 
-function renderStatuses(){
-  statusStrip.innerHTML = "";
-  const allBtn = document.createElement("div");
-  allBtn.className = "status-chip" + (activeStatus===null?" is-active":"");
-  allBtn.textContent = "All";
-  allBtn.onclick = ()=>{activeStatus=null;renderStatuses();render()};
-  statusStrip.appendChild(allBtn);
+    const mk = (label, value) => {
+      const el = document.createElement("div");
+      el.className = "status-chip" + ((activeStatus===value) ? " is-active" : "");
+      el.textContent = label;
+      el.onclick = ()=>{ activeStatus=value; renderStatuses(); render(); };
+      statusStrip.appendChild(el);
+    };
 
-  SALES.forEach(s=>{
-    const btn = document.createElement("div");
-    btn.className = "status-chip" + (activeStatus===s?" is-active":"");
-    btn.textContent = s;
-    btn.onclick = ()=>{activeStatus=s;renderStatuses();render()};
-    statusStrip.appendChild(btn);
-  });
-}
+    mk("All", null);
+    SALES.forEach(s => mk(s, s));
+  }
 
-async function load(){
-  const { data } = await sb.from("customers").select("*");
-  rows = data || [];
+  function render(){
+    const q = (search.value || "").trim().toLowerCase();
+
+    const filtered = rows.filter(r=>{
+      const stage = safeText(r.onboarding_status).trim() || "New Signup";
+      if(activeStatus && stage !== activeStatus) return false;
+
+      if(q){
+        const hay = [
+          r.business_name, r.contact_name, r.email, r.phone, r.base_postcode, stage
+        ].map(safeText).join(" ").toLowerCase();
+        if(!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    tbody.innerHTML = "";
+    if(!filtered.length){
+      tbody.innerHTML = `<tr><td colspan="7">No matches.</td></tr>`;
+      statusBar.textContent = `0 shown • ${rows.length} total`;
+      return;
+    }
+
+    for(const r of filtered){
+      const stage = safeText(r.onboarding_status).trim() || "New Signup";
+      const upd = r.updated_at || r.created_at || null;
+      const updTxt = upd ? new Date(upd).toLocaleString() : "—";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${badge(r)}</td>
+        <td>${stage}</td>
+        <td>${safeText(r.business_name) || "—"}</td>
+        <td>${safeText(r.contact_name) || "—"}</td>
+        <td>${safeText(r.email) || "—"}</td>
+        <td>${safeText(r.phone) || "—"}</td>
+        <td>${updTxt}</td>
+      `;
+      tr.onclick = ()=> window.open(`app.html?id=${encodeURIComponent(r.id)}`, "_blank", "noopener");
+      tbody.appendChild(tr);
+    }
+
+    statusBar.textContent = `${filtered.length} shown • ${rows.length} total` + (activeStatus ? ` • Stage: ${activeStatus}` : "");
+  }
+
+  async function load(){
+    clearError();
+    statusBar.textContent = "Loading…";
+    tbody.innerHTML = `<tr><td colspan="7">Loading…</td></tr>`;
+
+    const { data, error } = await sb.from("customers").select("*");
+    if(error){
+      console.error(error);
+      showError("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
+      rows = [];
+      render();
+      return;
+    }
+
+    rows = Array.isArray(data) ? data : [];
+    renderStatuses();
+    render();
+  }
+
+  btnRefresh.onclick = load;
+  btnNew.onclick = ()=> window.open("app.html", "_blank", "noopener");
+  btnClear.onclick = ()=>{ activeStatus=null; search.value=""; renderStatuses(); render(); };
+  search.oninput = render;
+
+  // START
   renderStatuses();
-  render();
-}
-
-document.getElementById("btn-refresh").onclick = load;
-document.getElementById("btn-clear-filter").onclick = ()=>{
-  activeStatus=null;
-  search.value="";
-  renderStatuses();
-  render();
-};
-document.getElementById("btn-new").onclick = ()=>window.open("app.html","_blank");
-search.oninput = render;
-
-load();
+  load();
 </script>
 
 </body>
