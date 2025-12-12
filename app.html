@@ -1060,49 +1060,14 @@
 
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-  
+
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // ---------- helpers ----------
-  const $ = (sel) => document.querySelector(sel);
-  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-
-  function qs(name){
-    const u = new URL(window.location.href);
-    return u.searchParams.get(name);
-  }
-  function setUrlCustomerId(id){
-    const u = new URL(window.location.href);
-    if (id) u.searchParams.set("id", id);
-    else u.searchParams.delete("id");
-    window.history.replaceState({}, "", u.toString());
-  }
-  function toNullIfEmpty(v){
-    const s = (v ?? "").toString().trim();
-    return s.length ? s : null;
-  }
-  function toNumberOrNull(v){
-    const s = (v ?? "").toString().trim();
-    if (!s) return null;
-    const n = Number(s);
-    return Number.isFinite(n) ? n : null;
-  }
-  function safeSetText(el, txt){ if (el) el.textContent = txt; }
-
-  // Find buttons by ID OR by text label (so it works with your current UI)
-  function findButton(ids, textIncludes){
-    for (const id of ids){
-      const el = document.getElementById(id);
-      if (el) return el;
-    }
-    const candidates = $$("button, a").filter(el => (el.textContent || "").trim().toLowerCase().includes(textIncludes.toLowerCase()));
-    return candidates[0] || null;
-  }
-
-  // ---------- required form ----------
+  // -------------------------
+  // CORE ELEMENTS
+  // -------------------------
   const form = document.getElementById("profileForm");
   if (!form) {
     console.error("profileForm not found. Your form must have id='profileForm'.");
@@ -1117,43 +1082,61 @@
   const pillPayments   = document.getElementById("pillPayments");
   const lockBanner     = document.getElementById("lockBanner");
 
-  // Buttons (ID or text fallback)
-  const btnNew      = findButton(["btnNew"], "new");
-  const btnComplete = findButton(["btnComplete"], "next") || findButton(["btnComplete"], "complete");
-  const btnUnlock   = findButton(["btnUnlock"], "unlock");
+  // Buttons (optional — if IDs exist they will work)
+  const btnNew          = document.getElementById("btnNew");
+  const btnComplete     = document.getElementById("btnComplete"); // your Next step / Complete
+  const btnUnlock       = document.getElementById("btnUnlock");
+  const btnMarkWhatsApp = document.getElementById("btnMarkWhatsApp");
+  const btnMarkCalendar = document.getElementById("btnMarkCalendar");
+  const btnMarkPayments = document.getElementById("btnMarkPayments");
+  const btnPause        = document.getElementById("btnPause");
 
-  const btnMarkWhatsApp = findButton(["btnMarkWhatsApp"], "whatsapp");
-  const btnMarkCalendar = findButton(["btnMarkCalendar"], "calendar");
-  const btnMarkPayments = findButton(["btnMarkPayments"], "payments");
-  const btnPause        = findButton(["btnPause"], "pause");
-
-  // Force key buttons to NOT submit the form
+  // Force these buttons to not submit the form (prevents "nothing happens")
   [btnNew, btnComplete, btnUnlock, btnMarkWhatsApp, btnMarkCalendar, btnMarkPayments, btnPause].forEach(b => {
     if (b && b.tagName === "BUTTON") b.type = "button";
   });
 
-  // Diagnostics (so we stop guessing)
-  const missing = [];
-  if (!form) missing.push("profileForm");
-  if (!btnComplete) missing.push("Complete/Next button (id btnComplete OR text contains 'Next'/'Complete')");
-  if (!btnNew) missing.push("New button (id btnNew OR text contains 'New')");
-  if (!btnUnlock) missing.push("Unlock button (id btnUnlock OR text contains 'Unlock')");
-  if (missing.length) {
-    console.warn("APP wiring: missing elements:", missing);
-  } else {
-    console.log("APP wiring: buttons found OK");
-  }
-
-  // ---------- state ----------
+  // -------------------------
+  // STATE
+  // -------------------------
   let customerId = null;
   let autoSaveTimer = null;
   let isBootstrapping = true;
   let isLocked = false;
 
+  // -------------------------
+  // HELPERS
+  // -------------------------
+  function safeSetText(el, txt){ if (el) el.textContent = txt; }
+
+  function qs(name){
+    const u = new URL(window.location.href);
+    return u.searchParams.get(name);
+  }
+
+  function setUrlCustomerId(id){
+    const u = new URL(window.location.href);
+    if (id) u.searchParams.set("id", id);
+    else u.searchParams.delete("id");
+    window.history.replaceState({}, "", u.toString());
+  }
+
+  function toNullIfEmpty(v){
+    const s = (v ?? "").toString().trim();
+    return s.length ? s : null;
+  }
+
+  function toNumberOrNull(v){
+    const s = (v ?? "").toString().trim();
+    if (!s) return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  // IMPORTANT: do NOT disable buttons when locked (chips often are buttons/labels)
   function applyLock(locked){
     isLocked = !!locked;
 
-    // Only disable fields (chips are often buttons)
     if (form) {
       form.querySelectorAll("input, select, textarea").forEach(el => {
         el.disabled = isLocked;
@@ -1161,15 +1144,123 @@
     }
 
     if (lockBanner) lockBanner.style.display = isLocked ? "block" : "none";
-    if (btnUnlock && btnUnlock.style) btnUnlock.style.display = isLocked ? "inline-block" : "none";
+    if (btnUnlock) btnUnlock.style.display = isLocked ? "inline-block" : "none";
 
     safeSetText(pillLocked, `Locked: ${isLocked ? "Yes" : "No"}`);
 
-    // stop next/complete while locked
-    if (btnComplete && btnComplete.tagName === "BUTTON") btnComplete.disabled = isLocked;
+    if (btnComplete) btnComplete.disabled = isLocked;
+    const btnSave = document.getElementById("btnSave");
+    if (btnSave) btnSave.disabled = isLocked;
   }
 
-  // ---------- payload ----------
+  // -------------------------
+  // CHIP ENGINE (THIS FIXES IT)
+  // -------------------------
+  function fireInputEvents(el){
+    if (!el) return;
+    el.dispatchEvent(new Event("input", { bubbles:true }));
+    el.dispatchEvent(new Event("change", { bubbles:true }));
+  }
+
+  function setRadioByName(name, value){
+    const radios = Array.from(form.querySelectorAll(`input[type="radio"][name="${CSS.escape(name)}"]`));
+    if (!radios.length) return false;
+    radios.forEach(r => r.checked = (r.value === value));
+    if (radios.find(r => r.checked)) fireInputEvents(radios.find(r => r.checked));
+    return true;
+  }
+
+  function setCheckboxByName(name, checked){
+    const box = form.querySelector(`input[type="checkbox"][name="${CSS.escape(name)}"]`);
+    if (!box) return false;
+    box.checked = !!checked;
+    fireInputEvents(box);
+    return true;
+  }
+
+  function setFieldValue(name, value){
+    // Prefer actual form control
+    const el = form.elements[name];
+    if (!el) return false;
+
+    // radio group
+    if (el instanceof RadioNodeList) {
+      return setRadioByName(name, value);
+    }
+
+    // normal input/select/textarea
+    el.value = value;
+    fireInputEvents(el);
+    return true;
+  }
+
+  function activateChipUI(chip){
+    // If your CSS uses .active for selected chip, this makes it work visually
+    const group = chip.closest("[data-chip-group]") || chip.parentElement;
+    if (group) group.querySelectorAll(".active").forEach(x => x.classList.remove("active"));
+    chip.classList.add("active");
+  }
+
+  function handleChipClick(target){
+    if (!form || isLocked) return false;
+
+    // 1) If chip declares what it controls:
+    //    <button data-name="onboarding_status" data-value="Demo Booked">
+    const named = target.closest("[data-name][data-value]");
+    if (named) {
+      const name = named.getAttribute("data-name");
+      const value = named.getAttribute("data-value");
+      if (setFieldValue(name, value)) {
+        activateChipUI(named);
+        debounceAutosave(true);
+        return true;
+      }
+    }
+
+    // 2) If chip is a LABEL with "for" linking to an input
+    const label = target.closest("label[for]");
+    if (label) {
+      const id = label.getAttribute("for");
+      const input = document.getElementById(id);
+      if (input && (input.type === "radio" || input.type === "checkbox")) {
+        if (input.type === "radio") input.checked = true;
+        else input.checked = !input.checked;
+        fireInputEvents(input);
+        activateChipUI(label);
+        debounceAutosave(true);
+        return true;
+      }
+    }
+
+    // 3) If chip WRAPS an input inside it (common pattern)
+    const wrapper = target.closest(".chip, .option, .radio-chip, .pill, [role='radio'], [role='option']");
+    if (wrapper) {
+      const input = wrapper.querySelector("input[type='radio'], input[type='checkbox']");
+      if (input) {
+        if (input.type === "radio") input.checked = true;
+        else input.checked = !input.checked;
+        fireInputEvents(input);
+        activateChipUI(wrapper);
+        debounceAutosave(true);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  // Capture clicks early so nothing else swallows them
+  document.addEventListener("click", (e) => {
+    const did = handleChipClick(e.target);
+    if (did) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  // -------------------------
+  // FORM -> DB MAPPING
+  // -------------------------
   function buildPayloadFromForm(){
     const fd = new FormData(form);
 
@@ -1245,10 +1336,20 @@
     applyLock(!!row?.wizard_completed);
   }
 
-  // ---------- DB ----------
+  // -------------------------
+  // DB OPERATIONS
+  // -------------------------
   async function loadCustomer(id){
-    const { data, error } = await supabase.from("customers").select("*").eq("id", id).single();
-    if (error) { console.error("Load customer error:", error); return null; }
+    const { data, error } = await supabase
+      .from("customers")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error){
+      console.error("Load customer error:", error);
+      return null;
+    }
     return data;
   }
 
@@ -1263,7 +1364,10 @@
       .select("*")
       .single();
 
-    if (error){ console.error("Save customer error:", error); throw error; }
+    if (error){
+      console.error("Save customer error:", error);
+      throw error;
+    }
 
     customerId = data.id;
     setUrlCustomerId(customerId);
@@ -1271,45 +1375,21 @@
     return data;
   }
 
-  function debounceAutosave(){
+  function debounceAutosave(immediate = false){
     if (isBootstrapping || isLocked) return;
     clearTimeout(autoSaveTimer);
-    autoSaveTimer = setTimeout(async () => {
+
+    const run = async () => {
       try { await saveCustomer(buildPayloadFromForm()); } catch(e) {}
-    }, 650);
+    };
+
+    if (immediate) run();
+    else autoSaveTimer = setTimeout(run, 650);
   }
 
-  // ---------- CHIP SUPPORT (click anything with data-name/data-value) ----------
-  document.addEventListener("click", (e) => {
-    const chip = e.target.closest("[data-name][data-value]");
-    if (!chip || isLocked || !form) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const name = chip.getAttribute("data-name");
-    const value = chip.getAttribute("data-value");
-    const el = form.elements[name];
-
-    if (!el) return;
-
-    // set value
-    if (el instanceof RadioNodeList || (el.length && el[0] && el[0].type === "radio")){
-      const radios = Array.from(el);
-      radios.forEach(r => r.checked = (r.value === value));
-    } else {
-      el.value = value;
-    }
-
-    // UI active class (optional)
-    const group = chip.closest("[data-chip-group]") || chip.parentElement;
-    if (group) group.querySelectorAll(".active").forEach(x => x.classList.remove("active"));
-    chip.classList.add("active");
-
-    debounceAutosave();
-  }, true);
-
-  // ---------- init ----------
+  // -------------------------
+  // INIT
+  // -------------------------
   (async function init(){
     customerId = qs("id");
 
@@ -1329,9 +1409,10 @@
     }
   })();
 
+  // Autosave hooks (inputs that are real form controls)
   if (form){
-    form.addEventListener("input", debounceAutosave);
-    form.addEventListener("change", debounceAutosave);
+    form.addEventListener("input", () => debounceAutosave(false));
+    form.addEventListener("change", () => debounceAutosave(false));
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1340,13 +1421,15 @@
     });
   }
 
-  // ---------- button actions ----------
+  // -------------------------
+  // BUTTON ACTIONS
+  // -------------------------
   if (btnNew){
     btnNew.addEventListener("click", (e) => {
       e.preventDefault();
       customerId = null;
       setUrlCustomerId(null);
-      if (form) form.reset();
+      form.reset();
       updatePillsFromRow({});
     });
   }
@@ -1354,12 +1437,12 @@
   if (btnComplete){
     btnComplete.addEventListener("click", async (e) => {
       e.preventDefault();
-      if (isLocked || !form) return;
+      if (isLocked) return;
 
-      // ensure row exists
+      // ensure record exists
       if (!customerId) await saveCustomer(buildPayloadFromForm());
 
-      // set status + lock
+      // update visible controls if present
       if (form.elements["onboarding_status"]) form.elements["onboarding_status"].value = "Demo Booked";
       if (form.elements["wizard_completed"]) form.elements["wizard_completed"].value = "true";
 
@@ -1379,7 +1462,7 @@
     btnUnlock.addEventListener("click", async (e) => {
       e.preventDefault();
       if (!confirm("Unlock this setup to allow editing?")) return;
-      if (form && form.elements["wizard_completed"]) form.elements["wizard_completed"].value = "false";
+      if (form.elements["wizard_completed"]) form.elements["wizard_completed"].value = "false";
       const saved = await saveCustomer({ wizard_completed: false });
       applyLock(false);
       updatePillsFromRow(saved);
@@ -1413,7 +1496,11 @@
       await saveCustomer({ account_status: "Paused", onboarding_status: "Paused" });
     });
   }
-<script type="module">
+</script>
+
+</body>
+</html>
+
 
 </body>
 </html>
