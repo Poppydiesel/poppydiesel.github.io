@@ -96,11 +96,11 @@ tr:hover{background:#f7fbff;cursor:pointer}
 }
 .backdrop.show{opacity:1;pointer-events:auto}
 
-/* === DRAWER (WIDER) === */
+/* drawer (WIDER 900px) */
 .drawer{
   position:fixed;top:0;
-  right:-900px;         /* must match width */
-  width:900px;          /* WIDER */
+  right:-900px;
+  width:900px;
   max-width:98vw;
   height:100%;
   background:#fff;
@@ -121,8 +121,8 @@ tr:hover{background:#f7fbff;cursor:pointer}
   display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;
 }
 .drawer-hint{font-size:.82rem;color:var(--muted-text)}
-
 .section-title{font-weight:800;color:var(--primary-blue);font-size:.9rem;margin:.8rem 0 .4rem}
+
 .chip-row{display:flex;flex-wrap:wrap;gap:8px}
 .chip{
   padding:.45rem .8rem;border-radius:999px;border:1px solid rgba(15,23,42,.12);
@@ -235,22 +235,23 @@ tr:hover{background:#f7fbff;cursor:pointer}
   </div>
 </div>
 
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+<!-- Supabase (NON-MODULE, avoids white page from import/module issues) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  // ✅ Paste from Supabase → Project Settings → API
-  // Use Project URL + anon public key (NOT service_role)
-  const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";
+<script>
+(() => {
+  const SALES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
+
+  // ✅ PUT YOUR REAL VALUES HERE (Project Settings → API)
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_PUBLIC_KEY_HERE";
 
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+  // DOM
   const tbody = document.getElementById("tbody");
   const statusStrip = document.getElementById("status-strip");
   const search = document.getElementById("search");
   const statusBar = document.getElementById("status-bar");
   const banner = document.getElementById("banner");
-
   const btnRefresh = document.getElementById("btn-refresh");
   const btnNew = document.getElementById("btn-new");
   const btnClear = document.getElementById("btn-clear-filter");
@@ -267,17 +268,17 @@ tr:hover{background:#f7fbff;cursor:pointer}
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
   const btnOpenWizard = document.getElementById("btnOpenWizard");
 
+  // State
+  let sb = null;
   let rows = [];
   let activeStatus = null;
   let activeRow = null;
   let noteTimer = null;
 
-  const SALES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
-
   function showError(msg){ banner.textContent = msg; banner.classList.add("show"); }
   function clearError(){ banner.textContent = ""; banner.classList.remove("show"); }
-  function safeText(v){ return (v ?? "").toString(); }
-  function stageOf(r){ return safeText(r.onboarding_status).trim() || "New Signup"; }
+  const safeText = v => (v ?? "").toString();
+  const stageOf = r => safeText(r.onboarding_status).trim() || "New Signup";
 
   function setupTasks(r){
     return [
@@ -287,7 +288,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
       { key:"payments_connected", label:"Payments connected", done: !!r.payments_connected },
     ];
   }
-  function allDone(r){ return setupTasks(r).every(x => x.done); }
+  const allDone = r => setupTasks(r).every(x=>x.done);
 
   function attentionBadges(r){
     const stage = stageOf(r);
@@ -297,7 +298,6 @@ tr:hover{background:#f7fbff;cursor:pointer}
     if(stage === "Needs Convincing") badges.push(`<span class="badge follow">Follow-up</span>`);
     return badges.length ? `<span class="badges">${badges.join("")}</span>` : "—";
   }
-
   function opsDots(r){
     const items = setupTasks(r);
     return `<span class="pipe">${
@@ -401,9 +401,8 @@ tr:hover{background:#f7fbff;cursor:pointer}
       b.textContent = stage;
       b.onclick = async (e)=>{
         e.stopPropagation();
-        if(!activeRow) return;
+        if(!activeRow || !sb) return;
         if(stageOf(activeRow) === stage) return;
-
         const updated = await updateCustomer(activeRow.id, { onboarding_status: stage });
         if(updated){
           activeRow = updated;
@@ -438,7 +437,6 @@ tr:hover{background:#f7fbff;cursor:pointer}
     clearError();
     const { data, error } = await sb.from("customers").update(patch).eq("id", id).select("*").single();
     if(error){
-      console.error(error);
       showError("Save failed:\n\n" + (error.message || JSON.stringify(error)));
       return null;
     }
@@ -446,12 +444,11 @@ tr:hover{background:#f7fbff;cursor:pointer}
   }
 
   async function saveNotesNow(){
-    if(!activeRow) return;
+    if(!activeRow || !sb) return;
     drawerHint.textContent = "Saving…";
     const patch = { notes: drawerNotes.value, lead_notes: drawerLeadNotes.value };
     const { error } = await sb.from("customers").update(patch).eq("id", activeRow.id);
     if(error){
-      console.error(error);
       showError("Failed to save notes:\n\n" + (error.message || JSON.stringify(error)));
       drawerHint.textContent = "Save failed";
       return;
@@ -465,9 +462,50 @@ tr:hover{background:#f7fbff;cursor:pointer}
       rows[idx].lead_notes = patch.lead_notes;
     }
   }
-
   function queueNotesSave(){ clearTimeout(noteTimer); noteTimer = setTimeout(saveNotesNow, 450); }
 
+  function fmtErr(err){
+    const parts=[];
+    if(err?.message) parts.push(err.message);
+    if(err?.details) parts.push(err.details);
+    if(err?.hint) parts.push(err.hint);
+    if(err?.code) parts.push("code: "+err.code);
+    return parts.filter(Boolean).join("\n") || JSON.stringify(err);
+  }
+
+  async function load(){
+    clearError();
+    statusBar.textContent = "Loading…";
+    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
+
+    if(!sb){
+      showError("Supabase client not ready. Check URL/key.");
+      rows = [];
+      render();
+      return;
+    }
+
+    const { data, error } = await sb.from("customers").select("*").order("updated_at", { ascending:false });
+
+    if(error){
+      const msg = fmtErr(error);
+      showError(
+        "Failed to load customers:\n\n" + msg + "\n\n" +
+        "If it says Invalid API key: your URL and anon key do not match.\n" +
+        "If it says permission denied: your RLS SELECT policy for anon is missing."
+      );
+      rows = [];
+      render();
+      return;
+    }
+
+    rows = Array.isArray(data) ? data : [];
+    renderStatuses();
+    render();
+    statusBar.textContent = `${rows.length} total`;
+  }
+
+  // Wire events
   btnRefresh.onclick = load;
   btnNew.onclick = ()=> window.open("app.html", "_blank", "noopener");
   btnClear.onclick = ()=>{ activeStatus=null; search.value=""; renderStatuses(); render(); };
@@ -492,7 +530,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
 
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-key]");
-    if(!item || !activeRow) return;
+    if(!item || !activeRow || !sb) return;
     const key = item.dataset.key;
     const patch = {}; patch[key] = !activeRow[key];
     const updated = await updateCustomer(activeRow.id, patch);
@@ -504,55 +542,23 @@ tr:hover{background:#f7fbff;cursor:pointer}
     }
   }, true);
 
-  function fmtErr(err){
-    const parts=[];
-    if(err?.message) parts.push(err.message);
-    if(err?.details) parts.push(err.details);
-    if(err?.hint) parts.push(err.hint);
-    if(err?.code) parts.push("code: "+err.code);
-    return parts.filter(Boolean).join("\n") || JSON.stringify(err);
-  }
-
-  async function load(){
-    clearError();
-    statusBar.textContent = "Loading…";
-    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
-
-    // 🔥 If you forgot to paste credentials, don’t silently hang
-    if(SUPABASE_URL.includes("PASTE_") || SUPABASE_ANON_KEY.includes("PASTE_")){
-      showError(
-        "Supabase credentials not set.\n\n" +
-        "Paste your Project URL + anon public key into SUPABASE_URL and SUPABASE_ANON_KEY in dashboard.html."
-      );
-      rows = [];
-      renderStatuses(); render();
+  // Boot: create client safely
+  try{
+    if(typeof window.supabase === "undefined"){
+      showError("Supabase library failed to load (CDN). Refresh or check network.");
       return;
     }
-
-    const { data, error } = await sb.from("customers").select("*").order("updated_at", { ascending:false });
-
-    if(error){
-      const msg = fmtErr(error);
-      showError(
-        "Failed to load customers:\n\n" + msg + "\n\n" +
-        "If it says Invalid API key: your URL and anon key are from different Supabase projects.\n" +
-        "If it says permission denied: RLS SELECT policy is missing for anon."
-      );
-      rows = [];
-      renderStatuses(); render();
+    if(!SUPABASE_URL.startsWith("https://") || SUPABASE_ANON_KEY.includes("PASTE_")){
+      showError("Supabase credentials not set.\n\nPaste your anon public key into SUPABASE_ANON_KEY.");
       return;
     }
-
-    rows = Array.isArray(data) ? data : [];
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     renderStatuses();
-    render();
-    statusBar.textContent = `${rows.length} total`;
-    console.log("[dashboard] loaded customers:", rows.length);
+    load();
+  }catch(err){
+    showError("Fatal startup error:\n\n" + (err?.message || String(err)));
   }
-
-  renderStatuses();
-  load();
-  window.__tbp = { sb };
+})();
 </script>
 
 </body>
