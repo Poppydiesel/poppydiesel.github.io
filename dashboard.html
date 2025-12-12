@@ -31,7 +31,6 @@
       color: var(--dark-text);
       line-height: 1.5;
     }
-    a { color: inherit; text-decoration: none; }
 
     header {
       border-bottom: 1px solid rgba(15, 23, 42, 0.06);
@@ -73,14 +72,9 @@
 
     .panel {
       border-radius: 1.2rem;
-      background: rgba(255, 255, 255, 0.92);
-      box-shadow: var(--shadow);
-      padding: 1.1rem 1.1rem;
-    }
-    .panel.soft {
       background: rgba(248, 250, 252, 0.96);
       border: 1px solid rgba(148, 163, 184, 0.35);
-      box-shadow: none;
+      padding: 1.1rem 1.1rem;
     }
 
     .kicker {
@@ -101,7 +95,7 @@
       color: var(--muted-text);
     }
 
-    /* TOP STATUS BAR */
+    /* TOP STATUS STRIP */
     .status-strip {
       display: flex;
       flex-wrap: wrap;
@@ -163,7 +157,7 @@
       align-items: center;
     }
     .search {
-      width: min(460px, 100%);
+      width: min(520px, 100%);
       display: flex;
       gap: 0.5rem;
       align-items: center;
@@ -180,15 +174,6 @@
       font-size: 0.92rem;
       background: transparent;
     }
-    .select {
-      padding: 0.55rem 0.7rem;
-      border-radius: 0.75rem;
-      border: 1px solid var(--border-subtle);
-      background: var(--white);
-      font: inherit;
-      font-size: 0.9rem;
-      color: var(--dark-text);
-    }
 
     .btn {
       border-radius: 999px;
@@ -202,7 +187,6 @@
       gap: 0.35rem;
       background: transparent;
     }
-    .btn:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
     .btn-secondary { border-color: var(--border-subtle); background: #f9fafb; color: var(--dark-text); }
     .btn-secondary:hover { background: #e5e7eb; }
     .btn-primary {
@@ -237,7 +221,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1220px;
+      min-width: 1150px;
     }
     thead th {
       position: sticky;
@@ -259,12 +243,8 @@
       vertical-align: middle;
       white-space: nowrap;
     }
-    tbody tr {
-      cursor: pointer;
-    }
-    tbody tr:hover {
-      background: #f7fbff;
-    }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: #f7fbff; }
 
     .pill {
       display: inline-flex;
@@ -328,10 +308,7 @@
       outline: none;
       background: #fff;
     }
-    .drawer-body textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
+    .drawer-body textarea { min-height: 120px; resize: vertical; }
     .drawer-field select:focus,
     .drawer-field input:focus,
     .drawer-body textarea:focus {
@@ -353,7 +330,7 @@
     }
 
     @media (max-width: 900px) {
-      table { min-width: 1080px; }
+      table { min-width: 980px; }
       .drawer-row { grid-template-columns: 1fr; }
     }
   </style>
@@ -374,26 +351,19 @@
   </header>
 
   <main>
-    <section class="panel soft">
+    <section class="panel">
       <div class="kicker">Pipeline</div>
       <h1 class="title">Onboarding stages</h1>
-      <p class="subtitle">Click a status to filter. Click a customer row to edit.</p>
+      <p class="subtitle">Click a status to filter. Click a customer row to edit status & notes.</p>
 
-      <!-- STATUS STRIP (TOP) -->
       <div class="status-strip" id="status-strip"></div>
 
-      <!-- Controls -->
       <div class="controls">
         <div class="controls-left">
           <div class="search">
             <span style="opacity:.7">🔎</span>
             <input id="search" type="text" placeholder="Search name, business, email, phone, postcode…" />
           </div>
-
-          <select id="lead-filter" class="select" title="Filter by lead source">
-            <option value="">All lead sources</option>
-          </select>
-
           <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filters</button>
         </div>
 
@@ -405,13 +375,11 @@
 
       <div id="banner" class="banner"></div>
 
-      <!-- Table -->
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>Status</th>
-              <th>Lead source</th>
               <th>Business</th>
               <th>Contact</th>
               <th>Email</th>
@@ -446,8 +414,11 @@
         </div>
 
         <div class="drawer-field">
-          <label for="drawer_lead">Lead source</label>
-          <select id="drawer_lead"></select>
+          <label>Quick actions</label>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+            <button class="btn btn-secondary" id="btnOpenWizard" type="button">Open wizard</button>
+            <button class="btn btn-primary" id="btnMarkLive" type="button">Mark Live</button>
+          </div>
         </div>
       </div>
 
@@ -485,9 +456,7 @@
 
     <div class="drawer-footer">
       <div class="drawer-hint" id="drawerHint">Autosaves</div>
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end;">
-        <button class="btn btn-secondary" id="btnOpenWizard" type="button">Open wizard</button>
-        <button class="btn btn-primary" id="btnMarkLive" type="button">Mark Live</button>
+      <div>
         <button class="btn btn-secondary" id="btnCloseDrawer" type="button">Close</button>
       </div>
     </div>
@@ -505,7 +474,6 @@
     const tbody = document.getElementById("tbody");
     const banner = document.getElementById("banner");
     const search = document.getElementById("search");
-    const leadFilter = document.getElementById("lead-filter");
     const statusBar = document.getElementById("status-bar");
     const btnRefresh = document.getElementById("btn-refresh");
     const btnNew = document.getElementById("btn-new");
@@ -516,7 +484,6 @@
     const drawerTitle = document.getElementById("drawerTitle");
     const drawerSub = document.getElementById("drawerSub");
     const drawerStatus = document.getElementById("drawer_status");
-    const drawerLead = document.getElementById("drawer_lead");
     const drawerBusiness = document.getElementById("drawer_business");
     const drawerContact = document.getElementById("drawer_contact");
     const drawerEmail = document.getElementById("drawer_email");
@@ -532,7 +499,6 @@
     let allRows = [];
     let activeStatus = null;
     let statusOrder = [];
-    let leadOrder = [];
     let activeRow = null;
     let noteTimer = null;
 
@@ -575,37 +541,53 @@
       return "New Signup";
     }
 
-    function normalizeLead(row) {
-      const raw = (row?.lead_source ?? "").toString().trim();
-      return raw || "—";
-    }
-
     function pillFromBool(v) {
       if (v === true) return `<span class="pill ok">✅ Connected</span>`;
       if (v === false) return `<span class="pill no">✖ Not yet</span>`;
       return `<span class="pill na">—</span>`;
     }
 
-    function computeOrdersAndCounts() {
-      const counts = {};
-      const stSet = new Set();
-      const ldSet = new Set();
+    function rowMatchesSearch(row, q) {
+      if (!q) return true;
+      const hay = [
+        row.business_name, row.contact_name, row.email, row.phone, row.base_postcode,
+        normalizeStatus(row)
+      ].join(" ").toLowerCase();
+      return hay.includes(q.toLowerCase());
+    }
 
-      for (const r of allRows) {
-        const s = normalizeStatus(r);
-        counts[s] = (counts[s] || 0) + 1;
-        stSet.add(s);
+    // ✅ Pull REAL statuses from DB (distinct onboarding_status) + guaranteed defaults
+    async function loadDistinctStatuses() {
+      const { data, error } = await sb
+        .from("customers")
+        .select("onboarding_status");
 
-        const l = normalizeLead(r);
-        if (l !== "—") ldSet.add(l);
+      if (error) {
+        console.warn("Status distinct load failed, falling back to local:", error);
+        return null;
       }
 
-      // Always show these
-      stSet.add("New Signup");
-      stSet.add("Wizard Started");
-      stSet.add("Wizard Completed");
+      const set = new Set();
+      for (const r of (data || [])) {
+        const s = (r.onboarding_status ?? "").toString().trim();
+        if (s) set.add(s);
+      }
+      return Array.from(set);
+    }
 
-      // priority order
+    function computeStatusOrder(distinctFromDb, rows) {
+      const set = new Set();
+
+      // from DB distinct
+      (distinctFromDb || []).forEach(s => set.add(s));
+
+      // from current rows (also covers weird cases)
+      for (const r of rows) set.add(normalizeStatus(r));
+
+      // guaranteed defaults
+      ["New Signup", "Wizard Started", "Wizard Completed", "Live"].forEach(s => set.add(s));
+
+      // Priority
       const priority = [
         "New Signup",
         "Wizard Started",
@@ -617,7 +599,7 @@
         "Paused / Not Proceeding"
       ];
 
-      const statuses = Array.from(stSet);
+      const statuses = Array.from(set);
       statuses.sort((a,b) => {
         const ia = priority.indexOf(a);
         const ib = priority.indexOf(b);
@@ -627,13 +609,20 @@
         return a.localeCompare(b);
       });
 
-      statusOrder = statuses;
-      leadOrder = Array.from(ldSet).sort((a,b) => a.localeCompare(b));
+      return statuses;
+    }
 
+    function computeCounts() {
+      const counts = {};
+      for (const r of allRows) {
+        const s = normalizeStatus(r);
+        counts[s] = (counts[s] || 0) + 1;
+      }
       return counts;
     }
 
-    function buildStatusStrip(counts) {
+    function buildStatusStrip() {
+      const counts = computeCounts();
       statusStrip.innerHTML = "";
 
       const addChip = (label, count, value) => {
@@ -654,32 +643,6 @@
       statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
     }
 
-    function buildLeadFilter() {
-      const current = leadFilter.value || "";
-      leadFilter.innerHTML = `<option value="">All lead sources</option>`;
-      for (const l of leadOrder) {
-        const opt = document.createElement("option");
-        opt.value = l;
-        opt.textContent = l;
-        leadFilter.appendChild(opt);
-      }
-      leadFilter.value = leadOrder.includes(current) ? current : "";
-    }
-
-    function rowMatchesSearch(row, q) {
-      if (!q) return true;
-      const hay = [
-        row.business_name, row.contact_name, row.email, row.phone, row.base_postcode,
-        normalizeStatus(row), normalizeLead(row)
-      ].join(" ").toLowerCase();
-      return hay.includes(q.toLowerCase());
-    }
-
-    function rowMatchesLead(row, leadVal) {
-      if (!leadVal) return true;
-      return normalizeLead(row) === leadVal;
-    }
-
     async function updateCustomer(id, patch) {
       setBanner("");
       const { data, error } = await sb
@@ -697,8 +660,6 @@
 
       const idx = allRows.findIndex(r => r.id === id);
       if (idx !== -1) allRows[idx] = data;
-
-      // keep drawer row updated
       if (activeRow && activeRow.id === id) activeRow = data;
 
       return data;
@@ -714,29 +675,23 @@
         row.id ? `ID: ${row.id}` : ""
       ].filter(Boolean).join(" • ");
 
-      // populate selects
-      drawerStatus.innerHTML = statusOrder.map(s => {
-        const sel = (normalizeStatus(row) === s) ? "selected" : "";
+      // IMPORTANT: Ensure current status is always in the dropdown
+      const currentStatus = normalizeStatus(row);
+      const set = new Set(statusOrder);
+      set.add(currentStatus);
+      const options = Array.from(set);
+      options.sort((a,b) => statusOrder.indexOf(a) - statusOrder.indexOf(b));
+
+      drawerStatus.innerHTML = options.map(s => {
+        const sel = (s === currentStatus) ? "selected" : "";
         return `<option value="${escapeHtml(s)}" ${sel}>${escapeHtml(s)}</option>`;
       }).join("");
 
-      const currentLead = row.lead_source || "";
-      drawerLead.innerHTML = `
-        <option value="">—</option>
-        ${leadOrder.map(l => {
-          const sel = (currentLead === l) ? "selected" : "";
-          return `<option value="${escapeHtml(l)}" ${sel}>${escapeHtml(l)}</option>`;
-        }).join("")}
-        <option value="__new__">+ Add new…</option>
-      `;
-
-      // details (read-only)
       drawerBusiness.value = row.business_name || "";
       drawerContact.value = row.contact_name || "";
       drawerEmail.value = row.email || "";
       drawerPhone.value = row.phone || "";
 
-      // notes
       drawerNotes.value = row.notes || "";
       drawerLeadNotes.value = row.lead_notes || "";
 
@@ -771,7 +726,6 @@
 
       drawerHint.textContent = "Saved";
 
-      // update local cache
       const idx = allRows.findIndex(r => r.id === id);
       if (idx !== -1) {
         allRows[idx].notes = patch.notes;
@@ -789,16 +743,12 @@
     }
 
     function render() {
-      const counts = computeOrdersAndCounts();
-      buildStatusStrip(counts);
-      buildLeadFilter();
+      buildStatusStrip();
 
       const q = (search.value || "").trim();
-      const leadVal = leadFilter.value || "";
 
       const rows = allRows
         .filter(r => (activeStatus ? normalizeStatus(r) === activeStatus : true))
-        .filter(r => rowMatchesLead(r, leadVal))
         .filter(r => rowMatchesSearch(r, q))
         .sort((a,b) => {
           const ta = new Date(a.updated_at || a.created_at || a.live_at || 0).getTime();
@@ -809,7 +759,7 @@
       tbody.innerHTML = "";
 
       if (!rows.length) {
-        tbody.innerHTML = `<tr><td colspan="11">No matches.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10">No matches.</td></tr>`;
         statusBar.textContent = `0 shown • ${allRows.length} total`;
         return;
       }
@@ -824,10 +774,8 @@
         const cal = (typeof r.calendar_connected === "boolean") ? r.calendar_connected : null;
 
         const tr = document.createElement("tr");
-        tr.setAttribute("data-id", r.id);
         tr.innerHTML = `
           <td>${escapeHtml(st)}</td>
-          <td>${escapeHtml(r.lead_source || "—")}</td>
           <td>${escapeHtml(r.business_name || "—")}</td>
           <td>${escapeHtml(r.contact_name || "—")}</td>
           <td>${escapeHtml(r.email || "—")}</td>
@@ -838,51 +786,50 @@
           <td>${pillFromBool(cal)}</td>
           <td>${escapeHtml(fmtDate(r.updated_at || r.created_at || r.live_at))}</td>
         `;
-
-        // Row click opens drawer (this is what you asked for)
         tr.addEventListener("click", () => openDrawer(r));
-
         tbody.appendChild(tr);
       }
 
       statusBar.textContent =
         `${rows.length} shown • ${allRows.length} total` +
-        (activeStatus ? ` • Stage: ${activeStatus}` : "") +
-        (leadVal ? ` • Lead: ${leadVal}` : "");
+        (activeStatus ? ` • Stage: ${activeStatus}` : "");
     }
 
-    // Load customers (safe: no .order())
-    async function loadCustomers() {
+    async function loadCustomersAndStatuses() {
       setBanner("");
       statusBar.textContent = "Loading…";
-      tbody.innerHTML = `<tr><td colspan="11">Loading…</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10">Loading…</td></tr>`;
 
+      // 1) load customers
       const { data, error } = await sb.from("customers").select("*");
-
       if (error) {
         console.error("LOAD ERROR:", error);
         setBanner("Failed to load customers.\n\n" + (error.message || JSON.stringify(error)));
         allRows = [];
-        tbody.innerHTML = `<tr><td colspan="11">No data loaded.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10">No data loaded.</td></tr>`;
         statusBar.textContent = "Load failed.";
         return;
       }
-
       allRows = Array.isArray(data) ? data : [];
+
+      // 2) load distinct statuses from DB (to ensure rare statuses appear)
+      const distinctStatuses = await loadDistinctStatuses();
+
+      // 3) compute status order from BOTH
+      statusOrder = computeStatusOrder(distinctStatuses, allRows);
+
       render();
     }
 
     // Controls
-    btnRefresh.addEventListener("click", loadCustomers);
+    btnRefresh.addEventListener("click", loadCustomersAndStatuses);
     btnNew.addEventListener("click", () => window.open("app.html", "_blank", "noopener"));
     btnClear.addEventListener("click", () => {
       activeStatus = null;
       search.value = "";
-      leadFilter.value = "";
       render();
     });
     search.addEventListener("input", render);
-    leadFilter.addEventListener("change", render);
 
     // Drawer actions
     btnCloseDrawer.addEventListener("click", closeDrawer);
@@ -893,29 +840,10 @@
       if (!activeRow) return;
       const updated = await updateCustomer(activeRow.id, { onboarding_status: drawerStatus.value });
       if (updated) {
-        drawerHint.textContent = "Saved";
-        // Re-render table + status counts
+        // Rebuild status order in case a brand-new status was typed elsewhere
+        statusOrder = computeStatusOrder(null, allRows);
         render();
-      }
-    });
-
-    drawerLead.addEventListener("change", async () => {
-      if (!activeRow) return;
-      const val = drawerLead.value;
-      if (val === "__new__") {
-        const newLead = prompt("Enter new lead source:");
-        if (!newLead) { openDrawer(activeRow); return; }
-        const updated = await updateCustomer(activeRow.id, { lead_source: newLead });
-        if (updated) {
-          render();
-          openDrawer(updated); // refresh drawer options
-        }
-        return;
-      }
-      const updated = await updateCustomer(activeRow.id, { lead_source: val || null });
-      if (updated) {
-        render();
-        openDrawer(updated); // refresh drawer options
+        openDrawer(updated);
       }
     });
 
@@ -933,13 +861,14 @@
         live_at: new Date().toISOString()
       });
       if (updated) {
+        statusOrder = computeStatusOrder(null, allRows);
         render();
         openDrawer(updated);
       }
     });
 
     // Init
-    loadCustomers();
+    loadCustomersAndStatuses();
   </script>
 </body>
 </html>
