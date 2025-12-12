@@ -16,6 +16,13 @@
       --border-subtle:rgba(15,23,42,0.12);
       --success-green:#0f7b46;
       --error-red:#b3261e;
+
+      --warn-amber:#b45309;
+      --warn-amber-bg:#fffbeb;
+      --danger-red:#b3261e;
+      --danger-red-bg:#fff1f2;
+      --info-blue:#1f4e79;
+      --info-blue-bg:#eef2ff;
     }
 
     *{box-sizing:border-box}
@@ -83,6 +90,34 @@
       color:var(--primary-blue);font-weight:800;font-size:.85rem;
     }
 
+    /* SMART MIDDLE-GROUND: quick “attention” chips */
+    .attention-strip{
+      display:flex;flex-wrap:wrap;gap:.55rem;
+      margin:-.2rem 0 .95rem;
+    }
+    .attention-chip{
+      border-radius:999px;padding:.48rem .78rem;
+      border:1px solid rgba(15,23,42,0.10);
+      background:#fff;cursor:pointer;
+      display:inline-flex;align-items:center;gap:.45rem;
+      user-select:none;
+    }
+    .attention-chip:hover{border-color:rgba(31,78,121,0.35)}
+    .attention-chip.is-active{box-shadow:0 0 0 2px rgba(31,78,121,0.12);border-color:rgba(31,78,121,0.8);background:#f3f7ff}
+    .attention-dot{
+      width:10px;height:10px;border-radius:999px;
+      background:rgba(148,163,184,0.8);
+    }
+    .attention-dot.today{background:var(--accent-blue)}
+    .attention-dot.overdue{background:var(--danger-red)}
+    .attention-dot.demo{background:var(--warn-amber)}
+    .attention-count{
+      min-width:34px;text-align:center;
+      padding:.12rem .42rem;border-radius:999px;
+      background:#f1f5f9;border:1px solid rgba(148,163,184,0.35);
+      color:var(--dark-text);font-weight:800;font-size:.83rem;
+    }
+
     .controls{
       display:flex;flex-wrap:wrap;gap:.65rem;
       align-items:center;justify-content:space-between;
@@ -132,7 +167,7 @@
     table{
       width:100%;
       border-collapse:collapse;
-      min-width: 980px;
+      min-width: 1120px;
     }
     thead th{
       position:sticky;top:0;
@@ -153,6 +188,27 @@
     }
     tbody tr{cursor:pointer}
     tbody tr:hover{background:#f7fbff}
+
+    /* Row highlights for “smart middle-ground” */
+    tbody tr.row-new-today td:first-child{border-left:4px solid var(--accent-blue)}
+    tbody tr.row-overdue td:first-child{border-left:4px solid var(--danger-red)}
+    tbody tr.row-demo-gap td:first-child{border-left:4px solid var(--warn-amber)}
+
+    /* Alert badges (in table) */
+    .badges{display:flex;gap:6px;flex-wrap:wrap}
+    .badge{
+      display:inline-flex;align-items:center;gap:6px;
+      border-radius:999px;
+      padding:.2rem .5rem;
+      font-size:.78rem;font-weight:700;
+      border:1px solid rgba(15,23,42,0.10);
+      background:#fff;
+      color:var(--dark-text);
+    }
+    .badge b{font-weight:800}
+    .badge.today{border-color:rgba(0,163,255,0.35);background:var(--info-blue-bg);color:var(--info-blue)}
+    .badge.overdue{border-color:rgba(179,38,30,0.25);background:var(--danger-red-bg);color:var(--danger-red)}
+    .badge.demo{border-color:rgba(180,83,9,0.25);background:var(--warn-amber-bg);color:var(--warn-amber)}
 
     /* Task dots (OPS only) */
     .pipe{display:inline-flex;align-items:center;gap:6px}
@@ -236,7 +292,7 @@
 
     @media (max-width: 900px){
       .drawer-row{grid-template-columns:1fr}
-      table{min-width:900px}
+      table{min-width:1040px}
     }
   </style>
 </head>
@@ -263,6 +319,9 @@
 
     <div class="status-strip" id="status-strip"></div>
 
+    <!-- SMART MIDDLE-GROUND: attention filters -->
+    <div class="attention-strip" id="attention-strip"></div>
+
     <div class="controls">
       <div class="controls-left">
         <div class="search">
@@ -283,6 +342,7 @@
       <table>
         <thead>
           <tr>
+            <th>Attention</th>
             <th>Onboarding status (sales)</th>
             <th>Setup tasks (ops)</th>
             <th>Business</th>
@@ -309,7 +369,6 @@
   </div>
 
   <div class="drawer-body">
-
     <div class="drawer-row">
       <div>
         <div class="drawer-section-title">Sales stage</div>
@@ -379,6 +438,7 @@
 
   // DOM
   const statusStrip = document.getElementById("status-strip");
+  const attentionStrip = document.getElementById("attention-strip");
   const tbody = document.getElementById("tbody");
   const banner = document.getElementById("banner");
   const search = document.getElementById("search");
@@ -412,6 +472,10 @@
   let activeRow = null;
   let noteTimer = null;
 
+  // NEW: “smart middle-ground” attention filter
+  // null = none, 'today' | 'overdue' | 'demo_gap'
+  let attentionFilter = null;
+
   const SALES_STAGES = [
     "New Signup",
     "In Setup",
@@ -442,6 +506,17 @@
       const d = new Date(iso);
       return d.toLocaleString(undefined,{year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"});
     }catch{ return "—"; }
+  }
+
+  function toDate(iso){
+    const d = iso ? new Date(iso) : null;
+    return (d && !isNaN(d.getTime())) ? d : null;
+  }
+
+  function isSameLocalDay(a,b){
+    return a.getFullYear()===b.getFullYear()
+      && a.getMonth()===b.getMonth()
+      && a.getDate()===b.getDate();
   }
 
   function salesStatus(row){
@@ -519,6 +594,15 @@
     ];
   }
 
+  function doneCount(row){
+    return setupTasks(row).filter(t=>t.done).length;
+  }
+
+  function allDone(row){
+    const tasks = setupTasks(row);
+    return tasks.every(t=>t.done);
+  }
+
   function tasksDotsHTML(row){
     const items = setupTasks(row);
     const dots = items.map(i => `
@@ -527,8 +611,8 @@
             title="${escapeHtml(i.label)} — click to toggle"></span>
     `).join("");
 
-    const doneCount = items.filter(i => i.done).length;
-    return `<span class="pipe">${dots}<span class="dot-label">${doneCount}/${items.length}</span></span>`;
+    const dc = items.filter(i => i.done).length;
+    return `<span class="pipe">${dots}<span class="dot-label">${dc}/${items.length}</span></span>`;
   }
 
   function renderTasksChecklist(row){
@@ -612,6 +696,110 @@
     });
   }
 
+  // --- SMART MIDDLE-GROUND RULES (no new DB columns needed) ---
+  function createdAt(row){
+    return toDate(row?.created_at) || toDate(row?.inserted_at) || null;
+  }
+
+  function updatedAt(row){
+    return toDate(row?.updated_at) || createdAt(row) || null;
+  }
+
+  function isNewToday(row){
+    const c = createdAt(row);
+    if(!c) return false;
+    return isSameLocalDay(c, new Date());
+  }
+
+  // “Over 24h untouched” definition (safe + simple):
+  // - sales status is New Signup
+  // - created > 24h ago
+  // - wizard NOT completed
+  // - notes empty + lead_notes empty
+  function isOverdueUntouched(row){
+    const c = createdAt(row);
+    if(!c) return false;
+    const ageMs = Date.now() - c.getTime();
+    const olderThan24h = ageMs > (24 * 60 * 60 * 1000);
+
+    const notesEmpty = !(row?.notes ?? "").toString().trim();
+    const leadNotesEmpty = !(row?.lead_notes ?? "").toString().trim();
+
+    return salesStatus(row) === "New Signup"
+      && olderThan24h
+      && !row?.wizard_completed
+      && notesEmpty
+      && leadNotesEmpty;
+  }
+
+  // “Demo booked but setup incomplete” (your “gap” signal):
+  // - sales stage is Demo (or Free Trial)
+  // - ops setup tasks not complete (not all 4 done)
+  function isDemoGap(row){
+    const s = salesStatus(row);
+    const demoish = (s === "Demo" || s === "Free Trial");
+    return demoish && !allDone(row);
+  }
+
+  function attentionBadgesHTML(row){
+    const badges = [];
+    if(isNewToday(row)) badges.push(`<span class="badge today"><b>New</b> today</span>`);
+    if(isOverdueUntouched(row)) badges.push(`<span class="badge overdue"><b>Overdue</b> untouched</span>`);
+    if(isDemoGap(row)) badges.push(`<span class="badge demo"><b>Demo</b> setup gap</span>`);
+    if(!badges.length) return `<span class="logo-tag">—</span>`;
+    return `<span class="badges">${badges.join("")}</span>`;
+  }
+
+  function rowHighlightClass(row){
+    // priority: overdue > demo gap > new today
+    if(isOverdueUntouched(row)) return "row-overdue";
+    if(isDemoGap(row)) return "row-demo-gap";
+    if(isNewToday(row)) return "row-new-today";
+    return "";
+  }
+
+  function computeAttentionCounts(){
+    let today=0, overdue=0, demo=0;
+    for(const r of allRows){
+      if(isNewToday(r)) today++;
+      if(isOverdueUntouched(r)) overdue++;
+      if(isDemoGap(r)) demo++;
+    }
+    return { today, overdue, demo };
+  }
+
+  function buildAttentionStrip(){
+    const c = computeAttentionCounts();
+    attentionStrip.innerHTML = "";
+
+    const add = (key, label, dotClass, count) => {
+      const el = document.createElement("div");
+      el.className = "attention-chip" + (attentionFilter===key ? " is-active" : "");
+      el.innerHTML = `
+        <span class="attention-dot ${dotClass}"></span>
+        <span style="font-weight:750">${escapeHtml(label)}</span>
+        <span class="attention-count">${count}</span>
+      `;
+      el.addEventListener("click", ()=>{
+        attentionFilter = (attentionFilter === key) ? null : key;
+        render();
+      });
+      attentionStrip.appendChild(el);
+    };
+
+    add("today", "New today", "today", c.today);
+    add("overdue", "Overdue untouched", "overdue", c.overdue);
+    add("demo_gap", "Demo/Trial setup gap", "demo", c.demo);
+  }
+
+  function passAttentionFilter(row){
+    if(!attentionFilter) return true;
+    if(attentionFilter === "today") return isNewToday(row);
+    if(attentionFilter === "overdue") return isOverdueUntouched(row);
+    if(attentionFilter === "demo_gap") return isDemoGap(row);
+    return true;
+  }
+
   function openDrawer(row){
     activeRow = row;
 
@@ -664,6 +852,9 @@
     }
     activeRow.notes = patch.notes;
     activeRow.lead_notes = patch.lead_notes;
+    // refresh counts/strip highlights if needed
+    buildAttentionStrip();
+    render();
   }
 
   function queueNotesSave(){
@@ -673,28 +864,35 @@
 
   function render(){
     buildStatusStrip();
+    buildAttentionStrip();
 
     const q = (search.value || "").trim();
+
     const rows = allRows
       .filter(r => (activeStatus ? salesStatus(r)===activeStatus : true))
+      .filter(r => passAttentionFilter(r))
       .filter(r => rowMatchesSearch(r,q))
       .sort((a,b)=>{
-        const ta = new Date(a.updated_at || a.created_at || 0).getTime();
-        const tb = new Date(b.updated_at || b.created_at || 0).getTime();
+        const ta = (updatedAt(a)?.getTime() ?? 0);
+        const tb = (updatedAt(b)?.getTime() ?? 0);
         return tb - ta;
       });
 
     tbody.innerHTML = "";
 
     if(!rows.length){
-      tbody.innerHTML = `<tr><td colspan="8">No matches.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9">No matches.</td></tr>`;
       statusBar.textContent = `0 shown • ${allRows.length} total`;
       return;
     }
 
     for(const r of rows){
       const tr = document.createElement("tr");
+      const cls = rowHighlightClass(r);
+      if(cls) tr.classList.add(cls);
+
       tr.innerHTML = `
+        <td>${attentionBadgesHTML(r)}</td>
         <td>${escapeHtml(salesStatus(r))}</td>
         <td>${tasksDotsHTML(r)}</td>
         <td>${escapeHtml(r.business_name || "—")}</td>
@@ -708,22 +906,29 @@
       tbody.appendChild(tr);
     }
 
+    const att = attentionFilter
+      ? (attentionFilter === "today" ? " • New today"
+        : attentionFilter === "overdue" ? " • Overdue untouched"
+        : " • Demo/Trial setup gap")
+      : "";
+
     statusBar.textContent =
       `${rows.length} shown • ${allRows.length} total` +
-      (activeStatus ? ` • Stage: ${activeStatus}` : "");
+      (activeStatus ? ` • Stage: ${activeStatus}` : "") +
+      att;
   }
 
   async function loadCustomersAndStatuses(){
     setBanner("");
     statusBar.textContent = "Loading…";
-    tbody.innerHTML = `<tr><td colspan="8">Loading…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
 
     const { data, error } = await sb.from("customers").select("*");
     if(error){
       console.error("LOAD ERROR:", error);
       setBanner("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
       allRows = [];
-      tbody.innerHTML = `<tr><td colspan="8">No data loaded.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9">No data loaded.</td></tr>`;
       statusBar.textContent = "Load failed.";
       return;
     }
@@ -739,7 +944,12 @@
   // Controls
   btnRefresh.addEventListener("click", loadCustomersAndStatuses);
   btnNew.addEventListener("click", ()=>window.open("app.html", "_blank", "noopener"));
-  btnClear.addEventListener("click", ()=>{ activeStatus=null; search.value=""; render(); });
+  btnClear.addEventListener("click", ()=>{
+    activeStatus=null;
+    attentionFilter=null;
+    search.value="";
+    render();
+  });
   search.addEventListener("input", render);
 
   // Drawer
