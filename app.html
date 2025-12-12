@@ -1067,7 +1067,7 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   window.sb = sb;
 
-  console.log("SCRIPT VERSION: WIZARD-NEXT-FIX-2025-12-12");
+  console.log("SCRIPT VERSION: CHIPS-FIX-2025-12-12");
 
   // -------- DOM (your exact IDs/classes) --------
   const root = document.querySelector(".wizard-right") || document.body;
@@ -1086,19 +1086,19 @@
   const stepSubtitle = document.getElementById("wizard-step-subtitle");
   const summaryBox = document.getElementById("summary-box");
 
-  const stepMeta = {
-    1: { label: "Step 1", title: "Business basics", subtitle: "Who are you, what do you do and how do you like to run things?" },
-    2: { label: "Step 2", title: "Area & pricing", subtitle: "Coverage, call-outs and the type of work you want more of." },
-    3: { label: "Step 3", title: "Messaging & reviews", subtitle: "Tone of voice, channels and how you want reviews handled." },
-    4: { label: "Step 4", title: "Demo & go-live", subtitle: "Demo preferences and what happens next." }
-  };
-
   // -------- state --------
   let customerId = new URL(location.href).searchParams.get("id");
   let currentStep = 1;
   const totalSteps = 4;
   let isBootstrapping = true;
   let saveTimer = null;
+
+  const stepMeta = {
+    1: { label: "Step 1", title: "Business basics", subtitle: "Who are you, what do you do and how do you like to run things?" },
+    2: { label: "Step 2", title: "Area & pricing", subtitle: "Coverage, call-outs and the type of work you want more of." },
+    3: { label: "Step 3", title: "Messaging & reviews", subtitle: "Tone of voice, channels and how you want reviews handled." },
+    4: { label: "Step 4", title: "Demo & go-live", subtitle: "Demo preferences and what happens next." }
+  };
 
   function msg(text, type="") {
     if (!statusMsg) return;
@@ -1143,41 +1143,47 @@
     if (summaryBox) summaryBox.hidden = true;
   }
 
-  // -------- chips (your structure) --------
+  // -------- chips (HARD FIX) --------
   function chipText(chip){
     return (chip.textContent || "").trim();
   }
 
-  function wireChips(){
-    root.addEventListener("click", (e) => {
-      const chip = e.target.closest(".chip");
-      if (!chip) return;
-
-      const row = chip.closest(".chip-row");
-      if (!row) return;
-
-      const field = row.dataset.field;
-      const mode = row.dataset.select || "single";
-      if (!field) return;
-
-      if (mode === "single") {
-        row.querySelectorAll(".chip").forEach(c => c.classList.remove("is-active"));
-        chip.classList.add("is-active");
-      } else {
-        chip.classList.toggle("is-active");
-      }
-
-      queueSave("chip");
-    }, true);
+  function setChipActive(chip, on){
+    chip.classList.toggle("is-active", !!on);
+    chip.setAttribute("aria-pressed", on ? "true" : "false");
   }
+
+  // Handle chips at DOCUMENT level, capture phase, so nothing can swallow the click.
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest("button.chip");
+    if (!chip) return;
+
+    const row = chip.closest(".chip-row");
+    if (!row) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const mode = (row.dataset.select || "single").toLowerCase();
+
+    if (mode === "single") {
+      row.querySelectorAll("button.chip").forEach(c => setChipActive(c, false));
+      setChipActive(chip, true);
+    } else {
+      // multi
+      setChipActive(chip, !chip.classList.contains("is-active"));
+    }
+
+    queueSave("chip");
+  }, true);
 
   // -------- collect/hydrate --------
   function collectAnswers(){
     const answers = {};
     document.querySelectorAll(".chip-row[data-field]").forEach(row => {
       const field = row.dataset.field;
-      const mode = row.dataset.select || "single";
-      const active = Array.from(row.querySelectorAll(".chip.is-active")).map(chipText);
+      const mode = (row.dataset.select || "single").toLowerCase();
+      const active = Array.from(row.querySelectorAll("button.chip.is-active")).map(chipText);
       answers[field] = (mode === "multi") ? active : (active[0] || null);
     });
     return answers;
@@ -1216,18 +1222,18 @@
     const answers = row.wizard_answers || {};
     document.querySelectorAll(".chip-row[data-field]").forEach(rowEl => {
       const field = rowEl.dataset.field;
-      const mode = rowEl.dataset.select || "single";
+      const mode = (rowEl.dataset.select || "single").toLowerCase();
       const val = answers[field];
 
-      rowEl.querySelectorAll(".chip").forEach(chip => chip.classList.remove("is-active"));
+      rowEl.querySelectorAll("button.chip").forEach(c => setChipActive(c, false));
 
       if (mode === "multi" && Array.isArray(val)) {
-        rowEl.querySelectorAll(".chip").forEach(chip => {
-          if (val.includes(chipText(chip))) chip.classList.add("is-active");
+        rowEl.querySelectorAll("button.chip").forEach(chip => {
+          if (val.includes(chipText(chip))) setChipActive(chip, true);
         });
       } else if (typeof val === "string" && val) {
-        rowEl.querySelectorAll(".chip").forEach(chip => {
-          if (chipText(chip) === val) chip.classList.add("is-active");
+        rowEl.querySelectorAll("button.chip").forEach(chip => {
+          if (chipText(chip) === val) setChipActive(chip, true);
         });
       }
     });
@@ -1270,7 +1276,7 @@
     saveTimer = setTimeout(() => saveNow(reason), 500);
   }
 
-  // -------- buttons (THIS FIXES NEXT STEP) --------
+  // -------- buttons --------
   if (btnSaveDraft){
     btnSaveDraft.addEventListener("click", (e) => {
       e.preventDefault();
@@ -1321,7 +1327,6 @@
   root.addEventListener("change", () => queueSave("change"), true);
 
   // -------- start --------
-  wireChips();
   setStep(1);
 
   (async () => {
@@ -1337,6 +1342,7 @@
     console.log("APP ready. customerId =", customerId || "(new)");
   })();
 </script>
+
 
 
 </body>
