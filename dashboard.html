@@ -6,97 +6,241 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <style>
-/* ---- BASE STYLE (matches app.html) ---- */
-:root {
-  --primary-blue:#1f4e79;
-  --accent-blue:#00a3ff;
-  --bg:#f3f4f9;
-  --white:#fff;
-  --border:rgba(15,23,42,.12);
-}
-body {
-  margin:0;
-  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-  background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 40%,#fff 100%);
-}
-.btn {
-  border-radius:999px;
-  padding:.45rem .9rem;
-  border:1px solid var(--border);
-  cursor:pointer;
-}
-.btn-primary {
-  background:linear-gradient(135deg,var(--primary-blue),#163857);
-  color:#fff;
-}
-.btn-secondary { background:#f9fafb; }
-.mini-select { padding:.35rem .5rem; border-radius:.6rem; }
+  :root {
+    --primary-blue:#1f4e79;
+    --accent-blue:#00a3ff;
+    --dark:#151820;
+    --muted:#6b7280;
+    --bg:#f3f4f9;
+    --white:#fff;
+    --border:rgba(15,23,42,.12);
+    --shadow: 0 24px 60px rgba(15,23,42,.15), 0 0 0 1px rgba(15,23,42,.03);
+    --ok:#0f7b46;
+    --bad:#b3261e;
+  }
 
-/* ---- TABLE ---- */
-table { width:100%; border-collapse:collapse; }
-th,td { padding:.65rem; border-bottom:1px solid var(--border); }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 40%,#fff 100%);
+    color:var(--dark);
+  }
 
-/* ---- DRAWER ---- */
-.drawer {
-  position:fixed;
-  top:0; right:-420px;
-  width:420px;
-  height:100%;
-  background:#fff;
-  box-shadow:-20px 0 40px rgba(0,0,0,.15);
-  transition:right .25s ease;
-  z-index:999;
-  display:flex;
-  flex-direction:column;
-}
-.drawer.open { right:0; }
+  header{
+    border-bottom:1px solid rgba(15,23,42,0.06);
+    background:rgba(248,250,252,0.96);
+    backdrop-filter:blur(6px);
+    position:sticky; top:0; z-index:20;
+  }
+  .header-inner{
+    max-width:1180px;
+    margin:0 auto;
+    padding:.6rem 1.25rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.75rem;
+  }
+  .logo-wrap{display:flex;align-items:center;gap:.6rem;}
+  .logo-icon{
+    width:30px;height:30px;border-radius:9px;background:var(--primary-blue);
+    position:relative;
+  }
+  .logo-icon:before,.logo-icon:after{content:"";position:absolute;background:#fff;border-radius:4px}
+  .logo-icon:before{width:11px;height:17px;left:7px;top:6px}
+  .logo-icon:after{width:6px;height:11px;right:7px;top:9px}
+  .logo-main{font-weight:700;font-size:1rem;color:var(--primary-blue)}
+  .logo-tag{font-size:.75rem;color:var(--muted)}
 
-.drawer-header {
-  padding:1rem;
-  border-bottom:1px solid var(--border);
-}
-.drawer-body {
-  padding:1rem;
-  flex:1;
-  overflow:auto;
-}
-.drawer textarea {
-  width:100%;
-  min-height:120px;
-  margin-bottom:1rem;
-  padding:.6rem;
-}
-.drawer-footer {
-  padding:1rem;
-  border-top:1px solid var(--border);
-  text-align:right;
-}
+  main{
+    max-width:1180px;
+    margin:0 auto;
+    padding:1.2rem 1.25rem 2rem;
+  }
+
+  .panel{
+    border-radius:1.2rem;
+    background:rgba(255,255,255,0.92);
+    box-shadow:var(--shadow);
+    padding:1.1rem 1.1rem;
+  }
+
+  .top-row{
+    display:flex;
+    gap:.75rem;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:.9rem;
+  }
+
+  .btn{
+    border-radius:999px;
+    padding:.5rem 1rem;
+    border:1px solid var(--border);
+    cursor:pointer;
+    background:#f9fafb;
+    font-weight:600;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,var(--primary-blue),#163857);
+    color:#fff;
+    border-color:transparent;
+    box-shadow:0 12px 28px rgba(15,23,42,0.25);
+  }
+  .btn-primary:hover{filter:brightness(1.03)}
+
+  .search{
+    display:flex;align-items:center;gap:.5rem;
+    padding:.55rem .7rem;
+    border-radius:.75rem;
+    border:1px solid var(--border);
+    background:#fff;
+    min-width:min(520px,100%);
+  }
+  .search input{border:0;outline:0;width:100%;font:inherit}
+
+  .banner{
+    display:none;
+    margin:.75rem 0 0;
+    padding:.7rem .8rem;
+    border-radius:.8rem;
+    border:1px solid rgba(179,38,30,.25);
+    background:#fff1f2;
+    color:#7f1d1d;
+    font-size:.9rem;
+    white-space:pre-wrap;
+  }
+  .banner.show{display:block}
+
+  .table-wrap{
+    overflow:auto;
+    border-radius:1rem;
+    border:1px solid rgba(15,23,42,0.08);
+    background:#fff;
+  }
+  table{width:100%;border-collapse:collapse;min-width:980px}
+  th,td{padding:.7rem .75rem;border-bottom:1px solid rgba(15,23,42,0.06);white-space:nowrap}
+  thead th{
+    position:sticky;top:0;background:#f8fafc;
+    font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);
+    border-bottom:1px solid rgba(15,23,42,0.08);
+    text-align:left;
+  }
+  tbody tr:hover{background:#f7fbff}
+
+  .mini-select{
+    padding:.35rem .5rem;
+    border-radius:.7rem;
+    border:1px solid rgba(15,23,42,0.14);
+    background:#fff;
+    font:inherit;
+    font-size:.86rem;
+    min-width:190px;
+  }
+
+  .pill{
+    display:inline-flex;align-items:center;gap:.35rem;
+    padding:.2rem .55rem;border-radius:999px;
+    border:1px solid rgba(148,163,184,0.55);
+    background:rgba(241,245,249,0.9);
+    font-size:.8rem;
+  }
+  .pill.ok{border-color:rgba(15,123,70,.45);background:#ecfdf5;color:#14532d}
+  .pill.no{border-color:rgba(179,38,30,.35);background:#fff1f2;color:#7f1d1d}
+  .pill.na{border-color:rgba(148,163,184,.45);background:#f1f5f9;color:#475569}
+
+  /* Drawer */
+  .drawer{
+    position:fixed; top:0; right:-440px;
+    width:440px; max-width:92vw;
+    height:100%;
+    background:#fff;
+    box-shadow:-20px 0 40px rgba(0,0,0,.15);
+    transition:right .22s ease;
+    z-index:999;
+    display:flex;
+    flex-direction:column;
+  }
+  .drawer.open{right:0}
+  .drawer-header{padding:1rem;border-bottom:1px solid var(--border)}
+  .drawer-body{padding:1rem;flex:1;overflow:auto}
+  .drawer-body label{display:block;font-size:.8rem;color:var(--muted);margin:.65rem 0 .25rem}
+  .drawer textarea{
+    width:100%;
+    min-height:120px;
+    padding:.65rem .7rem;
+    border-radius:.8rem;
+    border:1px solid var(--border);
+    font:inherit;
+    resize:vertical;
+  }
+  .drawer-footer{padding:1rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:.5rem}
+  .hint{font-size:.85rem;color:var(--muted)}
 </style>
 </head>
 
 <body>
+<header>
+  <div class="header-inner">
+    <div class="logo-wrap">
+      <div class="logo-icon" aria-hidden="true"></div>
+      <div>
+        <div class="logo-main">TradeBotPro</div>
+        <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
+      </div>
+    </div>
+    <div class="logo-tag">Onboarding Dashboard</div>
+  </div>
+</header>
 
-<h2 style="padding:1rem;color:#1f4e79;">TradeBotPro – Dashboard</h2>
+<main>
+  <div class="panel">
+    <div class="top-row">
+      <div class="search">
+        <span style="opacity:.65">🔎</span>
+        <input id="search" type="text" placeholder="Search business, contact, email, phone, postcode…" />
+      </div>
+      <div style="display:flex;gap:.55rem;flex-wrap:wrap">
+        <button class="btn" id="btn-refresh" type="button">↻ Refresh</button>
+        <button class="btn btn-primary" id="btn-new" type="button">+ New customer</button>
+      </div>
+    </div>
 
-<table>
-<thead>
-<tr>
-  <th>Status</th>
-  <th>Lead</th>
-  <th>Business</th>
-  <th>Contact</th>
-  <th>Notes</th>
-  <th>Actions</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
+    <div id="banner" class="banner"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Lead Source</th>
+            <th>Business</th>
+            <th>Contact</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Postcode</th>
+            <th>Wizard</th>
+            <th>WhatsApp</th>
+            <th>Calendar</th>
+            <th>Notes</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
 
 <!-- NOTES DRAWER -->
-<div class="drawer" id="notesDrawer">
+<div class="drawer" id="notesDrawer" aria-hidden="true">
   <div class="drawer-header">
     <strong id="drawerTitle">Customer notes</strong>
+    <div class="hint" id="drawerSub"></div>
   </div>
+
   <div class="drawer-body">
     <label>Internal notes</label>
     <textarea id="notes"></textarea>
@@ -104,112 +248,200 @@ th,td { padding:.65rem; border-bottom:1px solid var(--border); }
     <label>Lead notes</label>
     <textarea id="lead_notes"></textarea>
   </div>
+
   <div class="drawer-footer">
-    <button class="btn btn-secondary" id="closeDrawer">Close</button>
+    <button class="btn" id="closeDrawer" type="button">Close</button>
+    <span class="hint" id="drawerSaveHint">Autosaves</span>
   </div>
 </div>
 
 <script type="module">
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const sb = createClient(
-  "https://yaiutswdcbfwkxfqxkzy.supabase.co",
-  "YOUR_ANON_KEY"
-);
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const tbody = document.getElementById("tbody");
-const drawer = document.getElementById("notesDrawer");
-const notesEl = document.getElementById("notes");
-const leadNotesEl = document.getElementById("lead_notes");
-const drawerTitle = document.getElementById("drawerTitle");
+  const tbody = document.getElementById("tbody");
+  const banner = document.getElementById("banner");
+  const search = document.getElementById("search");
+  const btnRefresh = document.getElementById("btn-refresh");
+  const btnNew = document.getElementById("btn-new");
 
-let activeId = null;
-let saveTimer = null;
+  const drawer = document.getElementById("notesDrawer");
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerSub = document.getElementById("drawerSub");
+  const notesEl = document.getElementById("notes");
+  const leadNotesEl = document.getElementById("lead_notes");
+  const closeDrawerBtn = document.getElementById("closeDrawer");
 
-// LOAD
-async function load() {
-  const { data } = await sb.from("customers").select("*");
-  tbody.innerHTML = "";
-  data.forEach(r => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${r.onboarding_status || "New"}</td>
-      <td>${r.lead_source || "—"}</td>
-      <td>${r.business_name || "—"}</td>
-      <td>${r.contact_name || "—"}</td>
-      <td>
-        <button class="btn btn-secondary" data-notes="${r.id}">
-          Notes
-        </button>
-      </td>
-      <td>
-        <button class="btn btn-primary" data-live="${r.id}">
-          Mark Live
-        </button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+  let allRows = [];
+  let activeId = null;
+  let saveTimer = null;
 
-  bind();
-}
+  function showError(msg) {
+    banner.textContent = msg;
+    banner.classList.add("show");
+  }
+  function clearError() {
+    banner.textContent = "";
+    banner.classList.remove("show");
+  }
 
-// EVENTS
-function bind() {
+  function normalizeStatus(row){
+    const raw = (row?.onboarding_status ?? "").toString().trim();
+    if (raw) return raw;
+    if (row?.wizard_completed) return "Wizard Completed";
+    const wa = row?.wizard_answers;
+    const hasAnswers = wa && typeof wa === "object" && !Array.isArray(wa) && Object.keys(wa).length > 0;
+    if (hasAnswers) return "Wizard Started";
+    return "New Signup";
+  }
 
-  // OPEN NOTES
-  document.querySelectorAll("[data-notes]").forEach(b => {
-    b.onclick = async () => {
-      activeId = b.dataset.notes;
-      const { data } = await sb
-        .from("customers")
-        .select("business_name,notes,lead_notes")
-        .eq("id", activeId)
-        .single();
+  function pillBool(v){
+    if (v === true) return `<span class="pill ok">✅ Connected</span>`;
+    if (v === false) return `<span class="pill no">✖ Not yet</span>`;
+    return `<span class="pill.na">—</span>`;
+  }
 
-      drawerTitle.textContent = data.business_name || "Customer notes";
-      notesEl.value = data.notes || "";
-      leadNotesEl.value = data.lead_notes || "";
-      drawer.classList.add("open");
-    };
-  });
+  function esc(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+  }
 
-  // MARK LIVE
-  document.querySelectorAll("[data-live]").forEach(b => {
-    b.onclick = async () => {
-      await sb.from("customers").update({
-        onboarding_status:"Live",
-        whatsapp_connected:true,
-        calendar_connected:true,
-        live_at:new Date().toISOString()
-      }).eq("id", b.dataset.live);
-      load();
-    };
-  });
-}
+  async function loadCustomers() {
+    clearError();
+    tbody.innerHTML = `<tr><td colspan="12">Loading…</td></tr>`;
 
-// AUTOSAVE NOTES
-function autosave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async () => {
+    const { data, error } = await sb
+      .from("customers")
+      .select("*")
+      .order("updated_at", { ascending: false });
+
+    if (error) {
+      console.error("LOAD ERROR:", error);
+      showError("Failed to load customers.\n\n" + (error.message || JSON.stringify(error)));
+      allRows = [];
+      tbody.innerHTML = `<tr><td colspan="12">No data loaded.</td></tr>`;
+      return;
+    }
+
+    allRows = Array.isArray(data) ? data : [];
+    render();
+  }
+
+  function render() {
+    const q = (search.value || "").trim().toLowerCase();
+
+    const rows = allRows.filter(r => {
+      if (!q) return true;
+      const hay = [
+        r.business_name, r.contact_name, r.email, r.phone, r.base_postcode,
+        r.lead_source, normalizeStatus(r)
+      ].join(" ").toLowerCase();
+      return hay.includes(q);
+    });
+
+    tbody.innerHTML = "";
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="12">No matches.</td></tr>`;
+      return;
+    }
+
+    for (const r of rows) {
+      const st = normalizeStatus(r);
+      const wizardPill = r.wizard_completed ? `<span class="pill ok">✅ Complete</span>` : `<span class="pill no">⏳ In progress</span>`;
+
+      const wa = (typeof r.whatsapp_connected === "boolean") ? r.whatsapp_connected : null;
+      const cal = (typeof r.calendar_connected === "boolean") ? r.calendar_connected : null;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${esc(st)}</td>
+        <td>${esc(r.lead_source || "—")}</td>
+        <td>${esc(r.business_name || "—")}</td>
+        <td>${esc(r.contact_name || "—")}</td>
+        <td>${esc(r.email || "—")}</td>
+        <td>${esc(r.phone || "—")}</td>
+        <td>${esc(r.base_postcode || "—")}</td>
+        <td>${wizardPill}</td>
+        <td>${wa === null ? `<span class="pill na">—</span>` : (wa ? `<span class="pill ok">✅ Connected</span>` : `<span class="pill no">✖ Not yet</span>`)}</td>
+        <td>${cal === null ? `<span class="pill na">—</span>` : (cal ? `<span class="pill ok">✅ Connected</span>` : `<span class="pill no">✖ Not yet</span>`)}</td>
+        <td>
+          <button class="btn" type="button" data-notes="${esc(r.id)}">Notes</button>
+        </td>
+        <td style="text-align:right;">
+          <button class="btn btn-primary" type="button" data-open="${esc(r.id)}">Open wizard</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    bindRowEvents();
+  }
+
+  function openDrawerFor(row){
+    activeId = row.id;
+    drawerTitle.textContent = row.business_name || "Customer notes";
+    drawerSub.textContent = row.contact_name ? `Contact: ${row.contact_name}` : "";
+    notesEl.value = row.notes || "";
+    leadNotesEl.value = row.lead_notes || "";
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden","false");
+  }
+
+  async function refreshRowIntoDrawer(id){
+    const { data, error } = await sb.from("customers").select("id,business_name,contact_name,notes,lead_notes").eq("id", id).single();
+    if (error) {
+      console.error("DRAWER LOAD ERROR:", error);
+      showError("Failed to load notes.\n\n" + (error.message || JSON.stringify(error)));
+      return;
+    }
+    openDrawerFor(data);
+  }
+
+  async function saveNotesNow(){
     if (!activeId) return;
-    await sb.from("customers").update({
-      notes: notesEl.value,
-      lead_notes: leadNotesEl.value
-    }).eq("id", activeId);
-  }, 400);
-}
-notesEl.oninput = autosave;
-leadNotesEl.oninput = autosave;
+    const patch = { notes: notesEl.value, lead_notes: leadNotesEl.value };
+    const { error } = await sb.from("customers").update(patch).eq("id", activeId);
+    if (error) {
+      console.error("NOTES SAVE ERROR:", error);
+      showError("Failed to save notes.\n\n" + (error.message || JSON.stringify(error)));
+    }
+  }
 
-// CLOSE
-document.getElementById("closeDrawer").onclick = () => {
-  drawer.classList.remove("open");
-  activeId = null;
-};
+  function queueSaveNotes(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveNotesNow, 450);
+  }
 
-load();
+  function bindRowEvents(){
+    document.querySelectorAll("[data-notes]").forEach(btn => {
+      btn.onclick = () => refreshRowIntoDrawer(btn.getAttribute("data-notes"));
+    });
+
+    document.querySelectorAll("[data-open]").forEach(btn => {
+      btn.onclick = () => window.open(`app.html?id=${encodeURIComponent(btn.getAttribute("data-open"))}`, "_blank", "noopener");
+    });
+  }
+
+  // events
+  btnRefresh.onclick = () => loadCustomers();
+  btnNew.onclick = () => window.open("app.html", "_blank", "noopener");
+  search.addEventListener("input", () => render());
+
+  notesEl.addEventListener("input", queueSaveNotes);
+  leadNotesEl.addEventListener("input", queueSaveNotes);
+
+  closeDrawerBtn.onclick = () => {
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden","true");
+    activeId = null;
+  };
+
+  // init
+  loadCustomers();
 </script>
-
 </body>
 </html>
