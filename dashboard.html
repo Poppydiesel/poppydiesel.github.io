@@ -14,6 +14,7 @@
   --white:#ffffff;
   --danger-red:#b3261e;
   --amber:#b45309;
+  --success:#0f7b46;
 }
 *{box-sizing:border-box}
 body{
@@ -83,6 +84,59 @@ tr:hover{background:#f7fbff;cursor:pointer}
 .badge{padding:.2rem .55rem;border-radius:999px;font-size:.75rem;font-weight:750;display:inline-block}
 .badge.new{background:#eef2ff;color:var(--primary-blue)}
 .badge.demo{background:#fffbeb;color:var(--amber)}
+
+/* BACKDROP + DRAWER */
+.backdrop{
+  position:fixed;inset:0;background:rgba(15,23,42,.38);
+  opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:998;
+}
+.backdrop.show{opacity:1;pointer-events:auto}
+
+/* WIDER drawer (900px) */
+.drawer{
+  position:fixed;top:0;right:-900px;width:900px;max-width:98vw;height:100%;
+  background:#fff;box-shadow:-20px 0 40px rgba(0,0,0,.15);
+  transition:right .22s ease;z-index:999;display:flex;flex-direction:column;
+}
+.drawer.open{right:0}
+.drawer-header{padding:1rem;border-bottom:1px solid var(--border-subtle);background:#f8fafc}
+.drawer-title{font-weight:800;color:var(--primary-blue);font-size:1.05rem}
+.drawer-sub{font-size:.85rem;color:var(--muted-text);margin-top:.25rem}
+.drawer-body{padding:1rem;flex:1;overflow-y:auto}
+.drawer-footer{
+  padding:1rem;border-top:1px solid var(--border-subtle);
+  display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;
+}
+.drawer-hint{font-size:.82rem;color:var(--muted-text)}
+
+.section-title{font-weight:800;color:var(--primary-blue);font-size:.9rem;margin:.6rem 0 .4rem}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  padding:.45rem .8rem;border-radius:999px;border:1px solid rgba(15,23,42,.12);
+  background:#fff;cursor:pointer;font-weight:650;font-size:.85rem;
+}
+.chip.is-active{background:#eef2ff;border-color:var(--primary-blue)}
+
+.checklist{border:1px solid rgba(15,23,42,.08);border-radius:.9rem;padding:.65rem .75rem}
+.check-item{
+  display:flex;align-items:center;justify-content:space-between;gap:.6rem;
+  padding:.55rem 0;cursor:pointer;
+}
+.check-item:not(:last-child){border-bottom:1px dashed rgba(148,163,184,.55)}
+.check-left{display:flex;align-items:center;gap:.55rem;min-width:0}
+.check-badge{
+  width:22px;height:22px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
+  font-size:.85rem;border:1px solid rgba(148,163,184,0.55);background:#f1f5f9;color:#475569;flex:0 0 auto;
+}
+.check-badge.done{border-color:rgba(15,123,70,0.35);background:#ecfdf5;color:#14532d}
+.check-name{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.check-state{font-size:.82rem;color:var(--muted-text);flex:0 0 auto}
+
+.drawer-body label{display:block;font-size:.78rem;color:var(--muted-text);margin:.6rem 0 .25rem}
+.drawer-body textarea{
+  width:100%;min-height:110px;border-radius:.85rem;border:1px solid var(--border-subtle);
+  padding:.6rem .7rem;font:inherit;outline:none;background:#fff;resize:vertical;
+}
 </style>
 </head>
 
@@ -139,6 +193,36 @@ tr:hover{background:#f7fbff;cursor:pointer}
   </div>
 </main>
 
+<!-- Drawer UI -->
+<div class="backdrop" id="backdrop" aria-hidden="true"></div>
+
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-header">
+    <div class="drawer-title" id="drawerTitle">Customer</div>
+    <div class="drawer-sub" id="drawerSub">—</div>
+  </div>
+
+  <div class="drawer-body">
+    <div class="section-title">Sales stage</div>
+    <div class="chip-row" id="salesChips"></div>
+
+    <div class="section-title">Setup tasks (ops)</div>
+    <div class="checklist" id="opsChecklist"></div>
+
+    <div class="section-title">Notes</div>
+    <label for="drawerNotes">Internal notes (autosaves)</label>
+    <textarea id="drawerNotes" placeholder="Sales notes / objections / follow-up plan…"></textarea>
+  </div>
+
+  <div class="drawer-footer">
+    <div class="drawer-hint" id="drawerHint">Autosaves</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end">
+      <button class="btn btn-secondary" id="btnOpenWizard" type="button">Open wizard</button>
+      <button class="btn btn-secondary" id="btnCloseDrawer" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -156,8 +240,22 @@ tr:hover{background:#f7fbff;cursor:pointer}
   const btnNew = document.getElementById("btn-new");
   const btnClear = document.getElementById("btn-clear-filter");
 
+  // Drawer
+  const drawer = document.getElementById("drawer");
+  const backdrop = document.getElementById("backdrop");
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerSub = document.getElementById("drawerSub");
+  const salesChips = document.getElementById("salesChips");
+  const opsChecklist = document.getElementById("opsChecklist");
+  const drawerNotes = document.getElementById("drawerNotes");
+  const drawerHint = document.getElementById("drawerHint");
+  const btnCloseDrawer = document.getElementById("btnCloseDrawer");
+  const btnOpenWizard = document.getElementById("btnOpenWizard");
+
   let rows = [];
   let activeStatus = null;
+  let activeRow = null;
+  let noteTimer = null;
 
   const SALES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
 
@@ -169,16 +267,23 @@ tr:hover{background:#f7fbff;cursor:pointer}
     banner.textContent = "";
     banner.classList.remove("show");
   }
+  function safeText(v){ return (v ?? "").toString(); }
+  function stageOf(r){ return safeText(r.onboarding_status).trim() || "New Signup"; }
 
   function badge(r){
-    if((r.onboarding_status || "New Signup") === "Demo" && !r.wizard_completed)
-      return `<span class="badge demo">Demo gap</span>`;
-    if((r.onboarding_status || "New Signup") === "New Signup")
-      return `<span class="badge new">New</span>`;
+    if(stageOf(r) === "Demo" && !r.wizard_completed) return `<span class="badge demo">Demo gap</span>`;
+    if(stageOf(r) === "New Signup") return `<span class="badge new">New</span>`;
     return "—";
   }
 
-  function safeText(v){ return (v ?? "").toString(); }
+  function opsTasks(r){
+    return [
+      { key:"wizard_completed", label:"Wizard submitted", done: !!r.wizard_completed },
+      { key:"whatsapp_connected", label:"WhatsApp connected", done: !!r.whatsapp_connected },
+      { key:"calendar_connected", label:"Calendar connected", done: !!r.calendar_connected },
+      { key:"payments_connected", label:"Payments connected", done: !!r.payments_connected },
+    ];
+  }
 
   function renderStatuses(){
     statusStrip.innerHTML = "";
@@ -199,13 +304,12 @@ tr:hover{background:#f7fbff;cursor:pointer}
     const q = (search.value || "").trim().toLowerCase();
 
     const filtered = rows.filter(r=>{
-      const stage = safeText(r.onboarding_status).trim() || "New Signup";
+      const stage = stageOf(r);
       if(activeStatus && stage !== activeStatus) return false;
 
       if(q){
-        const hay = [
-          r.business_name, r.contact_name, r.email, r.phone, r.base_postcode, stage
-        ].map(safeText).join(" ").toLowerCase();
+        const hay = [r.business_name,r.contact_name,r.email,r.phone,r.base_postcode,stage]
+          .map(safeText).join(" ").toLowerCase();
         if(!hay.includes(q)) return false;
       }
       return true;
@@ -219,7 +323,7 @@ tr:hover{background:#f7fbff;cursor:pointer}
     }
 
     for(const r of filtered){
-      const stage = safeText(r.onboarding_status).trim() || "New Signup";
+      const stage = stageOf(r);
       const upd = r.updated_at || r.created_at || null;
       const updTxt = upd ? new Date(upd).toLocaleString() : "—";
 
@@ -233,19 +337,162 @@ tr:hover{background:#f7fbff;cursor:pointer}
         <td>${safeText(r.phone) || "—"}</td>
         <td>${updTxt}</td>
       `;
-      tr.onclick = ()=> window.open(`app.html?id=${encodeURIComponent(r.id)}`, "_blank", "noopener");
+      tr.onclick = ()=> openDrawer(r);
       tbody.appendChild(tr);
     }
 
     statusBar.textContent = `${filtered.length} shown • ${rows.length} total` + (activeStatus ? ` • Stage: ${activeStatus}` : "");
   }
 
+  function openDrawer(r){
+    activeRow = r;
+    drawerTitle.textContent = r.business_name || "Customer";
+    drawerSub.textContent = [
+      r.contact_name ? `Contact: ${r.contact_name}` : "",
+      r.id ? `ID: ${r.id}` : ""
+    ].filter(Boolean).join(" • ");
+
+    // sales chips
+    salesChips.innerHTML = "";
+    SALES.forEach(stage=>{
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip" + (stageOf(r) === stage ? " is-active" : "");
+      b.textContent = stage;
+      b.onclick = async (e)=>{
+        e.stopPropagation();
+        if(!activeRow) return;
+        if(stageOf(activeRow) === stage) return;
+
+        const updated = await updateCustomer(activeRow.id, { onboarding_status: stage });
+        if(updated){
+          activeRow = updated;
+          const idx = rows.findIndex(x=>x.id===updated.id);
+          if(idx !== -1) rows[idx] = updated;
+          renderStatuses();
+          render();
+          openDrawer(updated);
+        }
+      };
+      salesChips.appendChild(b);
+    });
+
+    // ops checklist
+    const items = opsTasks(r);
+    opsChecklist.innerHTML = items.map(i=>{
+      const badgeTxt = i.done ? "✓" : "";
+      const badgeCls = i.done ? "check-badge done" : "check-badge";
+      const state = i.done ? "Completed" : "Click to toggle";
+      return `
+        <div class="check-item" data-key="${i.key}">
+          <div class="check-left">
+            <div class="${badgeCls}">${badgeTxt}</div>
+            <div class="check-name">${i.label}</div>
+          </div>
+          <div class="check-state">${state}</div>
+        </div>
+      `;
+    }).join("");
+
+    drawerNotes.value = r.notes || "";
+    drawerHint.textContent = "Autosaves";
+
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden","false");
+    backdrop.classList.add("show");
+    backdrop.setAttribute("aria-hidden","false");
+  }
+
+  function closeDrawer(){
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden","true");
+    backdrop.classList.remove("show");
+    backdrop.setAttribute("aria-hidden","true");
+    activeRow = null;
+  }
+
+  async function updateCustomer(id, patch){
+    clearError();
+    const { data, error } = await sb.from("customers").update(patch).eq("id", id).select("*").single();
+    if(error){
+      console.error(error);
+      showError("Save failed:\n\n" + (error.message || JSON.stringify(error)));
+      return null;
+    }
+    return data;
+  }
+
+  async function saveNotesNow(){
+    if(!activeRow) return;
+    drawerHint.textContent = "Saving…";
+
+    const patch = { notes: drawerNotes.value };
+    const { error } = await sb.from("customers").update(patch).eq("id", activeRow.id);
+    if(error){
+      console.error(error);
+      showError("Failed to save notes:\n\n" + (error.message || JSON.stringify(error)));
+      drawerHint.textContent = "Save failed";
+      return;
+    }
+
+    drawerHint.textContent = "Saved";
+
+    // update local row cache
+    activeRow.notes = patch.notes;
+    const idx = rows.findIndex(x=>x.id===activeRow.id);
+    if(idx !== -1) rows[idx].notes = patch.notes;
+  }
+
+  function queueNotesSave(){
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(saveNotesNow, 450);
+  }
+
+  // Click ops toggle
+  document.addEventListener("click", async (e)=>{
+    const item = e.target.closest(".check-item[data-key]");
+    if(!item || !activeRow) return;
+
+    const key = item.dataset.key;
+    const patch = {};
+    patch[key] = !activeRow[key];
+
+    const updated = await updateCustomer(activeRow.id, patch);
+    if(updated){
+      activeRow = updated;
+      const idx = rows.findIndex(x=>x.id===updated.id);
+      if(idx !== -1) rows[idx] = updated;
+      render();
+      openDrawer(updated);
+    }
+  }, true);
+
+  // Drawer controls
+  btnCloseDrawer.onclick = closeDrawer;
+  btnOpenWizard.onclick = (e)=>{
+    e.stopPropagation();
+    if(!activeRow) return;
+    window.open(`app.html?id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
+  };
+  drawerNotes.addEventListener("input", queueNotesSave);
+
+  // Close on backdrop + ESC
+  backdrop.addEventListener("click", closeDrawer);
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape" && drawer.classList.contains("open")){
+      e.preventDefault();
+      closeDrawer();
+    }
+  });
+
   async function load(){
     clearError();
     statusBar.textContent = "Loading…";
     tbody.innerHTML = `<tr><td colspan="7">Loading…</td></tr>`;
 
-    const { data, error } = await sb.from("customers").select("*");
+    // order newest first (prevents “looks stuck”)
+    const { data, error } = await sb.from("customers").select("*").order("updated_at", { ascending:false });
+
     if(error){
       console.error(error);
       showError("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
