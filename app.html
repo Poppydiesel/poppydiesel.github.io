@@ -1062,628 +1062,280 @@
   window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-  // ---- Supabase helper ----
-  async function supabaseFetch(path, options = {}) {
-    if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
-      console.error("Supabase is not configured. Check SUPABASE_URL and SUPABASE_KEY.");
-      return {
-        data: null,
-        error: { status: 0, statusText: "Supabase config missing", details: null }
-      };
-    }
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const res = await fetch(`${window.SUPABASE_URL}/rest/v1${path}`, {
-      ...options,
-      headers: {
-        apikey: window.SUPABASE_KEY,
-        Authorization: `Bearer ${window.SUPABASE_KEY}`,
-        ...(options.headers || {})
-      }
-    });
+  const form = document.getElementById("profileForm");
 
-    let data = null;
-    try {
-      data = await res.json();
-    } catch (e) {
-      // no JSON body
-    }
+  const pillCustomerId = document.getElementById("pillCustomerId");
+  const pillStatus = document.getElementById("pillStatus");
+  const pillLocked = document.getElementById("pillLocked");
+  const pillWhatsApp = document.getElementById("pillWhatsApp");
+  const pillCalendar = document.getElementById("pillCalendar");
+  const pillPayments = document.getElementById("pillPayments");
 
-    if (!res.ok) {
-      console.error("Supabase HTTP error", res.status, res.statusText, data);
-      return {
-        data: null,
-        error: {
-          status: res.status,
-          statusText: res.statusText,
-          details: data
-        }
-      };
-    }
+  const lockBanner = document.getElementById("lockBanner");
 
-    return { data, error: null };
+  const btnNew = document.getElementById("btnNew");
+  const btnComplete = document.getElementById("btnComplete");
+  const btnUnlock = document.getElementById("btnUnlock");
+
+  const btnMarkWhatsApp = document.getElementById("btnMarkWhatsApp");
+  const btnMarkCalendar = document.getElementById("btnMarkCalendar");
+  const btnMarkPayments = document.getElementById("btnMarkPayments");
+  const btnPause = document.getElementById("btnPause");
+
+  let customerId = null;
+  let autoSaveTimer = null;
+  let isBootstrapping = true;
+  let isLocked = false;
+
+  function qs(name){
+    const u = new URL(window.location.href);
+    return u.searchParams.get(name);
   }
 
-  // --------------------------------------------
-  // WIZARD + UI LOGIC
-  // --------------------------------------------
-  document.addEventListener("DOMContentLoaded", function () {
-    const TOTAL_STEPS = 4;
-    let currentStep = 1;
+  function setUrlCustomerId(id){
+    const u = new URL(window.location.href);
+    if (id) u.searchParams.set("id", id);
+    else u.searchParams.delete("id");
+    window.history.replaceState({}, "", u.toString());
+  }
 
-    // get signup_id OR user_id from URL
-    const params = new URLSearchParams(window.location.search);
-    const signupIdFromUrl = params.get("signup_id");
-    const userIdFromUrl = params.get("user_id"); // legacy support
+  function toNullIfEmpty(v){
+    const s = (v ?? "").toString().trim();
+    return s.length ? s : null;
+  }
 
-    let currentSignupId = signupIdFromUrl || null;
-    let currentProfileId = null; // business_profiles.id
+  function toNumberOrNull(v){
+    const s = (v ?? "").toString().trim();
+    if (!s) return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
 
-    const initialState = {
-      contact_name: "",
-      business_name: "",
-      contact_email: "",
-      contact_mobile: "",
-      base_postcode: "",
-      preferred_jobs: [],
-      tone_of_voice: "",
-      coverage_radius: "",
-      callout_style: "",
-      callout_band: "",
-      main_trade: "",
-      business_stage: "",
-      channels: [],
-      review_platforms: [],
-      review_link: "",
-      review_push_level: "",
-      ai_avoid: "",
-      demo_style: [],
-      demo_slot: "",
-      golive_timing: "",
-      extra_notes: ""
+  function buildPayloadFromForm(){
+    const fd = new FormData(form);
+    return {
+      business_name: toNullIfEmpty(fd.get("business_name")),
+      trade_type: toNullIfEmpty(fd.get("trade_type")),
+      contact_name: toNullIfEmpty(fd.get("contact_name")),
+      owner_name: toNullIfEmpty(fd.get("owner_name")),
+      email: toNullIfEmpty(fd.get("email")),
+      phone: toNullIfEmpty(fd.get("phone")),
+      whatsapp_number: toNullIfEmpty(fd.get("whatsapp_number")),
+      lead_source: toNullIfEmpty(fd.get("lead_source")) || "TradeBotPro Website",
+
+      base_postcode: toNullIfEmpty(fd.get("base_postcode")),
+      service_radius_miles: toNumberOrNull(fd.get("service_radius_miles")),
+
+      callout_fee: toNumberOrNull(fd.get("callout_fee")),
+      hourly_rate: toNumberOrNull(fd.get("hourly_rate")),
+      pricing_notes: toNullIfEmpty(fd.get("pricing_notes")),
+
+      onboarding_status: toNullIfEmpty(fd.get("onboarding_status")) || "New Signup",
+      wizard_completed: (fd.get("wizard_completed") === "true"),
+
+      ai_style_notes: toNullIfEmpty(fd.get("ai_style_notes")),
+      notes: toNullIfEmpty(fd.get("notes"))
+    };
+  }
+
+  function setFormFromRow(row){
+    const setVal = (name, value) => {
+      const el = form.elements[name];
+      if (!el) return;
+      el.value = (value ?? "");
     };
 
-    const state = { ...initialState };
+    setVal("business_name", row.business_name);
+    setVal("trade_type", row.trade_type);
+    setVal("contact_name", row.contact_name);
+    setVal("owner_name", row.owner_name);
+    setVal("email", row.email);
+    setVal("phone", row.phone);
+    setVal("whatsapp_number", row.whatsapp_number);
+    setVal("lead_source", row.lead_source || "TradeBotPro Website");
 
-    // ELEMENTS
-    const panels = document.querySelectorAll(".step-panel");
-    const stepLabel = document.getElementById("wizard-step-label");
-    const stepTitle = document.getElementById("wizard-step-title");
-    const stepSubtitle = document.getElementById("wizard-step-subtitle");
-    const progressBar = document.getElementById("progress-bar-inner");
-    const progressPercent = document.getElementById("progress-percent");
-    const stepDots = document.querySelectorAll("[data-step-dot]");
-    const btnBack = document.getElementById("btn-back");
-    const btnNext = document.getElementById("btn-next");
-    const btnSaveDraft = document.getElementById("btn-save-draft");
-    const footerText = document.getElementById("wizard-footer-text");
-    const statusMessage = document.getElementById("wizard-status-message");
-    const summaryBox = document.getElementById("summary-box");
+    setVal("base_postcode", row.base_postcode);
+    setVal("service_radius_miles", row.service_radius_miles);
 
-    const textInputs = {
-      contact_name: document.getElementById("contact_name"),
-      business_name: document.getElementById("business_name"),
-      contact_email: document.getElementById("contact_email"),
-      contact_mobile: document.getElementById("contact_mobile"),
-      base_postcode: document.getElementById("base_postcode"),
-      review_link: document.getElementById("review_link"),
-      ai_avoid: document.getElementById("ai_avoid"),
-      extra_notes: document.getElementById("extra_notes")
+    setVal("callout_fee", row.callout_fee);
+    setVal("hourly_rate", row.hourly_rate);
+    setVal("pricing_notes", row.pricing_notes);
+
+    setVal("onboarding_status", row.onboarding_status || "New Signup");
+    setVal("wizard_completed", row.wizard_completed ? "true" : "false");
+
+    setVal("ai_style_notes", row.ai_style_notes);
+    setVal("notes", row.notes);
+  }
+
+  function applyLock(locked){
+    isLocked = !!locked;
+
+    // Disable all form controls except Unlock button and New customer
+    const controls = form.querySelectorAll("input, select, textarea, button");
+    controls.forEach(el => {
+      if (el.id === "btnUnlock") return;
+      if (el.id === "btnNew") return;
+      el.disabled = isLocked;
+    });
+
+    lockBanner.style.display = isLocked ? "block" : "none";
+    btnUnlock.style.display = isLocked ? "inline-block" : "none";
+
+    pillLocked.textContent = `Locked: ${isLocked ? "Yes" : "No"}`;
+  }
+
+  function updatePillsFromRow(row){
+    pillCustomerId.textContent = `Customer: ${row?.id ? row.id : "—"}`;
+    pillStatus.textContent = `Status: ${row?.onboarding_status || "New Signup"}`;
+
+    pillWhatsApp.textContent = `WhatsApp: ${row?.whatsapp_connected ? "Connected" : "Not connected"}`;
+    pillCalendar.textContent = `Calendar: ${row?.calendar_connected ? "Connected" : "Not connected"}`;
+    pillPayments.textContent = `Payments: ${row?.payments_connected ? "Connected" : "Not connected"}`;
+
+    applyLock(!!row?.wizard_completed);
+  }
+
+  async function loadCustomer(id){
+    const { data, error } = await supabase
+      .from("customers")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error){
+      console.error("Load customer error:", error);
+      return null;
+    }
+    return data;
+  }
+
+  async function saveCustomer(partialOrFullPayload){
+    const payload = { ...partialOrFullPayload };
+    if (customerId) payload.id = customerId;
+    if (!payload.onboarding_status) payload.onboarding_status = "New Signup";
+
+    const { data, error } = await supabase
+      .from("customers")
+      .upsert(payload, { onConflict: "id" })
+      .select("*")
+      .single();
+
+    if (error){
+      console.error("Save customer error:", error);
+      throw error;
+    }
+
+    customerId = data.id;
+    setUrlCustomerId(customerId);
+    updatePillsFromRow(data);
+    return data;
+  }
+
+  function debounceAutosave(){
+    if (isBootstrapping) return;
+    if (isLocked) return; // locked = no edits
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(async () => {
+      try{
+        await saveCustomer(buildPayloadFromForm());
+      }catch(e){
+        // silent UI
+      }
+    }, 650);
+  }
+
+  // Boot
+  (async function init(){
+    customerId = qs("id");
+
+    if (customerId){
+      const row = await loadCustomer(customerId);
+      isBootstrapping = true;
+      if (row){
+        setFormFromRow(row);
+        updatePillsFromRow(row);
+      } else {
+        updatePillsFromRow({});
+      }
+      isBootstrapping = false;
+    } else {
+      isBootstrapping = false;
+      updatePillsFromRow({});
+    }
+  })();
+
+  // Autosave
+  form.addEventListener("input", debounceAutosave);
+  form.addEventListener("change", debounceAutosave);
+
+  // Manual save
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (isLocked) return;
+    await saveCustomer(buildPayloadFromForm());
+  });
+
+  // New customer
+  btnNew.addEventListener("click", () => {
+    customerId = null;
+    setUrlCustomerId(null);
+    form.reset();
+    updatePillsFromRow({});
+  });
+
+  // Complete setup (locks wizard + sets stage)
+  btnComplete.addEventListener("click", async () => {
+    if (!customerId){
+      // ensure row exists
+      await saveCustomer(buildPayloadFromForm());
+    }
+    // Set to next stage + lock
+    const payload = {
+      ...buildPayloadFromForm(),
+      onboarding_status: "Demo Booked",
+      wizard_completed: true,
+      pending_setup: true
     };
-
-    // --------------------------------------------
-    // CHIPS – USING CLASS TOGGLE
-    // --------------------------------------------
-    function setupChips() {
-      const chipRows = document.querySelectorAll(".chip-row");
-      chipRows.forEach((row) => {
-        const field = row.getAttribute("data-field");
-        const mode = row.getAttribute("data-select"); // "single" or "multi"
-        const chips = row.querySelectorAll(".chip");
-
-        chips.forEach((chip) => {
-          chip.classList.remove("is-active"); // reset initial
-
-          chip.addEventListener("click", () => {
-            const label = chip.textContent.trim();
-
-            if (mode === "single") {
-              chips.forEach((c) => c.classList.remove("is-active"));
-              chip.classList.add("is-active");
-              state[field] = label;
-            } else {
-              chip.classList.toggle("is-active");
-              const selected = Array.from(chips)
-                .filter((c) => c.classList.contains("is-active"))
-                .map((c) => c.textContent.trim());
-              state[field] = selected;
-            }
-          });
-        });
-      });
-    }
-
-    // --------------------------------------------
-    // APPLY STATE → UI (for prefill)
-    // --------------------------------------------
-    function populateUIFromState() {
-      // Text inputs
-      Object.entries(textInputs).forEach(([key, el]) => {
-        if (!el) return;
-        el.value = state[key] ?? "";
-      });
-
-      // Chips: rebuild from state
-      const chipRows = document.querySelectorAll(".chip-row");
-      chipRows.forEach((row) => {
-        const field = row.getAttribute("data-field");
-        const mode = row.getAttribute("data-select");
-        const chips = row.querySelectorAll(".chip");
-        const value = state[field];
-
-        chips.forEach((chip) => {
-          chip.classList.remove("is-active");
-          const label = chip.textContent.trim();
-
-          if (mode === "single") {
-            if (value && value === label) {
-              chip.classList.add("is-active");
-            }
-          } else if (mode === "multi") {
-            if (Array.isArray(value) && value.includes(label)) {
-              chip.classList.add("is-active");
-            }
-          }
-        });
-      });
-    }
-
-    // --------------------------------------------
-    // TEXT INPUTS
-    // --------------------------------------------
-    function setupTextInputs() {
-      Object.entries(textInputs).forEach(([key, el]) => {
-        if (!el) return;
-        el.addEventListener("input", () => {
-          state[key] = el.value;
-        });
-      });
-    }
-
-    // --------------------------------------------
-    // STEP UI
-    // --------------------------------------------
-    function updateStepHeader() {
-      const labels = {
-        1: { label: "Step 1", title: "Business basics", subtitle: "Tell us who you are" },
-        2: { label: "Step 2", title: "Area & pricing", subtitle: "Where you work" },
-        3: { label: "Step 3", title: "Messaging & reviews", subtitle: "How TradeBotPro talks" },
-        4: { label: "Step 4", title: "Demo & go-live", subtitle: "Prepare your test run" }
-      };
-      const info = labels[currentStep];
-
-      if (stepLabel) stepLabel.textContent = info.label;
-      if (stepTitle) stepTitle.textContent = info.title;
-      if (stepSubtitle) stepSubtitle.textContent = info.subtitle;
-    }
-
-    function showStep(step) {
-      currentStep = step;
-
-      panels.forEach((p) =>
-        p.classList.toggle("is-active", Number(p.getAttribute("data-step")) === currentStep)
-      );
-
-      stepDots.forEach((dot) => {
-        const s = Number(dot.getAttribute("data-step-dot"));
-        dot.classList.toggle("is-active", s === currentStep);
-        dot.classList.toggle("is-complete", s < currentStep);
-      });
-
-      const progress = (currentStep - 1) / (TOTAL_STEPS - 1);
-      if (progressBar) progressBar.style.width = (progress * 100).toFixed(0) + "%";
-      if (progressPercent) progressPercent.textContent = `Step ${currentStep} of ${TOTAL_STEPS}`;
-
-      if (btnBack) btnBack.disabled = currentStep === 1;
-      if (btnNext) btnNext.textContent = currentStep === TOTAL_STEPS ? "Finish" : "Next step →";
-
-      if (footerText) {
-        footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${TOTAL_STEPS}</strong>. You can tweak anything later.`;
-      }
-
-      if (summaryBox) summaryBox.hidden = currentStep !== TOTAL_STEPS;
-
-      if (statusMessage) {
-        statusMessage.textContent = "";
-        statusMessage.className = "wizard-status-message";
-      }
-
-      updateStepHeader();
-    }
-
-    function scrollTopSmooth() {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    // --------------------------------------------
-    // VALIDATION
-    // --------------------------------------------
-    function validateStep(step) {
-      if (!statusMessage) return true;
-
-      statusMessage.textContent = "";
-      statusMessage.className = "wizard-status-message";
-
-      if (step === 1) {
-        if (!state.business_name || !state.contact_name) {
-          statusMessage.textContent = "Please add your contact and business name.";
-          statusMessage.classList.add("wizard-status-message--error");
-          return false;
-        }
-      }
-
-      if (step === 2) {
-        if (!state.base_postcode) {
-          statusMessage.textContent = "Please enter a base postcode.";
-          statusMessage.classList.add("wizard-status-message--error");
-          return false;
-        }
-      }
-
-      if (step === 3) {
-        if (!state.tone_of_voice) {
-          statusMessage.textContent = "Choose a tone of voice.";
-          statusMessage.classList.add("wizard-status-message--error");
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    // --------------------------------------------
-    // LOAD FROM business_profiles WHEN signup_id / user_id EXISTS
-    // --------------------------------------------
-    async function loadFromBusinessProfile() {
-      if (!signupIdFromUrl && !userIdFromUrl) {
-        console.log("No signup_id or user_id in URL – starting with blank wizard.");
-        return;
-      }
-      if (typeof supabaseFetch !== "function") {
-        console.warn("supabaseFetch is not defined, cannot load existing profile.");
-        return;
-      }
-
-      let profileQuery = "";
-      if (signupIdFromUrl) {
-        profileQuery = `/business_profiles?signup_id=eq.${encodeURIComponent(
-          signupIdFromUrl
-        )}&select=*`;
-      } else if (userIdFromUrl) {
-        profileQuery = `/business_profiles?id=eq.${encodeURIComponent(userIdFromUrl)}&select=*`;
-      }
-
-      const { data, error } = await supabaseFetch(profileQuery, { method: "GET" });
-
-      if (error) {
-        console.error("Error loading business profile:", error);
-        return;
-      }
-      if (!data || !data.length) {
-        console.log("No business_profile found for signup/user id");
-        return;
-      }
-
-      const row = data[0];
-      console.log("Loaded business profile for wizard:", row);
-
-      currentProfileId = row.id;
-      currentSignupId = row.signup_id || signupIdFromUrl || null;
-
-      // Basic fields
-      state.contact_name = row.contact_name || row.owner_name || "";
-      state.business_name = row.business_name || "";
-      state.contact_email = row.email || "";
-      state.contact_mobile = row.phone || "";
-      state.base_postcode = row.base_postcode || "";
-
-      // services_summary → preferred_jobs chips
-      if (row.services_summary) {
-        state.preferred_jobs = row.services_summary
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-      }
-
-      // Extra direct mappings
-      if (row.trade_type) state.main_trade = row.trade_type;
-      if (row.service_radius) state.coverage_radius = row.service_radius;
-      if (row.callout_from) state.callout_style = row.callout_from;
-      // NOTE: we do NOT map numeric callout_fee into the text band chip
-
-      // JSON blob in ai_style_notes for full wizard config
-      if (row.ai_style_notes) {
-        try {
-          const cfg = JSON.parse(row.ai_style_notes);
-          if (cfg && typeof cfg === "object") {
-            if (cfg.main_trade && !state.main_trade) state.main_trade = cfg.main_trade;
-            if (cfg.business_stage) state.business_stage = cfg.business_stage;
-            if (cfg.coverage_radius && !state.coverage_radius)
-              state.coverage_radius = cfg.coverage_radius;
-            if (cfg.callout_style && !state.callout_style)
-              state.callout_style = cfg.callout_style;
-            if (cfg.callout_band && !state.callout_band) state.callout_band = cfg.callout_band;
-            if (Array.isArray(cfg.preferred_jobs) && !state.preferred_jobs.length) {
-              state.preferred_jobs = cfg.preferred_jobs;
-            }
-            if (cfg.tone_of_voice) state.tone_of_voice = cfg.tone_of_voice;
-            if (Array.isArray(cfg.channels)) state.channels = cfg.channels;
-            if (Array.isArray(cfg.review_platforms)) state.review_platforms = cfg.review_platforms;
-            if (cfg.review_link) state.review_link = cfg.review_link;
-            if (cfg.review_push_level) state.review_push_level = cfg.review_push_level;
-            if (cfg.ai_avoid) state.ai_avoid = cfg.ai_avoid;
-            if (Array.isArray(cfg.demo_style)) state.demo_style = cfg.demo_style;
-            if (cfg.demo_slot) state.demo_slot = cfg.demo_slot;
-            if (cfg.golive_timing) state.golive_timing = cfg.golive_timing;
-            if (cfg.extra_notes) state.extra_notes = cfg.extra_notes;
-          }
-        } catch (e) {
-          console.warn("Could not parse ai_style_notes as wizard config JSON", e);
-        }
-      }
-
-      populateUIFromState();
-    }
-
-    // --------------------------------------------
-    // CREATE / LINK SIGNUP + PROFILE
-    // --------------------------------------------
-    async function ensureSignupAndProfile() {
-      // If profile already loaded, we just use it
-      if (currentProfileId) {
-        return { signupId: currentSignupId, profileId: currentProfileId };
-      }
-
-      // If we have a signup_id from URL but no profile yet, create one linked to it
-      if (signupIdFromUrl && !currentProfileId) {
-        const payload = {
-          signup_id: signupIdFromUrl,
-          business_name: state.business_name || null,
-          contact_name: state.contact_name || null,
-          email: state.contact_email || null,
-          phone: state.contact_mobile || null,
-          base_postcode: state.base_postcode || null
-        };
-
-        const { data, error } = await supabaseFetch(`/business_profiles`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Prefer: "return=representation"
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (error) {
-          console.error("Error creating business_profile from signup:", error);
-          return { signupId: signupIdFromUrl, profileId: null };
-        }
-
-        const created = data && data[0] ? data[0] : null;
-        if (created) {
-          currentProfileId = created.id;
-          currentSignupId = created.signup_id || signupIdFromUrl;
-        }
-
-        return { signupId: currentSignupId, profileId: currentProfileId };
-      }
-
-      // No signup id at all → create both signup + profile (manual add)
-      if (!currentSignupId && !currentProfileId) {
-        const signupPayload = {
-          business_name: state.business_name || null,
-          contact_name: state.contact_name || null,
-          email: state.contact_email || null,
-          phone: state.contact_mobile || null,
-          base_postcode: state.base_postcode || null,
-          // mark this as manually added so dashboard can show the difference
-          signup_source: "manual"
-        };
-
-        const { data: signupData, error: signupError } = await supabaseFetch(
-          `/tradebotpro_signups`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Prefer: "return=representation"
-            },
-            body: JSON.stringify(signupPayload)
-          }
-        );
-
-        if (signupError) {
-          console.error("Error creating signup from wizard:", signupError);
-          return { signupId: null, profileId: null };
-        }
-
-        const createdSignup = signupData && signupData[0] ? signupData[0] : null;
-        if (createdSignup) {
-          currentSignupId = createdSignup.id;
-        }
-
-        // create profile linked to this signup
-        const profilePayload = {
-          signup_id: currentSignupId,
-          business_name: state.business_name || null,
-          contact_name: state.contact_name || null,
-          email: state.contact_email || null,
-          phone: state.contact_mobile || null,
-          base_postcode: state.base_postcode || null
-        };
-
-        const { data: profileData, error: profileError } = await supabaseFetch(
-          `/business_profiles`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Prefer: "return=representation"
-            },
-            body: JSON.stringify(profilePayload)
-          }
-        );
-
-        if (profileError) {
-          console.error("Error creating business_profile from wizard:", profileError);
-          return { signupId: currentSignupId, profileId: null };
-        }
-
-        const createdProfile = profileData && profileData[0] ? profileData[0] : null;
-        if (createdProfile) {
-          currentProfileId = createdProfile.id;
-        }
-      }
-
-      return { signupId: currentSignupId, profileId: currentProfileId };
-    }
-
-    // --------------------------------------------
-    // SAVE WIZARD → business_profiles (and link to signup)
-    // --------------------------------------------
-    async function saveWizardToBusinessProfile() {
-      const { signupId, profileId } = await ensureSignupAndProfile();
-
-      const wizardConfig = {
-        main_trade: state.main_trade,
-        business_stage: state.business_stage,
-        coverage_radius: state.coverage_radius,
-        callout_style: state.callout_style,
-        callout_band: state.callout_band,
-        preferred_jobs: state.preferred_jobs,
-        tone_of_voice: state.tone_of_voice,
-        channels: state.channels,
-        review_platforms: state.review_platforms,
-        review_link: state.review_link,
-        review_push_level: state.review_push_level,
-        ai_avoid: state.ai_avoid,
-        demo_style: state.demo_style,
-        demo_slot: state.demo_slot,
-        golive_timing: state.golive_timing,
-        extra_notes: state.extra_notes
-      };
-
-      const payload = {
-        signup_id: signupId || null,
-        business_name: state.business_name || null,
-        contact_name: state.contact_name || null,
-        email: state.contact_email || null,
-        phone: state.contact_mobile || null,
-        base_postcode: state.base_postcode || null,
-        services_summary:
-          state.preferred_jobs && state.preferred_jobs.length
-            ? state.preferred_jobs.join(", ")
-            : null,
-        trade_type: state.main_trade || null,
-        service_radius: state.coverage_radius || null,
-        callout_from: state.callout_style || null,
-        // NOTE: we do NOT send callout_fee here (numeric column vs text band)
-        ai_style_notes: JSON.stringify(wizardConfig),
-        plan_status: "Trial",
-        pending_setup: true,
-        is_active: false
-      };
-
-      console.log("Saving wizard payload:", payload, "profileId:", profileId, "signupId:", signupId);
-
-      if (!statusMessage) return;
-
-      statusMessage.textContent = "Saving…";
-      statusMessage.className = "wizard-status-message wizard-status-message--saving";
-
-      const { data, error } = await supabaseFetch(
-        profileId
-          ? `/business_profiles?id=eq.${encodeURIComponent(profileId)}`
-          : `/business_profiles`,
-        {
-          method: profileId ? "PATCH" : "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Prefer: "return=representation"
-          },
-          body: JSON.stringify(payload)
-        }
-      );
-
-      if (error) {
-        console.error("Save profile error:", error);
-        statusMessage.textContent = "There was a problem saving your form. Please try again.";
-        statusMessage.className = "wizard-status-message wizard-status-message--error";
-        return;
-      }
-
-      console.log("Business profile saved:", data);
-      const saved = data && data[0] ? data[0] : null;
-      if (saved) {
-        currentProfileId = saved.id;
-        currentSignupId = saved.signup_id || currentSignupId;
-      }
-
-      statusMessage.textContent = "Form sent successfully.";
-      statusMessage.className = "wizard-status-message wizard-status-message--success";
-    }
-
-    // --------------------------------------------
-    // BUTTON EVENTS
-    // --------------------------------------------
-    if (btnBack) {
-      btnBack.addEventListener("click", () => {
-        if (currentStep > 1) {
-          showStep(currentStep - 1);
-          scrollTopSmooth();
-        }
-      });
-    }
-
-    if (btnNext) {
-      btnNext.addEventListener("click", () => {
-        if (!validateStep(currentStep)) return;
-
-        if (currentStep < TOTAL_STEPS) {
-          showStep(currentStep + 1);
-          scrollTopSmooth();
-        } else {
-          // Final step
-          saveWizardToBusinessProfile();
-        }
-      });
-    }
-
-    if (btnSaveDraft) {
-      btnSaveDraft.addEventListener("click", () => {
-        try {
-          localStorage.setItem("tradebotpro_setup_wizard", JSON.stringify(state));
-          if (statusMessage) {
-            statusMessage.textContent = "Draft saved in this browser.";
-            statusMessage.classList.add("wizard-status-message--success");
-          }
-        } catch (e) {
-          console.error("Save draft error", e);
-        }
-      });
-    }
-
-    // --------------------------------------------
-    // INIT
-    // --------------------------------------------
-    setupChips();
-    setupTextInputs();
-    showStep(1);
-    loadFromBusinessProfile(); // pre-fill & re-select chips when coming from dashboard
+    // reflect in dropdown too
+    form.elements["onboarding_status"].value = "Demo Booked";
+    form.elements["wizard_completed"].value = "true";
+
+    const saved = await saveCustomer(payload);
+    setFormFromRow(saved);
+    applyLock(true);
+  });
+
+  // Unlock (admin)
+  btnUnlock.addEventListener("click", async () => {
+    if (!confirm("Unlock this setup to allow editing?")) return;
+    form.elements["wizard_completed"].value = "false";
+    const saved = await saveCustomer({ wizard_completed: false });
+    applyLock(false);
+    updatePillsFromRow(saved);
+  });
+
+  // Quick flags
+  btnMarkWhatsApp.addEventListener("click", async () => {
+    await saveCustomer({ whatsapp_connected: true, onboarding_status: "WhatsApp Connected" });
+  });
+
+  btnMarkCalendar.addEventListener("click", async () => {
+    await saveCustomer({ calendar_connected: true, onboarding_status: "Calendar Linked" });
+  });
+
+  btnMarkPayments.addEventListener("click", async () => {
+    await saveCustomer({ payments_connected: true, onboarding_status: "Payments Connected" });
+  });
+
+  btnPause.addEventListener("click", async () => {
+    await saveCustomer({ account_status: "Paused", onboarding_status: "Paused" });
   });
 </script>
 
-
-
-
+</body>
+</html>
 </body>
 </html>
