@@ -1065,67 +1065,33 @@
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  // -------------------------
-  // CORE ELEMENTS
-  // -------------------------
-  const form = document.getElementById("profileForm");
-  if (!form) {
-    console.error("profileForm not found. Your form must have id='profileForm'.");
-  }
 
-  // Pills (optional)
+  const form = document.getElementById("profileForm");
+  if (!form) console.error("profileForm not found (must be id='profileForm').");
+
+  // Optional UI bits (safe if missing)
   const pillCustomerId = document.getElementById("pillCustomerId");
   const pillStatus     = document.getElementById("pillStatus");
   const pillLocked     = document.getElementById("pillLocked");
   const pillWhatsApp   = document.getElementById("pillWhatsApp");
   const pillCalendar   = document.getElementById("pillCalendar");
   const pillPayments   = document.getElementById("pillPayments");
-  const lockBanner     = document.getElementById("lockBanner");
 
-  // Buttons (optional — if IDs exist they will work)
-  const btnNew          = document.getElementById("btnNew");
-  const btnComplete     = document.getElementById("btnComplete"); // your Next step / Complete
-  const btnUnlock       = document.getElementById("btnUnlock");
-  const btnMarkWhatsApp = document.getElementById("btnMarkWhatsApp");
-  const btnMarkCalendar = document.getElementById("btnMarkCalendar");
-  const btnMarkPayments = document.getElementById("btnMarkPayments");
-  const btnPause        = document.getElementById("btnPause");
-
-  // Force these buttons to not submit the form (prevents "nothing happens")
-  [btnNew, btnComplete, btnUnlock, btnMarkWhatsApp, btnMarkCalendar, btnMarkPayments, btnPause].forEach(b => {
-    if (b && b.tagName === "BUTTON") b.type = "button";
-  });
-
-  // -------------------------
-  // STATE
-  // -------------------------
-  let customerId = null;
-  let autoSaveTimer = null;
+  let customerId = new URL(location.href).searchParams.get("id");
   let isBootstrapping = true;
   let isLocked = false;
+  let t = null;
 
-  // -------------------------
-  // HELPERS
-  // -------------------------
   function safeSetText(el, txt){ if (el) el.textContent = txt; }
-
-  function qs(name){
-    const u = new URL(window.location.href);
-    return u.searchParams.get(name);
-  }
-
   function setUrlCustomerId(id){
-    const u = new URL(window.location.href);
-    if (id) u.searchParams.set("id", id);
-    else u.searchParams.delete("id");
-    window.history.replaceState({}, "", u.toString());
+    const u = new URL(location.href);
+    if (id) u.searchParams.set("id", id); else u.searchParams.delete("id");
+    history.replaceState({}, "", u.toString());
   }
-
   function toNullIfEmpty(v){
     const s = (v ?? "").toString().trim();
     return s.length ? s : null;
   }
-
   function toNumberOrNull(v){
     const s = (v ?? "").toString().trim();
     if (!s) return null;
@@ -1133,134 +1099,13 @@
     return Number.isFinite(n) ? n : null;
   }
 
-  // IMPORTANT: do NOT disable buttons when locked (chips often are buttons/labels)
   function applyLock(locked){
     isLocked = !!locked;
-
-    if (form) {
-      form.querySelectorAll("input, select, textarea").forEach(el => {
-        el.disabled = isLocked;
-      });
-    }
-
-    if (lockBanner) lockBanner.style.display = isLocked ? "block" : "none";
-    if (btnUnlock) btnUnlock.style.display = isLocked ? "inline-block" : "none";
-
+    if (form) form.querySelectorAll("input,select,textarea").forEach(el => el.disabled = isLocked);
     safeSetText(pillLocked, `Locked: ${isLocked ? "Yes" : "No"}`);
-
-    if (btnComplete) btnComplete.disabled = isLocked;
-    const btnSave = document.getElementById("btnSave");
-    if (btnSave) btnSave.disabled = isLocked;
   }
 
-  // -------------------------
-  // CHIP ENGINE (THIS FIXES IT)
-  // -------------------------
-  function fireInputEvents(el){
-    if (!el) return;
-    el.dispatchEvent(new Event("input", { bubbles:true }));
-    el.dispatchEvent(new Event("change", { bubbles:true }));
-  }
-
-  function setRadioByName(name, value){
-    const radios = Array.from(form.querySelectorAll(`input[type="radio"][name="${CSS.escape(name)}"]`));
-    if (!radios.length) return false;
-    radios.forEach(r => r.checked = (r.value === value));
-    if (radios.find(r => r.checked)) fireInputEvents(radios.find(r => r.checked));
-    return true;
-  }
-
-  function setCheckboxByName(name, checked){
-    const box = form.querySelector(`input[type="checkbox"][name="${CSS.escape(name)}"]`);
-    if (!box) return false;
-    box.checked = !!checked;
-    fireInputEvents(box);
-    return true;
-  }
-
-  function setFieldValue(name, value){
-    // Prefer actual form control
-    const el = form.elements[name];
-    if (!el) return false;
-
-    // radio group
-    if (el instanceof RadioNodeList) {
-      return setRadioByName(name, value);
-    }
-
-    // normal input/select/textarea
-    el.value = value;
-    fireInputEvents(el);
-    return true;
-  }
-
-  function activateChipUI(chip){
-    // If your CSS uses .active for selected chip, this makes it work visually
-    const group = chip.closest("[data-chip-group]") || chip.parentElement;
-    if (group) group.querySelectorAll(".active").forEach(x => x.classList.remove("active"));
-    chip.classList.add("active");
-  }
-
-  function handleChipClick(target){
-    if (!form || isLocked) return false;
-
-    // 1) If chip declares what it controls:
-    //    <button data-name="onboarding_status" data-value="Demo Booked">
-    const named = target.closest("[data-name][data-value]");
-    if (named) {
-      const name = named.getAttribute("data-name");
-      const value = named.getAttribute("data-value");
-      if (setFieldValue(name, value)) {
-        activateChipUI(named);
-        debounceAutosave(true);
-        return true;
-      }
-    }
-
-    // 2) If chip is a LABEL with "for" linking to an input
-    const label = target.closest("label[for]");
-    if (label) {
-      const id = label.getAttribute("for");
-      const input = document.getElementById(id);
-      if (input && (input.type === "radio" || input.type === "checkbox")) {
-        if (input.type === "radio") input.checked = true;
-        else input.checked = !input.checked;
-        fireInputEvents(input);
-        activateChipUI(label);
-        debounceAutosave(true);
-        return true;
-      }
-    }
-
-    // 3) If chip WRAPS an input inside it (common pattern)
-    const wrapper = target.closest(".chip, .option, .radio-chip, .pill, [role='radio'], [role='option']");
-    if (wrapper) {
-      const input = wrapper.querySelector("input[type='radio'], input[type='checkbox']");
-      if (input) {
-        if (input.type === "radio") input.checked = true;
-        else input.checked = !input.checked;
-        fireInputEvents(input);
-        activateChipUI(wrapper);
-        debounceAutosave(true);
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  // Capture clicks early so nothing else swallows them
-  document.addEventListener("click", (e) => {
-    const did = handleChipClick(e.target);
-    if (did) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, true);
-
-  // -------------------------
-  // FORM -> DB MAPPING
-  // -------------------------
+  // ------- IMPORTANT: update these if your form uses different names -------
   function buildPayloadFromForm(){
     const fd = new FormData(form);
 
@@ -1286,28 +1131,27 @@
       pricing_notes: toNullIfEmpty(fd.get("pricing_notes")),
 
       services_summary: toNullIfEmpty(fd.get("services_summary")),
-      ai_style_notes: toNullIfEmpty(fd.get("ai_style_notes")),
-      notes: toNullIfEmpty(fd.get("notes")),
 
       onboarding_status: toNullIfEmpty(fd.get("onboarding_status")) || "New Signup",
-      wizard_completed: (fd.get("wizard_completed") === "true")
+      wizard_completed: (fd.get("wizard_completed") === "true"),
+
+      ai_style_notes: toNullIfEmpty(fd.get("ai_style_notes")),
+      notes: toNullIfEmpty(fd.get("notes"))
     };
   }
 
   function setFormFromRow(row){
-    const setVal = (name, value) => {
-      const el = form.elements[name];
-      if (!el) return;
-      el.value = (value ?? "");
-    };
+    const setVal = (name, v) => { if (form.elements[name]) form.elements[name].value = (v ?? ""); };
 
     setVal("business_name", row.business_name);
     setVal("trade_type", row.trade_type);
+
     setVal("contact_name", row.contact_name);
     setVal("owner_name", row.owner_name);
     setVal("email", row.email);
     setVal("phone", row.phone);
     setVal("whatsapp_number", row.whatsapp_number);
+
     setVal("lead_source", row.lead_source || "TradeBotPro Website");
 
     setVal("base_postcode", row.base_postcode);
@@ -1320,15 +1164,16 @@
     setVal("pricing_notes", row.pricing_notes);
 
     setVal("services_summary", row.services_summary);
-    setVal("ai_style_notes", row.ai_style_notes);
-    setVal("notes", row.notes);
 
     setVal("onboarding_status", row.onboarding_status || "New Signup");
     setVal("wizard_completed", row.wizard_completed ? "true" : "false");
+
+    setVal("ai_style_notes", row.ai_style_notes);
+    setVal("notes", row.notes);
   }
 
   function updatePillsFromRow(row){
-    safeSetText(pillCustomerId, `Customer: ${row?.id ? row.id : "—"}`);
+    safeSetText(pillCustomerId, `Customer: ${row?.id || "—"}`);
     safeSetText(pillStatus, `Status: ${row?.onboarding_status || "New Signup"}`);
     safeSetText(pillWhatsApp, `WhatsApp: ${row?.whatsapp_connected ? "Connected" : "Not connected"}`);
     safeSetText(pillCalendar, `Calendar: ${row?.calendar_connected ? "Connected" : "Not connected"}`);
@@ -1336,27 +1181,22 @@
     applyLock(!!row?.wizard_completed);
   }
 
-  // -------------------------
-  // DB OPERATIONS
-  // -------------------------
   async function loadCustomer(id){
-    const { data, error } = await supabase
-      .from("customers")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error){
-      console.error("Load customer error:", error);
+    const { data, error } = await supabase.from("customers").select("*").eq("id", id).single();
+    if (error) {
+      console.error("LOAD ERROR:", error);
       return null;
     }
     return data;
   }
 
-  async function saveCustomer(partialOrFull){
-    const payload = { ...partialOrFull };
+  async function saveNow(reason){
+    if (!form || isBootstrapping || isLocked) return;
+
+    const payload = buildPayloadFromForm();
     if (customerId) payload.id = customerId;
-    if (!payload.onboarding_status) payload.onboarding_status = "New Signup";
+
+    console.log("[AUTOSAVE] attempt:", reason, { customerId, payload });
 
     const { data, error } = await supabase
       .from("customers")
@@ -1364,35 +1204,50 @@
       .select("*")
       .single();
 
-    if (error){
-      console.error("Save customer error:", error);
-      throw error;
+    if (error) {
+      console.error("[AUTOSAVE] FAILED:", error, { payload });
+      return;
     }
 
+    console.log("[AUTOSAVE] OK:", data.id);
     customerId = data.id;
     setUrlCustomerId(customerId);
     updatePillsFromRow(data);
-    return data;
   }
 
-  function debounceAutosave(immediate = false){
-    if (isBootstrapping || isLocked) return;
-    clearTimeout(autoSaveTimer);
-
-    const run = async () => {
-      try { await saveCustomer(buildPayloadFromForm()); } catch(e) {}
-    };
-
-    if (immediate) run();
-    else autoSaveTimer = setTimeout(run, 650);
+  function debounceSave(reason){
+    clearTimeout(t);
+    t = setTimeout(() => saveNow(reason), 450);
   }
 
-  // -------------------------
+  // Autosave for normal inputs
+  if (form){
+    form.addEventListener("input", () => debounceSave("input"));
+    form.addEventListener("change", () => debounceSave("change"));
+    form.addEventListener("submit", (e) => { e.preventDefault(); saveNow("submit"); });
+  }
+
+  // CHIP FIX:
+  // Any click on:
+  // - [data-name][data-value]
+  // - label[for]
+  // - elements with .chip/.pill/.option/.radio-chip
+  // triggers an immediate save AFTER the browser updates the input.
+  document.addEventListener("click", (e) => {
+    if (!form || isLocked) return;
+    const isChip =
+      e.target.closest("[data-name][data-value]") ||
+      e.target.closest("label[for]") ||
+      e.target.closest(".chip, .pill, .option, .radio-chip, [role='radio'], [role='option']");
+
+    if (!isChip) return;
+
+    // let the click check the radio first, then save
+    setTimeout(() => saveNow("chip-click"), 0);
+  }, true);
+
   // INIT
-  // -------------------------
-  (async function init(){
-    customerId = qs("id");
-
+  (async () => {
     if (customerId){
       const row = await loadCustomer(customerId);
       isBootstrapping = true;
@@ -1407,101 +1262,16 @@
       isBootstrapping = false;
       updatePillsFromRow({});
     }
+    console.log("APP ready. customerId =", customerId || "(new)");
   })();
 
-  // Autosave hooks (inputs that are real form controls)
-  if (form){
-    form.addEventListener("input", () => debounceAutosave(false));
-    form.addEventListener("change", () => debounceAutosave(false));
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (isLocked) return;
-      await saveCustomer(buildPayloadFromForm());
-    });
-  }
-
-  // -------------------------
-  // BUTTON ACTIONS
-  // -------------------------
-  if (btnNew){
-    btnNew.addEventListener("click", (e) => {
-      e.preventDefault();
-      customerId = null;
-      setUrlCustomerId(null);
-      form.reset();
-      updatePillsFromRow({});
-    });
-  }
-
-  if (btnComplete){
-    btnComplete.addEventListener("click", async (e) => {
-      e.preventDefault();
-      if (isLocked) return;
-
-      // ensure record exists
-      if (!customerId) await saveCustomer(buildPayloadFromForm());
-
-      // update visible controls if present
-      if (form.elements["onboarding_status"]) form.elements["onboarding_status"].value = "Demo Booked";
-      if (form.elements["wizard_completed"]) form.elements["wizard_completed"].value = "true";
-
-      const saved = await saveCustomer({
-        ...buildPayloadFromForm(),
-        onboarding_status: "Demo Booked",
-        wizard_completed: true,
-        pending_setup: true
-      });
-
-      setFormFromRow(saved);
-      applyLock(true);
-    });
-  }
-
-  if (btnUnlock){
-    btnUnlock.addEventListener("click", async (e) => {
-      e.preventDefault();
-      if (!confirm("Unlock this setup to allow editing?")) return;
-      if (form.elements["wizard_completed"]) form.elements["wizard_completed"].value = "false";
-      const saved = await saveCustomer({ wizard_completed: false });
-      applyLock(false);
-      updatePillsFromRow(saved);
-    });
-  }
-
-  if (btnMarkWhatsApp){
-    btnMarkWhatsApp.addEventListener("click", async (e) => {
-      e.preventDefault();
-      await saveCustomer({ whatsapp_connected: true, onboarding_status: "WhatsApp Connected" });
-    });
-  }
-
-  if (btnMarkCalendar){
-    btnMarkCalendar.addEventListener("click", async (e) => {
-      e.preventDefault();
-      await saveCustomer({ calendar_connected: true, onboarding_status: "Calendar Linked" });
-    });
-  }
-
-  if (btnMarkPayments){
-    btnMarkPayments.addEventListener("click", async (e) => {
-      e.preventDefault();
-      await saveCustomer({ payments_connected: true, onboarding_status: "Payments Connected" });
-    });
-  }
-
-  if (btnPause){
-    btnPause.addEventListener("click", async (e) => {
-      e.preventDefault();
-      await saveCustomer({ account_status: "Paused", onboarding_status: "Paused" });
-    });
-  }
+  // Expose for quick debugging in console if needed
+  window.__tbp = {
+    get customerId(){ return customerId; },
+    saveNow,
+    buildPayloadFromForm
+  };
 </script>
 
 </body>
 </html>
-
-
-</body>
-</html>
-
