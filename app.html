@@ -1058,145 +1058,194 @@
   </main>
 </div>
 
-  <script type="module">
+ <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  
- const form = document.getElementById("profileForm");
-  if (!form) console.error("profileForm not found (must be id='profileForm').");
 
-  // Optional UI bits (safe if missing)
-  const pillCustomerId = document.getElementById("pillCustomerId");
-  const pillStatus     = document.getElementById("pillStatus");
-  const pillLocked     = document.getElementById("pillLocked");
-  const pillWhatsApp   = document.getElementById("pillWhatsApp");
-  const pillCalendar   = document.getElementById("pillCalendar");
-  const pillPayments   = document.getElementById("pillPayments");
+  // Your page doesn't have <form id="profileForm">, so we treat the whole wizard-right as the "form".
+  const root = document.querySelector(".wizard-right") || document.body;
+
+  // Buttons you actually have:
+  const btnBack = document.getElementById("btn-back");
+  const btnNext = document.getElementById("btn-next");
+  const btnSaveDraft = document.getElementById("btn-save-draft");
+  const statusMsg = document.getElementById("wizard-status-message");
 
   let customerId = new URL(location.href).searchParams.get("id");
   let isBootstrapping = true;
-  let isLocked = false;
-  let t = null;
+  let currentStep = 1;
+  const totalSteps = 4;
+  let saveTimer = null;
 
-  function safeSetText(el, txt){ if (el) el.textContent = txt; }
   function setUrlCustomerId(id){
     const u = new URL(location.href);
-    if (id) u.searchParams.set("id", id); else u.searchParams.delete("id");
+    if (id) u.searchParams.set("id", id);
+    else u.searchParams.delete("id");
     history.replaceState({}, "", u.toString());
   }
-  function toNullIfEmpty(v){
-    const s = (v ?? "").toString().trim();
-    return s.length ? s : null;
-  }
-  function toNumberOrNull(v){
-    const s = (v ?? "").toString().trim();
-    if (!s) return null;
-    const n = Number(s);
-    return Number.isFinite(n) ? n : null;
+
+  function msg(text, type=""){
+    if (!statusMsg) return;
+    statusMsg.textContent = text || "";
+    statusMsg.className = "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
   }
 
-  function applyLock(locked){
-    isLocked = !!locked;
-    if (form) form.querySelectorAll("input,select,textarea").forEach(el => el.disabled = isLocked);
-    safeSetText(pillLocked, `Locked: ${isLocked ? "Yes" : "No"}`);
+  // =========================
+  // STEP UI (your existing markup)
+  // =========================
+  function setStep(n){
+    currentStep = Math.max(1, Math.min(totalSteps, n));
+
+    document.querySelectorAll(".step-panel").forEach(p => {
+      p.classList.toggle("is-active", Number(p.dataset.step) === currentStep);
+    });
+
+    document.querySelectorAll(".step-dot").forEach(dot => {
+      const s = Number(dot.dataset.stepDot);
+      dot.classList.toggle("is-active", s === currentStep);
+      dot.classList.toggle("is-complete", s < currentStep);
+    });
+
+    const pct = Math.round((currentStep-1)/(totalSteps-1) * 100);
+    const bar = document.getElementById("progress-bar-inner");
+    if (bar) bar.style.width = pct + "%";
+
+    const percentLabel = document.getElementById("progress-percent");
+    if (percentLabel) percentLabel.textContent = `Step ${currentStep} of ${totalSteps}`;
+
+    const footerText = document.getElementById("wizard-footer-text");
+    if (footerText) footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${totalSteps}</strong>. You can tweak anything later.`;
+
+    if (btnBack) btnBack.disabled = currentStep === 1;
+    if (btnNext) btnNext.textContent = currentStep === totalSteps ? "Finish →" : "Next step →";
+
+    const summary = document.getElementById("summary-box");
+    if (summary) summary.hidden = currentStep !== totalSteps;
   }
 
-  // ------- IMPORTANT: update these if your form uses different names -------
-  function buildPayloadFromForm(){
-    const fd = new FormData(form);
+  // =========================
+  // CHIP CLICK HANDLING (YOUR CHIP STRUCTURE)
+  // chip-row has data-field, chips are <button class="chip"><span>Text</span></button>
+  // =========================
+  function clearSingleRow(row){
+    row.querySelectorAll(".chip").forEach(c => c.classList.remove("is-active"));
+  }
 
-    return {
-      business_name: toNullIfEmpty(fd.get("business_name")),
-      trade_type: toNullIfEmpty(fd.get("trade_type")),
+  function getChipValue(chip){
+    return (chip.textContent || "").trim();
+  }
 
-      contact_name: toNullIfEmpty(fd.get("contact_name")),
-      owner_name: toNullIfEmpty(fd.get("owner_name")),
-      email: toNullIfEmpty(fd.get("email")),
-      phone: toNullIfEmpty(fd.get("phone")),
-      whatsapp_number: toNullIfEmpty(fd.get("whatsapp_number")),
+  function wireChips(){
+    root.addEventListener("click", (e) => {
+      const chip = e.target.closest(".chip");
+      if (!chip) return;
+      const row = chip.closest(".chip-row");
+      if (!row) return;
 
-      lead_source: toNullIfEmpty(fd.get("lead_source")) || "TradeBotPro Website",
+      const field = row.dataset.field;
+      const mode = row.dataset.select || "single";
+      if (!field) return;
 
-      base_postcode: toNullIfEmpty(fd.get("base_postcode")),
-      service_radius_miles: toNumberOrNull(fd.get("service_radius_miles")),
+      if (mode === "single"){
+        clearSingleRow(row);
+        chip.classList.add("is-active");
+      } else {
+        chip.classList.toggle("is-active");
+      }
 
-      callout_fee: toNumberOrNull(fd.get("callout_fee")),
-      first_hour_rate: toNumberOrNull(fd.get("first_hour_rate")),
-      hourly_rate: toNumberOrNull(fd.get("hourly_rate")),
-      quote_minimum: toNumberOrNull(fd.get("quote_minimum")),
-      pricing_notes: toNullIfEmpty(fd.get("pricing_notes")),
+      // autosave after chip changes
+      queueSave("chip");
+    }, true);
+  }
 
-      services_summary: toNullIfEmpty(fd.get("services_summary")),
+  // =========================
+  // COLLECT DATA FROM YOUR ACTUAL INPUT IDs + CHIP ROWS
+  // =========================
+  function collectData(){
+    // text inputs by id
+    const data = {
+      contact_name: (document.getElementById("contact_name")?.value || "").trim() || null,
+      business_name: (document.getElementById("business_name")?.value || "").trim() || null,
+      email: (document.getElementById("contact_email")?.value || "").trim() || null,
+      phone: (document.getElementById("contact_mobile")?.value || "").trim() || null,
+      base_postcode: (document.getElementById("base_postcode")?.value || "").trim() || null,
+      review_link: (document.getElementById("review_link")?.value || "").trim() || null,
+      ai_style_notes: (document.getElementById("ai_avoid")?.value || "").trim() || null,
+      notes: (document.getElementById("extra_notes")?.value || "").trim() || null,
 
-      onboarding_status: toNullIfEmpty(fd.get("onboarding_status")) || "New Signup",
-      wizard_completed: (fd.get("wizard_completed") === "true"),
-
-      ai_style_notes: toNullIfEmpty(fd.get("ai_style_notes")),
-      notes: toNullIfEmpty(fd.get("notes"))
+      onboarding_status: "New Signup",
+      wizard_completed: false
     };
+
+    // chips into JSON column "wizard_answers" (recommended)
+    const answers = {};
+    document.querySelectorAll(".chip-row[data-field]").forEach(row => {
+      const field = row.dataset.field;
+      const mode = row.dataset.select || "single";
+      const active = Array.from(row.querySelectorAll(".chip.is-active")).map(getChipValue);
+
+      answers[field] = (mode === "multi") ? active : (active[0] || null);
+    });
+
+    data.wizard_answers = answers; // ✅ store all chip selections here
+
+    return data;
   }
 
-  function setFormFromRow(row){
-    const setVal = (name, v) => { if (form.elements[name]) form.elements[name].value = (v ?? ""); };
+  function hydrateFromRow(row){
+    // inputs
+    if (row.contact_name) document.getElementById("contact_name").value = row.contact_name;
+    if (row.business_name) document.getElementById("business_name").value = row.business_name;
+    if (row.email) document.getElementById("contact_email").value = row.email;
+    if (row.phone) document.getElementById("contact_mobile").value = row.phone;
+    if (row.base_postcode) document.getElementById("base_postcode").value = row.base_postcode;
+    if (row.review_link) document.getElementById("review_link").value = row.review_link;
+    if (row.ai_style_notes) document.getElementById("ai_avoid").value = row.ai_style_notes;
+    if (row.notes) document.getElementById("extra_notes").value = row.notes;
 
-    setVal("business_name", row.business_name);
-    setVal("trade_type", row.trade_type);
+    // chips from wizard_answers JSON
+    const answers = row.wizard_answers || {};
+    document.querySelectorAll(".chip-row[data-field]").forEach(rowEl => {
+      const field = rowEl.dataset.field;
+      const mode = rowEl.dataset.select || "single";
+      const val = answers[field];
 
-    setVal("contact_name", row.contact_name);
-    setVal("owner_name", row.owner_name);
-    setVal("email", row.email);
-    setVal("phone", row.phone);
-    setVal("whatsapp_number", row.whatsapp_number);
+      rowEl.querySelectorAll(".chip").forEach(chip => chip.classList.remove("is-active"));
 
-    setVal("lead_source", row.lead_source || "TradeBotPro Website");
-
-    setVal("base_postcode", row.base_postcode);
-    setVal("service_radius_miles", row.service_radius_miles);
-
-    setVal("callout_fee", row.callout_fee);
-    setVal("first_hour_rate", row.first_hour_rate);
-    setVal("hourly_rate", row.hourly_rate);
-    setVal("quote_minimum", row.quote_minimum);
-    setVal("pricing_notes", row.pricing_notes);
-
-    setVal("services_summary", row.services_summary);
-
-    setVal("onboarding_status", row.onboarding_status || "New Signup");
-    setVal("wizard_completed", row.wizard_completed ? "true" : "false");
-
-    setVal("ai_style_notes", row.ai_style_notes);
-    setVal("notes", row.notes);
+      if (mode === "multi" && Array.isArray(val)){
+        rowEl.querySelectorAll(".chip").forEach(chip => {
+          if (val.includes(getChipValue(chip))) chip.classList.add("is-active");
+        });
+      } else if (typeof val === "string" && val){
+        rowEl.querySelectorAll(".chip").forEach(chip => {
+          if (getChipValue(chip) === val) chip.classList.add("is-active");
+        });
+      }
+    });
   }
 
-  function updatePillsFromRow(row){
-    safeSetText(pillCustomerId, `Customer: ${row?.id || "—"}`);
-    safeSetText(pillStatus, `Status: ${row?.onboarding_status || "New Signup"}`);
-    safeSetText(pillWhatsApp, `WhatsApp: ${row?.whatsapp_connected ? "Connected" : "Not connected"}`);
-    safeSetText(pillCalendar, `Calendar: ${row?.calendar_connected ? "Connected" : "Not connected"}`);
-    safeSetText(pillPayments, `Payments: ${row?.payments_connected ? "Connected" : "Not connected"}`);
-    applyLock(!!row?.wizard_completed);
-  }
-
+  // =========================
+  // DB LOAD/SAVE
+  // Requires customers table to have:
+  // - id uuid
+  // - contact_name, business_name, email, phone, base_postcode, review_link, ai_style_notes, notes
+  // - wizard_answers jsonb (recommended)
+  // =========================
   async function loadCustomer(id){
     const { data, error } = await supabase.from("customers").select("*").eq("id", id).single();
-    if (error) {
-      console.error("LOAD ERROR:", error);
-      return null;
-    }
+    if (error){ console.error("LOAD ERROR:", error); msg("Load failed (see console)", "error"); return null; }
     return data;
   }
 
   async function saveNow(reason){
-    if (!form || isBootstrapping || isLocked) return;
-
-    const payload = buildPayloadFromForm();
+    const payload = collectData();
     if (customerId) payload.id = customerId;
 
-    console.log("[AUTOSAVE] attempt:", reason, { customerId, payload });
+    console.log("[SAVE]", reason, payload);
 
     const { data, error } = await supabase
       .from("customers")
@@ -1204,73 +1253,74 @@
       .select("*")
       .single();
 
-    if (error) {
-      console.error("[AUTOSAVE] FAILED:", error, { payload });
-      return;
+    if (error){
+      console.error("[SAVE FAILED]", error);
+      msg("Save failed (see console)", "error");
+      return null;
     }
 
-    console.log("[AUTOSAVE] OK:", data.id);
     customerId = data.id;
     setUrlCustomerId(customerId);
-    updatePillsFromRow(data);
+    msg("Saved", "success");
+    return data;
   }
 
-  function debounceSave(reason){
-    clearTimeout(t);
-    t = setTimeout(() => saveNow(reason), 450);
+  function queueSave(reason){
+    if (isBootstrapping) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveNow(reason), 500);
   }
 
-  // Autosave for normal inputs
-  if (form){
-    form.addEventListener("input", () => debounceSave("input"));
-    form.addEventListener("change", () => debounceSave("change"));
-    form.addEventListener("submit", (e) => { e.preventDefault(); saveNow("submit"); });
+  // Save draft button = localStorage only (as your UI says)
+  if (btnSaveDraft){
+    btnSaveDraft.addEventListener("click", () => {
+      localStorage.setItem("tbp_wizard_draft", JSON.stringify(collectData()));
+      msg("Draft saved in this browser.", "success");
+    });
   }
 
-  // CHIP FIX:
-  // Any click on:
-  // - [data-name][data-value]
-  // - label[for]
-  // - elements with .chip/.pill/.option/.radio-chip
-  // triggers an immediate save AFTER the browser updates the input.
-  document.addEventListener("click", (e) => {
-    if (!form || isLocked) return;
-    const isChip =
-      e.target.closest("[data-name][data-value]") ||
-      e.target.closest("label[for]") ||
-      e.target.closest(".chip, .pill, .option, .radio-chip, [role='radio'], [role='option']");
+  // Next/Back wire-up
+  if (btnBack) btnBack.addEventListener("click", () => setStep(currentStep - 1));
+  if (btnNext) btnNext.addEventListener("click", async () => {
+    if (currentStep < totalSteps){
+      setStep(currentStep + 1);
+      return;
+    }
+    // Finish:
+    const saved = await saveNow("finish");
+    if (saved){
+      // mark as completed + move status
+      await supabase.from("customers").update({
+        wizard_completed: true,
+        onboarding_status: "Demo Booked"
+      }).eq("id", customerId);
 
-    if (!isChip) return;
+      msg("Wizard complete. We’ll confirm your demo evening next.", "success");
+      const summary = document.getElementById("summary-box");
+      if (summary) summary.hidden = false;
+    }
+  });
 
-    // let the click check the radio first, then save
-    setTimeout(() => saveNow("chip-click"), 0);
-  }, true);
+  // Autosave on typing
+  root.addEventListener("input", () => queueSave("input"), true);
+  root.addEventListener("change", () => queueSave("change"), true);
 
-  // INIT
+  // Start
+  wireChips();
+  setStep(1);
+
   (async () => {
     if (customerId){
       const row = await loadCustomer(customerId);
-      isBootstrapping = true;
       if (row){
-        setFormFromRow(row);
-        updatePillsFromRow(row);
-      } else {
-        updatePillsFromRow({});
+        isBootstrapping = true;
+        hydrateFromRow(row);
+        isBootstrapping = false;
       }
-      isBootstrapping = false;
-    } else {
-      isBootstrapping = false;
-      updatePillsFromRow({});
     }
+    isBootstrapping = false;
     console.log("APP ready. customerId =", customerId || "(new)");
   })();
-
-  // Expose for quick debugging in console if needed
-  window.__tbp = {
-    get customerId(){ return customerId; },
-    saveNow,
-    buildPayloadFromForm
-  };
 </script>
 
 </body>
