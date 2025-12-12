@@ -1061,20 +1061,20 @@
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
- const sb._URL = "https://yaiutswdcbfwkxfqxkzy.sb..co";
-  const sb._ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-
+  // ✅ Supabase
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   window.sb = sb;
 
-  console.log("SCRIPT VERSION: CHIPS-FIX-2025-12-12");
+  console.log("SCRIPT VERSION: WIZARD-STABLE-2025-12-12");
 
-  // -------- DOM (your exact IDs/classes) --------
+  // ✅ Your DOM
   const root = document.querySelector(".wizard-right") || document.body;
 
   const btnBack = document.getElementById("btn-back");
   const btnNext = document.getElementById("btn-next");
-  const btnSaveDraft = document.getElementById("btn-save-draft");
+  const btnSave = document.getElementById("btn-save-draft"); // we repurpose this to save to Supabase
   const statusMsg = document.getElementById("wizard-status-message");
 
   const progressPercent = document.getElementById("progress-percent");
@@ -1086,7 +1086,7 @@
   const stepSubtitle = document.getElementById("wizard-step-subtitle");
   const summaryBox = document.getElementById("summary-box");
 
-  // -------- state --------
+  // ✅ State
   let customerId = new URL(location.href).searchParams.get("id");
   let currentStep = 1;
   const totalSteps = 4;
@@ -1100,28 +1100,28 @@
     4: { label: "Step 4", title: "Demo & go-live", subtitle: "Demo preferences and what happens next." }
   };
 
-  function msg(text, type="") {
+  function uiMsg(text, type = "") {
     if (!statusMsg) return;
     statusMsg.textContent = text || "";
     statusMsg.className = "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
   }
 
-  function setUrlCustomerId(id){
+  function setUrlCustomerId(id) {
     const u = new URL(location.href);
     if (id) u.searchParams.set("id", id);
     else u.searchParams.delete("id");
     history.replaceState({}, "", u.toString());
   }
 
-  // -------- step UI --------
-  function setStep(n){
+  // ✅ Step UI
+  function setStep(n) {
     currentStep = Math.max(1, Math.min(totalSteps, n));
 
-    document.querySelectorAll(".step-panel").forEach(p => {
+    document.querySelectorAll(".step-panel").forEach((p) => {
       p.classList.toggle("is-active", Number(p.dataset.step) === currentStep);
     });
 
-    document.querySelectorAll(".step-dot").forEach(dot => {
+    document.querySelectorAll(".step-dot").forEach((dot) => {
       const s = Number(dot.dataset.stepDot);
       dot.classList.toggle("is-active", s === currentStep);
       dot.classList.toggle("is-complete", s < currentStep);
@@ -1143,110 +1143,119 @@
     if (summaryBox) summaryBox.hidden = true;
   }
 
-  // -------- chips (HARD FIX) --------
-  function chipText(chip){
+  // ✅ Chips (hard fix: capture-phase, always toggles)
+  function chipText(chip) {
     return (chip.textContent || "").trim();
   }
-
-  function setChipActive(chip, on){
+  function setChipActive(chip, on) {
     chip.classList.toggle("is-active", !!on);
     chip.setAttribute("aria-pressed", on ? "true" : "false");
   }
 
-  // Handle chips at DOCUMENT level, capture phase, so nothing can swallow the click.
-  document.addEventListener("click", (e) => {
-    const chip = e.target.closest("button.chip");
-    if (!chip) return;
+  document.addEventListener(
+    "click",
+    (e) => {
+      const chip = e.target.closest("button.chip");
+      if (!chip) return;
 
-    const row = chip.closest(".chip-row");
-    if (!row) return;
+      const row = chip.closest(".chip-row");
+      if (!row) return;
 
-    e.preventDefault();
-    e.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
 
-    const mode = (row.dataset.select || "single").toLowerCase();
+      const mode = (row.dataset.select || "single").toLowerCase();
 
-    if (mode === "single") {
-      row.querySelectorAll("button.chip").forEach(c => setChipActive(c, false));
-      setChipActive(chip, true);
-    } else {
-      // multi
-      setChipActive(chip, !chip.classList.contains("is-active"));
-    }
+      if (mode === "single") {
+        row.querySelectorAll("button.chip").forEach((c) => setChipActive(c, false));
+        setChipActive(chip, true);
+      } else {
+        setChipActive(chip, !chip.classList.contains("is-active"));
+      }
 
-    queueSave("chip");
-  }, true);
+      queueSave("chip");
+    },
+    true
+  );
 
-  // -------- collect/hydrate --------
-  function collectAnswers(){
+  // ✅ Collect + hydrate
+  function collectAnswers() {
     const answers = {};
-    document.querySelectorAll(".chip-row[data-field]").forEach(row => {
+    document.querySelectorAll(".chip-row[data-field]").forEach((row) => {
       const field = row.dataset.field;
       const mode = (row.dataset.select || "single").toLowerCase();
       const active = Array.from(row.querySelectorAll("button.chip.is-active")).map(chipText);
-      answers[field] = (mode === "multi") ? active : (active[0] || null);
+      answers[field] = mode === "multi" ? active : active[0] || null;
     });
     return answers;
   }
 
-  function collectData(){
-    return {
-      contact_name: (document.getElementById("contact_name")?.value || "").trim() || null,
-      business_name: (document.getElementById("business_name")?.value || "").trim() || null,
-      email: (document.getElementById("contact_email")?.value || "").trim() || null,
-      phone: (document.getElementById("contact_mobile")?.value || "").trim() || null,
-      base_postcode: (document.getElementById("base_postcode")?.value || "").trim() || null,
+  function valById(id) {
+    return (document.getElementById(id)?.value || "").trim() || null;
+  }
 
-      review_link: (document.getElementById("review_link")?.value || "").trim() || null,
+  function collectData() {
+    return {
+      // ✅ your real input IDs
+      contact_name: valById("contact_name"),
+      business_name: valById("business_name"),
+      email: valById("contact_email"),
+      phone: valById("contact_mobile"),
+      base_postcode: valById("base_postcode"),
+      review_link: valById("review_link"),
       ai_style_notes: (document.getElementById("ai_avoid")?.value || "").trim() || null,
       notes: (document.getElementById("extra_notes")?.value || "").trim() || null,
 
       onboarding_status: "New Signup",
       wizard_completed: false,
 
+      // ✅ all chips in one place
       wizard_answers: collectAnswers()
     };
   }
 
-  function hydrate(row){
+  function hydrate(row) {
     if (row.contact_name) document.getElementById("contact_name").value = row.contact_name;
     if (row.business_name) document.getElementById("business_name").value = row.business_name;
     if (row.email) document.getElementById("contact_email").value = row.email;
     if (row.phone) document.getElementById("contact_mobile").value = row.phone;
     if (row.base_postcode) document.getElementById("base_postcode").value = row.base_postcode;
-
     if (row.review_link) document.getElementById("review_link").value = row.review_link;
     if (row.ai_style_notes) document.getElementById("ai_avoid").value = row.ai_style_notes;
     if (row.notes) document.getElementById("extra_notes").value = row.notes;
 
     const answers = row.wizard_answers || {};
-    document.querySelectorAll(".chip-row[data-field]").forEach(rowEl => {
+    document.querySelectorAll(".chip-row[data-field]").forEach((rowEl) => {
       const field = rowEl.dataset.field;
       const mode = (rowEl.dataset.select || "single").toLowerCase();
       const val = answers[field];
 
-      rowEl.querySelectorAll("button.chip").forEach(c => setChipActive(c, false));
+      rowEl.querySelectorAll("button.chip").forEach((c) => setChipActive(c, false));
 
       if (mode === "multi" && Array.isArray(val)) {
-        rowEl.querySelectorAll("button.chip").forEach(chip => {
+        rowEl.querySelectorAll("button.chip").forEach((chip) => {
           if (val.includes(chipText(chip))) setChipActive(chip, true);
         });
       } else if (typeof val === "string" && val) {
-        rowEl.querySelectorAll("button.chip").forEach(chip => {
+        rowEl.querySelectorAll("button.chip").forEach((chip) => {
           if (chipText(chip) === val) setChipActive(chip, true);
         });
       }
     });
   }
 
-  // -------- save/load --------
-  async function loadCustomer(id){
+  // ✅ DB
+  async function loadCustomer(id) {
     const { data, error } = await sb.from("customers").select("*").eq("id", id).single();
-    if (error){ console.error("LOAD ERROR:", error); msg("Load failed (see console)", "error"); return null; }
+    if (error) {
+      console.error("LOAD ERROR:", error);
+      uiMsg("Load failed (check Console).", "error");
+      return null;
+    }
     return data;
   }
 
-  async function saveNow(reason){
+  async function saveNow(reason) {
     const payload = collectData();
     if (customerId) payload.id = customerId;
 
@@ -1258,81 +1267,80 @@
       .select("*")
       .single();
 
-    if (error){
+    if (error) {
       console.error("[SAVE FAILED]", error);
-      msg("Save failed (see console)", "error");
+      uiMsg("Save failed (check Console).", "error");
       return null;
     }
 
     customerId = data.id;
     setUrlCustomerId(customerId);
-    msg("Saved", "success");
+    uiMsg("Saved", "success");
     return data;
   }
 
-  function queueSave(reason){
+  function queueSave(reason) {
     if (isBootstrapping) return;
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => saveNow(reason), 500);
   }
 
-  // -------- buttons --------
-  if (btnSaveDraft){
-    btnSaveDraft.addEventListener("click", (e) => {
+  // ✅ Buttons
+  if (btnSave) {
+    btnSave.textContent = "Save now"; // change label
+    btnSave.addEventListener("click", async (e) => {
       e.preventDefault();
-      localStorage.setItem("tbp_wizard_draft", JSON.stringify(collectData()));
-      msg("Draft saved in this browser.", "success");
+      await saveNow("manual");
     });
   }
 
-  if (btnBack){
+  if (btnBack) {
     btnBack.addEventListener("click", (e) => {
       e.preventDefault();
       setStep(currentStep - 1);
     });
   }
 
-  if (btnNext){
+  if (btnNext) {
     btnNext.addEventListener("click", async (e) => {
       e.preventDefault();
-      console.log("[NAV] Next clicked. step=", currentStep);
 
-      if (currentStep < totalSteps){
+      if (currentStep < totalSteps) {
         setStep(currentStep + 1);
         return;
       }
 
-      // Finish on step 4
+      // Finish step 4
       const saved = await saveNow("finish");
       if (!saved) return;
 
-      const { error } = await sb.from("customers").update({
-        wizard_completed: true,
-        onboarding_status: "Demo Booked"
-      }).eq("id", customerId);
+      const { error } = await sb
+        .from("customers")
+        .update({ wizard_completed: true, onboarding_status: "Demo Booked" })
+        .eq("id", customerId);
 
-      if (error){
+      if (error) {
         console.error("FINISH UPDATE ERROR:", error);
-        msg("Finish failed (see console)", "error");
+        uiMsg("Finish failed (check Console).", "error");
         return;
       }
 
-      msg("Wizard complete. We’ll confirm your demo evening next.", "success");
+      uiMsg("Wizard complete. We’ll confirm your demo evening next.", "success");
       if (summaryBox) summaryBox.hidden = false;
     });
   }
 
-  // autosave on typing
+  // ✅ Autosave on typing
   root.addEventListener("input", () => queueSave("input"), true);
   root.addEventListener("change", () => queueSave("change"), true);
 
-  // -------- start --------
+  // ✅ Start
   setStep(1);
 
   (async () => {
-    if (customerId){
+    if (customerId) {
       const row = await loadCustomer(customerId);
-      if (row){
+      if (row) {
         isBootstrapping = true;
         hydrate(row);
         isBootstrapping = false;
@@ -1342,8 +1350,6 @@
     console.log("APP ready. customerId =", customerId || "(new)");
   })();
 </script>
-
-
 
 </body>
 </html>
