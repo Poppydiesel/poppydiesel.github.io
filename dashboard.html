@@ -2,404 +2,564 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro — Dashboard</title>
+  <title>TradeBotPro – Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="TradeBotPro customer onboarding dashboard." />
 
   <style>
-    :root{
-      --primary-blue:#1f4e79;
-      --accent-blue:#00a3ff;
-      --dark-text:#1b1b1f;
-      --light-bg:#f5f7fa;
-      --white:#ffffff;
-
-      --card:#ffffff;
-      --border:rgba(0,0,0,0.12);
-      --shadow:0 8px 24px rgba(0,0,0,0.08);
-      --radius:16px;
+    :root {
+      --primary-blue: #1f4e79;
+      --accent-blue: #00a3ff;
+      --dark-text: #151820;
+      --muted-text: #6b7280;
+      --light-bg: #f3f4f9;
+      --white: #ffffff;
+      --border-subtle: rgba(15, 23, 42, 0.12);
+      --chip-bg: #eef2ff;
+      --chip-border: rgba(37, 99, 235, 0.3);
+      --success-green: #0f7b46;
+      --error-red: #b3261e;
+      --shadow: 0 24px 60px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.03);
     }
 
-    *{ box-sizing:border-box; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at top left, #e0ebff 0, #f3f4f9 40%, #fdfdfd 100%);
+      color: var(--dark-text);
+      line-height: 1.5;
+    }
+    a { color: inherit; text-decoration: none; }
 
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-      background:var(--light-bg);
-      color:var(--dark-text);
-      line-height:1.5;
+    header {
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      background: rgba(248, 250, 252, 0.96);
+      backdrop-filter: blur(6px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
     }
+    .header-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0.6rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 0.6rem; }
+    .logo-icon {
+      width: 30px; height: 30px; border-radius: 9px;
+      background: var(--primary-blue); position: relative;
+    }
+    .logo-icon::before, .logo-icon::after { content:""; position:absolute; background: var(--white); border-radius: 4px; }
+    .logo-icon::before { width: 11px; height: 17px; left: 7px; top: 6px; }
+    .logo-icon::after { width: 6px; height: 11px; right: 7px; top: 9px; }
+    .logo-main { font-weight: 700; font-size: 1rem; color: var(--primary-blue); }
+    .logo-tag { font-size: 0.75rem; color: var(--muted-text); }
+    .header-note { font-size: 0.75rem; color: var(--muted-text); }
+    .header-note strong { color: var(--primary-blue); font-weight: 600; }
 
-    header{
-      padding:18px 16px;
-      background:#fff;
-      border-bottom:1px solid var(--border);
-    }
-    header .wrap{
-      max-width:1200px;
-      margin:0 auto;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-weight:800;
-      color:var(--primary-blue);
-      letter-spacing:.2px;
-    }
-    .pill{
-      padding:6px 10px;
-      border:1px solid var(--border);
-      border-radius:999px;
-      background:#fff;
-      font-weight:800;
-      font-size:12px;
-      white-space:nowrap;
-    }
-    .header-right{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-
-    main{
-      max-width:1200px;
-      margin:18px auto;
-      padding:0 16px 40px;
-      display:grid;
-      grid-template-columns: 360px 1fr;
-      gap:16px;
-    }
-    @media (max-width:980px){
-      main{ grid-template-columns:1fr; }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1.4rem 1.25rem 2.2rem;
     }
 
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:16px;
+    .shell {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 1.25rem;
+      align-items: start;
     }
 
-    .card h2{
-      margin:0 0 12px;
-      font-size:16px;
-      color:var(--primary-blue);
-      letter-spacing:.2px;
+    .panel {
+      border-radius: 1.2rem;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+      padding: 1.1rem 1.1rem;
+    }
+    .panel.soft {
+      background: rgba(248, 250, 252, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: none;
     }
 
-    .muted{
-      font-size:12px;
-      color:rgba(0,0,0,0.55);
-      line-height:1.5;
-      margin:8px 0 0;
+    .kicker {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-blue);
+      margin-bottom: 0.35rem;
+    }
+    .title {
+      margin: 0 0 0.35rem;
+      font-size: 1.35rem;
+      color: var(--primary-blue);
+    }
+    .subtitle {
+      margin: 0 0 0.85rem;
+      font-size: 0.9rem;
+      color: var(--muted-text);
     }
 
-    input{
-      width:100%;
-      padding:11px 12px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background:#fff;
-      outline:none;
-      font-size:14px;
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+      margin-top: 0.75rem;
+    }
+    .status-card {
+      width: 100%;
+      border-radius: 0.95rem;
+      padding: 0.8rem 0.85rem;
+      border: 1px solid rgba(15, 23, 42, 0.10);
+      background: #ffffff;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+    }
+    .status-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+      border-color: rgba(31, 78, 121, 0.35);
+    }
+    .status-card.is-active {
+      border-color: rgba(31, 78, 121, 0.7);
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.12);
+      background: #f3f7ff;
+    }
+    .status-name { font-weight: 650; color: var(--dark-text); font-size: 0.92rem; }
+    .status-meta { font-size: 0.76rem; color: var(--muted-text); margin-top: 0.12rem; }
+    .status-count {
+      min-width: 44px;
+      text-align: center;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      background: #eef2ff;
+      border: 1px solid rgba(37, 99, 235, 0.22);
+      color: var(--primary-blue);
+      font-weight: 700;
     }
 
-    .status-boxes{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:10px;
-      margin-top:10px;
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.85rem;
+    }
+    .controls-left {
+      display: flex;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search {
+      width: min(420px, 100%);
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.6rem 0.7rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-subtle);
+      background: var(--white);
+    }
+    .search input {
+      border: 0;
+      outline: 0;
+      width: 100%;
+      font: inherit;
+      font-size: 0.92rem;
+      background: transparent;
     }
 
-    .status-box{
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:12px;
-      background:#fff;
-      cursor:pointer;
-      transition:transform .06s ease, box-shadow .06s ease, outline-color .06s ease;
+    .btn {
+      border-radius: 999px;
+      border: 1px solid transparent;
+      padding: 0.55rem 1.05rem;
+      font-size: 0.86rem;
+      font-weight: 550;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: transparent;
     }
-    .status-box:hover{
-      box-shadow:0 6px 18px rgba(0,0,0,0.08);
-      transform:translateY(-1px);
+    .btn:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
+    .btn-secondary { border-color: var(--border-subtle); background: #f9fafb; color: var(--dark-text); }
+    .btn-secondary:hover { background: #e5e7eb; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-blue), #163857);
+      color: var(--white);
+      border-color: transparent;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.35);
     }
-    .status-box.active{
-      outline:2px solid rgba(31,78,121,0.55);
-    }
-    .status-box .row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .status-box .name{
-      font-weight:900;
-      font-size:14px;
-      color:rgba(0,0,0,0.82);
-    }
-    .status-box .count{
-      font-weight:900;
-      padding:4px 10px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background:#fff;
-      font-size:13px;
+    .btn-primary:hover { filter: brightness(1.03); box-shadow: 0 16px 34px rgba(15, 23, 42, 0.4); }
+
+    .table-wrap {
+      overflow: auto;
+      border-radius: 1rem;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: #fff;
     }
 
-    .search{ margin-top:12px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+    }
+    thead th {
+      position: sticky;
+      top: 0;
+      background: #f8fafc;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted-text);
+      text-align: left;
+      padding: 0.75rem 0.85rem;
+      white-space: nowrap;
+    }
+    tbody td {
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      padding: 0.75rem 0.85rem;
+      font-size: 0.9rem;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    tbody tr:hover { background: #f7fbff; }
 
-    table{
-      width:100%;
-      border-collapse:separate;
-      border-spacing:0;
-      overflow:hidden;
-      border-radius:14px;
-      border:1px solid var(--border);
-      background:#fff;
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.22rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      background: rgba(241, 245, 249, 0.9);
+      font-size: 0.8rem;
+      color: var(--dark-text);
     }
-    th, td{
-      padding:12px 10px;
-      border-bottom:1px solid rgba(0,0,0,0.08);
-      font-size:14px;
-      vertical-align:top;
-    }
-    th{
-      text-align:left;
-      font-size:12px;
-      letter-spacing:.4px;
-      text-transform:uppercase;
-      color:rgba(0,0,0,0.6);
-      background:#fafbfc;
-    }
-    tr:last-child td{ border-bottom:none; }
+    .pill.ok { border-color: rgba(15, 123, 70, 0.45); background: #ecfdf5; color: #14532d; }
+    .pill.no { border-color: rgba(179, 38, 30, 0.35); background: #fff1f2; color: #7f1d1d; }
 
-    .tag{
-      display:inline-block;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background:#fff;
-      font-weight:800;
-      font-size:12px;
-      white-space:nowrap;
-    }
-
-    button{
-      border:none;
-      border-radius:12px;
-      padding:11px 14px;
-      font-weight:900;
-      cursor:pointer;
-      font-size:13px;
-    }
-    .btn-primary{
-      background:var(--primary-blue);
-      color:#fff;
-    }
-    .btn-outline{
-      background:#fff;
-      border:1px solid var(--border);
-      color:var(--dark-text);
+    .row-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: flex-end;
     }
 
-    .top-row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-bottom:10px;
+    .status-bar {
+      margin-top: 0.8rem;
+      font-size: 0.85rem;
+      min-height: 1.2em;
+    }
+    .status-bar.success { color: var(--success-green); }
+    .status-bar.error { color: var(--error-red); }
+    .status-bar.muted { color: var(--muted-text); }
+
+    @media (max-width: 980px) {
+      .shell { grid-template-columns: 1fr; }
     }
   </style>
 </head>
-
 <body>
-<header>
-  <div class="wrap">
-    <div class="brand">TradeBotPro — Dashboard</div>
-    <div class="header-right">
-      <div class="pill" id="pillFilter">Filter: All</div>
-      <!-- ✅ NEW CUSTOMER BUTTON -->
-      <button class="btn-outline" id="btnNew" type="button">New customer</button>
-    </div>
+  <div class="page">
+    <header>
+      <div class="header-inner">
+        <div class="logo-wrap">
+          <div class="logo-icon" aria-hidden="true"></div>
+          <div>
+            <div class="logo-main">TradeBotPro</div>
+            <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
+          </div>
+        </div>
+        <div class="header-note">
+          View: <strong>Onboarding Dashboard</strong>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="shell">
+
+        <!-- LEFT: STATUS COUNTS -->
+        <aside class="panel">
+          <div class="kicker">Pipeline</div>
+          <h1 class="title">Onboarding stages</h1>
+          <p class="subtitle">Click a box to filter customers.</p>
+
+          <div class="status-grid" id="status-grid"></div>
+
+          <div class="status-bar muted" id="left-hint"></div>
+        </aside>
+
+        <!-- RIGHT: LIST -->
+        <section class="panel soft">
+          <div class="controls">
+            <div class="controls-left">
+              <div class="search">
+                <span style="opacity:.7">🔎</span>
+                <input id="search" type="text" placeholder="Search name, business, email, phone, postcode…" />
+              </div>
+              <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filter</button>
+            </div>
+
+            <div class="controls-right">
+              <button class="btn btn-secondary" id="btn-refresh" type="button">↻ Refresh</button>
+              <button class="btn btn-primary" id="btn-new" type="button">+ New customer</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Business</th>
+                  <th>Contact</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Postcode</th>
+                  <th>Wizard</th>
+                  <th>Updated</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="status-bar muted" id="status-bar">Loading…</div>
+        </section>
+
+      </div>
+    </main>
   </div>
-</header>
-
-<main>
-  <aside class="card">
-    <h2>Onboarding stages</h2>
-    <div class="status-boxes" id="statusBoxes"></div>
-
-    <div class="search">
-      <input id="search" placeholder="Search name, email, phone, postcode…" />
-    </div>
-
-    <p class="muted">Click a stage box to filter. Click again to clear.</p>
-  </aside>
-
-  <section class="card">
-    <div class="top-row">
-      <h2 style="margin:0;">Customers</h2>
-      <div class="pill" id="pillCount">0 customers</div>
-    </div>
-    <div id="tableWrap"></div>
-  </section>
-</main>
 
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
- window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  // <--- YOUR URL in quotes
-  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";  
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // ✅ Put your live keys here (same project as app.html)
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  console.log("SCRIPT VERSION: DASHBOARD-STAGES-2025-12-12");
+
+  // ---------- CONFIG ----------
+  // Keep this list stable. Add/rename here and it will appear as a box.
   const ONBOARDING_STATUSES = [
     "New Signup",
+    "Wizard Started",
+    "Wizard Completed",
     "Demo Booked",
-    "Demo Completed",
     "WhatsApp Connected",
-    "Flows Built",
-    "Calendar Linked",
-    "Payments Connected",
+    "Calendar Connected",
     "Live",
-    "Paused",
-    "Closed / Not Proceeding"
+    "Paused / Not Proceeding"
   ];
 
-  const statusBoxesEl = document.getElementById("statusBoxes");
-  const tableWrap = document.getElementById("tableWrap");
-  const pillFilter = document.getElementById("pillFilter");
-  const pillCount = document.getElementById("pillCount");
-  const searchEl = document.getElementById("search");
-  const btnNew = document.getElementById("btnNew");
+  // We will *derive* Wizard Started/Completed if onboarding_status is missing.
+  function normalizeStatus(row) {
+    const s = (row?.onboarding_status || "").trim();
+    if (s) return s;
 
-  let currentStatusFilter = null;
-  let searchTerm = "";
+    // fallback: if they have any wizard_answers, call it started
+    const hasAnswers =
+      row?.wizard_answers &&
+      typeof row.wizard_answers === "object" &&
+      Object.keys(row.wizard_answers || {}).length > 0;
 
-  function esc(s){
-    return (s ?? "").toString().replace(/[&<>"']/g, c => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[c]));
+    if (row?.wizard_completed) return "Wizard Completed";
+    if (hasAnswers) return "Wizard Started";
+    return "New Signup";
   }
 
-  function renderStatusBoxes(counts){
-    statusBoxesEl.innerHTML = "";
-    for (const status of ONBOARDING_STATUSES){
-      const count = counts[status] || 0;
-
-      const box = document.createElement("div");
-      box.className = "status-box" + (currentStatusFilter === status ? " active" : "");
-      box.innerHTML = `
-        <div class="row">
-          <div class="name">${esc(status)}</div>
-          <div class="count">${count}</div>
-        </div>
-      `;
-
-      box.onclick = () => {
-        currentStatusFilter = (currentStatusFilter === status) ? null : status;
-        pillFilter.textContent = "Filter: " + (currentStatusFilter || "All");
-        loadAll();
-      };
-
-      statusBoxesEl.appendChild(box);
-    }
+  function fmtDate(iso) {
+    if (!iso) return "—";
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString(undefined, { year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+    } catch { return "—"; }
   }
 
-  function renderTable(rows){
-    pillCount.textContent = `${rows.length} customer${rows.length === 1 ? "" : "s"}`;
+  // ---------- DOM ----------
+  const statusGrid = document.getElementById("status-grid");
+  const leftHint = document.getElementById("left-hint");
+  const tbody = document.getElementById("tbody");
+  const search = document.getElementById("search");
+  const statusBar = document.getElementById("status-bar");
 
-    tableWrap.innerHTML = `
-      <table>
-        <thead>
-          <tr>
-            <th>Business</th>
-            <th>Contact</th>
-            <th>Status</th>
-            <th>Lead Source</th>
-            <th>Updated</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map(r => `
-            <tr>
-              <td>
-                <div style="font-weight:900">${esc(r.business_name || "—")}</div>
-                <div class="muted">${esc(r.trade_type || "")}</div>
-              </td>
-              <td>
-                <div>${esc(r.contact_name || r.owner_name || "—")}</div>
-                <div class="muted">${esc(r.email || "")}</div>
-                <div class="muted">${esc(r.phone || r.whatsapp_number || "")}</div>
-                <div class="muted">${esc(r.base_postcode || "")}</div>
-              </td>
-              <td><span class="tag">${esc(r.onboarding_status || "New Signup")}</span></td>
-              <td><span class="tag">${esc(r.lead_source || "—")}</span></td>
-              <td class="muted">${esc(r.updated_at ? new Date(r.updated_at).toLocaleString() : "—")}</td>
-              <td style="text-align:right">
-                <button class="btn-primary" onclick="window.open('app.html?id=${esc(r.id)}','_blank')">Open in wizard</button>
-              </td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
+  const btnRefresh = document.getElementById("btn-refresh");
+  const btnNew = document.getElementById("btn-new");
+  const btnClearFilter = document.getElementById("btn-clear-filter");
+
+  // ---------- STATE ----------
+  let allRows = [];
+  let activeStatus = null;
+
+  // ---------- UI ----------
+  function setStatusBar(text, kind = "muted") {
+    statusBar.textContent = text || "";
+    statusBar.className = "status-bar " + (kind || "muted");
+  }
+
+  function buildStatusCards(counts) {
+    statusGrid.innerHTML = "";
+
+    // Add an "All" card at top
+    const allCount = allRows.length;
+    statusGrid.appendChild(makeCard("All customers", allCount, "Show everyone", null));
+
+    ONBOARDING_STATUSES.forEach((s) => {
+      statusGrid.appendChild(
+        makeCard(
+          s,
+          counts[s] || 0,
+          s === "Live" ? "Already running" : "Needs action",
+          s
+        )
+      );
+    });
+
+    leftHint.textContent = activeStatus ? `Filtering: ${activeStatus}` : `Showing: All customers`;
+  }
+
+  function makeCard(name, count, meta, value) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "status-card" + ((activeStatus === value) ? " is-active" : "");
+    card.innerHTML = `
+      <div>
+        <div class="status-name">${name}</div>
+        <div class="status-meta">${meta || ""}</div>
+      </div>
+      <div class="status-count">${count}</div>
     `;
+    card.addEventListener("click", () => {
+      activeStatus = value; // null = all
+      render();
+    });
+    return card;
   }
 
-  async function loadCounts(){
-    const { data, error } = await supabase.from("customers").select("onboarding_status");
-    if (error){ console.error("Load counts error:", error); return {}; }
+  function rowMatchesSearch(row, q) {
+    if (!q) return true;
+    const hay = [
+      row.business_name,
+      row.contact_name,
+      row.email,
+      row.phone,
+      row.base_postcode,
+      normalizeStatus(row)
+    ].join(" ").toLowerCase();
+    return hay.includes(q.toLowerCase());
+  }
 
+  function render() {
+    // counts
     const counts = {};
-    for (const row of (data || [])){
-      const s = row.onboarding_status || "New Signup";
+    for (const r of allRows) {
+      const s = normalizeStatus(r);
       counts[s] = (counts[s] || 0) + 1;
     }
-    for (const s of ONBOARDING_STATUSES) counts[s] ||= 0;
-    return counts;
+    buildStatusCards(counts);
+
+    // filter + search
+    const q = (search.value || "").trim();
+    const rows = allRows
+      .filter(r => (activeStatus ? normalizeStatus(r) === activeStatus : true))
+      .filter(r => rowMatchesSearch(r, q))
+      .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
+
+    // table
+    tbody.innerHTML = "";
+    for (const r of rows) {
+      const tr = document.createElement("tr");
+      const st = normalizeStatus(r);
+
+      const wizardPill = r.wizard_completed
+        ? `<span class="pill ok">✅ Complete</span>`
+        : `<span class="pill no">⏳ In progress</span>`;
+
+      tr.innerHTML = `
+        <td><span class="pill">${st}</span></td>
+        <td>${escapeHtml(r.business_name || "—")}</td>
+        <td>${escapeHtml(r.contact_name || "—")}</td>
+        <td>${escapeHtml(r.email || "—")}</td>
+        <td>${escapeHtml(r.phone || "—")}</td>
+        <td>${escapeHtml(r.base_postcode || "—")}</td>
+        <td>${wizardPill}</td>
+        <td>${escapeHtml(fmtDate(r.updated_at || r.created_at))}</td>
+        <td>
+          <div class="row-actions">
+            <a class="btn btn-secondary" href="app.html?id=${encodeURIComponent(r.id)}" target="_blank" rel="noopener">Open in wizard</a>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    setStatusBar(
+      `${rows.length} shown • ${allRows.length} total` + (activeStatus ? ` • Filter: ${activeStatus}` : ""),
+      "muted"
+    );
   }
 
-  async function loadCustomers(){
-    let q = supabase.from("customers").select("*").order("updated_at", { ascending:false });
-    if (currentStatusFilter) q = q.eq("onboarding_status", currentStatusFilter);
-
-    const { data, error } = await q;
-    if (error){ console.error("Load customers error:", error); return []; }
-
-    const rows = data || [];
-    if (!searchTerm) return rows;
-
-    const t = searchTerm.toLowerCase();
-    return rows.filter(r => {
-      const blob = [
-        r.business_name, r.trade_type, r.contact_name, r.owner_name,
-        r.email, r.phone, r.whatsapp_number, r.base_postcode,
-        r.lead_source, r.onboarding_status
-      ].join(" ").toLowerCase();
-      return blob.includes(t);
-    });
+  function escapeHtml(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
-  async function loadAll(){
-    const [counts, customers] = await Promise.all([loadCounts(), loadCustomers()]);
-    renderStatusBoxes(counts);
-    renderTable(customers);
+  // ---------- DATA ----------
+  async function loadCustomers() {
+    setStatusBar("Loading customers…", "muted");
+
+    // NOTE: you can add more columns any time; dashboard will ignore unknowns.
+    const { data, error } = await sb
+      .from("customers")
+      .select("id, contact_name, business_name, email, phone, base_postcode, onboarding_status, wizard_completed, wizard_answers, created_at, updated_at")
+      .order("updated_at", { ascending: false });
+
+    if (error) {
+      console.error("LOAD ERROR:", error);
+      setStatusBar("Failed to load (check console).", "error");
+      return;
+    }
+
+    allRows = data || [];
+    render();
   }
 
-  searchEl.oninput = () => { searchTerm = searchEl.value.trim(); loadAll(); };
+  // ---------- EVENTS ----------
+  btnRefresh.addEventListener("click", () => loadCustomers());
+  btnClearFilter.addEventListener("click", () => { activeStatus = null; search.value = ""; render(); });
 
-  // ✅ New customer: open wizard without id (it will create on first autosave)
-  btnNew.onclick = () => window.open("app.html", "_blank");
+  search.addEventListener("input", () => render());
 
-  loadAll();
+  // New customer = open wizard with no id (fresh)
+  btnNew.addEventListener("click", () => {
+    window.open("app.html", "_blank", "noopener");
+  });
+
+  // ---------- INIT ----------
+  await loadCustomers();
 </script>
 
 </body>
