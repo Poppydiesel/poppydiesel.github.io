@@ -29,7 +29,6 @@
       line-height:1.5;
     }
 
-    /* Header - same vibe as app.html */
     header{
       padding:18px 16px;
       background:#fff;
@@ -102,7 +101,6 @@
       margin:8px 0 0;
     }
 
-    /* Inputs match app.html */
     input{
       width:100%;
       padding:11px 12px;
@@ -113,7 +111,6 @@
       font-size:14px;
     }
 
-    /* Status boxes – same “wizard card chip” feel */
     .status-boxes{
       display:grid;
       grid-template-columns:1fr;
@@ -133,11 +130,9 @@
       box-shadow:0 6px 18px rgba(0,0,0,0.08);
       transform:translateY(-1px);
     }
-
     .status-box.active{
       outline:2px solid rgba(31,78,121,0.55);
     }
-
     .status-box .row{
       display:flex;
       align-items:center;
@@ -160,7 +155,6 @@
 
     .search{ margin-top:12px; }
 
-    /* Table – cleaner + app-like */
     table{
       width:100%;
       border-collapse:separate;
@@ -197,11 +191,10 @@
       white-space:nowrap;
     }
 
-    /* Buttons – match app.html */
-    .btn{
+    button{
       border:none;
       border-radius:12px;
-      padding:9px 14px;
+      padding:11px 14px;
       font-weight:900;
       cursor:pointer;
       font-size:13px;
@@ -216,7 +209,6 @@
       color:var(--dark-text);
     }
 
-    /* Small top action row inside right card */
     .top-row{
       display:flex;
       align-items:center;
@@ -234,7 +226,8 @@
     <div class="brand">TradeBotPro — Dashboard</div>
     <div class="header-right">
       <div class="pill" id="pillFilter">Filter: All</div>
-      <button class="btn btn-outline" id="btnNew" type="button">New customer</button>
+      <!-- ✅ NEW CUSTOMER BUTTON -->
+      <button class="btn-outline" id="btnNew" type="button">New customer</button>
     </div>
   </div>
 </header>
@@ -263,10 +256,7 @@
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  // =========================
-  // SET YOUR SUPABASE KEYS
-  // =========================
-   window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  // <--- YOUR URL in quotes
+ window.SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";  // <--- YOUR URL in quotes
   window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";  
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -355,7 +345,7 @@
               <td><span class="tag">${esc(r.lead_source || "—")}</span></td>
               <td class="muted">${esc(r.updated_at ? new Date(r.updated_at).toLocaleString() : "—")}</td>
               <td style="text-align:right">
-                <button class="btn btn-primary" onclick="window.open('app.html?id=${esc(r.id)}','_blank')">Open in wizard</button>
+                <button class="btn-primary" onclick="window.open('app.html?id=${esc(r.id)}','_blank')">Open in wizard</button>
               </td>
             </tr>
           `).join("")}
@@ -369,7 +359,7 @@
     if (error){ console.error("Load counts error:", error); return {}; }
 
     const counts = {};
-    for (const row of data){
+    for (const row of (data || [])){
       const s = row.onboarding_status || "New Signup";
       counts[s] = (counts[s] || 0) + 1;
     }
@@ -406,10 +396,8 @@
 
   searchEl.oninput = () => { searchTerm = searchEl.value.trim(); loadAll(); };
 
-  btnNew.onclick = () => {
-    // open wizard without id -> it will create a new customer on first save/autosave
-    window.open("app.html", "_blank");
-  };
+  // ✅ New customer: open wizard without id (it will create on first autosave)
+  btnNew.onclick = () => window.open("app.html", "_blank");
 
   loadAll();
 </script>
