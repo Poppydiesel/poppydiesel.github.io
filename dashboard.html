@@ -18,14 +18,12 @@
   --success:#0f7b46;
 }
 *{box-sizing:border-box}
-
 body{
   margin:0;
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 40%,#fdfdfd 100%);
   color:var(--dark-text);
 }
-
 header{
   background:#f8fafc;
   border-bottom:1px solid rgba(15,23,42,.08);
@@ -40,100 +38,44 @@ header{
   gap:1rem;
 }
 .logo{font-weight:800;color:var(--primary-blue)}
-
-main{
-  max-width:1200px;
-  margin:0 auto;
-  padding:1.2rem;
-}
-
+main{max-width:1200px;margin:0 auto;padding:1.2rem}
 .panel{
   background:#fff;
   border-radius:1.1rem;
   border:1px solid rgba(15,23,42,.08);
   padding:1.1rem;
 }
-
 .kicker{
   font-size:.72rem;
   letter-spacing:.12em;
   text-transform:uppercase;
   color:var(--accent-blue);
 }
-h1{
-  margin:.15rem 0 .35rem;
-  color:var(--primary-blue);
-}
-.subtitle{
-  font-size:.9rem;
-  color:var(--muted-text);
-  margin:0 0 .9rem;
-}
+h1{margin:.15rem 0 .35rem;color:var(--primary-blue)}
+.subtitle{font-size:.9rem;color:var(--muted-text);margin:0 0 .9rem}
 
 /* STATUS STRIP */
-.status-strip{
-  display:flex;
-  gap:.55rem;
-  flex-wrap:wrap;
-  margin-bottom:.75rem;
-}
+.status-strip{display:flex;gap:.55rem;flex-wrap:wrap;margin-bottom:.75rem}
 .status-chip{
-  padding:.45rem .8rem;
-  border-radius:999px;
-  border:1px solid rgba(15,23,42,.12);
-  background:#fff;
-  cursor:pointer;
-  font-weight:650;
-  font-size:.85rem;
+  padding:.45rem .8rem;border-radius:999px;border:1px solid rgba(15,23,42,.12);
+  background:#fff;cursor:pointer;font-weight:650;font-size:.85rem;
 }
-.status-chip.is-active{
-  background:#eef2ff;
-  border-color:var(--primary-blue);
-}
+.status-chip.is-active{background:#eef2ff;border-color:var(--primary-blue)}
 
-/* CONTROLS ONE ROW */
-.controls{
-  display:flex;
-  align-items:center;
-  gap:.6rem;
-  margin:.8rem 0 .9rem;
-  flex-wrap:nowrap;
-}
+/* CONTROLS */
+.controls{display:flex;align-items:center;gap:.6rem;margin:.8rem 0 .9rem;flex-wrap:nowrap}
 .search{
-  flex:1;
-  display:flex;
-  align-items:center;
-  gap:.45rem;
-  padding:.55rem .65rem;
-  border:1px solid var(--border-subtle);
-  border-radius:999px;
-  background:#fff;
-  min-width:320px;
+  flex:1;display:flex;align-items:center;gap:.45rem;
+  padding:.55rem .65rem;border:1px solid var(--border-subtle);
+  border-radius:999px;background:#fff;min-width:320px;
 }
-.search input{
-  border:0;
-  outline:0;
-  width:100%;
-  font-size:.9rem;
-  background:transparent;
-}
+.search input{border:0;outline:0;width:100%;font-size:.9rem;background:transparent}
 .btn{
-  padding:.5rem 1rem;
-  border-radius:999px;
-  border:1px solid transparent;
-  cursor:pointer;
-  font-weight:650;
-  font-size:.85rem;
-  white-space:nowrap;
+  padding:.5rem 1rem;border-radius:999px;border:1px solid transparent;
+  cursor:pointer;font-weight:650;font-size:.85rem;white-space:nowrap;
 }
-.btn-secondary{
-  background:#f3f4f6;
-  border-color:var(--border-subtle);
-}
-.btn-primary{
-  background:linear-gradient(135deg,var(--primary-blue),#163857);
-  color:#fff;
-}
+.btn-secondary{background:#f3f4f6;border-color:var(--border-subtle)}
+.btn-primary{background:linear-gradient(135deg,var(--primary-blue),#163857);color:#fff}
 @media(max-width:900px){
   .controls{flex-wrap:wrap}
   .search{order:10;width:100%;min-width:0}
@@ -141,52 +83,21 @@ h1{
 
 /* BANNER */
 .banner{
-  display:none;
-  margin:.6rem 0 .9rem;
-  padding:.75rem .9rem;
-  border-radius:.9rem;
-  border:1px solid rgba(179,38,30,0.25);
-  background:#fff1f2;
-  color:#7f1d1d;
-  font-size:.88rem;
-  white-space:pre-wrap;
+  display:none;margin:.6rem 0 .9rem;padding:.75rem .9rem;border-radius:.9rem;
+  border:1px solid rgba(179,38,30,0.25);background:#fff1f2;color:#7f1d1d;
+  font-size:.88rem;white-space:pre-wrap;
 }
 .banner.show{display:block}
 
 /* TABLE */
-.table-wrap{
-  border-radius:.9rem;
-  overflow:auto;
-  border:1px solid rgba(15,23,42,.08);
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:1100px;
-}
-th,td{
-  padding:.65rem .75rem;
-  border-bottom:1px solid rgba(15,23,42,.06);
-  font-size:.9rem;
-  white-space:nowrap;
-}
-th{
-  background:#f8fafc;
-  font-size:.75rem;
-  text-transform:uppercase;
-  letter-spacing:.1em;
-  color:var(--muted-text);
-}
+.table-wrap{border-radius:.9rem;overflow:auto;border:1px solid rgba(15,23,42,.08)}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+th,td{padding:.65rem .75rem;border-bottom:1px solid rgba(15,23,42,.06);font-size:.9rem;white-space:nowrap}
+th{background:#f8fafc;font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted-text)}
 tr:hover{background:#f7fbff;cursor:pointer}
 
 /* BADGES */
-.badge{
-  padding:.2rem .55rem;
-  border-radius:999px;
-  font-size:.75rem;
-  font-weight:750;
-  display:inline-block;
-}
+.badge{padding:.2rem .55rem;border-radius:999px;font-size:.75rem;font-weight:750;display:inline-block}
 .badge.new{background:#eef2ff;color:var(--primary-blue)}
 .badge.demo{background:#fffbeb;color:var(--amber)}
 .badge.follow{background:#fffbeb;color:var(--amber)}
@@ -194,112 +105,52 @@ tr:hover{background:#f7fbff;cursor:pointer}
 
 /* OPS DOTS */
 .pipe{display:inline-flex;gap:6px;align-items:center}
-.dot{
-  width:10px;height:10px;border-radius:999px;
-  border:2px solid rgba(148,163,184,.9);
-  background:#fff;
-}
+.dot{width:10px;height:10px;border-radius:999px;border:2px solid rgba(148,163,184,.9);background:#fff}
 .dot.done{background:#dcfce7;border-color:rgba(15,123,70,.55)}
 .dot.need{background:#fff1f2;border-color:rgba(179,38,30,.35)}
 
 /* BACKDROP */
 .backdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(15,23,42,.38);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .18s ease;
-  z-index:998;
+  position:fixed;inset:0;background:rgba(15,23,42,.38);
+  opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:998;
 }
-.backdrop.show{
-  opacity:1;
-  pointer-events:auto;
-}
+.backdrop.show{opacity:1;pointer-events:auto}
 
 /* WIDE DRAWER */
 .drawer{
-  position:fixed;
-  top:0;
-  right:-720px;
-  width:720px;
-  max-width:98vw;
-  height:100%;
-  background:#fff;
-  box-shadow:-20px 0 40px rgba(0,0,0,.15);
-  transition:right .22s ease;
-  z-index:999;
-  display:flex;
-  flex-direction:column;
+  position:fixed;top:0;right:-720px;width:720px;max-width:98vw;height:100%;
+  background:#fff;box-shadow:-20px 0 40px rgba(0,0,0,.15);
+  transition:right .22s ease;z-index:999;display:flex;flex-direction:column;
 }
 .drawer.open{right:0}
-
-.drawer-header{
-  padding:1rem;
-  border-bottom:1px solid var(--border-subtle);
-  background:#f8fafc;
-}
+.drawer-header{padding:1rem;border-bottom:1px solid var(--border-subtle);background:#f8fafc}
 .drawer-title{font-weight:800;color:var(--primary-blue);font-size:1.05rem}
 .drawer-sub{font-size:.85rem;color:var(--muted-text);margin-top:.25rem}
-
-.drawer-body{
-  padding:1rem;
-  flex:1;
-  overflow-y:auto;
-}
-
+.drawer-body{padding:1rem;flex:1;overflow-y:auto}
 .drawer-footer{
-  padding:1rem;
-  border-top:1px solid var(--border-subtle);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:.6rem;
-  flex-wrap:wrap;
+  padding:1rem;border-top:1px solid var(--border-subtle);
+  display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;
 }
 .drawer-hint{font-size:.82rem;color:var(--muted-text)}
 
-.section-title{
-  font-weight:800;
-  color:var(--primary-blue);
-  font-size:.9rem;
-  margin:.8rem 0 .4rem;
-}
+.section-title{font-weight:800;color:var(--primary-blue);font-size:.9rem;margin:.8rem 0 .4rem}
 .chip-row{display:flex;flex-wrap:wrap;gap:8px}
 .chip{
-  padding:.45rem .8rem;
-  border-radius:999px;
-  border:1px solid rgba(15,23,42,.12);
-  background:#fff;
-  cursor:pointer;
-  font-weight:650;
-  font-size:.85rem;
+  padding:.45rem .8rem;border-radius:999px;border:1px solid rgba(15,23,42,.12);
+  background:#fff;cursor:pointer;font-weight:650;font-size:.85rem;
 }
 .chip.is-active{background:#eef2ff;border-color:var(--primary-blue)}
 
-.checklist{
-  border:1px solid rgba(15,23,42,.08);
-  border-radius:.9rem;
-  padding:.65rem .75rem;
-}
+.checklist{border:1px solid rgba(15,23,42,.08);border-radius:.9rem;padding:.65rem .75rem}
 .check-item{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:.6rem;
-  padding:.55rem 0;
-  cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:.6rem;
+  padding:.55rem 0;cursor:pointer;
 }
-.check-item:not(:last-child){
-  border-bottom:1px dashed rgba(148,163,184,.55);
-}
+.check-item:not(:last-child){border-bottom:1px dashed rgba(148,163,184,.55)}
 .check-left{display:flex;align-items:center;gap:.55rem;min-width:0}
 .check-badge{
-  width:22px;height:22px;border-radius:8px;
-  display:inline-flex;align-items:center;justify-content:center;
-  font-size:.85rem;
-  border:1px solid rgba(148,163,184,0.55);
-  background:#f1f5f9;color:#475569;flex:0 0 auto;
+  width:22px;height:22px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
+  font-size:.85rem;border:1px solid rgba(148,163,184,0.55);background:#f1f5f9;color:#475569;flex:0 0 auto;
 }
 .check-badge.done{border-color:rgba(15,123,70,0.35);background:#ecfdf5;color:#14532d}
 .check-name{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -307,18 +158,9 @@ tr:hover{background:#f7fbff;cursor:pointer}
 
 .drawer-body label{display:block;font-size:.78rem;color:var(--muted-text);margin:.6rem 0 .25rem}
 .drawer-body textarea{
-  width:100%;
-  min-height:110px;
-  border-radius:.85rem;
-  border:1px solid var(--border-subtle);
-  padding:.6rem .7rem;
-  font:inherit;
-  outline:none;
-  background:#fff;
-  resize:vertical;
+  width:100%;min-height:110px;border-radius:.85rem;border:1px solid var(--border-subtle);
+  padding:.6rem .7rem;font:inherit;outline:none;background:#fff;resize:vertical;
 }
-.small-note{font-size:.78rem;color:var(--muted-text);margin-top:.35rem}
-code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.85em}
 </style>
 </head>
 
@@ -383,7 +225,6 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
   <div class="drawer-header">
     <div class="drawer-title" id="drawerTitle">Customer</div>
     <div class="drawer-sub" id="drawerSub">—</div>
-    <div class="small-note">If data is blank, check RLS SELECT for anon on <code class="inline">public.customers</code>.</div>
   </div>
 
   <div class="drawer-body">
@@ -398,7 +239,7 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
     <textarea id="drawerNotes" placeholder="Sales notes / objections / follow-up plan…"></textarea>
 
     <label for="drawerLeadNotes">Lead notes (autosaves)</label>
-    <textarea id="drawerLeadNotes" placeholder="Lead context, where they came from, specifics…"></textarea>
+    <textarea id="drawerLeadNotes" placeholder="Lead context, specifics…"></textarea>
   </div>
 
   <div class="drawer-footer">
@@ -413,8 +254,13 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  // === PUT YOUR REAL VALUES HERE ===
+  // Supabase → Project Settings → API
+  // Use: Project URL + anon public key (NOT service_role)
+  const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";
+  const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_PUBLIC_KEY_HERE";
+  // =================================
+
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // DOM
@@ -468,15 +314,8 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
       { key:"payments_connected", label:"Payments connected", done: !!r.payments_connected },
     ];
   }
-  function allDone(r){
-    return setupTasks(r).every(x => x.done);
-  }
+  function allDone(r){ return setupTasks(r).every(x => x.done); }
 
-  // Attention rules:
-  // - New Signup => New
-  // - Demo/Free Trial + ops incomplete => Setup incomplete
-  // - Needs Convincing => Follow-up
-  // - In Setup / Live => —
   function attentionBadges(r){
     const stage = stageOf(r);
     const badges = [];
@@ -503,7 +342,6 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
 
   function renderStatuses(){
     statusStrip.innerHTML = "";
-
     const mk = (label, value) => {
       const el = document.createElement("div");
       el.className = "status-chip" + ((activeStatus===value) ? " is-active" : "");
@@ -511,7 +349,6 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
       el.onclick = ()=>{ activeStatus=value; renderStatuses(); render(); };
       statusStrip.appendChild(el);
     };
-
     mk("All", null);
     SALES.forEach(s => mk(s, s));
   }
@@ -554,7 +391,6 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
         <td>${safeText(r.base_postcode) || "—"}</td>
         <td>${updTxt}</td>
       `;
-
       tr.onclick = ()=> openDrawer(r);
       tbody.appendChild(tr);
     }
@@ -667,6 +503,7 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
     drawerHint.textContent = "Saved";
     activeRow.notes = patch.notes;
     activeRow.lead_notes = patch.lead_notes;
+
     const idx = rows.findIndex(x=>x.id===activeRow.id);
     if(idx !== -1){
       rows[idx].notes = patch.notes;
@@ -679,12 +516,13 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
     noteTimer = setTimeout(saveNotesNow, 450);
   }
 
-  // UI events
+  // Controls
   btnRefresh.onclick = load;
   btnNew.onclick = ()=> window.open("app.html", "_blank", "noopener");
   btnClear.onclick = ()=>{ activeStatus=null; search.value=""; renderStatuses(); render(); };
   search.oninput = render;
 
+  // Drawer buttons
   btnCloseDrawer.onclick = closeDrawer;
   btnOpenWizard.onclick = (e)=>{
     e.stopPropagation();
@@ -694,8 +532,10 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
   drawerNotes.addEventListener("input", queueNotesSave);
   drawerLeadNotes.addEventListener("input", queueNotesSave);
 
+  // Click outside closes
   backdrop.addEventListener("click", closeDrawer);
 
+  // ESC closes
   document.addEventListener("keydown", (e)=>{
     if(e.key === "Escape" && drawer.classList.contains("open")){
       e.preventDefault();
@@ -723,16 +563,12 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
   }, true);
 
   function formatSupabaseError(error){
-    try{
-      const parts = [];
-      if(error?.message) parts.push(error.message);
-      if(error?.details) parts.push(error.details);
-      if(error?.hint) parts.push(error.hint);
-      if(error?.code) parts.push("code: " + error.code);
-      return parts.length ? parts.join("\n") : JSON.stringify(error);
-    }catch{
-      return String(error);
-    }
+    const parts = [];
+    if(error?.message) parts.push(error.message);
+    if(error?.details) parts.push(error.details);
+    if(error?.hint) parts.push(error.hint);
+    if(error?.code) parts.push("code: " + error.code);
+    return parts.filter(Boolean).join("\n") || JSON.stringify(error);
   }
 
   async function load(){
@@ -740,36 +576,44 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
     statusBar.textContent = "Loading…";
     tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
 
-    // Fetch + show useful diagnostics if empty
+    // small sanity check to make "Invalid API key" super obvious
+    if(!SUPABASE_URL.startsWith("https://") || SUPABASE_URL.includes("PASTE_") || SUPABASE_ANON_KEY.includes("PASTE_")){
+      showError("Supabase credentials not set.\n\nEdit dashboard.html and paste your Project URL + anon public key.");
+      rows = [];
+      renderStatuses();
+      render();
+      return;
+    }
+
     const { data, error } = await sb.from("customers").select("*").order("updated_at", { ascending:false });
 
     if(error){
       console.error("[customers select] error", error);
-      showError(
-        "Failed to load customers.\n\n" +
-        formatSupabaseError(error) +
-        "\n\nMost common cause: RLS is blocking SELECT for anon on public.customers."
-      );
+      const msg = formatSupabaseError(error);
+
+      if((msg || "").toLowerCase().includes("invalid api key")){
+        showError(
+          "Failed to load customers:\n\nInvalid API key\n\n" +
+          "Fix:\n" +
+          "1) Supabase → Project Settings → API\n" +
+          "2) Copy Project URL + anon public key\n" +
+          "3) Paste them into SUPABASE_URL and SUPABASE_ANON_KEY in this file\n" +
+          "4) Hard refresh (Ctrl+F5)"
+        );
+      } else {
+        showError("Failed to load customers:\n\n" + msg);
+      }
+
       rows = [];
+      renderStatuses();
       render();
       return;
     }
 
     rows = Array.isArray(data) ? data : [];
-
-    // If empty, show guidance (so you don't think the UI is broken)
-    if(rows.length === 0){
-      showError(
-        "Customers returned 0 rows.\n\n" +
-        "If you CAN see rows in Supabase Table Editor but NOT here, it's RLS.\n" +
-        "Make sure you have a SELECT policy for role 'anon' on public.customers."
-      );
-    }
-
     renderStatuses();
     render();
-
-    // Debug line (handy)
+    statusBar.textContent = `${rows.length} total`;
     console.log("[dashboard] loaded customers:", rows.length);
   }
 
@@ -777,7 +621,7 @@ code.inline{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monosp
   renderStatuses();
   load();
 
-  // expose sb for quick console tests if needed
+  // expose for console testing
   window.__tbp = { sb };
 </script>
 
