@@ -1064,31 +1064,36 @@
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // ---- Required elements (safe if missing) ----
   const form = document.getElementById("profileForm");
 
   const pillCustomerId = document.getElementById("pillCustomerId");
-  const pillStatus = document.getElementById("pillStatus");
-  const pillLocked = document.getElementById("pillLocked");
-  const pillWhatsApp = document.getElementById("pillWhatsApp");
-  const pillCalendar = document.getElementById("pillCalendar");
-  const pillPayments = document.getElementById("pillPayments");
+  const pillStatus     = document.getElementById("pillStatus");
+  const pillLocked     = document.getElementById("pillLocked");
 
-  const lockBanner = document.getElementById("lockBanner");
+  const pillWhatsApp   = document.getElementById("pillWhatsApp");
+  const pillCalendar   = document.getElementById("pillCalendar");
+  const pillPayments   = document.getElementById("pillPayments");
 
-  const btnNew = document.getElementById("btnNew");
-  const btnComplete = document.getElementById("btnComplete");
-  const btnUnlock = document.getElementById("btnUnlock");
+  const lockBanner  = document.getElementById("lockBanner");
+
+  const btnNew      = document.getElementById("btnNew");
+  const btnComplete = document.getElementById("btnComplete");  // your "Next step"/Complete button
+  const btnUnlock   = document.getElementById("btnUnlock");
 
   const btnMarkWhatsApp = document.getElementById("btnMarkWhatsApp");
   const btnMarkCalendar = document.getElementById("btnMarkCalendar");
   const btnMarkPayments = document.getElementById("btnMarkPayments");
-  const btnPause = document.getElementById("btnPause");
+  const btnPause        = document.getElementById("btnPause");
 
   let customerId = null;
   let autoSaveTimer = null;
   let isBootstrapping = true;
   let isLocked = false;
 
+  // =========================
+  // Helpers
+  // =========================
   function qs(name){
     const u = new URL(window.location.href);
     return u.searchParams.get(name);
@@ -1113,24 +1118,128 @@
     return Number.isFinite(n) ? n : null;
   }
 
+  function safeSetText(el, txt){
+    if (el) el.textContent = txt;
+  }
+
+  // =========================
+  // Locking (IMPORTANT FIX)
+  // Only disable form fields (input/select/textarea).
+  // Do NOT disable buttons (chips are often buttons).
+  // =========================
+  function applyLock(locked){
+    isLocked = !!locked;
+
+    const fields = form.querySelectorAll("input, select, textarea");
+    fields.forEach(el => {
+      // allow Unlock to remain clickable (it's a button anyway)
+      el.disabled = isLocked;
+    });
+
+    if (lockBanner) lockBanner.style.display = isLocked ? "block" : "none";
+    if (btnUnlock) btnUnlock.style.display = isLocked ? "inline-block" : "none";
+
+    safeSetText(pillLocked, `Locked: ${isLocked ? "Yes" : "No"}`);
+
+    // If you want to stop completing/saving while locked:
+    if (btnComplete) btnComplete.disabled = isLocked;
+    const btnSave = document.getElementById("btnSave");
+    if (btnSave) btnSave.disabled = isLocked;
+  }
+
+  // =========================
+  // Chip click handler (FIX)
+  // Supports:
+  //  - <button class="chip" data-name="onboarding_status" data-value="Demo Booked">
+  //  - Labels wrapping radios
+  // =========================
+  function setControlValue(name, value){
+    const el = form.elements[name];
+    if (!el) return false;
+
+    // Radio group
+    if (el instanceof RadioNodeList || (el.length && el[0] && el[0].type === "radio")) {
+      const radios = el instanceof RadioNodeList ? Array.from(el) : Array.from(el);
+      radios.forEach(r => r.checked = (r.value === value));
+      return true;
+    }
+
+    // Normal input/select/textarea
+    el.value = value;
+    el.dispatchEvent(new Event("input", { bubbles:true }));
+    el.dispatchEvent(new Event("change", { bubbles:true }));
+    return true;
+  }
+
+  function activateChipUI(chip){
+    // If chips are grouped, we remove active from siblings in same container
+    const group = chip.closest("[data-chip-group]") || chip.parentElement;
+    if (group) {
+      group.querySelectorAll(".active, [aria-pressed='true']").forEach(x => {
+        x.classList.remove("active");
+        x.setAttribute("aria-pressed", "false");
+      });
+    }
+    chip.classList.add("active");
+    chip.setAttribute("aria-pressed", "true");
+  }
+
+  function wireChips(){
+    // Event delegation: any element with data-name + data-value acts as a chip
+    document.addEventListener("click", (e) => {
+      const chip = e.target.closest("[data-name][data-value]");
+      if (!chip) return;
+      if (isLocked) return;
+
+      const name = chip.getAttribute("data-name");
+      const value = chip.getAttribute("data-value");
+
+      const ok = setControlValue(name, value);
+      if (ok) {
+        activateChipUI(chip);
+        debounceAutosave();
+      }
+    }, true);
+
+    // Also support label-wrapped radios:
+    // if a label is clicked, browser will check the radio; we just autosave.
+    document.addEventListener("change", (e) => {
+      if (isLocked) return;
+      const t = e.target;
+      if (t && t.matches && (t.matches("input[type='radio']") || t.matches("input[type='checkbox']") || t.matches("select"))) {
+        debounceAutosave();
+      }
+    }, true);
+  }
+
+  // =========================
+  // Payload mapping
+  // =========================
   function buildPayloadFromForm(){
     const fd = new FormData(form);
+
     return {
       business_name: toNullIfEmpty(fd.get("business_name")),
       trade_type: toNullIfEmpty(fd.get("trade_type")),
+
       contact_name: toNullIfEmpty(fd.get("contact_name")),
       owner_name: toNullIfEmpty(fd.get("owner_name")),
       email: toNullIfEmpty(fd.get("email")),
       phone: toNullIfEmpty(fd.get("phone")),
       whatsapp_number: toNullIfEmpty(fd.get("whatsapp_number")),
+
       lead_source: toNullIfEmpty(fd.get("lead_source")) || "TradeBotPro Website",
 
       base_postcode: toNullIfEmpty(fd.get("base_postcode")),
       service_radius_miles: toNumberOrNull(fd.get("service_radius_miles")),
 
       callout_fee: toNumberOrNull(fd.get("callout_fee")),
+      first_hour_rate: toNumberOrNull(fd.get("first_hour_rate")),
       hourly_rate: toNumberOrNull(fd.get("hourly_rate")),
+      quote_minimum: toNumberOrNull(fd.get("quote_minimum")),
       pricing_notes: toNullIfEmpty(fd.get("pricing_notes")),
+
+      services_summary: toNullIfEmpty(fd.get("services_summary")),
 
       onboarding_status: toNullIfEmpty(fd.get("onboarding_status")) || "New Signup",
       wizard_completed: (fd.get("wizard_completed") === "true"),
@@ -1149,19 +1258,25 @@
 
     setVal("business_name", row.business_name);
     setVal("trade_type", row.trade_type);
+
     setVal("contact_name", row.contact_name);
     setVal("owner_name", row.owner_name);
     setVal("email", row.email);
     setVal("phone", row.phone);
     setVal("whatsapp_number", row.whatsapp_number);
+
     setVal("lead_source", row.lead_source || "TradeBotPro Website");
 
     setVal("base_postcode", row.base_postcode);
     setVal("service_radius_miles", row.service_radius_miles);
 
     setVal("callout_fee", row.callout_fee);
+    setVal("first_hour_rate", row.first_hour_rate);
     setVal("hourly_rate", row.hourly_rate);
+    setVal("quote_minimum", row.quote_minimum);
     setVal("pricing_notes", row.pricing_notes);
+
+    setVal("services_summary", row.services_summary);
 
     setVal("onboarding_status", row.onboarding_status || "New Signup");
     setVal("wizard_completed", row.wizard_completed ? "true" : "false");
@@ -1170,34 +1285,20 @@
     setVal("notes", row.notes);
   }
 
-  function applyLock(locked){
-    isLocked = !!locked;
-
-    // Disable all form controls except Unlock button and New customer
-    const controls = form.querySelectorAll("input, select, textarea, button");
-    controls.forEach(el => {
-      if (el.id === "btnUnlock") return;
-      if (el.id === "btnNew") return;
-      el.disabled = isLocked;
-    });
-
-    lockBanner.style.display = isLocked ? "block" : "none";
-    btnUnlock.style.display = isLocked ? "inline-block" : "none";
-
-    pillLocked.textContent = `Locked: ${isLocked ? "Yes" : "No"}`;
-  }
-
   function updatePillsFromRow(row){
-    pillCustomerId.textContent = `Customer: ${row?.id ? row.id : "—"}`;
-    pillStatus.textContent = `Status: ${row?.onboarding_status || "New Signup"}`;
+    safeSetText(pillCustomerId, `Customer: ${row?.id ? row.id : "—"}`);
+    safeSetText(pillStatus, `Status: ${row?.onboarding_status || "New Signup"}`);
 
-    pillWhatsApp.textContent = `WhatsApp: ${row?.whatsapp_connected ? "Connected" : "Not connected"}`;
-    pillCalendar.textContent = `Calendar: ${row?.calendar_connected ? "Connected" : "Not connected"}`;
-    pillPayments.textContent = `Payments: ${row?.payments_connected ? "Connected" : "Not connected"}`;
+    safeSetText(pillWhatsApp, `WhatsApp: ${row?.whatsapp_connected ? "Connected" : "Not connected"}`);
+    safeSetText(pillCalendar, `Calendar: ${row?.calendar_connected ? "Connected" : "Not connected"}`);
+    safeSetText(pillPayments, `Payments: ${row?.payments_connected ? "Connected" : "Not connected"}`);
 
     applyLock(!!row?.wizard_completed);
   }
 
+  // =========================
+  // DB
+  // =========================
   async function loadCustomer(id){
     const { data, error } = await supabase
       .from("customers")
@@ -1212,8 +1313,8 @@
     return data;
   }
 
-  async function saveCustomer(partialOrFullPayload){
-    const payload = { ...partialOrFullPayload };
+  async function saveCustomer(partialOrFull){
+    const payload = { ...partialOrFull };
     if (customerId) payload.id = customerId;
     if (!payload.onboarding_status) payload.onboarding_status = "New Signup";
 
@@ -1236,18 +1337,23 @@
 
   function debounceAutosave(){
     if (isBootstrapping) return;
-    if (isLocked) return; // locked = no edits
+    if (isLocked) return;
+
     clearTimeout(autoSaveTimer);
     autoSaveTimer = setTimeout(async () => {
       try{
         await saveCustomer(buildPayloadFromForm());
       }catch(e){
-        // silent UI
+        // quiet UI
       }
     }, 650);
   }
 
-  // Boot
+  // =========================
+  // INIT
+  // =========================
+  wireChips();
+
   (async function init(){
     customerId = qs("id");
 
@@ -1267,75 +1373,87 @@
     }
   })();
 
-  // Autosave
   form.addEventListener("input", debounceAutosave);
   form.addEventListener("change", debounceAutosave);
 
-  // Manual save
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (isLocked) return;
     await saveCustomer(buildPayloadFromForm());
   });
 
-  // New customer
-  btnNew.addEventListener("click", () => {
-    customerId = null;
-    setUrlCustomerId(null);
-    form.reset();
-    updatePillsFromRow({});
-  });
+  if (btnNew){
+    btnNew.addEventListener("click", () => {
+      customerId = null;
+      setUrlCustomerId(null);
+      form.reset();
+      updatePillsFromRow({});
+    });
+  }
 
-  // Complete setup (locks wizard + sets stage)
-  btnComplete.addEventListener("click", async () => {
-    if (!customerId){
-      // ensure row exists
-      await saveCustomer(buildPayloadFromForm());
-    }
-    // Set to next stage + lock
-    const payload = {
-      ...buildPayloadFromForm(),
-      onboarding_status: "Demo Booked",
-      wizard_completed: true,
-      pending_setup: true
-    };
-    // reflect in dropdown too
-    form.elements["onboarding_status"].value = "Demo Booked";
-    form.elements["wizard_completed"].value = "true";
+  // =========================
+  // COMPLETE / NEXT STEP (FIX)
+  // =========================
+  if (btnComplete){
+    btnComplete.addEventListener("click", async () => {
+      if (isLocked) return;
 
-    const saved = await saveCustomer(payload);
-    setFormFromRow(saved);
-    applyLock(true);
-  });
+      // ensure record exists
+      if (!customerId){
+        await saveCustomer(buildPayloadFromForm());
+      }
 
-  // Unlock (admin)
-  btnUnlock.addEventListener("click", async () => {
-    if (!confirm("Unlock this setup to allow editing?")) return;
-    form.elements["wizard_completed"].value = "false";
-    const saved = await saveCustomer({ wizard_completed: false });
-    applyLock(false);
-    updatePillsFromRow(saved);
-  });
+      // force UI controls if they exist
+      if (form.elements["onboarding_status"]) form.elements["onboarding_status"].value = "Demo Booked";
+      if (form.elements["wizard_completed"]) form.elements["wizard_completed"].value = "true";
+
+      // write DB + lock
+      const payload = {
+        ...buildPayloadFromForm(),
+        onboarding_status: "Demo Booked",
+        wizard_completed: true,
+        pending_setup: true
+      };
+
+      const saved = await saveCustomer(payload);
+      setFormFromRow(saved);
+      applyLock(true);
+    });
+  }
+
+  if (btnUnlock){
+    btnUnlock.addEventListener("click", async () => {
+      if (!confirm("Unlock this setup to allow editing?")) return;
+      if (form.elements["wizard_completed"]) form.elements["wizard_completed"].value = "false";
+      const saved = await saveCustomer({ wizard_completed: false });
+      applyLock(false);
+      updatePillsFromRow(saved);
+    });
+  }
 
   // Quick flags
-  btnMarkWhatsApp.addEventListener("click", async () => {
-    await saveCustomer({ whatsapp_connected: true, onboarding_status: "WhatsApp Connected" });
-  });
-
-  btnMarkCalendar.addEventListener("click", async () => {
-    await saveCustomer({ calendar_connected: true, onboarding_status: "Calendar Linked" });
-  });
-
-  btnMarkPayments.addEventListener("click", async () => {
-    await saveCustomer({ payments_connected: true, onboarding_status: "Payments Connected" });
-  });
-
-  btnPause.addEventListener("click", async () => {
-    await saveCustomer({ account_status: "Paused", onboarding_status: "Paused" });
-  });
+  if (btnMarkWhatsApp){
+    btnMarkWhatsApp.addEventListener("click", async () => {
+      await saveCustomer({ whatsapp_connected: true, onboarding_status: "WhatsApp Connected" });
+    });
+  }
+  if (btnMarkCalendar){
+    btnMarkCalendar.addEventListener("click", async () => {
+      await saveCustomer({ calendar_connected: true, onboarding_status: "Calendar Linked" });
+    });
+  }
+  if (btnMarkPayments){
+    btnMarkPayments.addEventListener("click", async () => {
+      await saveCustomer({ payments_connected: true, onboarding_status: "Payments Connected" });
+    });
+  }
+  if (btnPause){
+    btnPause.addEventListener("click", async () => {
+      await saveCustomer({ account_status: "Paused", onboarding_status: "Paused" });
+    });
+  }
 </script>
 
 </body>
 </html>
-</body>
-</html>
+
