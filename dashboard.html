@@ -185,10 +185,24 @@
     .dot.need{border-color:rgba(179,38,30,0.45);background:#fff1f2}
     .dot-label{font-size:.75rem;color:var(--muted-text);margin-left:6px;white-space:nowrap}
 
+    /* ✅ Overlay so click-outside closes drawer */
+    .drawer-overlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.25);
+      backdrop-filter:blur(1px);
+      opacity:0; pointer-events:none;
+      transition:opacity .18s ease;
+      z-index:998;
+    }
+    .drawer-overlay.open{
+      opacity:1;
+      pointer-events:auto;
+    }
+
     /* Drawer */
     .drawer{
-      position:fixed;top:0;right:-520px;
-      width:860x;max-width:96vw;height:100%;
+      position:fixed;top:0;right:-860px;
+      width:860px; max-width:96vw; height:100%;
       background:#fff;
       box-shadow:-20px 0 40px rgba(0,0,0,.15);
       transition:right .22s ease;
@@ -256,6 +270,7 @@
     @media (max-width: 900px){
       .drawer-row{grid-template-columns:1fr}
       table{min-width:900px}
+      .drawer{right:-96vw;}
     }
   </style>
 </head>
@@ -323,6 +338,9 @@
   </section>
 </main>
 
+<!-- ✅ Overlay -->
+<div class="drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
+
 <!-- Drawer -->
 <div class="drawer" id="drawer" aria-hidden="true">
   <div class="drawer-header">
@@ -331,7 +349,6 @@
   </div>
 
   <div class="drawer-body">
-
     <div class="drawer-row">
       <div>
         <div class="drawer-section-title">Sales stage</div>
@@ -409,8 +426,9 @@
   const btnNew = document.getElementById("btn-new");
   const btnClear = document.getElementById("btn-clear-filter");
 
-  // Drawer
+  // Drawer + overlay
   const drawer = document.getElementById("drawer");
+  const drawerOverlay = document.getElementById("drawerOverlay");
   const drawerTitle = document.getElementById("drawerTitle");
   const drawerSub = document.getElementById("drawerSub");
   const drawerBusiness = document.getElementById("drawer_business");
@@ -434,14 +452,7 @@
   let activeRow = null;
   let noteTimer = null;
 
-  const SALES_STAGES = [
-    "New Signup",
-    "In Setup",
-    "Demo",
-    "Free Trial",
-    "Needs Convincing",
-    "Live"
-  ];
+  const SALES_STAGES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
 
   function setBanner(msg){
     if(!msg){ banner.textContent=""; banner.classList.remove("show"); return; }
@@ -493,7 +504,6 @@
   function computeStatusOrder(distinctFromDb){
     const set = new Set(SALES_STAGES);
     (distinctFromDb||[]).forEach(s=>set.add(s));
-
     const all = Array.from(set);
     all.sort((a,b)=>{
       const ia = SALES_STAGES.indexOf(a);
@@ -570,7 +580,6 @@
     }).join("");
   }
 
-  // SALES checklist (single-select)
   function renderSalesChecklist(row){
     const current = salesStatus(row);
     salesChecklist.innerHTML = SALES_STAGES.map(stage=>{
@@ -656,13 +665,21 @@
     renderOpsButtons(row);
 
     drawerHint.textContent = "Autosaves";
+
     drawer.classList.add("open");
     drawer.setAttribute("aria-hidden","false");
+
+    drawerOverlay.classList.add("open");
+    drawerOverlay.setAttribute("aria-hidden","false");
   }
 
   function closeDrawer(){
     drawer.classList.remove("open");
     drawer.setAttribute("aria-hidden","true");
+
+    drawerOverlay.classList.remove("open");
+    drawerOverlay.setAttribute("aria-hidden","true");
+
     activeRow = null;
   }
 
@@ -765,9 +782,28 @@
   search.addEventListener("input", render);
 
   // Drawer
-  btnCloseDrawer.addEventListener("click", closeDrawer);
   drawerNotes.addEventListener("input", queueNotesSave);
   drawerLeadNotes.addEventListener("input", queueNotesSave);
+
+  // ✅ Close button MUST win (capture) so it never gets blocked by document listeners
+  btnCloseDrawer.addEventListener("click", (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    closeDrawer();
+  }, true);
+
+  // ✅ Click outside closes
+  drawerOverlay.addEventListener("click", (e)=>{
+    e.preventDefault();
+    closeDrawer();
+  });
+
+  // ✅ ESC closes
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape" && drawer.classList.contains("open")){
+      closeDrawer();
+    }
+  });
 
   btnOpenWizard.addEventListener("click", (e)=>{
     e.stopPropagation();
