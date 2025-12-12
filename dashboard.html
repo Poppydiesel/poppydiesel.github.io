@@ -1,182 +1,215 @@
-<!-- SAME HEAD + STYLES AS BEFORE — unchanged -->
-<!-- ONLY BODY TABLE + SCRIPT CHANGED -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>TradeBotPro – Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<!-- … keep everything above exactly as you already have … -->
+<style>
+/* ---- BASE STYLE (matches app.html) ---- */
+:root {
+  --primary-blue:#1f4e79;
+  --accent-blue:#00a3ff;
+  --bg:#f3f4f9;
+  --white:#fff;
+  --border:rgba(15,23,42,.12);
+}
+body {
+  margin:0;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 40%,#fff 100%);
+}
+.btn {
+  border-radius:999px;
+  padding:.45rem .9rem;
+  border:1px solid var(--border);
+  cursor:pointer;
+}
+.btn-primary {
+  background:linear-gradient(135deg,var(--primary-blue),#163857);
+  color:#fff;
+}
+.btn-secondary { background:#f9fafb; }
+.mini-select { padding:.35rem .5rem; border-radius:.6rem; }
 
+/* ---- TABLE ---- */
+table { width:100%; border-collapse:collapse; }
+th,td { padding:.65rem; border-bottom:1px solid var(--border); }
+
+/* ---- DRAWER ---- */
+.drawer {
+  position:fixed;
+  top:0; right:-420px;
+  width:420px;
+  height:100%;
+  background:#fff;
+  box-shadow:-20px 0 40px rgba(0,0,0,.15);
+  transition:right .25s ease;
+  z-index:999;
+  display:flex;
+  flex-direction:column;
+}
+.drawer.open { right:0; }
+
+.drawer-header {
+  padding:1rem;
+  border-bottom:1px solid var(--border);
+}
+.drawer-body {
+  padding:1rem;
+  flex:1;
+  overflow:auto;
+}
+.drawer textarea {
+  width:100%;
+  min-height:120px;
+  margin-bottom:1rem;
+  padding:.6rem;
+}
+.drawer-footer {
+  padding:1rem;
+  border-top:1px solid var(--border);
+  text-align:right;
+}
+</style>
+</head>
+
+<body>
+
+<h2 style="padding:1rem;color:#1f4e79;">TradeBotPro – Dashboard</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Status</th>
+  <th>Lead</th>
+  <th>Business</th>
+  <th>Contact</th>
+  <th>Notes</th>
+  <th>Actions</th>
+</tr>
+</thead>
 <tbody id="tbody"></tbody>
+</table>
+
+<!-- NOTES DRAWER -->
+<div class="drawer" id="notesDrawer">
+  <div class="drawer-header">
+    <strong id="drawerTitle">Customer notes</strong>
+  </div>
+  <div class="drawer-body">
+    <label>Internal notes</label>
+    <textarea id="notes"></textarea>
+
+    <label>Lead notes</label>
+    <textarea id="lead_notes"></textarea>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn btn-secondary" id="closeDrawer">Close</button>
+  </div>
+</div>
 
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_KEY";
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = createClient(
+  "https://yaiutswdcbfwkxfqxkzy.supabase.co",
+  "YOUR_ANON_KEY"
+);
 
-// ---------------- STATE ----------------
-let allRows = [];
-let activeStatus = null;
-let statusOrder = [];
-let leadOrder = [];
+const tbody = document.getElementById("tbody");
+const drawer = document.getElementById("notesDrawer");
+const notesEl = document.getElementById("notes");
+const leadNotesEl = document.getElementById("lead_notes");
+const drawerTitle = document.getElementById("drawerTitle");
 
-// ---------------- HELPERS ----------------
-const qs = (s) => document.querySelector(s);
+let activeId = null;
+let saveTimer = null;
 
-function normalizeStatus(r) {
-  if (r.onboarding_status) return r.onboarding_status;
-  if (r.wizard_completed) return "Wizard Completed";
-  if (r.wizard_answers && Object.keys(r.wizard_answers).length) return "Wizard Started";
-  return "New Signup";
-}
-
-function normalizeLead(r) {
-  return r.lead_source?.trim() || "—";
-}
-
-function pillBool(v) {
-  if (v === true) return `<span class="pill ok">Connected</span>`;
-  if (v === false) return `<span class="pill no">Not yet</span>`;
-  return `<span class="pill na">—</span>`;
-}
-
-// ---------------- SAVE HELPERS ----------------
-async function updateRow(id, patch) {
-  const { error } = await sb
-    .from("customers")
-    .update(patch)
-    .eq("id", id);
-
-  if (error) {
-    console.error("UPDATE FAILED", error);
-    alert("Save failed – see console");
-    return false;
-  }
-  return true;
-}
-
-// ---------------- LOAD ----------------
-async function loadCustomers() {
-  const { data, error } = await sb
-    .from("customers")
-    .select("*")
-    .order("updated_at", { ascending: false });
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  allRows = data;
-  render();
-}
-
-// ---------------- RENDER ----------------
-function render() {
-  const tbody = qs("#tbody");
+// LOAD
+async function load() {
+  const { data } = await sb.from("customers").select("*");
   tbody.innerHTML = "";
-
-  // collect dynamic statuses + leads
-  const statusSet = new Set();
-  const leadSet = new Set();
-
-  allRows.forEach(r => {
-    statusSet.add(normalizeStatus(r));
-    if (r.lead_source) leadSet.add(r.lead_source);
+  data.forEach(r => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.onboarding_status || "New"}</td>
+      <td>${r.lead_source || "—"}</td>
+      <td>${r.business_name || "—"}</td>
+      <td>${r.contact_name || "—"}</td>
+      <td>
+        <button class="btn btn-secondary" data-notes="${r.id}">
+          Notes
+        </button>
+      </td>
+      <td>
+        <button class="btn btn-primary" data-live="${r.id}">
+          Mark Live
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
   });
 
-  statusOrder = Array.from(statusSet);
-  leadOrder = Array.from(leadSet);
-
-  allRows
-    .filter(r => !activeStatus || normalizeStatus(r) === activeStatus)
-    .forEach(r => {
-      const tr = document.createElement("tr");
-
-      tr.innerHTML = `
-        <td>
-          <select class="mini-select status-select" data-id="${r.id}">
-            ${statusOrder.map(s => `
-              <option ${normalizeStatus(r) === s ? "selected" : ""}>${s}</option>
-            `).join("")}
-          </select>
-        </td>
-
-        <td>
-          <select class="mini-select lead-select" data-id="${r.id}">
-            <option value="">—</option>
-            ${leadOrder.map(l => `
-              <option ${r.lead_source === l ? "selected" : ""}>${l}</option>
-            `).join("")}
-            <option value="__new__">+ Add new…</option>
-          </select>
-        </td>
-
-        <td>${r.business_name || "—"}</td>
-        <td>${r.contact_name || "—"}</td>
-        <td>${r.email || "—"}</td>
-        <td>${r.phone || "—"}</td>
-
-        <td>${pillBool(r.whatsapp_connected)}</td>
-        <td>${pillBool(r.calendar_connected)}</td>
-
-        <td>
-          <button class="btn btn-primary btn-live" data-id="${r.id}">
-            Mark Live
-          </button>
-        </td>
-      `;
-
-      tbody.appendChild(tr);
-    });
-
-  bindRowEvents();
+  bind();
 }
 
-// ---------------- EVENTS ----------------
-function bindRowEvents() {
+// EVENTS
+function bind() {
 
-  // STATUS CHANGE
-  document.querySelectorAll(".status-select").forEach(sel => {
-    sel.onchange = async (e) => {
-      await updateRow(e.target.dataset.id, {
-        onboarding_status: e.target.value
-      });
-      loadCustomers();
-    };
-  });
+  // OPEN NOTES
+  document.querySelectorAll("[data-notes]").forEach(b => {
+    b.onclick = async () => {
+      activeId = b.dataset.notes;
+      const { data } = await sb
+        .from("customers")
+        .select("business_name,notes,lead_notes")
+        .eq("id", activeId)
+        .single();
 
-  // LEAD SOURCE CHANGE
-  document.querySelectorAll(".lead-select").forEach(sel => {
-    sel.onchange = async (e) => {
-      const id = e.target.dataset.id;
-
-      if (e.target.value === "__new__") {
-        const val = prompt("Enter new lead source:");
-        if (!val) return;
-        await updateRow(id, { lead_source: val });
-      } else {
-        await updateRow(id, { lead_source: e.target.value || null });
-      }
-      loadCustomers();
+      drawerTitle.textContent = data.business_name || "Customer notes";
+      notesEl.value = data.notes || "";
+      leadNotesEl.value = data.lead_notes || "";
+      drawer.classList.add("open");
     };
   });
 
   // MARK LIVE
-  document.querySelectorAll(".btn-live").forEach(btn => {
-    btn.onclick = async () => {
-      const id = btn.dataset.id;
-
-      await updateRow(id, {
-        onboarding_status: "Live",
-        whatsapp_connected: true,
-        calendar_connected: true,
-        live_at: new Date().toISOString()
-      });
-
-      loadCustomers();
+  document.querySelectorAll("[data-live]").forEach(b => {
+    b.onclick = async () => {
+      await sb.from("customers").update({
+        onboarding_status:"Live",
+        whatsapp_connected:true,
+        calendar_connected:true,
+        live_at:new Date().toISOString()
+      }).eq("id", b.dataset.live);
+      load();
     };
   });
 }
 
-// ---------------- INIT ----------------
-loadCustomers();
+// AUTOSAVE NOTES
+function autosave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    if (!activeId) return;
+    await sb.from("customers").update({
+      notes: notesEl.value,
+      lead_notes: leadNotesEl.value
+    }).eq("id", activeId);
+  }, 400);
+}
+notesEl.oninput = autosave;
+leadNotesEl.oninput = autosave;
+
+// CLOSE
+document.getElementById("closeDrawer").onclick = () => {
+  drawer.classList.remove("open");
+  activeId = null;
+};
+
+load();
 </script>
+
+</body>
+</html>
