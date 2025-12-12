@@ -1,447 +1,939 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>TradeBotPro – Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <title>TradeBotPro – Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="TradeBotPro customer onboarding dashboard." />
 
-<style>
-  :root {
-    --primary-blue:#1f4e79;
-    --accent-blue:#00a3ff;
-    --dark:#151820;
-    --muted:#6b7280;
-    --bg:#f3f4f9;
-    --white:#fff;
-    --border:rgba(15,23,42,.12);
-    --shadow: 0 24px 60px rgba(15,23,42,.15), 0 0 0 1px rgba(15,23,42,.03);
-    --ok:#0f7b46;
-    --bad:#b3261e;
-  }
+  <style>
+    :root {
+      --primary-blue: #1f4e79;
+      --accent-blue: #00a3ff;
+      --dark-text: #151820;
+      --muted-text: #6b7280;
+      --light-bg: #f3f4f9;
+      --white: #ffffff;
+      --border-subtle: rgba(15, 23, 42, 0.12);
+      --success-green: #0f7b46;
+      --error-red: #b3261e;
+      --shadow: 0 24px 60px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.03);
+    }
 
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-    background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 40%,#fff 100%);
-    color:var(--dark);
-  }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at top left, #e0ebff 0, #f3f4f9 40%, #fdfdfd 100%);
+      color: var(--dark-text);
+      line-height: 1.5;
+    }
+    a { color: inherit; text-decoration: none; }
 
-  header{
-    border-bottom:1px solid rgba(15,23,42,0.06);
-    background:rgba(248,250,252,0.96);
-    backdrop-filter:blur(6px);
-    position:sticky; top:0; z-index:20;
-  }
-  .header-inner{
-    max-width:1180px;
-    margin:0 auto;
-    padding:.6rem 1.25rem;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:.75rem;
-  }
-  .logo-wrap{display:flex;align-items:center;gap:.6rem;}
-  .logo-icon{
-    width:30px;height:30px;border-radius:9px;background:var(--primary-blue);
-    position:relative;
-  }
-  .logo-icon:before,.logo-icon:after{content:"";position:absolute;background:#fff;border-radius:4px}
-  .logo-icon:before{width:11px;height:17px;left:7px;top:6px}
-  .logo-icon:after{width:6px;height:11px;right:7px;top:9px}
-  .logo-main{font-weight:700;font-size:1rem;color:var(--primary-blue)}
-  .logo-tag{font-size:.75rem;color:var(--muted)}
+    header {
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      background: rgba(248, 250, 252, 0.96);
+      backdrop-filter: blur(6px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .header-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0.6rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 0.6rem; }
+    .logo-icon {
+      width: 30px; height: 30px; border-radius: 9px;
+      background: var(--primary-blue); position: relative;
+    }
+    .logo-icon::before,
+    .logo-icon::after { content:""; position:absolute; background: var(--white); border-radius: 4px; }
+    .logo-icon::before { width: 11px; height: 17px; left: 7px; top: 6px; }
+    .logo-icon::after { width: 6px; height: 11px; right: 7px; top: 9px; }
+    .logo-main { font-weight: 700; font-size: 1rem; color: var(--primary-blue); }
+    .logo-tag { font-size: 0.75rem; color: var(--muted-text); }
+    .header-note { font-size: 0.75rem; color: var(--muted-text); }
+    .header-note strong { color: var(--primary-blue); font-weight: 600; }
 
-  main{
-    max-width:1180px;
-    margin:0 auto;
-    padding:1.2rem 1.25rem 2rem;
-  }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1.4rem 1.25rem 2.2rem;
+    }
 
-  .panel{
-    border-radius:1.2rem;
-    background:rgba(255,255,255,0.92);
-    box-shadow:var(--shadow);
-    padding:1.1rem 1.1rem;
-  }
+    .shell {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
 
-  .top-row{
-    display:flex;
-    gap:.75rem;
-    flex-wrap:wrap;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:.9rem;
-  }
+    .panel {
+      border-radius: 1.2rem;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+      padding: 1.1rem 1.1rem;
+    }
+    .panel.soft {
+      background: rgba(248, 250, 252, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: none;
+    }
 
-  .btn{
-    border-radius:999px;
-    padding:.5rem 1rem;
-    border:1px solid var(--border);
-    cursor:pointer;
-    background:#f9fafb;
-    font-weight:600;
-  }
-  .btn-primary{
-    background:linear-gradient(135deg,var(--primary-blue),#163857);
-    color:#fff;
-    border-color:transparent;
-    box-shadow:0 12px 28px rgba(15,23,42,0.25);
-  }
-  .btn-primary:hover{filter:brightness(1.03)}
+    .kicker {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-blue);
+      margin-bottom: 0.35rem;
+    }
+    .title {
+      margin: 0 0 0.35rem;
+      font-size: 1.35rem;
+      color: var(--primary-blue);
+    }
+    .subtitle {
+      margin: 0 0 0.85rem;
+      font-size: 0.9rem;
+      color: var(--muted-text);
+    }
 
-  .search{
-    display:flex;align-items:center;gap:.5rem;
-    padding:.55rem .7rem;
-    border-radius:.75rem;
-    border:1px solid var(--border);
-    background:#fff;
-    min-width:min(520px,100%);
-  }
-  .search input{border:0;outline:0;width:100%;font:inherit}
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+      margin-top: 0.75rem;
+    }
+    .status-card {
+      width: 100%;
+      border-radius: 0.95rem;
+      padding: 0.8rem 0.85rem;
+      border: 1px solid rgba(15, 23, 42, 0.10);
+      background: #ffffff;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+    }
+    .status-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+      border-color: rgba(31, 78, 121, 0.35);
+    }
+    .status-card.is-active {
+      border-color: rgba(31, 78, 121, 0.7);
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.12);
+      background: #f3f7ff;
+    }
+    .status-name { font-weight: 650; color: var(--dark-text); font-size: 0.92rem; }
+    .status-meta { font-size: 0.76rem; color: var(--muted-text); margin-top: 0.12rem; }
+    .status-count {
+      min-width: 44px;
+      text-align: center;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      background: #eef2ff;
+      border: 1px solid rgba(37, 99, 235, 0.22);
+      color: var(--primary-blue);
+      font-weight: 700;
+    }
 
-  .banner{
-    display:none;
-    margin:.75rem 0 0;
-    padding:.7rem .8rem;
-    border-radius:.8rem;
-    border:1px solid rgba(179,38,30,.25);
-    background:#fff1f2;
-    color:#7f1d1d;
-    font-size:.9rem;
-    white-space:pre-wrap;
-  }
-  .banner.show{display:block}
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.85rem;
+    }
+    .controls-left {
+      display: flex;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search {
+      width: min(420px, 100%);
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.6rem 0.7rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-subtle);
+      background: var(--white);
+    }
+    .search input {
+      border: 0;
+      outline: 0;
+      width: 100%;
+      font: inherit;
+      font-size: 0.92rem;
+      background: transparent;
+    }
+    .select {
+      padding: 0.55rem 0.7rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-subtle);
+      background: var(--white);
+      font: inherit;
+      font-size: 0.9rem;
+      color: var(--dark-text);
+    }
 
-  .table-wrap{
-    overflow:auto;
-    border-radius:1rem;
-    border:1px solid rgba(15,23,42,0.08);
-    background:#fff;
-  }
-  table{width:100%;border-collapse:collapse;min-width:980px}
-  th,td{padding:.7rem .75rem;border-bottom:1px solid rgba(15,23,42,0.06);white-space:nowrap}
-  thead th{
-    position:sticky;top:0;background:#f8fafc;
-    font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);
-    border-bottom:1px solid rgba(15,23,42,0.08);
-    text-align:left;
-  }
-  tbody tr:hover{background:#f7fbff}
+    .btn {
+      border-radius: 999px;
+      border: 1px solid transparent;
+      padding: 0.55rem 1.05rem;
+      font-size: 0.86rem;
+      font-weight: 550;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: transparent;
+    }
+    .btn:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
+    .btn-secondary { border-color: var(--border-subtle); background: #f9fafb; color: var(--dark-text); }
+    .btn-secondary:hover { background: #e5e7eb; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-blue), #163857);
+      color: var(--white);
+      border-color: transparent;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.35);
+    }
+    .btn-primary:hover { filter: brightness(1.03); box-shadow: 0 16px 34px rgba(15, 23, 42, 0.4); }
 
-  .mini-select{
-    padding:.35rem .5rem;
-    border-radius:.7rem;
-    border:1px solid rgba(15,23,42,0.14);
-    background:#fff;
-    font:inherit;
-    font-size:.86rem;
-    min-width:190px;
-  }
+    .banner {
+      display: none;
+      margin: 0 0 0.85rem;
+      padding: 0.75rem 0.85rem;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(179, 38, 30, 0.25);
+      background: #fff1f2;
+      color: #7f1d1d;
+      font-size: 0.88rem;
+      white-space: pre-wrap;
+    }
+    .banner.show { display: block; }
 
-  .pill{
-    display:inline-flex;align-items:center;gap:.35rem;
-    padding:.2rem .55rem;border-radius:999px;
-    border:1px solid rgba(148,163,184,0.55);
-    background:rgba(241,245,249,0.9);
-    font-size:.8rem;
-  }
-  .pill.ok{border-color:rgba(15,123,70,.45);background:#ecfdf5;color:#14532d}
-  .pill.no{border-color:rgba(179,38,30,.35);background:#fff1f2;color:#7f1d1d}
-  .pill.na{border-color:rgba(148,163,184,.45);background:#f1f5f9;color:#475569}
+    .table-wrap {
+      overflow: auto;
+      border-radius: 1rem;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: #fff;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 1260px; }
+    thead th {
+      position: sticky;
+      top: 0;
+      background: #f8fafc;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted-text);
+      text-align: left;
+      padding: 0.75rem 0.85rem;
+      white-space: nowrap;
+    }
+    tbody td {
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      padding: 0.75rem 0.85rem;
+      font-size: 0.9rem;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    tbody tr:hover { background: #f7fbff; }
 
-  /* Drawer */
-  .drawer{
-    position:fixed; top:0; right:-440px;
-    width:440px; max-width:92vw;
-    height:100%;
-    background:#fff;
-    box-shadow:-20px 0 40px rgba(0,0,0,.15);
-    transition:right .22s ease;
-    z-index:999;
-    display:flex;
-    flex-direction:column;
-  }
-  .drawer.open{right:0}
-  .drawer-header{padding:1rem;border-bottom:1px solid var(--border)}
-  .drawer-body{padding:1rem;flex:1;overflow:auto}
-  .drawer-body label{display:block;font-size:.8rem;color:var(--muted);margin:.65rem 0 .25rem}
-  .drawer textarea{
-    width:100%;
-    min-height:120px;
-    padding:.65rem .7rem;
-    border-radius:.8rem;
-    border:1px solid var(--border);
-    font:inherit;
-    resize:vertical;
-  }
-  .drawer-footer{padding:1rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:.5rem}
-  .hint{font-size:.85rem;color:var(--muted)}
-</style>
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.22rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      background: rgba(241, 245, 249, 0.9);
+      font-size: 0.8rem;
+      color: var(--dark-text);
+    }
+    .pill.ok { border-color: rgba(15, 123, 70, 0.45); background: #ecfdf5; color: #14532d; }
+    .pill.no { border-color: rgba(179, 38, 30, 0.35); background: #fff1f2; color: #7f1d1d; }
+    .pill.na { border-color: rgba(148, 163, 184, 0.45); background: #f1f5f9; color: #475569; }
+
+    .mini-select {
+      padding: 0.35rem 0.5rem;
+      border-radius: 0.7rem;
+      border: 1px solid rgba(15, 23, 42, 0.14);
+      background: #ffffff;
+      font: inherit;
+      font-size: 0.86rem;
+      color: var(--dark-text);
+      min-width: 210px;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .status-bar {
+      margin-top: 0.8rem;
+      font-size: 0.85rem;
+      min-height: 1.2em;
+      color: var(--muted-text);
+    }
+
+    /* Notes drawer */
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: -460px;
+      width: 460px;
+      max-width: 94vw;
+      height: 100%;
+      background: #fff;
+      box-shadow: -20px 0 40px rgba(0,0,0,.15);
+      transition: right 0.22s ease;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+    }
+    .drawer.open { right: 0; }
+    .drawer-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      background: #f8fafc;
+    }
+    .drawer-title { font-weight: 700; color: var(--primary-blue); }
+    .drawer-sub { margin-top: 0.25rem; font-size: 0.85rem; color: var(--muted-text); }
+    .drawer-body { padding: 1rem; flex: 1; overflow: auto; }
+    .drawer-body label { display:block; font-size: 0.78rem; color: var(--muted-text); margin: 0.7rem 0 0.25rem; }
+    .drawer-body textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 0.65rem 0.7rem;
+      border-radius: 0.85rem;
+      border: 1px solid var(--border-subtle);
+      font: inherit;
+      resize: vertical;
+      outline: none;
+    }
+    .drawer-body textarea:focus {
+      border-color: rgba(37, 99, 235, 0.7);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+    }
+    .drawer-footer {
+      padding: 1rem;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      background: #ffffff;
+    }
+
+    @media (max-width: 980px) {
+      .shell { grid-template-columns: 1fr; }
+      table { min-width: 1080px; }
+    }
+  </style>
 </head>
 
 <body>
-<header>
-  <div class="header-inner">
-    <div class="logo-wrap">
-      <div class="logo-icon" aria-hidden="true"></div>
-      <div>
-        <div class="logo-main">TradeBotPro</div>
-        <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
+  <header>
+    <div class="header-inner">
+      <div class="logo-wrap">
+        <div class="logo-icon" aria-hidden="true"></div>
+        <div>
+          <div class="logo-main">TradeBotPro</div>
+          <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
+        </div>
+      </div>
+      <div class="header-note">
+        View: <strong>Onboarding Dashboard</strong>
       </div>
     </div>
-    <div class="logo-tag">Onboarding Dashboard</div>
-  </div>
-</header>
+  </header>
 
-<main>
-  <div class="panel">
-    <div class="top-row">
-      <div class="search">
-        <span style="opacity:.65">🔎</span>
-        <input id="search" type="text" placeholder="Search business, contact, email, phone, postcode…" />
-      </div>
-      <div style="display:flex;gap:.55rem;flex-wrap:wrap">
-        <button class="btn" id="btn-refresh" type="button">↻ Refresh</button>
-        <button class="btn btn-primary" id="btn-new" type="button">+ New customer</button>
-      </div>
+  <main>
+    <div class="shell">
+
+      <!-- LEFT: STATUS COUNTS -->
+      <aside class="panel">
+        <div class="kicker">Pipeline</div>
+        <h1 class="title">Onboarding stages</h1>
+        <p class="subtitle">Built from your real DB statuses (auto).</p>
+
+        <div class="status-grid" id="status-grid"></div>
+        <div class="status-bar" id="left-hint"></div>
+      </aside>
+
+      <!-- RIGHT: LIST -->
+      <section class="panel soft">
+        <div class="controls">
+          <div class="controls-left">
+            <div class="search">
+              <span style="opacity:.7">🔎</span>
+              <input id="search" type="text" placeholder="Search name, business, email, phone, postcode…" />
+            </div>
+
+            <select id="lead-filter" class="select" title="Filter by lead source">
+              <option value="">All lead sources</option>
+            </select>
+
+            <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filters</button>
+          </div>
+
+          <div class="controls-right">
+            <button class="btn btn-secondary" id="btn-refresh" type="button">↻ Refresh</button>
+            <button class="btn btn-primary" id="btn-new" type="button">+ New customer</button>
+          </div>
+        </div>
+
+        <div id="banner" class="banner"></div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Lead source</th>
+                <th>Business</th>
+                <th>Contact</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Postcode</th>
+                <th>Wizard</th>
+                <th>WhatsApp</th>
+                <th>Calendar</th>
+                <th>Updated</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="status-bar" id="status-bar">Loading…</div>
+      </section>
     </div>
+  </main>
 
-    <div id="banner" class="banner"></div>
+  <!-- NOTES DRAWER -->
+  <div class="drawer" id="notesDrawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div class="drawer-title" id="drawerTitle">Customer notes</div>
+      <div class="drawer-sub" id="drawerSub"></div>
+    </div>
+    <div class="drawer-body">
+      <label for="drawer_notes">Internal notes</label>
+      <textarea id="drawer_notes" placeholder="Internal notes (sales / setup / follow-ups)…"></textarea>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Status</th>
-            <th>Lead Source</th>
-            <th>Business</th>
-            <th>Contact</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Postcode</th>
-            <th>Wizard</th>
-            <th>WhatsApp</th>
-            <th>Calendar</th>
-            <th>Notes</th>
-            <th style="text-align:right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
+      <label for="drawer_lead_notes">Lead notes</label>
+      <textarea id="drawer_lead_notes" placeholder="Lead context, objections, reminders…"></textarea>
+    </div>
+    <div class="drawer-footer">
+      <span class="logo-tag" id="drawerHint">Autosaves</span>
+      <button class="btn btn-secondary" id="closeDrawer" type="button">Close</button>
     </div>
   </div>
-</main>
 
-<!-- NOTES DRAWER -->
-<div class="drawer" id="notesDrawer" aria-hidden="true">
-  <div class="drawer-header">
-    <strong id="drawerTitle">Customer notes</strong>
-    <div class="hint" id="drawerSub"></div>
-  </div>
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  <div class="drawer-body">
-    <label>Internal notes</label>
-    <textarea id="notes"></textarea>
+    // ✅ your live project
+    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <label>Lead notes</label>
-    <textarea id="lead_notes"></textarea>
-  </div>
+    console.log("SCRIPT VERSION: DASHBOARD-FULL-ROBUST-2025-12-12");
 
-  <div class="drawer-footer">
-    <button class="btn" id="closeDrawer" type="button">Close</button>
-    <span class="hint" id="drawerSaveHint">Autosaves</span>
-  </div>
-</div>
+    // DOM
+    const statusGrid = document.getElementById("status-grid");
+    const leftHint = document.getElementById("left-hint");
+    const tbody = document.getElementById("tbody");
+    const search = document.getElementById("search");
+    const leadFilter = document.getElementById("lead-filter");
+    const statusBar = document.getElementById("status-bar");
+    const banner = document.getElementById("banner");
 
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    const btnRefresh = document.getElementById("btn-refresh");
+    const btnNew = document.getElementById("btn-new");
+    const btnClearFilter = document.getElementById("btn-clear-filter");
 
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const drawer = document.getElementById("notesDrawer");
+    const drawerTitle = document.getElementById("drawerTitle");
+    const drawerSub = document.getElementById("drawerSub");
+    const drawerNotes = document.getElementById("drawer_notes");
+    const drawerLeadNotes = document.getElementById("drawer_lead_notes");
+    const drawerHint = document.getElementById("drawerHint");
+    const closeDrawerBtn = document.getElementById("closeDrawer");
 
-  const tbody = document.getElementById("tbody");
-  const banner = document.getElementById("banner");
-  const search = document.getElementById("search");
-  const btnRefresh = document.getElementById("btn-refresh");
-  const btnNew = document.getElementById("btn-new");
+    // State
+    let allRows = [];
+    let activeStatus = null; // string status or null
+    let statusOrder = [];
+    let leadOrder = [];
+    let drawerCustomerId = null;
+    let noteTimer = null;
 
-  const drawer = document.getElementById("notesDrawer");
-  const drawerTitle = document.getElementById("drawerTitle");
-  const drawerSub = document.getElementById("drawerSub");
-  const notesEl = document.getElementById("notes");
-  const leadNotesEl = document.getElementById("lead_notes");
-  const closeDrawerBtn = document.getElementById("closeDrawer");
-
-  let allRows = [];
-  let activeId = null;
-  let saveTimer = null;
-
-  function showError(msg) {
-    banner.textContent = msg;
-    banner.classList.add("show");
-  }
-  function clearError() {
-    banner.textContent = "";
-    banner.classList.remove("show");
-  }
-
-  function normalizeStatus(row){
-    const raw = (row?.onboarding_status ?? "").toString().trim();
-    if (raw) return raw;
-    if (row?.wizard_completed) return "Wizard Completed";
-    const wa = row?.wizard_answers;
-    const hasAnswers = wa && typeof wa === "object" && !Array.isArray(wa) && Object.keys(wa).length > 0;
-    if (hasAnswers) return "Wizard Started";
-    return "New Signup";
-  }
-
-  function pillBool(v){
-    if (v === true) return `<span class="pill ok">✅ Connected</span>`;
-    if (v === false) return `<span class="pill no">✖ Not yet</span>`;
-    return `<span class="pill.na">—</span>`;
-  }
-
-  function esc(s){
-    return String(s ?? "")
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-  }
-
-  async function loadCustomers() {
-    clearError();
-    tbody.innerHTML = `<tr><td colspan="12">Loading…</td></tr>`;
-
-    const { data, error } = await sb
-      .from("customers")
-      .select("*")
-      .order("updated_at", { ascending: false });
-
-    if (error) {
-      console.error("LOAD ERROR:", error);
-      showError("Failed to load customers.\n\n" + (error.message || JSON.stringify(error)));
-      allRows = [];
-      tbody.innerHTML = `<tr><td colspan="12">No data loaded.</td></tr>`;
-      return;
+    // UI helpers
+    function setBanner(msg) {
+      if (!msg) {
+        banner.textContent = "";
+        banner.classList.remove("show");
+        return;
+      }
+      banner.textContent = msg;
+      banner.classList.add("show");
+    }
+    function setStatusText(msg) {
+      statusBar.textContent = msg || "";
     }
 
-    allRows = Array.isArray(data) ? data : [];
-    render();
-  }
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
 
-  function render() {
-    const q = (search.value || "").trim().toLowerCase();
+    function fmtDate(iso) {
+      if (!iso) return "—";
+      try {
+        const d = new Date(iso);
+        return d.toLocaleString(undefined, {
+          year: "numeric", month: "short", day: "2-digit",
+          hour: "2-digit", minute: "2-digit"
+        });
+      } catch { return "—"; }
+    }
 
-    const rows = allRows.filter(r => {
+    // Derive status if blank
+    function normalizeStatus(row) {
+      const raw = (row?.onboarding_status ?? "").toString().trim();
+      if (raw) return raw;
+
+      if (row?.wizard_completed) return "Wizard Completed";
+
+      const wa = row?.wizard_answers;
+      const hasAnswers =
+        wa && typeof wa === "object" && !Array.isArray(wa) && Object.keys(wa).length > 0;
+
+      if (hasAnswers) return "Wizard Started";
+      return "New Signup";
+    }
+
+    function normalizeLead(row) {
+      const raw = (row?.lead_source ?? "").toString().trim();
+      return raw || "—";
+    }
+
+    function pillFromBool(v) {
+      if (v === true) return `<span class="pill ok">✅ Connected</span>`;
+      if (v === false) return `<span class="pill no">✖ Not yet</span>`;
+      return `<span class="pill na">—</span>`;
+    }
+
+    function rowMatchesSearch(row, q) {
       if (!q) return true;
       const hay = [
-        r.business_name, r.contact_name, r.email, r.phone, r.base_postcode,
-        r.lead_source, normalizeStatus(r)
+        row.business_name,
+        row.contact_name,
+        row.email,
+        row.phone,
+        row.base_postcode,
+        normalizeStatus(row),
+        normalizeLead(row)
       ].join(" ").toLowerCase();
-      return hay.includes(q);
-    });
-
-    tbody.innerHTML = "";
-    if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="12">No matches.</td></tr>`;
-      return;
+      return hay.includes(q.toLowerCase());
     }
 
-    for (const r of rows) {
-      const st = normalizeStatus(r);
-      const wizardPill = r.wizard_completed ? `<span class="pill ok">✅ Complete</span>` : `<span class="pill no">⏳ In progress</span>`;
+    function rowMatchesLead(row, leadVal) {
+      if (!leadVal) return true;
+      return normalizeLead(row) === leadVal;
+    }
 
-      const wa = (typeof r.whatsapp_connected === "boolean") ? r.whatsapp_connected : null;
-      const cal = (typeof r.calendar_connected === "boolean") ? r.calendar_connected : null;
+    // Data ordering + counts
+    function computeOrdersAndCounts() {
+      const counts = {};
+      const statusSet = new Set();
+      const leadSet = new Set();
 
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${esc(st)}</td>
-        <td>${esc(r.lead_source || "—")}</td>
-        <td>${esc(r.business_name || "—")}</td>
-        <td>${esc(r.contact_name || "—")}</td>
-        <td>${esc(r.email || "—")}</td>
-        <td>${esc(r.phone || "—")}</td>
-        <td>${esc(r.base_postcode || "—")}</td>
-        <td>${wizardPill}</td>
-        <td>${wa === null ? `<span class="pill na">—</span>` : (wa ? `<span class="pill ok">✅ Connected</span>` : `<span class="pill no">✖ Not yet</span>`)}</td>
-        <td>${cal === null ? `<span class="pill na">—</span>` : (cal ? `<span class="pill ok">✅ Connected</span>` : `<span class="pill no">✖ Not yet</span>`)}</td>
-        <td>
-          <button class="btn" type="button" data-notes="${esc(r.id)}">Notes</button>
-        </td>
-        <td style="text-align:right;">
-          <button class="btn btn-primary" type="button" data-open="${esc(r.id)}">Open wizard</button>
-        </td>
+      for (const r of allRows) {
+        const s = normalizeStatus(r);
+        counts[s] = (counts[s] || 0) + 1;
+        statusSet.add(s);
+
+        const l = normalizeLead(r);
+        if (l !== "—") leadSet.add(l);
+      }
+
+      // Always show these
+      statusSet.add("New Signup");
+      statusSet.add("Wizard Started");
+      statusSet.add("Wizard Completed");
+
+      const priority = [
+        "New Signup",
+        "Wizard Started",
+        "Wizard Completed",
+        "Demo Booked",
+        "WhatsApp Connected",
+        "Calendar Connected",
+        "Live",
+        "Paused / Not Proceeding"
+      ];
+
+      const statuses = Array.from(statusSet);
+      statuses.sort((a, b) => {
+        const ia = priority.indexOf(a);
+        const ib = priority.indexOf(b);
+        if (ia !== -1 && ib !== -1) return ia - ib;
+        if (ia !== -1) return -1;
+        if (ib !== -1) return 1;
+        return a.localeCompare(b);
+      });
+
+      const leads = Array.from(leadSet).sort((a, b) => a.localeCompare(b));
+
+      statusOrder = statuses;
+      leadOrder = leads;
+      return counts;
+    }
+
+    function makeStatusCard(name, count, meta, value) {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "status-card" + ((activeStatus === value) ? " is-active" : "");
+      card.innerHTML = `
+        <div>
+          <div class="status-name">${escapeHtml(name)}</div>
+          <div class="status-meta">${escapeHtml(meta || "")}</div>
+        </div>
+        <div class="status-count">${count}</div>
       `;
-      tbody.appendChild(tr);
+      card.addEventListener("click", () => {
+        activeStatus = value; // null=all
+        render();
+      });
+      return card;
     }
 
-    bindRowEvents();
-  }
+    function buildStatusCards(counts) {
+      statusGrid.innerHTML = "";
+      statusGrid.appendChild(makeStatusCard("All customers", allRows.length, "Show everyone", null));
 
-  function openDrawerFor(row){
-    activeId = row.id;
-    drawerTitle.textContent = row.business_name || "Customer notes";
-    drawerSub.textContent = row.contact_name ? `Contact: ${row.contact_name}` : "";
-    notesEl.value = row.notes || "";
-    leadNotesEl.value = row.lead_notes || "";
-    drawer.classList.add("open");
-    drawer.setAttribute("aria-hidden","false");
-  }
+      statusOrder.forEach((s) => {
+        statusGrid.appendChild(
+          makeStatusCard(
+            s,
+            counts[s] || 0,
+            s === "Live" ? "Already running" : "Needs action",
+            s
+          )
+        );
+      });
 
-  async function refreshRowIntoDrawer(id){
-    const { data, error } = await sb.from("customers").select("id,business_name,contact_name,notes,lead_notes").eq("id", id).single();
-    if (error) {
-      console.error("DRAWER LOAD ERROR:", error);
-      showError("Failed to load notes.\n\n" + (error.message || JSON.stringify(error)));
-      return;
+      leftHint.textContent = activeStatus ? `Filtering: ${activeStatus}` : `Showing: All customers`;
     }
-    openDrawerFor(data);
-  }
 
-  async function saveNotesNow(){
-    if (!activeId) return;
-    const patch = { notes: notesEl.value, lead_notes: leadNotesEl.value };
-    const { error } = await sb.from("customers").update(patch).eq("id", activeId);
-    if (error) {
-      console.error("NOTES SAVE ERROR:", error);
-      showError("Failed to save notes.\n\n" + (error.message || JSON.stringify(error)));
+    function buildLeadFilter() {
+      const current = leadFilter.value || "";
+      leadFilter.innerHTML = `<option value="">All lead sources</option>`;
+      for (const l of leadOrder) {
+        const opt = document.createElement("option");
+        opt.value = l;
+        opt.textContent = l;
+        leadFilter.appendChild(opt);
+      }
+      leadFilter.value = leadOrder.includes(current) ? current : "";
     }
-  }
 
-  function queueSaveNotes(){
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(saveNotesNow, 450);
-  }
+    // Update helpers
+    async function updateCustomer(id, patch) {
+      setBanner("");
+      const { data, error } = await sb
+        .from("customers")
+        .update(patch)
+        .eq("id", id)
+        .select("*")
+        .single();
 
-  function bindRowEvents(){
-    document.querySelectorAll("[data-notes]").forEach(btn => {
-      btn.onclick = () => refreshRowIntoDrawer(btn.getAttribute("data-notes"));
-    });
+      if (error) {
+        console.error("UPDATE ERROR:", error);
+        setBanner("Save failed:\n\n" + (error.message || JSON.stringify(error)));
+        return null;
+      }
 
-    document.querySelectorAll("[data-open]").forEach(btn => {
-      btn.onclick = () => window.open(`app.html?id=${encodeURIComponent(btn.getAttribute("data-open"))}`, "_blank", "noopener");
-    });
-  }
+      const idx = allRows.findIndex(r => r.id === id);
+      if (idx !== -1) allRows[idx] = data;
+      return data;
+    }
 
-  // events
-  btnRefresh.onclick = () => loadCustomers();
-  btnNew.onclick = () => window.open("app.html", "_blank", "noopener");
-  search.addEventListener("input", () => render());
+    // Drawer
+    function openDrawer(row) {
+      drawerCustomerId = row.id;
+      drawerTitle.textContent = row.business_name || "Customer notes";
+      drawerSub.textContent = row.contact_name ? `Contact: ${row.contact_name}` : "";
+      drawerNotes.value = row.notes || "";
+      drawerLeadNotes.value = row.lead_notes || "";
+      drawerHint.textContent = "Autosaves";
+      drawer.classList.add("open");
+      drawer.setAttribute("aria-hidden", "false");
+    }
 
-  notesEl.addEventListener("input", queueSaveNotes);
-  leadNotesEl.addEventListener("input", queueSaveNotes);
+    function closeDrawer() {
+      drawer.classList.remove("open");
+      drawer.setAttribute("aria-hidden", "true");
+      drawerCustomerId = null;
+      drawerNotes.value = "";
+      drawerLeadNotes.value = "";
+      drawerHint.textContent = "Autosaves";
+    }
 
-  closeDrawerBtn.onclick = () => {
-    drawer.classList.remove("open");
-    drawer.setAttribute("aria-hidden","true");
-    activeId = null;
-  };
+    async function refreshDrawerRow(id) {
+      setBanner("");
+      const { data, error } = await sb
+        .from("customers")
+        .select("id,business_name,contact_name,notes,lead_notes")
+        .eq("id", id)
+        .single();
 
-  // init
-  loadCustomers();
-</script>
+      if (error) {
+        console.error("DRAWER LOAD ERROR:", error);
+        setBanner("Failed to load notes:\n\n" + (error.message || JSON.stringify(error)));
+        return;
+      }
+      openDrawer(data);
+    }
+
+    async function saveNotesNow() {
+      if (!drawerCustomerId) return;
+      drawerHint.textContent = "Saving…";
+
+      const patch = {
+        notes: drawerNotes.value,
+        lead_notes: drawerLeadNotes.value
+      };
+      const { error } = await sb.from("customers").update(patch).eq("id", drawerCustomerId);
+
+      if (error) {
+        console.error("NOTES SAVE ERROR:", error);
+        setBanner("Failed to save notes:\n\n" + (error.message || JSON.stringify(error)));
+        drawerHint.textContent = "Save failed";
+        return;
+      }
+      drawerHint.textContent = "Saved";
+      // Keep local cache roughly in sync
+      const idx = allRows.findIndex(r => r.id === drawerCustomerId);
+      if (idx !== -1) {
+        allRows[idx].notes = patch.notes;
+        allRows[idx].lead_notes = patch.lead_notes;
+      }
+    }
+
+    function queueNotesSave() {
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(saveNotesNow, 450);
+    }
+
+    // Render table
+    function render() {
+      const counts = computeOrdersAndCounts();
+      buildStatusCards(counts);
+      buildLeadFilter();
+
+      const q = (search.value || "").trim();
+      const leadVal = leadFilter.value || "";
+
+      const rows = allRows
+        .filter(r => (activeStatus ? normalizeStatus(r) === activeStatus : true))
+        .filter(r => rowMatchesLead(r, leadVal))
+        .filter(r => rowMatchesSearch(r, q))
+        .sort((a, b) => {
+          const ta = new Date(a.updated_at || a.created_at || a.live_at || 0).getTime();
+          const tb = new Date(b.updated_at || b.created_at || b.live_at || 0).getTime();
+          return tb - ta;
+        });
+
+      tbody.innerHTML = "";
+
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="12">No matches.</td></tr>`;
+        setStatusText(`0 shown • ${allRows.length} total`);
+        return;
+      }
+
+      for (const r of rows) {
+        const st = normalizeStatus(r);
+
+        const wizardPill = r.wizard_completed
+          ? `<span class="pill ok">✅ Complete</span>`
+          : `<span class="pill no">⏳ In progress</span>`;
+
+        const wa = (typeof r.whatsapp_connected === "boolean") ? r.whatsapp_connected : null;
+        const cal = (typeof r.calendar_connected === "boolean") ? r.calendar_connected : null;
+
+        const statusOptions = statusOrder.map(s => {
+          const sel = (s === st) ? "selected" : "";
+          return `<option value="${escapeHtml(s)}" ${sel}>${escapeHtml(s)}</option>`;
+        }).join("");
+
+        const leadOptions = leadOrder.map(l => {
+          const sel = (r.lead_source === l) ? "selected" : "";
+          return `<option value="${escapeHtml(l)}" ${sel}>${escapeHtml(l)}</option>`;
+        }).join("");
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>
+            <select class="mini-select" data-status-select data-id="${escapeHtml(r.id)}">
+              ${statusOptions}
+            </select>
+          </td>
+
+          <td>
+            <select class="mini-select" data-lead-select data-id="${escapeHtml(r.id)}">
+              <option value="">—</option>
+              ${leadOptions}
+              <option value="__new__">+ Add new…</option>
+            </select>
+          </td>
+
+          <td>${escapeHtml(r.business_name || "—")}</td>
+          <td>${escapeHtml(r.contact_name || "—")}</td>
+          <td>${escapeHtml(r.email || "—")}</td>
+          <td>${escapeHtml(r.phone || "—")}</td>
+          <td>${escapeHtml(r.base_postcode || "—")}</td>
+          <td>${wizardPill}</td>
+          <td>${pillFromBool(wa)}</td>
+          <td>${pillFromBool(cal)}</td>
+          <td>${escapeHtml(fmtDate(r.updated_at || r.created_at || r.live_at))}</td>
+
+          <td>
+            <div class="row-actions">
+              <button class="btn btn-secondary" type="button" data-notes="${escapeHtml(r.id)}">Notes</button>
+              <button class="btn btn-secondary" type="button" data-open="${escapeHtml(r.id)}">Open wizard</button>
+              <button class="btn btn-primary" type="button" data-live="${escapeHtml(r.id)}">Mark Live</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      // Bind events after render
+      tbody.querySelectorAll("[data-status-select]").forEach(sel => {
+        sel.addEventListener("change", async (e) => {
+          const id = e.target.getAttribute("data-id");
+          const newStatus = e.target.value;
+          await updateCustomer(id, { onboarding_status: newStatus });
+          render(); // update counts immediately
+        });
+      });
+
+      tbody.querySelectorAll("[data-lead-select]").forEach(sel => {
+        sel.addEventListener("change", async (e) => {
+          const id = e.target.getAttribute("data-id");
+          const val = e.target.value;
+
+          if (val === "__new__") {
+            const newLead = prompt("Enter new lead source:");
+            if (!newLead) { render(); return; }
+            await updateCustomer(id, { lead_source: newLead });
+          } else {
+            await updateCustomer(id, { lead_source: val || null });
+          }
+          render();
+        });
+      });
+
+      tbody.querySelectorAll("[data-open]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-open");
+          window.open(`app.html?id=${encodeURIComponent(id)}`, "_blank", "noopener");
+        });
+      });
+
+      tbody.querySelectorAll("[data-live]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-live");
+          await updateCustomer(id, {
+            onboarding_status: "Live",
+            whatsapp_connected: true,
+            calendar_connected: true,
+            live_at: new Date().toISOString()
+          });
+          render();
+        });
+      });
+
+      tbody.querySelectorAll("[data-notes]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-notes");
+          await refreshDrawerRow(id);
+        });
+      });
+
+      setStatusText(
+        `${rows.length} shown • ${allRows.length} total` +
+        (activeStatus ? ` • Stage: ${activeStatus}` : "") +
+        (leadVal ? ` • Lead: ${leadVal}` : "")
+      );
+    }
+
+    // Load customers (NO .order() so it never fails if updated_at is missing)
+    async function loadCustomers() {
+      setBanner("");
+      setStatusText("Loading…");
+      tbody.innerHTML = `<tr><td colspan="12">Loading…</td></tr>`;
+
+      const { data, error } = await sb
+        .from("customers")
+        .select("*"); // <-- safe
+
+      if (error) {
+        console.error("LOAD ERROR:", error);
+        setBanner("Failed to load customers.\n\n" + (error.message || JSON.stringify(error)));
+        allRows = [];
+        tbody.innerHTML = `<tr><td colspan="12">No data loaded.</td></tr>`;
+        setStatusText("Load failed.");
+        return;
+      }
+
+      allRows = Array.isArray(data) ? data : [];
+      render();
+    }
+
+    // Top events
+    btnRefresh.addEventListener("click", () => loadCustomers());
+    btnNew.addEventListener("click", () => window.open("app.html", "_blank", "noopener"));
+    btnClearFilter.addEventListener("click", () => { activeStatus = null; search.value = ""; leadFilter.value = ""; render(); });
+    search.addEventListener("input", () => render());
+    leadFilter.addEventListener("change", () => render());
+
+    // Drawer events
+    drawerNotes.addEventListener("input", queueNotesSave);
+    drawerLeadNotes.addEventListener("input", queueNotesSave);
+    closeDrawerBtn.addEventListener("click", closeDrawer);
+
+    // Init
+    loadCustomers();
+  </script>
 </body>
 </html>
