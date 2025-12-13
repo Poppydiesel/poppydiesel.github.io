@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TradeBotPro — Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root{
+      --primary-blue:#1f4e79;
+      --accent-blue:#00a3ff;
+      --dark-text:#151820;
+      --muted-text:#6b7280;
+      --light-bg:#f3f4f9;
+      --white:#ffffff;
+      --border-subtle:rgba(15,23,42,0.12);
+      --success-green:#0f7b46;
+      --error-red:#b3261e;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 45%,#ffffff 100%);
+      color:var(--dark-text);
+      line-height:1.6;
+    }
+
+    a{color:inherit;text-decoration:none}
+
+    header{
+      position:sticky;top:0;z-index:10;
+      background:rgba(248,250,252,0.96);
+      backdrop-filter:blur(6px);
+      border-bottom:1px solid rgba(0,0,0,0.06);
+    }
+
+    .inner{
+      max-width:1120px;
+      margin:0 auto;
+      padding:0 1.25rem;
+    }
+
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:1rem;
+      padding:0.75rem 0;
+    }
+
+    .logo-wrap{
+      display:flex;
+      align-items:center;
+      gap:.6rem;
+    }
+
+    .logo-icon{
+      width:32px;height:32px;border-radius:9px;
+      background:var(--primary-blue);
+      position:relative;
+    }
+    .logo-icon::before,.logo-icon::after{
+      content:"";position:absolute;background:var(--white);border-radius:4px;
+    }
+    .logo-icon::before{width:12px;height:18px;left:7px;top:7px;}
+    .logo-icon::after{width:6px;height:12px;right:7px;top:10px;}
+
+    .logo-main{font-weight:800;color:var(--primary-blue);line-height:1.1}
+    .logo-tag{font-size:.78rem;color:var(--muted-text)}
+
+    .nav-actions{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      border-radius:999px;
+      padding:.55rem 1.05rem;
+      font-size:.9rem;
+      border:1px solid transparent;
+      cursor:pointer;
+      background:transparent;
+    }
+    .btn-primary{
+      background:linear-gradient(135deg,var(--primary-blue),#163857);
+      color:#fff;
+      box-shadow:0 12px 28px rgba(15,23,42,.25);
+    }
+    .btn-secondary{
+      background:#fff;
+      border:1px solid rgba(0,0,0,.14);
+      color:var(--primary-blue);
+    }
+    .btn:disabled{opacity:.6;cursor:default;box-shadow:none}
+
+    main{padding:1.4rem 0 2.5rem}
+
+    .card{
+      background:#fff;
+      border-radius:1rem;
+      box-shadow:0 12px 30px rgba(0,0,0,0.06);
+      padding:1.1rem;
+      border:1px solid rgba(15,23,42,0.06);
+    }
+
+    .top-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:1rem;
+      flex-wrap:wrap;
+      margin-bottom:.9rem;
+    }
+
+    h1{
+      margin:0;
+      font-size:1.35rem;
+      color:var(--primary-blue);
+    }
+
+    .sub{
+      margin:.25rem 0 0;
+      color:var(--muted-text);
+      font-size:.92rem;
+    }
+
+    .status{
+      margin-top:.6rem;
+      font-size:.9rem;
+      min-height:1.2em;
+    }
+    .status.ok{color:var(--success-green)}
+    .status.err{color:var(--error-red)}
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.9rem;
+    }
+    th,td{
+      text-align:left;
+      padding:.65rem .6rem;
+      border-bottom:1px solid rgba(15,23,42,0.08);
+      vertical-align:top;
+    }
+    th{
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted-text);
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      padding:.2rem .55rem;
+      border-radius:999px;
+      font-size:.78rem;
+      border:1px solid rgba(15,23,42,0.12);
+      background:#f8fafc;
+      color:#0f172a;
+      white-space:nowrap;
+    }
+    .pill.ok{border-color:rgba(15,123,70,.35); background:#ecfdf5; color:#14532d;}
+    .pill.no{border-color:rgba(179,38,30,.35); background:#fef2f2; color:#7f1d1d;}
+
+    .small{
+      color:var(--muted-text);
+      font-size:.85rem;
+    }
+
+    .table-actions .btn{
+      padding:.45rem .85rem;
+      font-size:.85rem;
+    }
+
+    @media (max-width: 820px){
+      th:nth-child(4), td:nth-child(4){display:none;} /* hide phone on small */
+      th:nth-child(3), td:nth-child(3){display:none;} /* hide email on small */
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="inner">
+      <div class="nav">
+        <div class="logo-wrap">
+          <div class="logo-icon" aria-hidden="true"></div>
+          <div>
+            <div class="logo-main">TradeBotPro</div>
+            <div class="logo-tag">Admin dashboard</div>
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <button class="btn btn-secondary" id="btn-refresh" type="button">Refresh</button>
+          <button class="btn btn-primary" id="btn-logout" type="button">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="inner">
+      <div class="card">
+        <div class="top-row">
+          <div>
+            <h1>Customers</h1>
+            <p class="sub">Admin-only view. Clients are redirected to the client dashboard.</p>
+            <div id="status" class="status"></div>
+          </div>
+          <div class="small" id="whoami"></div>
+        </div>
+
+        <div style="overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Business</th>
+                <th>Contact</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Wizard</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="rows">
+              <tr><td colspan="6" class="small">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Supabase UMD -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
+
+  <script>
+  (function(){
+    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "YOUR_ANON_KEY_HERE"; // <-- paste your anon key
+
+    const statusEl = document.getElementById("status");
+    const whoEl = document.getElementById("whoami");
+    const rowsEl = document.getElementById("rows");
+
+    const btnLogout = document.getElementById("btn-logout");
+    const btnRefresh = document.getElementById("btn-refresh");
+
+    function setStatus(msg, type){
+      statusEl.textContent = msg || "";
+      statusEl.className = "status" + (type ? " " + type : "");
+    }
+
+    function esc(s){
+      return (s ?? "").toString()
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function bootWhenSupabaseReady(){
+      if (typeof window.supabase === "undefined") {
+        console.error("[TBP] Supabase not loaded yet. Retrying...");
+        return setTimeout(bootWhenSupabaseReady, 50);
+      }
+      boot();
+    }
+
+    async function boot(){
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // 1) Must be logged in
+      const { data: sessionData } = await sb.auth.getSession();
+      const session = sessionData?.session;
+      const user = session?.user;
+
+      if (!user){
+        location.href = "/login.html";
+        return;
+      }
+
+      // 2) Must be admin (exists in admin_users)
+      const { data: adminRow, error: adminErr } = await sb
+        .from("admin_users")
+        .select("user_id, role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (adminErr){
+        console.error("[TBP] admin check error:", adminErr);
+        setStatus("Admin check failed. Please try again.", "err");
+        return;
+      }
+
+      if (!adminRow){
+        // Logged in but not admin -> send to client view
+        location.href = "/client-dashboard.html";
+        return;
+      }
+
+      whoEl.textContent = `Signed in as ${user.email || user.id}`;
+
+      btnLogout.addEventListener("click", async () => {
+        setStatus("Signing out…");
+        await sb.auth.signOut();
+        location.href = "/login.html";
+      });
+
+      btnRefresh.addEventListener("click", () => loadCustomers(sb));
+
+      await loadCustomers(sb);
+      setStatus("Loaded ✅", "ok");
+    }
+
+    async function loadCustomers(sb){
+      setStatus("Loading customers…");
+      rowsEl.innerHTML = `<tr><td colspan="6" class="small">Loading…</td></tr>`;
+
+      const { data, error } = await sb
+        .from("customers")
+        .select("id, business_name, contact_name, email, phone, whatsapp_number, wizard_completed, wizard_complete, wizard_completed_at, created_at")
+        .order("created_at", { ascending: false });
+
+      if (error){
+        console.error("[TBP] load customers error:", error);
+        setStatus("Failed to load customers.", "err");
+        rowsEl.innerHTML = `<tr><td colspan="6" class="small">Could not load.</td></tr>`;
+        return;
+      }
+
+      if (!data || data.length === 0){
+        rowsEl.innerHTML = `<tr><td colspan="6" class="small">No customers yet.</td></tr>`;
+        setStatus("No customers yet.", "");
+        return;
+      }
+
+      rowsEl.innerHTML = data.map(c => {
+        const phone = c.phone || c.whatsapp_number || "";
+        const wiz = (c.wizard_completed === true) || (c.wizard_complete === true);
+        const wizPill = wiz
+          ? `<span class="pill ok">Complete</span>`
+          : `<span class="pill no">Not complete</span>`;
+
+        return `
+          <tr>
+            <td><strong>${esc(c.business_name || "(no business name)")}</strong><div class="small">${esc(c.id)}</div></td>
+            <td>${esc(c.contact_name || "")}</td>
+            <td>${esc(c.email || "")}</td>
+            <td>${esc(phone)}</td>
+            <td>${wizPill}</td>
+            <td class="table-actions">
+              <button class="btn btn-secondary" type="button"
+                onclick="window.open('/app.html?customer_id=${encodeURIComponent(c.id)}','_blank')">
+                Open in wizard
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      setStatus(`Loaded ${data.length} customers.`, "ok");
+    }
+
+    bootWhenSupabaseReady();
+  })();
+  </script>
+</body>
+</html>
