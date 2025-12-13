@@ -1067,7 +1067,7 @@
 </div>
 <script type="module">
 /* =========================================================
-   TradeBotPro Wizard — AUTO-LOCK + SAVE POLISH
+   TradeBotPro Wizard — FIXED CHIPS + SAVE POLISH + AUTO-LOCK
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1076,17 +1076,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 const TABLE = "customers";
-
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= HELPERS ================= */
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 const esc = s => { try { return CSS.escape(s); } catch { return s; } };
-
-function qp(n){ return new URLSearchParams(location.search).get(n); }
-function truthy(v){ return v === true || v === "true" || v === 1 || v === "1"; }
-function root(){ return $(".wizard-shell") || document.body; }
+const qp = n => new URLSearchParams(location.search).get(n);
+const truthy = v => v === true || v === "true" || v === 1 || v === "1";
+const root = () => $(".wizard-shell") || document.body;
 
 function status(msg, type="info"){
   const el = $("#wizard-status-message");
@@ -1094,90 +1092,168 @@ function status(msg, type="info"){
     el.textContent = msg;
     el.className = "wizard-status-message is-" + type;
   }
+  console.log(`[Wizard:${type}]`, msg);
 }
 
-/* ================= SAVE BUTTON UI ================= */
-const saveBtn = () => $("#btn-save-draft");
+/* ================= SAVE BUTTON POLISH ================= */
+function getSaveBtn(){ return $("#btn-save-draft"); }
+
+function renameSaveButton(){
+  const b = getSaveBtn();
+  if(!b) return;
+  b.textContent = "Save";
+  b.title = "Saves to Supabase";
+}
 
 function setSaveState(state){
-  const btn = saveBtn();
-  if(!btn) return;
+  const b = getSaveBtn();
+  if(!b) return;
 
-  btn.classList.remove("btn-saving","btn-saved");
+  b.classList.remove("btn-saving","btn-saved");
 
   if(state === "saving"){
-    btn.textContent = "Saving…";
-    btn.classList.add("btn-saving");
-    btn.disabled = true;
-  }
-
-  if(state === "saved"){
-    btn.textContent = "Saved ✓";
-    btn.classList.add("btn-saved");
-    btn.disabled = true;
+    b.textContent = "Saving…";
+    b.classList.add("btn-saving");
+    b.disabled = true;
+  } else if(state === "saved"){
+    b.textContent = "Saved ✓";
+    b.classList.add("btn-saved");
+    b.disabled = true;
     setTimeout(() => {
-      btn.textContent = "Save";
-      btn.classList.remove("btn-saved");
-      btn.disabled = false;
+      b.textContent = "Save";
+      b.classList.remove("btn-saved");
+      b.disabled = false;
     }, 1200);
-  }
-
-  if(state === "idle"){
-    btn.textContent = "Save";
-    btn.disabled = false;
+  } else {
+    b.textContent = "Save";
+    b.disabled = false;
   }
 }
 
 function hideSaveButton(hide){
-  const btn = saveBtn();
-  if(btn) btn.style.display = hide ? "none" : "";
+  const b = getSaveBtn();
+  if(b) b.style.display = hide ? "none" : "";
 }
 
-/* ================= CHIP HANDLING ================= */
-function initChips(){
+/* ================= CHIPS ================= */
+/* We store each chip-row value into a hidden input named the same as data-field. */
+function ensureChipHiddenInputs(){
   $$(".chip-row[data-field]", root()).forEach(row=>{
     const field = row.dataset.field;
-    if($(`input[name="${esc(field)}"]`, root())) return;
+    if(!field) return;
+    if($(`input[type="hidden"][name="${esc(field)}"]`, root())) return;
+
     const h = document.createElement("input");
     h.type = "hidden";
     h.name = field;
-    row.after(h);
+    row.insertAdjacentElement("afterend", h);
   });
 }
 
-function syncChips(){
+function getChipSelection(row){
+  const mode = (row.dataset.select || "single").toLowerCase();
+  const selected = $$(".chip.is-selected,.chip.is-active", row).map(b => b.textContent.trim()).filter(Boolean);
+  return mode === "multi" ? selected : (selected[0] || "");
+}
+
+function setChipSelection(row, value){
+  const mode = (row.dataset.select || "single").toLowerCase();
+  let vals = [];
+
+  if(mode === "multi"){
+    if(Array.isArray(value)) vals = value.map(String);
+    else if(typeof value === "string"){
+      const t = value.trim();
+      if(t.startsWith("[")){
+        try { vals = JSON.parse(t) || []; } catch { vals = []; }
+      } else {
+        vals = t.split(",").map(s=>s.trim()).filter(Boolean);
+      }
+    }
+  } else {
+    const v = String(value ?? "").trim();
+    vals = v ? [v] : [];
+  }
+
+  $$(".chip", row).forEach(btn=>{
+    const label = btn.textContent.trim();
+    const on = vals.includes(label);
+    btn.classList.toggle("is-selected", on);
+    btn.classList.toggle("is-active", on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+
+function syncChipRowToHidden(row){
+  const field = row.dataset.field;
+  const mode = (row.dataset.select || "single").toLowerCase();
+  const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root());
+  if(!hidden) return;
+
+  const v = getChipSelection(row);
+  hidden.value = (mode === "multi") ? JSON.stringify(v) : String(v || "");
+}
+
+function syncAllChipsToHidden(){
+  $$(".chip-row[data-field]", root()).forEach(syncChipRowToHidden);
+}
+
+/* ✅ THIS WAS MISSING: click handlers */
+function wireChipClicks(){
+  $$(".chip-row[data-field]", root()).forEach(row=>{
+    const mode = (row.dataset.select || "single").toLowerCase();
+
+    $$(".chip", row).forEach(btn=>{
+      btn.addEventListener("click", () => {
+        if(LOCKED) return;
+
+        if(mode === "single"){
+          // clear others
+          $$(".chip", row).forEach(b=>{
+            b.classList.remove("is-selected","is-active");
+            b.setAttribute("aria-pressed","false");
+          });
+          btn.classList.add("is-selected","is-active");
+          btn.setAttribute("aria-pressed","true");
+        } else {
+          // toggle
+          const on = btn.classList.toggle("is-selected");
+          btn.classList.toggle("is-active", on);
+          btn.setAttribute("aria-pressed", on ? "true" : "false");
+        }
+
+        syncChipRowToHidden(row);
+      });
+    });
+
+    // initial sync
+    syncChipRowToHidden(row);
+  });
+}
+
+function loadChipsFromRow(data){
   $$(".chip-row[data-field]", root()).forEach(row=>{
     const field = row.dataset.field;
-    const mode = row.dataset.select || "single";
-    const hidden = $(`input[name="${esc(field)}"]`, root());
+    const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root());
     if(!hidden) return;
 
-    const selected = $$(".chip.is-selected,.chip.is-active", row)
-      .map(b=>b.textContent.trim());
-
-    hidden.value = mode === "multi"
-      ? JSON.stringify(selected)
-      : (selected[0] || "");
+    if(data[field] != null) hidden.value = String(data[field]);
+    setChipSelection(row, hidden.value);
+    syncChipRowToHidden(row);
   });
 }
 
-function loadChips(data){
-  $$(".chip-row[data-field]", root()).forEach(row=>{
-    const field = row.dataset.field;
-    if(data[field] == null) return;
-
-    let vals = [];
-    if(Array.isArray(data[field])) vals = data[field];
-    else if(String(data[field]).startsWith("[")){
-      try { vals = JSON.parse(data[field]); } catch {}
-    } else vals = [String(data[field])];
-
-    $$(".chip", row).forEach(b=>{
-      const on = vals.includes(b.textContent.trim());
-      b.classList.toggle("is-selected", on);
-      b.classList.toggle("is-active", on);
-    });
+/* ================= SNAPSHOT ================= */
+function snapshot(){
+  const o = {};
+  $$("input[name],textarea[name],select[name]", root()).forEach(el=>{
+    o[el.name] = el.value ?? "";
   });
+  // also include our hidden chip inputs
+  $$('input[type="hidden"][name]', root()).forEach(el=>{
+    o[el.name] = el.value ?? "";
+  });
+  return o;
 }
 
 /* ================= LOCK / UNLOCK ================= */
@@ -1188,7 +1264,7 @@ function lockWizard(on){
   LOCKED = !!on;
 
   $$("input,textarea,select,button", root()).forEach(el=>{
-    if(["btn-unlock","btn-cancel","btn-relock","btn-save-draft","btn-next"].includes(el.id)) return;
+    if(["btn-unlock","btn-cancel","btn-relock","btn-save-draft","btn-next","btn-back"].includes(el.id)) return;
     el.disabled = on;
   });
 
@@ -1196,7 +1272,7 @@ function lockWizard(on){
   $("#btn-cancel")?.style.setProperty("display", on ? "none" : "inline-flex");
   $("#btn-relock")?.style.setProperty("display", on ? "none" : "inline-flex");
 
-  hideSaveButton(on); // 🔒 hide save when locked
+  hideSaveButton(on);
 }
 
 function injectLockControls(){
@@ -1213,23 +1289,33 @@ function injectLockControls(){
     <button id="btn-relock" class="btn btn-ghost">Re-lock</button>
   `;
 
-  $(".wizard-footer")?.after(bar);
+  $(".wizard-footer")?.insertAdjacentElement("afterend", bar);
 
   $("#btn-unlock").onclick = () => {
     if(confirm("Unlock this setup to make changes?")){
       lockWizard(false);
-      hideSaveButton(false);
+      renameSaveButton();
       setSaveState("idle");
     }
   };
 
   $("#btn-cancel").onclick = () => {
     if(!ORIGINAL) return;
+
+    // restore named inputs
     Object.entries(ORIGINAL).forEach(([k,v])=>{
       const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
-      if(el) el.value = v ?? "";
+      if(el && el.type !== "hidden") el.value = v ?? "";
     });
-    loadChips(ORIGINAL);
+
+    // restore chips from hidden values
+    $$(".chip-row[data-field]", root()).forEach(row=>{
+      const field = row.dataset.field;
+      const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root());
+      if(hidden) setChipSelection(row, hidden.value);
+      syncChipRowToHidden(row);
+    });
+
     lockWizard(true);
     status("Changes discarded.", "info");
   };
@@ -1240,41 +1326,39 @@ function injectLockControls(){
   };
 }
 
-/* ================= SNAPSHOT ================= */
-function snapshot(){
-  const o = {};
-  $$("input[name],textarea[name],select[name]", root()).forEach(el=>{
-    o[el.name] = el.value ?? "";
-  });
-  return o;
-}
-
 /* ================= SAVE ================= */
+let CUSTOMER_ID = null;
+
 async function save(){
   if(LOCKED) return;
 
+  renameSaveButton();
   setSaveState("saving");
-  syncChips();
 
+  syncAllChipsToHidden();
   const now = snapshot();
-  if(now.phone && !now.whatsapp_number){
-    now.whatsapp_number = now.phone;
-  }
 
-  const complete = !!(now.business_name && now.email && now.main_trade);
+  // mirror phone -> whatsapp
+  if(now.phone && !now.whatsapp_number) now.whatsapp_number = now.phone;
+
+  // completion rule
+  const main_trade_val = (() => {
+    // prefer hidden value for main_trade
+    const h = $(`input[type="hidden"][name="main_trade"]`, root());
+    return (h?.value || now.main_trade || "").trim();
+  })();
+
+  const complete = !!(String(now.business_name || "").trim() &&
+                      String(now.email || "").trim() &&
+                      String(main_trade_val || "").trim());
+
   now.setup_complete = complete;
   now.pending_setup = !complete;
   now.updated_at = new Date().toISOString();
-  if(complete && !now.setup_completed_at){
-    now.setup_completed_at = new Date().toISOString();
-  }
+  if(complete && !now.setup_completed_at) now.setup_completed_at = new Date().toISOString();
 
   try{
-    const { error } = await sb
-      .from(TABLE)
-      .update(now)
-      .eq("id", CUSTOMER_ID);
-
+    const { error } = await sb.from(TABLE).update(now).eq("id", CUSTOMER_ID);
     if(error) throw error;
 
     ORIGINAL = { ...now };
@@ -1283,7 +1367,7 @@ async function save(){
 
     if(complete){
       lockWizard(true);
-      status("Setup complete — wizard locked 🔒", "success");
+      status("Setup complete — locked 🔒", "success");
     }
   }catch(e){
     console.error("[Wizard] Save failed", e);
@@ -1293,8 +1377,6 @@ async function save(){
 }
 
 /* ================= INIT ================= */
-let CUSTOMER_ID = null;
-
 async function init(){
   CUSTOMER_ID = qp("customer_id");
   if(!CUSTOMER_ID){
@@ -1302,26 +1384,27 @@ async function init(){
     return;
   }
 
-  initChips();
+  renameSaveButton();
+
+  ensureChipHiddenInputs();
+  wireChipClicks();          // ✅ critical
   injectLockControls();
 
-  const { data, error } = await sb
-    .from(TABLE)
-    .select("*")
-    .eq("id", CUSTOMER_ID)
-    .maybeSingle();
-
+  const { data, error } = await sb.from(TABLE).select("*").eq("id", CUSTOMER_ID).maybeSingle();
   if(error || !data){
     status("Customer not found", "error");
     return;
   }
 
+  // prefill normal inputs by name or id
   Object.entries(data).forEach(([k,v])=>{
     const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
-    if(el) el.value = v ?? "";
+    if(el && el.type !== "hidden") el.value = v ?? "";
   });
 
-  loadChips(data);
+  // prefill chips
+  loadChipsFromRow(data);
+
   ORIGINAL = snapshot();
 
   if(truthy(data.setup_complete)){
@@ -1333,14 +1416,8 @@ async function init(){
     status("Resumed — editable.", "info");
   }
 
-  $("#btn-save-draft")?.addEventListener("click", e=>{
-    e.preventDefault();
-    save();
-  });
-
-  $("#btn-next")?.addEventListener("click", ()=>{
-    save(); // autosave
-  });
+  getSaveBtn()?.addEventListener("click", (e)=>{ e.preventDefault(); save(); });
+  $("#btn-next")?.addEventListener("click", ()=>{ save(); });
 }
 
 document.addEventListener("DOMContentLoaded", init);
