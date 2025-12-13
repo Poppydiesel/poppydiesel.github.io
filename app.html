@@ -1070,246 +1070,107 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /* ================= CONFIG ================= */
 const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8"; // <-- put your anon key
 const TABLE = "customers";
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const TOTAL_STEPS = 4;
-
-/* ================= STATE ================= */
-let CUSTOMER_ID = null;
-let LOCKED = false;      // locked = read-only view mode
-let EDIT_MODE = false;   // true only after Unlock
-let ORIGINAL = null;
 
 /* ================= HELPERS ================= */
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
-const esc = s => { try { return CSS.escape(s); } catch { return s; } };
-const qp = n => new URLSearchParams(location.search).get(n);
-const truthy = v => v===true || v==="true" || v===1 || v==="1";
-const root = () => $(".wizard-shell") || document.body;
+const esc = (s)=>{ try{ return CSS.escape(s); }catch{ return s; } };
+const qp = (n)=> new URLSearchParams(location.search).get(n);
 
-function status(msg, type="info"){
+function logErr(...a){ console.error(...a); }
+function status(msg, kind="info"){
   const el = $("#wizard-status-message");
   if(el){
     el.textContent = msg;
-    el.className = "wizard-status-message is-" + type;
+    el.dataset.kind = kind;
   }
-  console.log(`[Wizard:${type}]`, msg);
+  console.log(`[Wizard] ${msg}`);
 }
 
-/* ================= STEP NAV ================= */
-function getActiveStepPanel(){ return $(".step-panel.is-active"); }
-function getActiveStepNumber(){
-  const p = getActiveStepPanel();
-  return p ? Number(p.dataset.step) : 1;
+/* ================= STATE ================= */
+let CUSTOMER_ID = qp("customer_id");
+let LOCKED = false;        // read-only view mode when complete
+let EDIT_MODE = false;     // true only after Unlock
+let ORIGINAL = null;
+let saving = false;
+
+/* ================= FORM CHECK ================= */
+function getRoot(){
+  return $(".wizard-shell") || document.body;
 }
-function getStepPanel(n){ return $(`.step-panel[data-step="${n}"]`); }
+function findNamedFields(){
+  const root = getRoot();
+  const fields = [];
 
-function showStep(n){
-  const step = Math.max(1, Math.min(TOTAL_STEPS, n));
-  const cur = getActiveStepPanel();
-  const next = getStepPanel(step);
-  if(!next) return;
-
-  cur?.classList.remove("is-active");
-  next.classList.add("is-active");
-
-  $$(".step-dot").forEach(dot=>{
-    dot.classList.toggle("is-active", Number(dot.dataset.stepDot) === step);
+  $$("[name]", root).forEach(el=>{
+    if(el.tagName === "BUTTON") return;
+    fields.push(el);
   });
 
-  const lbl = $("#wizard-step-label");
-  if(lbl) lbl.textContent = `Step ${step}`;
-
-  const ft = $("#wizard-footer-text");
-  if(ft) ft.innerHTML = `Step <strong>${step}</strong> of <strong>${TOTAL_STEPS}</strong>.`;
-
-  const back = $("#btn-back");
-  if(back) back.disabled = (step === 1);
-
-  const nextBtn = $("#btn-next");
-  if(nextBtn) nextBtn.textContent = (step === TOTAL_STEPS ? "Finish →" : "Next step →");
-}
-
-function nextStep(){ const s = getActiveStepNumber(); if(s < TOTAL_STEPS) showStep(s+1); }
-function prevStep(){ const s = getActiveStepNumber(); if(s > 1) showStep(s-1); }
-
-/* ================= COMPLETION UI ================= */
-function setCompletionUI(isComplete){
-  const box = $("#summary-box");
-  if(!box) return;
-  box.hidden = !isComplete;
-
-  if(isComplete){
-    box.innerHTML = `
-      <strong>🔒 Setup Wizard complete.</strong><br />
-      Your details are saved. You can browse all steps using Next/Back.
-      To change anything, click <strong>Unlock to edit</strong>.
-    `;
-  }
-}
-
-/* ================= READ-ONLY (LOCK VIEW MODE) ================= */
-function setReadOnly(on){
-  $$("input,textarea", root()).forEach(el=>{
-    if(el.type === "hidden") return;
-    el.readOnly = !!on;
-  });
-  $$("select", root()).forEach(el=>{
-    el.disabled = !!on;
-  });
-}
-
-/* ================= SAVE BUTTON ================= */
-function saveBtn(){ return $("#btn-save-draft"); }
-
-function showSave(on){
-  const b = saveBtn();
-  if(!b) return;
-  b.style.display = on ? "" : "none";
-  if(on) b.textContent = "Save";
-}
-
-function setSaveState(state){
-  const b = saveBtn();
-  if(!b) return;
-
-  b.classList.remove("btn-saving","btn-saved");
-
-  if(state === "saving"){
-    b.textContent = "Saving…";
-    b.classList.add("btn-saving");
-    b.disabled = true;
-  } else if(state === "saved"){
-    b.textContent = "Saved ✓";
-    b.classList.add("btn-saved");
-    b.disabled = true;
-    setTimeout(()=>{
-      b.textContent = "Save";
-      b.classList.remove("btn-saved");
-      b.disabled = false;
-    }, 900);
-  } else {
-    b.textContent = "Save";
-    b.disabled = false;
-  }
-}
-
-/* ================= LOCK CONTROLS ================= */
-function injectLockControls(){
-  if($("#btn-unlock")) return;
-
-  const bar = document.createElement("div");
-  bar.style.display = "flex";
-  bar.style.gap = "10px";
-  bar.style.marginTop = "12px";
-  bar.innerHTML = `
-    <button id="btn-unlock" class="btn btn-secondary">Unlock to edit</button>
-    <button id="btn-cancel" class="btn btn-ghost">Cancel edits</button>
-    <button id="btn-relock" class="btn btn-ghost">Re-lock</button>
-  `;
-  $(".wizard-footer")?.insertAdjacentElement("afterend", bar);
-
-  $("#btn-unlock").addEventListener("click", ()=>{
-    if(confirm("Unlock this setup to make changes?")){
-      EDIT_MODE = true;
-      setReadOnly(false);
-      showSave(true);
-      updateLockButtons();
-      status("Unlocked for editing.", "info");
-    }
+  $$("input[id],textarea[id],select[id]", root).forEach(el=>{
+    if(el.name) return;
+    fields.push(el);
   });
 
-  $("#btn-cancel").addEventListener("click", ()=>{
-    if(!ORIGINAL) return;
-
-    Object.entries(ORIGINAL).forEach(([k,v])=>{
-      const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
-      if(el && el.type !== "hidden") el.value = v ?? "";
-    });
-
-    loadChips(ORIGINAL);
-
-    EDIT_MODE = false;
-    if(LOCKED){
-      setReadOnly(true);
-      showSave(false);
-      setCompletionUI(true);
-      status("Changes discarded. Back to read-only.", "info");
-    }else{
-      setReadOnly(false);
-      showSave(true);
-      setCompletionUI(false);
-      status("Changes discarded.", "info");
-    }
-    updateLockButtons();
-  });
-
-  $("#btn-relock").addEventListener("click", ()=>{
-    EDIT_MODE = false;
-    if(LOCKED){
-      setReadOnly(true);
-      showSave(false);
-      setCompletionUI(true);
-      status("Wizard locked (read-only).", "info");
-    } else {
-      setReadOnly(false);
-      showSave(true);
-      setCompletionUI(false);
-      status("Wizard is not complete yet — still editable.", "info");
-    }
-    updateLockButtons();
-  });
+  return fields;
 }
+function snapshot(){
+  const root = getRoot();
+  const o = {};
 
-function updateLockButtons(){
-  const unlock = $("#btn-unlock");
-  const cancel = $("#btn-cancel");
-  const relock = $("#btn-relock");
-  if(!unlock || !cancel || !relock) return;
+  $$("input[name],textarea[name],select[name]", root).forEach(el=>{
+    if(el.type === "button") return;
+    o[el.name] = el.value ?? "";
+  });
 
-  if(LOCKED && !EDIT_MODE){
-    unlock.style.display = "inline-flex";
-    cancel.style.display = "none";
-    relock.style.display = "none";
-  } else {
-    unlock.style.display = "none";
-    cancel.style.display = "inline-flex";
-    relock.style.display = "inline-flex";
-  }
+  $$('input[type="hidden"][name]', root).forEach(el=>{
+    o[el.name] = el.value ?? "";
+  });
+
+  $$("input[id],textarea[id],select[id]", root).forEach(el=>{
+    if(el.name) return;
+    const key = el.id;
+    if(!key) return;
+    if(o[key] === undefined) o[key] = el.value ?? "";
+  });
+
+  return o;
 }
 
 /* ================= CHIPS ================= */
-function ensureChipInputs(){
-  $$(".chip-row[data-field]", root()).forEach(row=>{
+function ensureChipHiddens(){
+  const root = getRoot();
+  $$(".chip-row[data-field]", root).forEach(row=>{
     const field = row.dataset.field;
     if(!field) return;
-    if($(`input[type="hidden"][name="${esc(field)}"]`, root())) return;
+    const existing = $(`input[type="hidden"][name="${esc(field)}"]`, root);
+    if(existing) return;
     const h = document.createElement("input");
     h.type = "hidden";
     h.name = field;
-    row.after(h);
+    row.insertAdjacentElement("afterend", h);
   });
 }
-
 function syncChipRow(row){
+  const root = getRoot();
   const field = row.dataset.field;
-  const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root());
+  const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root);
   if(!hidden) return;
 
-  const vals = $$(".chip.is-selected,.chip.is-active", row)
+  const selected = $$(".chip.is-selected,.chip.is-active", row)
     .map(b=>b.textContent.trim())
     .filter(Boolean);
 
-  hidden.value = (row.dataset.select === "multi") ? JSON.stringify(vals) : (vals[0] || "");
+  const mode = (row.dataset.select || "single").toLowerCase();
+  hidden.value = (mode === "multi") ? JSON.stringify(selected) : (selected[0] || "");
 }
-
 function syncAllChips(){
-  $$(".chip-row[data-field]", root()).forEach(syncChipRow);
+  const root = getRoot();
+  $$(".chip-row[data-field]", root).forEach(syncChipRow);
 }
-
 function wireChipClicks(){
   document.addEventListener("click", (e)=>{
     const chip = e.target.closest(".chip");
@@ -1319,6 +1180,8 @@ function wireChipClicks(){
     if(!row) return;
 
     e.preventDefault();
+
+    // locked view mode blocks selection unless unlocked
     if(LOCKED && !EDIT_MODE) return;
 
     const mode = (row.dataset.select || "single").toLowerCase();
@@ -1330,7 +1193,7 @@ function wireChipClicks(){
       });
       chip.classList.add("is-selected","is-active");
       chip.setAttribute("aria-pressed","true");
-    } else {
+    }else{
       const on = chip.classList.toggle("is-selected");
       chip.classList.toggle("is-active", on);
       chip.setAttribute("aria-pressed", on ? "true" : "false");
@@ -1339,22 +1202,20 @@ function wireChipClicks(){
     syncChipRow(row);
   });
 }
-
 function loadChips(data){
-  $$(".chip-row[data-field]", root()).forEach(row=>{
+  const root = getRoot();
+  $$(".chip-row[data-field]", root).forEach(row=>{
     const field = row.dataset.field;
-    const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root());
+    const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root);
     if(!hidden) return;
 
-    hidden.value = data[field] ?? "";
+    const raw = (data?.[field] ?? "").toString().trim();
+    hidden.value = raw;
 
     let vals = [];
-    const v = String(hidden.value ?? "").trim();
-    if(v.startsWith("[")){
-      try { vals = JSON.parse(v) || []; } catch { vals = []; }
-    } else if(v) {
-      vals = [v];
-    }
+    if(raw.startsWith("[")){
+      try { vals = JSON.parse(raw) || []; } catch { vals = []; }
+    } else if(raw) vals = [raw];
 
     $$(".chip", row).forEach(b=>{
       const on = vals.includes(b.textContent.trim());
@@ -1365,199 +1226,386 @@ function loadChips(data){
   });
 }
 
-/* ================= SNAPSHOT ================= */
-function snapshot(){
-  const o = {};
-  $$("input[name],textarea[name],select[name]", root()).forEach(el=>{
-    o[el.name] = el.value ?? "";
+/* ================= LOCK / UNLOCK ================= */
+function setReadOnly(on){
+  const root = getRoot();
+  $$("input,textarea", root).forEach(el=>{
+    if(el.type === "hidden") return;
+    el.readOnly = !!on;
   });
-  $$('input[type="hidden"][name]', root()).forEach(el=>{
-    o[el.name] = el.value ?? "";
-  });
-
-  // also include inputs that have id=column but no name
-  $$("input[id],textarea[id],select[id]", root()).forEach(el=>{
-    if(el.name) return;
-    const key = el.id;
-    if(!key) return;
-    if(o[key] === undefined) o[key] = el.value ?? "";
-  });
-
-  return o;
+  $$("select", root).forEach(el=> el.disabled = !!on);
 }
 
-/* ================= URL ID HANDLING ================= */
-function setCustomerIdInUrl(id){
-  const url = new URL(location.href);
-  url.searchParams.set("customer_id", id);
-  url.searchParams.delete("new");
-  history.replaceState({}, "", url.toString());
-}
+function ensureUnlockUI(){
+  if($("#btn-unlock")) return;
 
-/* ================= SAVE ================= */
-async function save(){
-  if(LOCKED && !EDIT_MODE) return;
+  const host = $("#wizard-status-message")?.parentElement || getRoot();
+  const bar = document.createElement("div");
+  bar.style.display = "flex";
+  bar.style.gap = "10px";
+  bar.style.marginTop = "12px";
+  bar.innerHTML = `
+    <button id="btn-unlock" type="button" class="btn btn-secondary">Unlock to edit</button>
+    <button id="btn-relock" type="button" class="btn btn-ghost">Re-lock</button>
+    <button id="btn-cancel" type="button" class="btn btn-ghost">Cancel edits</button>
+  `;
+  host.insertAdjacentElement("afterend", bar);
 
-  setSaveState("saving");
-  syncAllChips();
+  $("#btn-unlock").addEventListener("click", ()=>{
+    EDIT_MODE = true;
+    setReadOnly(false);
+    showSave(true);
+    updateUnlockUI();
+    status("Unlocked — editable.", "info");
+  });
 
-  const now = snapshot();
-
-  // map optional fields
-  if(now.contact_mobile && !now.phone) now.phone = now.contact_mobile;
-  if(now.contact_email && !now.email) now.email = now.contact_email;
-
-  // Completion rule (your current rule)
-  const complete = !!(
-    String(now.business_name||"").trim() &&
-    String(now.email||"").trim() &&
-    String(now.main_trade||"").trim()
-  );
-
-  // flags
-  now.setup_complete = complete;
-  now.pending_setup = !complete;
-  now.updated_at = new Date().toISOString();
-  if(complete && !now.setup_completed_at){
-    now.setup_completed_at = new Date().toISOString();
-  }
-
-  // automation on completion
-  if(complete){
-    now.wizard_completed = true;
-    if(!now.onboarding_status || String(now.onboarding_status).trim()==="" || String(now.onboarding_status).trim()==="New Signup"){
-      now.onboarding_status = "In Setup";
+  $("#btn-relock").addEventListener("click", ()=>{
+    EDIT_MODE = false;
+    if(LOCKED){
+      setReadOnly(true);
+      showSave(false);
+      status("Locked — read-only.", "info");
+    }else{
+      setReadOnly(false);
+      showSave(true);
+      status("Still incomplete — editable.", "info");
     }
-  } else {
-    // keep sensible defaults for drafts
-    if(!now.onboarding_status) now.onboarding_status = "New Signup";
-    if(now.wizard_completed === undefined) now.wizard_completed = false;
+    updateUnlockUI();
+  });
+
+  $("#btn-cancel").addEventListener("click", ()=>{
+    if(!ORIGINAL) return;
+    const root = getRoot();
+
+    Object.entries(ORIGINAL).forEach(([k,v])=>{
+      const el = $(`[name="${esc(k)}"],#${esc(k)}`, root);
+      if(el && el.type !== "hidden") el.value = v ?? "";
+    });
+
+    loadChips(ORIGINAL);
+
+    EDIT_MODE = false;
+    if(LOCKED){
+      setReadOnly(true);
+      showSave(false);
+      status("Changes discarded (read-only).", "info");
+    }else{
+      setReadOnly(false);
+      showSave(true);
+      status("Changes discarded.", "info");
+    }
+    updateUnlockUI();
+  });
+}
+
+function updateUnlockUI(){
+  const u = $("#btn-unlock");
+  const r = $("#btn-relock");
+  const c = $("#btn-cancel");
+  if(!u || !r || !c) return;
+
+  if(LOCKED && !EDIT_MODE){
+    u.style.display = "";
+    r.style.display = "none";
+    c.style.display = "none";
+  }else{
+    u.style.display = "none";
+    r.style.display = "";
+    c.style.display = "";
   }
+}
+
+/* ================= SAVE BUTTON LABEL ================= */
+function showSave(on){
+  const b = $("#btn-save-draft");
+  if(!b) return;
+  b.style.display = on ? "" : "none";
+  b.textContent = "Save";
+}
+function setSaveState(state){
+  const b = $("#btn-save-draft");
+  if(!b) return;
+
+  if(state === "saving"){
+    b.disabled = true;
+    b.textContent = "Saving…";
+  }else if(state === "saved"){
+    b.disabled = true;
+    b.textContent = "Saved ✓";
+    setTimeout(()=>{ b.disabled = false; b.textContent = "Save"; }, 800);
+  }else{
+    b.disabled = false;
+    b.textContent = "Save";
+  }
+}
+
+/* ================= COMPLETION RULE ================= */
+function isWizardComplete(data){
+  const business = String(data.business_name || data.business || "").trim();
+  const email = String(data.email || data.contact_email || "").trim();
+  const trade = String(data.main_trade || "").trim();
+  return !!(business && email && trade);
+}
+
+/* ================= PATCH BUILDER (AUTO-TICKS OPS) ================= */
+function buildCustomerPatchFromForm(){
+  syncAllChips();
+  const data = snapshot();
+
+  if(data.contact_mobile && !data.phone) data.phone = data.contact_mobile;
+  if(data.contact_email && !data.email) data.email = data.contact_email;
+
+  const complete = isWizardComplete(data);
+
+  // ✅ AUTO FLAGS FOR OPS
+  data.setup_complete = complete;
+  data.pending_setup = !complete;
+  data.wizard_completed = complete;
+
+  // onboarding status automation
+  const currentStage = String(data.onboarding_status || "").trim();
+  if(complete){
+    if(!currentStage || currentStage === "New Signup"){
+      data.onboarding_status = "In Setup";
+    }
+    if(!data.setup_completed_at) data.setup_completed_at = new Date().toISOString();
+  }else{
+    if(!currentStage) data.onboarding_status = "New Signup";
+  }
+
+  data.updated_at = new Date().toISOString();
+  return { data, complete };
+}
+
+/* ================= LOAD + PREFILL ================= */
+async function loadCustomer(id){
+  const { data, error } = await sb.from(TABLE).select("*").eq("id", id).maybeSingle();
+  if(error){
+    logErr("[Wizard] Load error:", error);
+    status(`Load failed: ${error.message}`, "error");
+    return null;
+  }
+  if(!data){
+    status("Customer not found.", "error");
+    return null;
+  }
+
+  const root = getRoot();
+  Object.entries(data).forEach(([k,v])=>{
+    const el = $(`[name="${esc(k)}"],#${esc(k)}`, root);
+    if(el && el.type !== "hidden") el.value = v ?? "";
+  });
+
+  loadChips(data);
+  ORIGINAL = { ...data, ...snapshot() };
+  return data;
+}
+
+/* ================= 2.1 BACKFILL ON LOAD ================= */
+/**
+ * Ensures these are always consistent in Supabase:
+ * - wizard_completed mirrors setup_complete
+ * - pending_setup mirrors NOT setup_complete
+ * - onboarding_status becomes "In Setup" if complete and stage is blank/New Signup
+ *
+ * Runs once on load, silently.
+ */
+async function backfillWizardFlagsOnLoad(row){
+  if(!row || !CUSTOMER_ID) return row;
+
+  const setupComplete = !!row.setup_complete;
+  const wizardCompleted = !!row.wizard_completed;
+  const pendingSetup = !!row.pending_setup;
+  const stage = String(row.onboarding_status || "").trim();
+
+  const shouldBeComplete = setupComplete || wizardCompleted;
+  const shouldPending = !shouldBeComplete;
+
+  const patch = {};
+
+  // fix mismatch between flags
+  if(shouldBeComplete && (!setupComplete || !wizardCompleted)){
+    patch.setup_complete = true;
+    patch.wizard_completed = true;
+  }
+  if(!shouldBeComplete && (setupComplete || wizardCompleted)){
+    patch.setup_complete = false;
+    patch.wizard_completed = false;
+  }
+
+  // fix pending_setup
+  if(pendingSetup !== shouldPending){
+    patch.pending_setup = shouldPending;
+  }
+
+  // fix stage when complete
+  if(shouldBeComplete && (!stage || stage === "New Signup")){
+    patch.onboarding_status = "In Setup";
+  }
+  // default stage when not complete
+  if(!shouldBeComplete && !stage){
+    patch.onboarding_status = "New Signup";
+  }
+
+  // optional completed_at
+  if(shouldBeComplete && !row.setup_completed_at){
+    patch.setup_completed_at = new Date().toISOString();
+  }
+
+  if(Object.keys(patch).length === 0) return row;
+
+  patch.updated_at = new Date().toISOString();
+
+  const { error } = await sb.from(TABLE).update(patch).eq("id", CUSTOMER_ID);
+  if(error){
+    // don't block UI if backfill fails
+    console.warn("[Wizard] Backfill skipped (error):", error);
+    return row;
+  }
+
+  // return merged row so UI reflects it immediately
+  return { ...row, ...patch };
+}
+
+/* ================= SAVE TO SUPABASE ================= */
+async function saveToSupabase(){
+  if(saving) return;
+  saving = true;
 
   try{
-    // ✅ If no ID yet: INSERT first save (prevents blank UUID rows)
-    if(!CUSTOMER_ID){
-      // IMPORTANT: only insert non-empty-ish fields + flags
-      const insertPayload = { ...now };
-      delete insertPayload.id;
-
-      const { data, error } = await sb
-        .from(TABLE)
-        .insert(insertPayload)
-        .select("*")
-        .single();
-
-      if(error) throw error;
-
-      CUSTOMER_ID = data.id;
-      setCustomerIdInUrl(CUSTOMER_ID);
-
-      ORIGINAL = { ...snapshot(), ...data };
-      setSaveState("saved");
-      status("Created + Saved to Supabase ✅", "success");
-
-      LOCKED = truthy(data.setup_complete);
-      EDIT_MODE = false;
-
-      if(LOCKED){
-        setReadOnly(true);
-        setCompletionUI(true);
-        showSave(false);
-      }else{
-        setReadOnly(false);
-        setCompletionUI(false);
-        showSave(true);
-      }
-      updateLockButtons();
+    if(LOCKED && !EDIT_MODE){
+      status("Wizard is complete (read-only). Click Unlock to edit.", "info");
       return;
     }
 
-    // ✅ Otherwise: UPDATE
-    const { error } = await sb.from(TABLE).update(now).eq("id", CUSTOMER_ID);
-    if(error) throw error;
+    if(!findNamedFields().length){
+      status("No fields found on page (check your HTML ids/names).", "error");
+      return;
+    }
 
-    ORIGINAL = { ...now };
-    setSaveState("saved");
-    status("Saved to Supabase ✅", "success");
+    setSaveState("saving");
+
+    if(!CUSTOMER_ID){
+      status("Missing customer_id. Open from dashboard using ?customer_id=...", "error");
+      setSaveState("idle");
+      return;
+    }
+
+    const { data: patch, complete } = buildCustomerPatchFromForm();
+
+    const { error } = await sb.from(TABLE).update(patch).eq("id", CUSTOMER_ID);
+    if(error){
+      logErr("[Wizard] Save error:", error);
+      status(`Save failed: ${error.message}`, "error");
+      setSaveState("idle");
+      return;
+    }
+
+    ORIGINAL = { ...patch };
 
     if(complete){
       LOCKED = true;
       EDIT_MODE = false;
       setReadOnly(true);
-      setCompletionUI(true);
       showSave(false);
-    } else {
+      status("🔒 Setup Wizard complete — saved to Supabase ✅", "success");
+    }else{
       LOCKED = false;
       setReadOnly(false);
-      setCompletionUI(false);
       showSave(true);
+      status("Saved to Supabase ✅", "success");
     }
-    updateLockButtons();
-  } catch(e){
-    console.error("[Wizard] Save failed", e);
-    setSaveState("idle");
-    status(`Save failed: ${e.message}`, "error");
+
+    updateUnlockUI();
+    setSaveState("saved");
+  } finally {
+    saving = false;
   }
 }
 
+/* ================= STEP NAV ================= */
+function getActiveStepPanel(){ return $(".step-panel.is-active"); }
+function getActiveStep(){
+  const p = getActiveStepPanel();
+  return p ? Number(p.dataset.step) : 1;
+}
+function showStep(n){
+  const step = Math.max(1, Math.min(4, n));
+  $$(".step-panel").forEach(p=>p.classList.toggle("is-active", Number(p.dataset.step)===step));
+  $$(".step-dot").forEach(d=>d.classList.toggle("is-active", Number(d.dataset.stepDot)===step));
+
+  const back = $("#btn-back");
+  if(back) back.disabled = (step === 1);
+
+  const next = $("#btn-next");
+  if(next) next.textContent = (step === 4 ? "Finish →" : "Next step →");
+
+  const pct = $("#progress-percent");
+  if(pct) pct.textContent = `Step ${step} of 4`;
+
+  const bar = $("#progress-bar-inner");
+  if(bar) bar.style.width = `${Math.round((step/4)*100)}%`;
+
+  const ft = $("#wizard-footer-text");
+  if(ft) ft.innerHTML = `Step <strong>${step}</strong> of <strong>4</strong>. You can tweak anything later.`;
+}
+function nextStep(){ showStep(getActiveStep()+1); }
+function prevStep(){ showStep(getActiveStep()-1); }
+
 /* ================= INIT ================= */
 async function init(){
-  ensureChipInputs();
+  ensureChipHiddens();
   wireChipClicks();
-  injectLockControls();
+  ensureUnlockUI();
 
-  CUSTOMER_ID = qp("customer_id") || null;
+  // rename button from "Save draft..." to plain Save, and hide it when locked
+  showSave(true);
 
-  // If we have an ID, load existing customer
-  if(CUSTOMER_ID){
-    const { data, error } = await sb.from(TABLE).select("*").eq("id", CUSTOMER_ID).maybeSingle();
-    if(error || !data){
-      status("Customer not found", "error");
-      return;
-    }
-
-    // Prefill
-    Object.entries(data).forEach(([k,v])=>{
-      const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
-      if(el && el.type !== "hidden") el.value = v ?? "";
-    });
-
-    loadChips(data);
-    ORIGINAL = snapshot();
-
-    LOCKED = truthy(data.setup_complete);
-    EDIT_MODE = false;
-
-    if(LOCKED){
-      setReadOnly(true);
-      setCompletionUI(true);
-      showSave(false);
-      status("Setup complete — read-only.", "info");
-    } else {
-      setReadOnly(false);
-      setCompletionUI(false);
-      showSave(true);
-      status("Resumed — editable.", "info");
-    }
-  } else {
-    // No ID: do NOT create a row yet (prevents phantom UUID rows)
+  if(!CUSTOMER_ID){
+    status("Missing customer_id. Open this from dashboard (Open wizard).", "error");
     LOCKED = false;
     EDIT_MODE = true;
     setReadOnly(false);
-    setCompletionUI(false);
-    showSave(true);
-    status("New customer — fill the form, then Save/Next to create the record.", "info");
+    updateUnlockUI();
+    return;
   }
 
-  updateLockButtons();
+  // load row from DB
+  let row = await loadCustomer(CUSTOMER_ID);
+  if(!row) return;
 
-  if(!getActiveStepPanel()) getStepPanel(1)?.classList.add("is-active");
-  showStep(getActiveStepNumber() || 1);
+  // ✅ 2.1: backfill old records on load (silent)
+  row = await backfillWizardFlagsOnLoad(row);
 
-  $("#btn-next")?.addEventListener("click", (e)=>{
+  // determine lock state from corrected flags
+  const complete = !!row.setup_complete || !!row.wizard_completed;
+
+  if(complete){
+    LOCKED = true;
+    EDIT_MODE = false;
+    setReadOnly(true);
+    showSave(false);
+    status("🔒 Setup Wizard complete — read-only view.", "info");
+  }else{
+    LOCKED = false;
+    EDIT_MODE = true;
+    setReadOnly(false);
+    showSave(true);
+    status("[Wizard] Resumed — editable.", "info");
+  }
+
+  updateUnlockUI();
+
+  // wire buttons
+  $("#btn-save-draft")?.addEventListener("click", (e)=>{
     e.preventDefault();
-    save();      // create/update
-    nextStep();  // always navigate
+    saveToSupabase();
+  });
+
+  $("#btn-next")?.addEventListener("click", async (e)=>{
+    e.preventDefault();
+    await saveToSupabase();  // save + auto-tick flags
+    nextStep();              // always navigate
   });
 
   $("#btn-back")?.addEventListener("click", (e)=>{
@@ -1565,10 +1613,12 @@ async function init(){
     prevStep();
   });
 
-  $("#btn-save-draft")?.addEventListener("click", (e)=>{
-    e.preventDefault();
-    save();
-  });
+  // ensure step 1 visible
+  if(!getActiveStepPanel()){
+    const first = $(".step-panel[data-step='1']");
+    if(first) first.classList.add("is-active");
+  }
+  showStep(getActiveStep());
 }
 
 document.addEventListener("DOMContentLoaded", init);
