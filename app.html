@@ -1102,206 +1102,230 @@ window.addEventListener("unhandledrejection", (e) => {
 
     console.log("[TBP] Supabase loaded OK:", window.supabase);
 
-    // ===== YOUR BOOTSTRAP STARTS HERE =====
-    (function () {
-      try {
-       const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+ <!-- SUPABASE JS (use jsDelivr instead of unpkg to reduce Edge tracking issues) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
 
-        const params = new URLSearchParams(location.search);
-        const customer_id = params.get("customer_id") || "";
-        console.log("[TBP] URL ids:", { customer_id });
+<script>
+/**
+ * TradeBotPro Wizard – Safe Bootstrap
+ * - Ensures Supabase is loaded before code runs
+ * - Prefills wizard from customers by customer_id
+ * - Chips work (only targets real chips)
+ * - Does NOT interfere with Next button
+ * - Forces chip buttons to type="button" so they never submit the form
+ */
 
-        // quick sanity check fetch (we’ll improve next)
-        (async () => {
-          if (!customer_id) return;
-
-          const { data, error } = await sb
-            .from("customers")
-            .select("id, contact_name, business_name, email, phone, whatsapp_number")
-            .eq("id", customer_id)
-            .single();
-
-          if (error) {
-            console.error("[TBP] Prefill fetch error:", error);
-            return;
-          }
-
-          console.log("[TBP] Loaded customer row:", data);
-
-          // Prefill (only if these IDs exist in your wizard)
-          const set = (id, v) => {
-            const el = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
-            if (!el || v == null) return;
-            el.value = String(v);
-            el.dispatchEvent(new Event("input", { bubbles: true }));
-            el.dispatchEvent(new Event("change", { bubbles: true }));
-          };
-
-          set("contact_name", data.contact_name);
-          set("business_name", data.business_name);
-          set("email", data.email);
-          set("whatsapp_number", data.whatsapp_number || data.phone);
-          set("phone", data.phone || data.whatsapp_number);
-        })();
-
-      } catch (err) {
-        console.error("[TBP] app bootstrap crashed:", err);
-      }
-    })();
-    // ===== YOUR BOOTSTRAP ENDS HERE =====
-  })();
-
-  // ===============================
-// CHIP ENGINE (single + multi select)
-// ===============================
-(function initChipEngine() {
-  function findField(fieldName) {
-    return document.querySelector(`[name="${fieldName}"]`) || document.getElementById(fieldName);
+(function bootWhenSupabaseReady() {
+  if (typeof window.supabase === "undefined") {
+    console.error("[TBP] Supabase UMD not loaded yet. Retrying...");
+    return setTimeout(bootWhenSupabaseReady, 50);
   }
 
-  function setSingle(groupEl, fieldName, value) {
-    const field = findField(fieldName);
-    if (!field) {
-      console.warn("[TBP] No field for chip group:", fieldName);
-      return;
-    }
-    field.value = value;
-    field.dispatchEvent(new Event("input", { bubbles: true }));
-    field.dispatchEvent(new Event("change", { bubbles: true }));
+  // Global error visibility (so a random error doesn’t silently break chips/next)
+  window.addEventListener("error", (e) => {
+    console.error("[TBP] JS Error:", e.message, "at", e.filename, "line", e.lineno);
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    console.error("[TBP] Unhandled Promise:", e.reason);
+  });
 
-    groupEl.querySelectorAll("[data-value]").forEach(ch => {
-      const v = (ch.getAttribute("data-value") || "").trim();
-      const on = v === value;
-      ch.classList.toggle("is-selected", on);
-      ch.setAttribute("aria-pressed", on ? "true" : "false");
-      if (ch.tagName === "BUTTON") ch.type = "button";
+  // ==== CONFIG ====
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const params = new URLSearchParams(location.search);
+  const customer_id = params.get("customer_id") || "";
+
+  console.log("[TBP] Wizard boot", { customer_id });
+
+  // ---------- helpers ----------
+  const $ = (sel, root=document) => root.querySelector(sel);
+
+  function setField(fieldName, value) {
+    if (value === undefined || value === null) return false;
+
+    const v = String(value);
+    let el = document.getElementById(fieldName);
+    if (!el) el = document.querySelector(`[name="${fieldName}"]`);
+    if (!el) return false;
+
+    el.value = v;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+    return true;
+  }
+
+  function waitForAnyField(timeoutMs = 8000) {
+    const start = Date.now();
+    return new Promise((resolve, reject) => {
+      (function tick() {
+        const ready =
+          document.getElementById("contact_name") ||
+          document.querySelector('input[name="contact_name"]') ||
+          document.getElementById("business_name") ||
+          document.querySelector('input[name="business_name"]');
+
+        if (ready) return resolve(true);
+        if (Date.now() - start > timeoutMs) return reject(new Error("Wizard fields not found in time"));
+        requestAnimationFrame(tick);
+      })();
     });
   }
 
-  function toggleMulti(chipEl, fieldName, value) {
-    const field = findField(fieldName);
-    if (!field) {
-      console.warn("[TBP] No field for chip group:", fieldName);
-      return;
-    }
-    let arr = [];
-    try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
-    const idx = arr.indexOf(value);
-    if (idx >= 0) arr.splice(idx, 1); else arr.push(value);
+  // ---------- chips (SAFE: only chips, never touches Next button) ----------
+  // Requirements (best practice):
+  // - chip wrapper: data-chip-group="field_name"
+  // - each chip: data-value="Option"
+  // - real storage field exists: <input type="hidden" name="field_name" id="field_name">
+  //
+  // This handler DOES NOT preventDefault or stopPropagation.
+  function syncChipGroupsFromFields() {
+    document.querySelectorAll("[data-chip-group]").forEach(groupEl => {
+      const fieldName = groupEl.getAttribute("data-chip-group");
+      if (!fieldName) return;
 
-    field.value = JSON.stringify(arr);
-    field.dispatchEvent(new Event("input", { bubbles: true }));
-    field.dispatchEvent(new Event("change", { bubbles: true }));
+      const field = document.querySelector(`[name="${fieldName}"]`) || document.getElementById(fieldName);
+      if (!field) return;
 
-    chipEl.classList.toggle("is-selected");
-    chipEl.setAttribute("aria-pressed", chipEl.classList.contains("is-selected") ? "true" : "false");
+      const isMulti = groupEl.getAttribute("data-multi") === "true";
+
+      if (!isMulti) {
+        const current = (field.value || "").trim();
+        groupEl.querySelectorAll("[data-value]").forEach(chip => {
+          const v = (chip.getAttribute("data-value") || "").trim();
+          const on = v === current;
+          chip.classList.toggle("is-selected", on);
+          chip.setAttribute("aria-pressed", on ? "true" : "false");
+          if (chip.tagName === "BUTTON") chip.type = "button";
+        });
+      } else {
+        let arr = [];
+        try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
+        groupEl.querySelectorAll("[data-value]").forEach(chip => {
+          const v = (chip.getAttribute("data-value") || "").trim();
+          const on = arr.includes(v);
+          chip.classList.toggle("is-selected", on);
+          chip.setAttribute("aria-pressed", on ? "true" : "false");
+          if (chip.tagName === "BUTTON") chip.type = "button";
+        });
+      }
+    });
   }
 
-  // Event delegation (works even if chips added later)
   document.addEventListener("click", (e) => {
+    // STRICT: only handle real chip clicks
     const chip = e.target.closest("[data-chip-group] [data-value]");
     if (!chip) return;
 
-    // stop form submit side effects
     if (chip.tagName === "BUTTON") chip.type = "button";
 
     const groupEl = chip.closest("[data-chip-group]");
-    const fieldName = groupEl?.getAttribute("data-chip-group");
+    if (!groupEl) return;
+
+    const fieldName = groupEl.getAttribute("data-chip-group");
     if (!fieldName) return;
 
     const value = (chip.getAttribute("data-value") || "").trim();
     const isMulti = groupEl.getAttribute("data-multi") === "true";
 
-    if (!isMulti) setSingle(groupEl, fieldName, value);
-    else toggleMulti(chip, fieldName, value);
-  });
-
-  // initial sync if wizard prefilled values
-  function syncFromFields() {
-    document.querySelectorAll("[data-chip-group]").forEach(groupEl => {
-      const fieldName = groupEl.getAttribute("data-chip-group");
-      const field = fieldName ? findField(fieldName) : null;
-      if (!field) return;
-
-      const isMulti = groupEl.getAttribute("data-multi") === "true";
-      if (!isMulti) {
-        const current = (field.value || "").trim();
-        groupEl.querySelectorAll("[data-value]").forEach(ch => {
-          const v = (ch.getAttribute("data-value") || "").trim();
-          ch.classList.toggle("is-selected", v === current);
-          ch.setAttribute("aria-pressed", v === current ? "true" : "false");
-          if (ch.tagName === "BUTTON") ch.type = "button";
-        });
-      } else {
-        let arr = [];
-        try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
-        groupEl.querySelectorAll("[data-value]").forEach(ch => {
-          const v = (ch.getAttribute("data-value") || "").trim();
-          const on = arr.includes(v);
-          ch.classList.toggle("is-selected", on);
-          ch.setAttribute("aria-pressed", on ? "true" : "false");
-          if (ch.tagName === "BUTTON") ch.type = "button";
-        });
-      }
-    });
-  }
-
-  syncFromFields();
-  setTimeout(syncFromFields, 300);
-  setTimeout(syncFromFields, 1200);
-})();
-
-
-  // Prevent buttons acting like submit
-  function forceButtonType(el) {
-    if (el && el.tagName === "BUTTON") el.type = "button";
-  }
-
-  // Find a reasonable "group" container (so only one chip is selected per group)
-  function findGroup(el) {
-    return el.closest(".chip-row, .chips, .chip-group, [data-chip-group], [data-group]") || el.parentElement;
-  }
-
-  document.addEventListener("click", (e) => {
-    const chip = e.target.closest(CHIP_SELECTOR);
-    if (!chip) return;
-
-    // Stop form submit / navigation side effects
-    forceButtonType(chip);
-    e.preventDefault();
-    e.stopPropagation();
-
-    const group = findGroup(chip);
-    if (!group) return;
-
-    const multi = group.getAttribute("data-multi") === "true";
-
-    if (!multi) {
-      // single-select: clear others in same group
-      group.querySelectorAll(CHIP_SELECTOR).forEach(c => c.classList.remove("is-selected"));
-      chip.classList.add("is-selected");
-    } else {
-      // multi-select: toggle
-      chip.classList.toggle("is-selected");
+    const field = document.querySelector(`[name="${fieldName}"]`) || document.getElementById(fieldName);
+    if (!field) {
+      console.warn("[TBP] Chip group has no field:", fieldName);
+      return;
     }
+
+    if (!isMulti) {
+      field.value = value;
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+      syncChipGroupsFromFields();
+      return;
+    }
+
+    // multi-select stored as JSON array in the field
+    let arr = [];
+    try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
+    const idx = arr.indexOf(value);
+    if (idx >= 0) arr.splice(idx, 1);
+    else arr.push(value);
+
+    field.value = JSON.stringify(arr);
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+    chip.classList.toggle("is-selected");
   }, true);
 
-  // Also enforce button types once on load
-  document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll("button").forEach(forceButtonType);
+  // Force chip buttons not to submit the form (safe; won’t affect Next)
+  function forceChipButtonsType() {
+    document.querySelectorAll("[data-chip-group] button[data-value]").forEach(b => b.type = "button");
+  }
+
+  // ---------- Prefill ----------
+  async function loadCustomerAndPrefill() {
+    if (!customer_id) {
+      console.warn("[TBP] No customer_id in URL; skipping prefill.");
+      return;
+    }
+
+    const { data, error } = await sb
+      .from("customers")
+      .select("id, contact_name, business_name, email, phone, whatsapp_number, trade_type, base_postcode")
+      .eq("id", customer_id)
+      .single();
+
+    if (error) {
+      console.error("[TBP] Prefill fetch error:", error);
+      return;
+    }
+
+    console.log("[TBP] Loaded customer row:", data);
+
+    setField("contact_name", data.contact_name);
+    setField("business_name", data.business_name);
+    setField("email", data.email);
+
+    // homepage uses whatsapp_number
+    setField("whatsapp_number", data.whatsapp_number || data.phone);
+    setField("phone", data.phone || data.whatsapp_number);
+
+    setField("trade_type", data.trade_type);
+    setField("base_postcode", data.base_postcode);
+
+    syncChipGroupsFromFields();
+  }
+
+  // ---------- Boot ----------
+  document.addEventListener("DOMContentLoaded", async () => {
+    // DO NOT touch your Next button at all.
+    // This only changes chip buttons inside chip groups.
+    forceChipButtonsType();
+
+    try { await waitForAnyField(); } catch (e) { console.warn("[TBP] Wizard fields delay:", e); }
+
+    // sync chips now and after render
+    syncChipGroupsFromFields();
+    setTimeout(syncChipGroupsFromFields, 300);
+    setTimeout(syncChipGroupsFromFields, 1200);
+
+    await loadCustomerAndPrefill();
+
+    // expose small debug helper
+    window.TBP = { sb, customer_id, loadCustomerAndPrefill, syncChipGroupsFromFields };
   });
-
-  console.log("[TBP] Universal chip selector enabled");
 })();
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("button.chip, .chips button, .chip-row button").forEach(b => b.type = "button");
-});
-
-  
-  
 </script>
+
+<!-- Optional: visual selected state if you don’t already have it -->
+<style>
+/* Visible selection; won’t change layout */
+[data-chip-group] [data-value].is-selected {
+  outline: 2px solid rgba(31, 78, 121, 0.45);
+  background: rgba(31, 78, 121, 0.08);
+}
+</style>
+
 
  
 </body>
