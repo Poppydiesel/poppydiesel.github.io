@@ -873,18 +873,29 @@
               Step <strong>1</strong> of <strong>4</strong>. You can tweak anything later.
             </span>
           </div>
-          <div class="wizard-footer-right">
-            <button type="button" class="btn btn-ghost" id="btn-save-draft">
-              Save draft (browser only for now)
-            </button>
-            <button type="button" class="btn btn-secondary" id="btn-back" disabled>
-              ← Back
-            </button>
-            <button type="button" class="btn btn-primary" id="btn-next">
-              Next step →
-            </button>
-          </div>
-        </div>
+         <div class="wizard-footer-right">
+  <button type="button" class="btn btn-ghost" id="btn-save-draft">
+    Save draft (browser only for now)
+  </button>
+
+  <button type="button" class="btn btn-secondary" id="btn-back" disabled>
+    ← Back
+  </button>
+
+  <button type="button" class="btn btn-primary" id="btn-next">
+    Next step →
+  </button>
+
+  <!-- NEW: Back to dashboard (hidden until finish) -->
+  <button
+    type="button"
+    class="btn btn-primary"
+    id="btn-dashboard"
+    style="display:none"
+  >
+    Back to dashboard →
+  </button>
+</div>
 
         <div id="wizard-status-message" class="wizard-status-message"></div>
       </section>
