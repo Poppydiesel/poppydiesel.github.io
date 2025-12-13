@@ -1067,7 +1067,11 @@
 </div>
 <script type="module">
 /* =========================================================
-   TradeBotPro Wizard — FINAL, DOM-DRIVEN STEP NAVIGATION
+   TradeBotPro Wizard — FINAL STABLE
+   - Injects Unlock/Cancel/Re-lock controls (so button can’t disappear)
+   - DOM-driven step navigation (Next always advances)
+   - Save on Next, without re-lock during unlocked edit mode
+   - Chips clickable (never disabled)
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1098,105 +1102,233 @@ function status(msg, type="info"){
     el.textContent = msg;
     el.className = "wizard-status-message is-" + type;
   }
+  console.log(`[Wizard:${type}]`, msg);
 }
 
-/* ================= STEP NAV (DOM DRIVEN) ================= */
-function getActiveStepPanel(){
-  return $(".step-panel.is-active");
+/* ================= SAVE BUTTON POLISH ================= */
+function saveBtn(){ return $("#btn-save-draft"); }
+
+function renameSaveButton(){
+  const b = saveBtn();
+  if(!b) return;
+  b.textContent = "Save";
+  b.title = "Saves to Supabase";
 }
 
-function getStepByNumber(n){
-  return $(`.step-panel[data-step="${n}"]`);
+function setSaveState(state){
+  const b = saveBtn();
+  if(!b) return;
+
+  b.classList.remove("btn-saving","btn-saved");
+
+  if(state === "saving"){
+    b.textContent = "Saving…";
+    b.classList.add("btn-saving");
+    b.disabled = true;
+  } else if(state === "saved"){
+    b.textContent = "Saved ✓";
+    b.classList.add("btn-saved");
+    b.disabled = true;
+    setTimeout(()=>{
+      b.textContent = "Save";
+      b.classList.remove("btn-saved");
+      b.disabled = false;
+    }, 1200);
+  } else {
+    b.textContent = "Save";
+    b.disabled = false;
+  }
 }
 
+function hideSaveButton(hide){
+  const b = saveBtn();
+  if(b) b.style.display = hide ? "none" : "";
+}
+
+/* ================= STEP NAV (DOM-DRIVEN) ================= */
+const TOTAL_STEPS = 4;
+
+function getActiveStepPanel(){ return $(".step-panel.is-active"); }
 function getActiveStepNumber(){
   const p = getActiveStepPanel();
   return p ? Number(p.dataset.step) : 1;
 }
+function getStepPanel(n){ return $(`.step-panel[data-step="${n}"]`); }
 
-function showStep(step){
-  const current = getActiveStepPanel();
-  const next = getStepByNumber(step);
+function showStep(n){
+  const step = Math.max(1, Math.min(TOTAL_STEPS, n));
+  const cur = getActiveStepPanel();
+  const next = getStepPanel(step);
   if(!next) return;
 
-  current?.classList.remove("is-active");
+  cur?.classList.remove("is-active");
   next.classList.add("is-active");
 
   // dots
   $$(".step-dot").forEach(dot=>{
-    dot.classList.toggle(
-      "is-active",
-      Number(dot.dataset.stepDot) === step
-    );
+    dot.classList.toggle("is-active", Number(dot.dataset.stepDot) === step);
   });
 
-  // header + footer
-  $("#wizard-step-label").textContent = `Step ${step}`;
-  $("#wizard-footer-text").innerHTML =
-    `Step <strong>${step}</strong> of <strong>4</strong>.`;
+  // labels (minimal)
+  const lbl = $("#wizard-step-label"); if(lbl) lbl.textContent = `Step ${step}`;
+  const ft  = $("#wizard-footer-text");
+  if(ft) ft.innerHTML = `Step <strong>${step}</strong> of <strong>${TOTAL_STEPS}</strong>.`;
 
-  $("#btn-back").disabled = step === 1;
-  $("#btn-next").textContent = step === 4 ? "Finish →" : "Next step →";
+  const back = $("#btn-back"); if(back) back.disabled = (step === 1);
+  const nextBtn = $("#btn-next"); if(nextBtn) nextBtn.textContent = (step === TOTAL_STEPS ? "Finish →" : "Next step →");
 }
 
-function nextStep(){
-  const step = getActiveStepNumber();
-  if(step < 4) showStep(step + 1);
+function nextStep(){ const s = getActiveStepNumber(); if(s < TOTAL_STEPS) showStep(s+1); }
+function prevStep(){ const s = getActiveStepNumber(); if(s > 1) showStep(s-1); }
+
+/* ================= CHIPS ================= */
+function ensureChipInputs(){
+  $$(".chip-row[data-field]", root()).forEach(row=>{
+    const field = row.dataset.field;
+    if(!field) return;
+    if($(`input[type="hidden"][name="${esc(field)}"]`, root())) return;
+    const h = document.createElement("input");
+    h.type = "hidden";
+    h.name = field;
+    row.after(h);
+  });
 }
 
-function prevStep(){
-  const step = getActiveStepNumber();
-  if(step > 1) showStep(step - 1);
+function syncChipRow(row){
+  const field = row.dataset.field;
+  const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root());
+  if(!hidden) return;
+
+  const vals = $$(".chip.is-selected,.chip.is-active", row).map(b=>b.textContent.trim()).filter(Boolean);
+  hidden.value = (row.dataset.select === "multi") ? JSON.stringify(vals) : (vals[0] || "");
 }
 
-/* ================= SAVE ================= */
-async function save(){
-  if(LOCKED) return;
+function syncAllChips(){
+  $$(".chip-row[data-field]", root()).forEach(syncChipRow);
+}
 
-  const now = {};
+function wireChipClicks(){
+  $$(".chip-row[data-field]", root()).forEach(row=>{
+    const mode = (row.dataset.select || "single").toLowerCase();
+
+    $$(".chip", row).forEach(btn=>{
+      btn.addEventListener("click", (e)=>{
+        e.preventDefault();
+        if(LOCKED) return;
+
+        if(mode === "single"){
+          $$(".chip", row).forEach(b=>{
+            b.classList.remove("is-selected","is-active");
+            b.setAttribute("aria-pressed","false");
+          });
+          btn.classList.add("is-selected","is-active");
+          btn.setAttribute("aria-pressed","true");
+        } else {
+          const on = btn.classList.toggle("is-selected");
+          btn.classList.toggle("is-active", on);
+          btn.setAttribute("aria-pressed", on ? "true" : "false");
+        }
+
+        syncChipRow(row);
+      });
+    });
+
+    // initial sync
+    syncChipRow(row);
+  });
+}
+
+function loadChips(data){
+  $$(".chip-row[data-field]", root()).forEach(row=>{
+    const field = row.dataset.field;
+    const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root());
+    if(!hidden) return;
+
+    hidden.value = data[field] ?? "";
+
+    let vals = [];
+    const v = String(hidden.value ?? "").trim();
+    if(v.startsWith("[")){
+      try { vals = JSON.parse(v) || []; } catch { vals = []; }
+    } else if(v) {
+      vals = [v];
+    }
+
+    $$(".chip", row).forEach(b=>{
+      const on = vals.includes(b.textContent.trim());
+      b.classList.toggle("is-selected", on);
+      b.classList.toggle("is-active", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  });
+}
+
+/* ================= SNAPSHOT ================= */
+function snapshot(){
+  const o = {};
   $$("input[name],textarea[name],select[name]", root()).forEach(el=>{
-    now[el.name] = el.value ?? "";
+    o[el.name] = el.value ?? "";
   });
   $$('input[type="hidden"][name]', root()).forEach(el=>{
-    now[el.name] = el.value ?? "";
+    o[el.name] = el.value ?? "";
   });
-
-  if(now.phone && !now.whatsapp_number){
-    now.whatsapp_number = now.phone;
-  }
-
-  const complete = !!(now.business_name && now.email && now.main_trade);
-
-  now.setup_complete = complete;
-  now.pending_setup = !complete;
-  now.updated_at = new Date().toISOString();
-  if(complete && !now.setup_completed_at){
-    now.setup_completed_at = new Date().toISOString();
-  }
-
-  const { error } = await sb
-    .from(TABLE)
-    .update(now)
-    .eq("id", CUSTOMER_ID);
-
-  if(error){
-    status(`Save failed: ${error.message}`, "error");
-    return;
-  }
-
-  ORIGINAL = { ...now };
-  status("Saved to Supabase ✅", "success");
-
-  if(complete && !UNLOCKED_EDIT_MODE){
-    lockWizard(true);
-    status("Setup complete — wizard locked 🔒", "success");
-  }
+  return o;
 }
 
-/* ================= LOCK / UNLOCK ================= */
+/* ================= LOCK CONTROLS (INJECTED) ================= */
+function injectLockControls(){
+  if($("#btn-unlock")) return;
+
+  const bar = document.createElement("div");
+  bar.style.display = "flex";
+  bar.style.gap = "10px";
+  bar.style.marginTop = "12px";
+
+  bar.innerHTML = `
+    <button id="btn-unlock" class="btn btn-secondary">Unlock to edit</button>
+    <button id="btn-cancel" class="btn btn-ghost">Cancel edits</button>
+    <button id="btn-relock" class="btn btn-ghost">Re-lock</button>
+  `;
+
+  $(".wizard-footer")?.insertAdjacentElement("afterend", bar);
+
+  $("#btn-unlock").addEventListener("click", ()=>{
+    if(confirm("Unlock this setup to make changes?")){
+      UNLOCKED_EDIT_MODE = true;
+      lockWizard(false);
+      hideSaveButton(false);
+      setSaveState("idle");
+      status("Unlocked for editing.", "info");
+    }
+  });
+
+  $("#btn-cancel").addEventListener("click", ()=>{
+    if(!ORIGINAL) return;
+    // restore fields
+    Object.entries(ORIGINAL).forEach(([k,v])=>{
+      const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
+      if(el && el.type !== "hidden") el.value = v ?? "";
+    });
+    // restore chips
+    loadChips(ORIGINAL);
+
+    // re-lock
+    UNLOCKED_EDIT_MODE = false;
+    lockWizard(true);
+    status("Changes discarded.", "info");
+  });
+
+  $("#btn-relock").addEventListener("click", ()=>{
+    UNLOCKED_EDIT_MODE = false;
+    lockWizard(true);
+    status("Wizard locked.", "info");
+  });
+}
+
 function lockWizard(on){
   LOCKED = !!on;
 
+  // Disable inputs but NEVER disable .chip buttons, and keep nav/save/lock controls enabled
   $$("input,textarea,select,button", root()).forEach(el=>{
     if(el.classList.contains("chip")) return;
     if(["btn-unlock","btn-cancel","btn-relock","btn-save-draft","btn-next","btn-back"].includes(el.id)) return;
@@ -1206,6 +1338,52 @@ function lockWizard(on){
   $("#btn-unlock")?.style.setProperty("display", on ? "inline-flex" : "none");
   $("#btn-cancel")?.style.setProperty("display", on ? "none" : "inline-flex");
   $("#btn-relock")?.style.setProperty("display", on ? "none" : "inline-flex");
+
+  hideSaveButton(on);
+}
+
+/* ================= SAVE ================= */
+async function save(){
+  if(LOCKED) return;
+
+  renameSaveButton();
+  setSaveState("saving");
+
+  syncAllChips();
+  const now = snapshot();
+
+  if(now.phone && !now.whatsapp_number) now.whatsapp_number = now.phone;
+
+  // completion rule
+  const complete = !!(String(now.business_name||"").trim() &&
+                      String(now.email||"").trim() &&
+                      String(now.main_trade||"").trim());
+
+  now.setup_complete = complete;
+  now.pending_setup = !complete;
+  now.updated_at = new Date().toISOString();
+  if(complete && !now.setup_completed_at){
+    now.setup_completed_at = new Date().toISOString();
+  }
+
+  try{
+    const { error } = await sb.from(TABLE).update(now).eq("id", CUSTOMER_ID);
+    if(error) throw error;
+
+    ORIGINAL = { ...now };
+    setSaveState("saved");
+    status("Saved to Supabase ✅", "success");
+
+    // IMPORTANT: do NOT auto-lock while in unlocked edit mode
+    if(complete && !UNLOCKED_EDIT_MODE){
+      lockWizard(true);
+      status("Setup complete — wizard locked 🔒", "success");
+    }
+  }catch(e){
+    console.error("[Wizard] Save failed", e);
+    setSaveState("idle");
+    status(`Save failed: ${e.message}`, "error");
+  }
 }
 
 /* ================= INIT ================= */
@@ -1216,24 +1394,30 @@ async function init(){
     return;
   }
 
-  const { data, error } = await sb
-    .from(TABLE)
-    .select("*")
-    .eq("id", CUSTOMER_ID)
-    .maybeSingle();
+  renameSaveButton();
+  ensureChipInputs();
+  wireChipClicks();
+  injectLockControls();
 
+  // Load row
+  const { data, error } = await sb.from(TABLE).select("*").eq("id", CUSTOMER_ID).maybeSingle();
   if(error || !data){
     status("Customer not found", "error");
     return;
   }
 
+  // Prefill inputs
   Object.entries(data).forEach(([k,v])=>{
     const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
-    if(el) el.value = v ?? "";
+    if(el && el.type !== "hidden") el.value = v ?? "";
   });
 
-  ORIGINAL = { ...data };
+  // Prefill chips
+  loadChips(data);
 
+  ORIGINAL = snapshot();
+
+  // Lock state from DB
   if(truthy(data.setup_complete)){
     lockWizard(true);
     status("Setup complete — locked 🔒", "info");
@@ -1242,19 +1426,23 @@ async function init(){
     status("Resumed — editable.", "info");
   }
 
-  // 🚨 THIS IS THE KEY FIX
-  $("#btn-next").addEventListener("click", (e)=>{
+  // Ensure step 1 visible
+  showStep(getActiveStepNumber() || 1);
+
+  // NAV: Next ALWAYS advances (save is separate)
+  $("#btn-next")?.addEventListener("click", (e)=>{
     e.preventDefault();
-    save();     // save first
-    nextStep(); // ALWAYS advance
+    save();     // saves (won’t lock if UNLOCKED_EDIT_MODE)
+    nextStep(); // ALWAYS advance UI
   });
 
-  $("#btn-back").addEventListener("click", (e)=>{
+  $("#btn-back")?.addEventListener("click", (e)=>{
     e.preventDefault();
     prevStep();
   });
 
-  $("#btn-save-draft")?.addEventListener("click", e=>{
+  // Manual save
+  $("#btn-save-draft")?.addEventListener("click", (e)=>{
     e.preventDefault();
     save();
   });
