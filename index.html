@@ -1267,175 +1267,44 @@
   </footer>
 </div>
 
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+<script>
+  (function hidePlanStepLive(){
+    const needles = ["select a plan","choose a plan"];
+    const seen = new WeakSet();
 
-  // =========================
-  // CONFIG — SET THESE
-  // =========================
-   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // Optional status element (won't break if missing)
-  const statusEl =
-    document.querySelector("#status") ||
-    document.querySelector(".form-status") ||
-    document.querySelector("[data-status]");
-
-  function setStatus(msg, type = "muted") {
-    if (!statusEl) return;
-    const colors = { ok: "#0f7b46", err: "#b3261e", muted: "#6b7280" };
-    statusEl.innerHTML = `<span style="color:${colors[type]};font-weight:800">${msg}</span>`;
-  }
-
-  const safe = (v) => String(v ?? "").trim();
-  const safeEmail = (v) => safe(v).toLowerCase();
-
-  // Clean querystring if a native GET submit happened earlier
-  if (window.location.search && window.location.search.length > 1) {
-    history.replaceState({}, document.title, window.location.pathname);
-  }
-
-  // Find the correct form by the names you actually submit
-  function findSignupForm() {
-    const forms = Array.from(document.querySelectorAll("form"));
-    const has = (f, sel) => !!f.querySelector(sel);
-
-    for (const f of forms) {
-      const ok =
-        has(f, '[name="contact_name"]') &&
-        has(f, '[name="business_name"]') &&
-        (has(f, '[name="email"]') || has(f, 'input[type="email"]')) &&
-        has(f, '[name="whatsapp_number"]') &&
-        has(f, '[name="trade_type"]') &&
-        has(f, '[name="base_postcode"]');
-
-      if (ok) return f;
+    function textOf(el){
+      return (el?.innerText || el?.textContent || "").trim().toLowerCase();
+    }
+    function hideEl(el){
+      if(!el || seen.has(el)) return;
+      seen.add(el);
+      el.style.display = "none";
+      el.setAttribute("aria-hidden","true");
+      el.querySelectorAll("[required]").forEach(i => i.removeAttribute("required"));
+      el.querySelectorAll("input,select,textarea,button").forEach(i => i.disabled = true);
     }
 
-    // fallback
-    for (const f of forms) {
-      if (
-        has(f, '[name="business_name"]') &&
-        (has(f, '[name="email"]') || has(f, 'input[type="email"]'))
-      ) return f;
-    }
-    return null;
-  }
-
-  function wizardUrl(id) {
-    const u = new URL("app.html", window.location.origin);
-    u.searchParams.set("signup_id", id);
-    return u.toString();
-  }
-
-  function val(form, name) {
-    return safe(form.querySelector(`[name="${name}"]`)?.value);
-  }
-
-  function checked(form, name) {
-    const el = form.querySelector(`[name="${name}"]`);
-    return !!(el && "checked" in el && el.checked);
-  }
-
-  const form = findSignupForm();
-
-  if (!form) {
-    console.error("Homepage signup: could not find the form (expected name= fields).");
-    setStatus("Internal error: signup form not found.", "err");
-    throw new Error("Signup form not found");
-  }
-
-  // Hard stop the browser doing GET submits (URL full of data)
-  form.setAttribute("method", "post");
-  form.setAttribute("action", "#");
-
-  const submitBtn =
-    form.querySelector('button[type="submit"]') ||
-    form.querySelector('input[type="submit"]') ||
-    form.querySelector("button");
-
-  // IMPORTANT: remove any other submit handlers on the page if you can.
-  // This capture-phase handler wins if any remain.
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-
-    const originalBtnText = submitBtn?.textContent;
-
-    try {
-      if (submitBtn && "disabled" in submitBtn) submitBtn.disabled = true;
-      if (submitBtn && submitBtn.textContent) submitBtn.textContent = "Saving…";
-
-      setStatus("Saving…", "muted");
-
-      // Build payload ONLY from known fields (prevents random 400s)
-      const payload = {
-        contact_name: val(form, "contact_name") || null,
-        business_name: val(form, "business_name") || null,
-        email: safeEmail(val(form, "email") || form.querySelector('input[type="email"]')?.value),
-        whatsapp_number: val(form, "whatsapp_number") || null,
-        trade_type: val(form, "trade_type") || null,
-        base_postcode: val(form, "base_postcode") || null,
-
-        // Only include these if you added the columns
-        // If you haven’t added them, comment them out.
-        referrer: val(form, "referrer") || null,
-        agree: checked(form, "agree"),
-
-        wizard_complete: false,
-        is_admin: false
-      };
-
-      if (!payload.email || !payload.email.includes("@")) {
-        setStatus("Please enter a valid email.", "err");
-        return;
-      }
-
-      // ✅ Use UPSERT so repeated testing doesn't create duplicates
-      // Requires unique index on customers.email (which we already handled)
-      const { data, error } = await sb
-        .from("customers")
-        .upsert(payload, { onConflict: "email" })
-        .select("id,email")
-        .single();
-
-      if (error) {
-        console.log("Supabase error:", error);
-        console.log("Supabase error json:", JSON.stringify(error, null, 2));
-        setStatus(`Save failed: ${error.message || "Unknown error"}`, "err");
-        return;
-      }
-
-      if (!data?.id) {
-        setStatus("Saved but no ID returned (check Supabase response).", "err");
-        return;
-      }
-
-      localStorage.setItem("tbp_last_signup_id", data.id);
-      localStorage.setItem("tbp_last_email", data.email);
-
-      setStatus("Saved. Opening wizard…", "ok");
-
-      // ✅ Go straight to wizard, bypass any old “choose plan” flow
-      window.location.assign(wizardUrl(data.id));
-
-    } catch (err) {
-      console.log("Signup catch error:", err);
-      setStatus(`Save failed: ${err?.message || err}`, "err");
-    } finally {
-      if (submitBtn && "disabled" in submitBtn) submitBtn.disabled = false;
-      if (submitBtn && submitBtn.textContent && originalBtnText) {
-        submitBtn.textContent = originalBtnText;
+    function scan(){
+      const blocks = Array.from(document.querySelectorAll("section,div,article,main"));
+      for(const b of blocks){
+        const t = textOf(b);
+        if(!t) continue;
+        if(needles.some(n => t.includes(n))){
+          hideEl(b);
+        }
       }
     }
-  }, true);
+
+    scan();
+    const obs = new MutationObserver(() => scan());
+    obs.observe(document.documentElement, { childList:true, subtree:true });
+  })();
 </script>
 
+  
 </body>
 </html>
+
 
 
 
