@@ -83,7 +83,6 @@
       color:var(--primary-blue);font-weight:800;font-size:.85rem;
     }
 
-    /* ✅ CONTROLS: ONE ROW ON DESKTOP */
     .controls{
       display:flex;
       align-items:center;
@@ -173,7 +172,6 @@
     tbody tr{cursor:pointer}
     tbody tr:hover{background:#f7fbff}
 
-    /* Task dots (OPS only) */
     .pipe{display:inline-flex;align-items:center;gap:6px}
     .dot{
       width:10px;height:10px;border-radius:999px;
@@ -185,7 +183,6 @@
     .dot.need{border-color:rgba(179,38,30,0.45);background:#fff1f2}
     .dot-label{font-size:.75rem;color:var(--muted-text);margin-left:6px;white-space:nowrap}
 
-    /* ✅ Overlay so click-outside closes drawer */
     .drawer-overlay{
       position:fixed; inset:0;
       background:rgba(0,0,0,.25);
@@ -194,12 +191,8 @@
       transition:opacity .18s ease;
       z-index:998;
     }
-    .drawer-overlay.open{
-      opacity:1;
-      pointer-events:auto;
-    }
+    .drawer-overlay.open{opacity:1;pointer-events:auto}
 
-    /* Drawer */
     .drawer{
       position:fixed;top:0;right:-860px;
       width:860px; max-width:96vw; height:100%;
@@ -219,8 +212,7 @@
     .drawer-field label{display:block;font-size:.78rem;color:var(--muted-text);margin:0 0 .25rem}
     .drawer-field input,.drawer-body textarea{
       width:100%;padding:.6rem .7rem;border-radius:.85rem;
-      border:1px solid var(--border-subtle);font:inherit;outline:none reminding me
-      background:#fff;
+      border:1px solid var(--border-subtle);font:inherit;outline:none;background:#fff;
     }
     .drawer-body textarea{min-height:110px;resize:vertical}
 
@@ -298,7 +290,6 @@
 
     <div class="status-strip" id="status-strip"></div>
 
-    <!-- ✅ ONE ROW: Clear filters | Search | Refresh | New customer -->
     <div class="controls">
       <div class="controls-left">
         <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filters</button>
@@ -339,10 +330,8 @@
   </section>
 </main>
 
-<!-- ✅ Overlay -->
 <div class="drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
 
-<!-- Drawer -->
 <div class="drawer" id="drawer" aria-hidden="true">
   <div class="drawer-header">
     <div class="drawer-title" id="drawerTitle">Customer</div>
@@ -414,8 +403,7 @@
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
-refI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // DOM
@@ -543,14 +531,14 @@ refI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV
     statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
   }
 
-  // ✅ OPS tasks: Wizard is complete if wizard_completed OR setup_complete (backwards compatible)
+  // ✅ OPS tasks: Wizard is complete if wizard_completed OR setup_complete
   function setupTasks(row){
     const wizardDone = !!row?.wizard_completed || !!row?.setup_complete;
     return [
-      { key:"wizard",   label:"Wizard complete",   col:"wizard_completed",   done: wizardDone },
-      { key:"whatsapp", label:"WhatsApp connected", col:"whatsapp_connected", done: !!row?.whatsapp_connected },
-      { key:"calendar", label:"Calendar connected", col:"calendar_connected", done: !!row?.calendar_connected },
-      { key:"payments", label:"Payments connected", col:"payments_connected", done: !!row?.payments_connected },
+      { key:"wizard",   label:"Wizard complete",   done: wizardDone },
+      { key:"whatsapp", label:"WhatsApp connected", done: !!row?.whatsapp_connected },
+      { key:"calendar", label:"Calendar connected", done: !!row?.calendar_connected },
+      { key:"payments", label:"Payments connected", done: !!row?.payments_connected },
     ];
   }
 
@@ -638,9 +626,7 @@ refI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV
       opsButtons.appendChild(b);
     };
 
-    // Wizard toggle remains available, but most of the time it will be auto
-    mk((row.wizard_completed || row reminding me
-      .setup_complete) ? "Wizard ✅ (toggle)" : "Wizard ❌ (toggle)", async ()=>{
+    mk((row.wizard_completed || row.setup_complete) ? "Wizard ✅ (toggle)" : "Wizard ❌ (toggle)", async ()=>{
       const updated = await updateCustomer(row.id, { wizard_completed: !(row.wizard_completed || row.setup_complete) });
       if(updated){ render(); openDrawer(updated); }
     });
@@ -800,24 +786,22 @@ refI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV
   btnClear.addEventListener("click", ()=>{ activeStatus=null; search.value=""; render(); });
   search.addEventListener("input", render);
 
-  // Drawer
+  // Drawer note autosave
   drawerNotes.addEventListener("input", queueNotesSave);
   drawerLeadNotes.addEventListener("input", queueNotesSave);
 
-  // ✅ Close button MUST win (capture) so it never gets blocked by document listeners
+  // Close controls
   btnCloseDrawer.addEventListener("click", (e)=>{
     e.preventDefault();
     e.stopPropagation();
     closeDrawer();
   }, true);
 
-  // ✅ Click outside closes
   drawerOverlay.addEventListener("click", (e)=>{
     e.preventDefault();
     closeDrawer();
   });
 
-  // ✅ ESC closes
   document.addEventListener("keydown", (e)=>{
     if(e.key === "Escape" && drawer.classList.contains("open")){
       closeDrawer();
@@ -831,7 +815,7 @@ refI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV
     window.open(`app.html?customer_id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
   });
 
-  // Click sales checklist to set status (single-select)
+  // Sales stage click
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-sales]");
     if(!item || !activeRow) return;
@@ -844,7 +828,7 @@ refI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV
     if(updated){ render(); openDrawer(updated); }
   }, true);
 
-  // Click task dots in table to toggle
+  // Table dots click
   document.addEventListener("click", async (e)=>{
     const dot = e.target.closest(".dot[data-task][data-id]");
     if(!dot) return;
@@ -857,7 +841,7 @@ refI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV
     if(!row) return;
 
     const patch = {};
-    if(key === "wizard")   patch.wizard_completed   = ! (row.wizard_completed || row.setup_complete);
+    if(key === "wizard")   patch.wizard_completed   = !(row.wizard_completed || row.setup_complete);
     if(key === "whatsapp") patch.whatsapp_connected = !row.whatsapp_connected;
     if(key === "calendar") patch.calendar_connected = !row.calendar_connected;
     if(key === "payments") patch.payments_connected = !row.payments_connected;
@@ -869,7 +853,7 @@ refI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV
     }
   }, true);
 
-  // Click tasks checklist in drawer to toggle
+  // Drawer checklist click
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-task]");
     if(!item || !activeRow) return;
@@ -877,7 +861,7 @@ refI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV
 
     const key = item.dataset.task;
     const patch = {};
-    if(key === "wizard")   patch.wizard_completed   = ! (activeRow.wizard_completed || activeRow.setup_complete);
+    if(key === "wizard")   patch.wizard_completed   = !(activeRow.wizard_completed || activeRow.setup_complete);
     if(key === "whatsapp") patch.whatsapp_connected = !activeRow.whatsapp_connected;
     if(key === "calendar") patch.calendar_connected = !activeRow.calendar_connected;
     if(key === "payments") patch.payments_connected = !activeRow.payments_connected;
