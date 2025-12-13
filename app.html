@@ -1065,222 +1065,72 @@
     </div>
   </main>
 </div>
-
-  <!-- SUPABASE JS (via CDN) -->
+  
+<!-- Supabase UMD MUST load before any code uses `supabase.createClient` -->
 <script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
 
 <script>
-(function () {
-  // Hard fail protection: if anything throws, we still see the error in console.
-  try {
-    // 1) Supabase client (UMD)
-    // IMPORTANT: keep YOUR existing keys here
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // 2) Read IDs (support customer_id + legacy)
-    const params = new URLSearchParams(location.search);
-    const customer_id = params.get("customer_id") || ""; // ✅ from index.html
-    const signup_id = params.get("signup_id") || "";
-    const user_id = params.get("user_id") || "";
-
-    console.log("[TBP] URL ids:", { customer_id, signup_id, user_id });
-
-    // 3) Utility: set value by id OR name and trigger events
-    function setField(fieldName, value) {
-      if (value === undefined || value === null) return false;
-      const v = String(value);
-
-      let el = document.getElementById(fieldName);
-      if (!el) el = document.querySelector(`[name="${fieldName}"]`);
-      if (!el) return false;
-
-      el.value = v;
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-      el.dispatchEvent(new Event("change", { bubbles: true }));
-      return true;
+  // Hard guard: do not run app code until Supabase is actually available
+  (function bootWhenSupabaseReady() {
+    if (typeof window.supabase === "undefined") {
+      console.error("[TBP] Supabase UMD did not load yet. Retrying…");
+      return setTimeout(bootWhenSupabaseReady, 50);
     }
 
-    // 4) Wait until wizard fields exist (prevents “runs too early”)
-    function waitForWizardFields(timeoutMs = 8000) {
-      const start = Date.now();
-      return new Promise((resolve, reject) => {
-        (function tick() {
-          // change these selectors if your wizard uses different IDs
-          const ready =
-            document.getElementById("contact_name") ||
-            document.getElementById("business_name") ||
-            document.querySelector('input[name="contact_name"]') ||
-            document.querySelector('input[name="business_name"]');
+    console.log("[TBP] Supabase loaded OK:", window.supabase);
 
-          if (ready) return resolve(true);
-          if (Date.now() - start > timeoutMs) return reject(new Error("Wizard fields not found in time"));
-          requestAnimationFrame(tick);
-        })();
-      });
-    }
-
-    // 5) Load customer row and prefill wizard
-    async function loadCustomerAndPrefill() {
-      if (!customer_id) {
-        console.warn("[TBP] No customer_id in URL, skipping prefill.");
-        return;
-      }
-
-      // If your customers table has RLS that blocks anon SELECT, this will fail.
-      const { data, error } = await sb
-        .from("customers")
-        .select("id, contact_name, business_name, email, phone, whatsapp_number, trade_type, base_postcode")
-        .eq("id", customer_id)
-        .single();
-
-      if (error) {
-        console.error("[TBP] Prefill fetch error:", error);
-        return;
-      }
-      if (!data) {
-        console.warn("[TBP] No customer row found for id:", customer_id);
-        return;
-      }
-
-      console.log("[TBP] Loaded customer row:", data);
-
-      // Map: customers columns -> wizard fields
-      setField("contact_name", data.contact_name);
-      setField("business_name", data.business_name);
-      setField("email", data.email);
-
-      // You said phone doesn’t transfer — homepage is using whatsapp_number.
-      // Prefill both common targets:
-      setField("whatsapp_number", data.whatsapp_number || data.phone);
-      setField("phone", data.phone || data.whatsapp_number);
-
-      setField("trade_type", data.trade_type);
-      setField("base_postcode", data.base_postcode);
-
-      // After setting values, reflect on chips (if any)
-      syncAllChipGroupsFromFields();
-    }
-
-    // 6) CHIP ENGINE (works even if chips are rendered later)
-    // Requirements:
-    // - Wrapper: data-chip-group="field_name"
-    // - Each chip: data-value="Option" (button or div)
-    // - Real field exists: <input type="hidden" name="field_name" id="field_name">
-    function syncAllChipGroupsFromFields() {
-      document.querySelectorAll("[data-chip-group]").forEach(groupEl => {
-        const fieldName = groupEl.getAttribute("data-chip-group");
-        if (!fieldName) return;
-
-        const field =
-          document.querySelector(`[name="${fieldName}"]`) ||
-          document.getElementById(fieldName);
-
-        if (!field) return;
-
-        const isMulti = groupEl.getAttribute("data-multi") === "true";
-
-        if (!isMulti) {
-          const current = (field.value || "").trim();
-          groupEl.querySelectorAll("[data-value]").forEach(chip => {
-            const v = (chip.getAttribute("data-value") || "").trim();
-            const on = v === current;
-            chip.classList.toggle("is-selected", on);
-            chip.setAttribute("aria-pressed", on ? "true" : "false");
-            if (chip.tagName === "BUTTON") chip.type = "button";
-          });
-        } else {
-          let arr = [];
-          try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
-          groupEl.querySelectorAll("[data-value]").forEach(chip => {
-            const v = (chip.getAttribute("data-value") || "").trim();
-            const on = arr.includes(v);
-            chip.classList.toggle("is-selected", on);
-            chip.setAttribute("aria-pressed", on ? "true" : "false");
-            if (chip.tagName === "BUTTON") chip.type = "button";
-          });
-        }
-      });
-    }
-
-    document.addEventListener("click", (e) => {
-      const chip = e.target.closest("[data-chip-group] [data-value]");
-      if (!chip) return;
-
-      // stop accidental form submits
-      if (chip.tagName === "BUTTON") chip.type = "button";
-
-      const groupEl = chip.closest("[data-chip-group]");
-      const fieldName = groupEl?.getAttribute("data-chip-group");
-      if (!fieldName) return;
-
-      const value = (chip.getAttribute("data-value") || "").trim();
-      const isMulti = groupEl.getAttribute("data-multi") === "true";
-
-      const field =
-        document.querySelector(`[name="${fieldName}"]`) ||
-        document.getElementById(fieldName);
-
-      if (!field) {
-        console.warn("[TBP] Chip group has no matching field:", fieldName);
-        return;
-      }
-
-      if (!isMulti) {
-        field.value = value;
-        field.dispatchEvent(new Event("input", { bubbles: true }));
-        field.dispatchEvent(new Event("change", { bubbles: true }));
-        syncAllChipGroupsFromFields();
-        return;
-      }
-
-      // Multi-select stores JSON array in field
-      let arr = [];
-      try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
-      const idx = arr.indexOf(value);
-      if (idx >= 0) arr.splice(idx, 1);
-      else arr.push(value);
-
-      field.value = JSON.stringify(arr);
-      field.dispatchEvent(new Event("input", { bubbles: true }));
-      field.dispatchEvent(new Event("change", { bubbles: true }));
-      chip.classList.toggle("is-selected");
-    });
-
-    // 7) Boot sequence
-    document.addEventListener("DOMContentLoaded", async () => {
-      console.log("[TBP] DOMContentLoaded");
-
-      // Ensure chips never submit forms even if missing type="button"
-      document.querySelectorAll("[data-chip-group] button").forEach(b => b.type = "button");
-
+    // ===== YOUR BOOTSTRAP STARTS HERE =====
+    (function () {
       try {
-        await waitForWizardFields();
-      } catch (e) {
-        console.warn("[TBP] Wizard fields not detected yet:", e);
-        // still try to sync chips; sometimes fields are present under different ids
+       const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const params = new URLSearchParams(location.search);
+        const customer_id = params.get("customer_id") || "";
+        console.log("[TBP] URL ids:", { customer_id });
+
+        // quick sanity check fetch (we’ll improve next)
+        (async () => {
+          if (!customer_id) return;
+
+          const { data, error } = await sb
+            .from("customers")
+            .select("id, contact_name, business_name, email, phone, whatsapp_number")
+            .eq("id", customer_id)
+            .single();
+
+          if (error) {
+            console.error("[TBP] Prefill fetch error:", error);
+            return;
+          }
+
+          console.log("[TBP] Loaded customer row:", data);
+
+          // Prefill (only if these IDs exist in your wizard)
+          const set = (id, v) => {
+            const el = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+            if (!el || v == null) return;
+            el.value = String(v);
+            el.dispatchEvent(new Event("input", { bubbles: true }));
+            el.dispatchEvent(new Event("change", { bubbles: true }));
+          };
+
+          set("contact_name", data.contact_name);
+          set("business_name", data.business_name);
+          set("email", data.email);
+          set("whatsapp_number", data.whatsapp_number || data.phone);
+          set("phone", data.phone || data.whatsapp_number);
+        })();
+
+      } catch (err) {
+        console.error("[TBP] app bootstrap crashed:", err);
       }
-
-      // sync chips once on load
-      syncAllChipGroupsFromFields();
-
-      // prefill from customers if customer_id exists
-      await loadCustomerAndPrefill();
-
-      // extra sync after any late rendering
-      setTimeout(syncAllChipGroupsFromFields, 300);
-      setTimeout(syncAllChipGroupsFromFields, 1200);
-    });
-
-    // Expose for debugging in console if needed
-    window.TBP = { sb, customer_id, signup_id, user_id, loadCustomerAndPrefill, syncAllChipGroupsFromFields };
-
-  } catch (err) {
-    console.error("[TBP] app bootstrap crashed:", err);
-  }
-})();
+    })();
+    // ===== YOUR BOOTSTRAP ENDS HERE =====
+  })();
 </script>
 
+ 
 </body>
 </html>
