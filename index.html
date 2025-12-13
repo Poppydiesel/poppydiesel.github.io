@@ -1121,207 +1121,82 @@
 
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-  // =========================
-  // CONFIG — SET THESE
-  // =========================
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // =========================
-  // KEEP YOUR LAYOUT — JUST TELL US WHAT TO HOOK
-  // =========================
-  const SIGNUP_FORM_SELECTOR = "#signupForm";     // your signup form
-  const WIZARD_BTN_SELECTOR  = "#wizardBtn";      // your existing "Continue with the wizard" button/link
-  const STATUS_SELECTOR      = "#status";         // optional status element (leave if you have it)
+  function findForm(){
+    return [...document.querySelectorAll("form")].find(f =>
+      f.querySelector('[name="contact_name"]') &&
+      f.querySelector('[name="business_name"]') &&
+      (f.querySelector('[name="email"]') || f.querySelector('input[type="email"]'))
+    ) || null;
+  }
+  const form = findForm();
+  if(!form){ console.error("Could not find signup form"); }
 
-  const form = document.querySelector(SIGNUP_FORM_SELECTOR) || document.querySelector("form");
-  const statusEl = document.querySelector(STATUS_SELECTOR);
+  const safe = v => String(v||"").trim();
+  const safeEmail = v => safe(v).toLowerCase();
 
-  function setStatus(msg, type="muted"){
-    if(!statusEl) return;
-    const colors = { ok:"#0f7b46", err:"#b3261e", muted:"#6b7280" };
-    statusEl.innerHTML = `<span style="color:${colors[type]};font-weight:800">${msg}</span>`;
+  function val(name){
+    return safe(form.querySelector(`[name="${name}"]`)?.value);
   }
 
-  const safe = (v) => String(v || "").trim();
-  const safeEmail = (v) => safe(v).toLowerCase();
-
-  function getVal(selectors){
-    for(const sel of selectors){
-      const el = document.querySelector(sel);
-      if(el && "value" in el){
-        const v = safe(el.value);
-        if(v) return v;
-      }
-    }
-    return "";
-  }
-
-  function buildWizardUrl(id){
+  function wizardUrl(id){
     const u = new URL("app.html", window.location.origin);
     u.searchParams.set("signup_id", id);
     return u.toString();
   }
 
-  function findWizardButton(){
-    // 1) use your explicit selector
-    const direct = document.querySelector(WIZARD_BTN_SELECTOR);
-    if(direct) return direct;
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
 
-    // 2) try to locate by common IDs/classes
-    const guesses = [
-      "#continueBtn", "#continueWizardBtn", "#wizardButton", "#openWizardBtn",
-      '[data-action="wizard"]', 'a[href*="app.html"]'
-    ];
-    for(const sel of guesses){
-      const el = document.querySelector(sel);
-      if(el) return el;
-    }
-
-    // 3) find by text content (most robust if you didn't give selectors)
-    const candidates = Array.from(document.querySelectorAll("button, a"));
-    const match = candidates.find(el => {
-      const t = (el.textContent || "").toLowerCase();
-      return t.includes("continue") && t.includes("wizard");
-    });
-    return match || null;
-  }
-
-  function clickWizardButton(wizardUrl){
-    const btn = findWizardButton();
-
-    // If there is a real button/link, update it then click it
-    if(btn){
-      // If it's an anchor, set href
-      if(btn.tagName.toLowerCase() === "a"){
-        btn.setAttribute("href", wizardUrl);
-      } else {
-        // If it's a button, store url somewhere it can read
-        btn.setAttribute("data-wizard-url", wizardUrl);
-      }
-
-      // Ensure it has a click action even if it relied on href
-      btn.addEventListener("click", (e) => {
-        // If your existing code already navigates, great — we don’t interfere.
-        // If not, we ensure navigation happens:
-        const href = btn.getAttribute("href");
-        const dataUrl = btn.getAttribute("data-wizard-url");
-        const target = href || dataUrl;
-        if(target && !href){
-          // only force if it isn't already an anchor
-          window.location.assign(target);
-        }
-      }, { once:true });
-
-      // Click it (this triggers YOUR layout's existing flow)
-      btn.click();
-
-      // If something blocks it, hard fallback after a short moment
-      setTimeout(() => {
-        // If we’re still on the homepage, force navigate
-        if(!window.location.href.includes("app.html")){
-          window.location.assign(wizardUrl);
-        }
-      }, 120);
-      return true;
-    }
-
-    // No button found → hard navigate
-    window.location.assign(wizardUrl);
-    return false;
-  }
-
-  async function saveThenProceed(){
-    const email = safeEmail(getVal([
-      "#email", 'input[type="email"]', 'input[name="email"]'
-    ]));
-    if(!email || !email.includes("@")){
-      setStatus("Please enter a valid email.", "err");
-      return;
-    }
-
-    // Pull from your existing fields (no layout changes)
     const payload = {
-      business_name: safe(getVal(["#business_name",'input[name="business_name"]'])) || null,
-      contact_name: safe(getVal(["#contact_name","#owner_name",'input[name="contact_name"]','input[name="owner_name"]'])) || null,
-      email,
-      phone: safe(getVal(["#phone","#mobile",'input[name="phone"]','input[name="mobile"]'])) || null,
-      whatsapp_number: safe(getVal(["#whatsapp_number","#phone",'input[name="whatsapp_number"]','input[name="phone"]'])) || null,
-      trade_type: safe(getVal(["#trade_type",'select[name="trade_type"]'])) || null,
-      base_postcode: safe(getVal(["#base_postcode","#postcode",'input[name="base_postcode"]','input[name="postcode"]'])) || null,
+      contact_name: val("contact_name") || null,
+      business_name: val("business_name") || null,
+      email: safeEmail(val("email") || form.querySelector('input[type="email"]')?.value),
+      whatsapp_number: val("whatsapp_number") || null,
+      trade_type: val("trade_type") || null,
+      base_postcode: val("base_postcode") || null,
       wizard_complete: false,
       is_admin: false
     };
 
-    setStatus("Saving…", "muted");
-
-    const { data, error } = await sb
-      .from("customers")
-      .upsert(payload, { onConflict: "email" })
-      .select("id,email")
-      .single();
-
-    console.log("Saved customer:", { data, error });
-
-    if(error) throw error;
-    if(!data?.id) throw new Error("Saved, but no id returned.");
-
-    // Store for wizard fallback
-    localStorage.setItem("tbp_last_signup_id", data.id);
-    localStorage.setItem("tbp_last_email", data.email);
-
-    const wizardUrl = buildWizardUrl(data.id);
-
-    setStatus("Saved. Continuing to wizard…", "ok");
-
-    // ✅ THIS is the key: use YOUR wizard button
-    clickWizardButton(wizardUrl);
-  }
-
-  if(!form){
-    console.error("TradeBotPro: Signup form not found.");
-    setStatus("Internal error: signup form not found.", "err");
-  } else {
-    // Stop default GET submit (URL pollution) and stop other handlers from winning
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-
-      try{
-        await saveThenProceed();
-      }catch(err){
-        console.error("Signup flow error:", err);
-        setStatus(`Error: ${err?.message || err}`, "err");
-      }
-    }, true);
-
-    // If your flow uses a button click (not form submit), handle that too
-    const wizardBtn = findWizardButton();
-    if(wizardBtn){
-      wizardBtn.addEventListener("click", async (e) => {
-        // Let your UI click happen, but ensure save+proceed happens first
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-
-        try{
-          await saveThenProceed();
-        }catch(err){
-          console.error("Wizard button flow error:", err);
-          setStatus(`Error: ${err?.message || err}`, "err");
-        }
-      }, true);
+    if(!payload.email || !payload.email.includes("@")){
+      console.error("Invalid email");
+      return;
     }
-  }
+
+    try{
+      const { data, error } = await sb
+        .from("customers")
+        .upsert(payload, { onConflict: "email" })
+        .select("id,email")
+        .single();
+
+      console.log("Saved customer:", data);
+      console.log("Supabase error:", error);
+      console.log("Supabase error json:", JSON.stringify(error, null, 2));
+
+      if(error) throw error;
+      if(!data?.id) throw new Error("No id returned.");
+
+      localStorage.setItem("tbp_last_signup_id", data.id);
+      window.location.assign(wizardUrl(data.id));
+    }catch(err){
+      console.log("Signup flow error:", err);
+      console.log("Signup flow error json:", JSON.stringify(err, null, 2));
+    }
+  }, true);
 </script>
 
 
 
 </body>
 </html>
+
 
 
 
