@@ -150,7 +150,7 @@
     table{
       width:100%;
       border-collapse:collapse;
-      min-width: 1120px;
+      min-width: 980px;
     }
     thead th{
       position:sticky;top:0;
@@ -172,6 +172,7 @@
     tbody tr{cursor:pointer}
     tbody tr:hover{background:#f7fbff}
 
+    /* Task dots (OPS only) */
     .pipe{display:inline-flex;align-items:center;gap:6px}
     .dot{
       width:10px;height:10px;border-radius:999px;
@@ -182,27 +183,6 @@
     .dot.done{border-color:rgba(15,123,70,0.65);background:#dcfce7}
     .dot.need{border-color:rgba(179,38,30,0.45);background:#fff1f2}
     .dot-label{font-size:.75rem;color:var(--muted-text);margin-left:6px;white-space:nowrap}
-
-    /* ✅ Wizard complete pill in table */
-    .pill{
-      display:inline-flex;align-items:center;gap:.35rem;
-      padding:.28rem .6rem;border-radius:999px;
-      border:1px solid rgba(148,163,184,0.45);
-      background:#f8fafc;
-      font-weight:650;
-      font-size:.82rem;
-      color:#334155;
-    }
-    .pill.done{
-      border-color:rgba(15,123,70,0.35);
-      background:#ecfdf5;
-      color:#065f46;
-    }
-    .pill.not{
-      border-color:rgba(179,38,30,0.22);
-      background:#fff1f2;
-      color:#7f1d1d;
-    }
 
     .drawer-overlay{
       position:fixed; inset:0;
@@ -281,9 +261,51 @@
     }
     .drawer-hint{font-size:.82rem;color:var(--muted-text)}
 
+    /* ✅ Recommended next step box */
+    .next-box{
+      border:1px solid rgba(31,78,121,0.18);
+      background:linear-gradient(180deg,#f3f7ff,#ffffff);
+      border-radius:1rem;
+      padding:.75rem .85rem;
+      margin:.25rem 0 .9rem;
+    }
+    .next-kicker{
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--accent-blue);
+      margin:0 0 .2rem;
+    }
+    .next-title{
+      margin:0 0 .2rem;
+      font-weight:800;
+      color:var(--primary-blue);
+      font-size:.95rem;
+    }
+    .next-sub{
+      margin:0 0 .6rem;
+      color:var(--muted-text);
+      font-size:.86rem;
+    }
+    .next-actions{display:flex;flex-wrap:wrap;gap:.5rem}
+    .mini-pill{
+      display:inline-flex;align-items:center;gap:.4rem;
+      padding:.25rem .6rem;border-radius:999px;
+      border:1px solid rgba(148,163,184,0.45);
+      background:#f8fafc;
+      font-size:.78rem;
+      font-weight:650;
+      color:#334155;
+    }
+    .mini-pill.ok{
+      border-color:rgba(15,123,70,0.35);
+      background:#ecfdf5;
+      color:#065f46;
+    }
+
     @media (max-width: 900px){
       .drawer-row{grid-template-columns:1fr}
-      table{min-width:1020px}
+      table{min-width:900px}
       .drawer{right:-96vw;}
     }
   </style>
@@ -334,7 +356,6 @@
         <thead>
           <tr>
             <th>Onboarding status (sales)</th>
-            <th>Wizard complete</th>
             <th>Setup tasks (ops)</th>
             <th>Business</th>
             <th>Contact</th>
@@ -361,6 +382,10 @@
   </div>
 
   <div class="drawer-body">
+
+    <!-- ✅ NEW: Recommended next step -->
+    <div id="nextActionBox"></div>
+
     <div class="drawer-row">
       <div>
         <div class="drawer-section-title">Sales stage</div>
@@ -374,6 +399,10 @@
         </div>
       </div>
     </div>
+
+    <!-- ✅ NEW: Demo summary -->
+    <div class="drawer-section-title">Demo &amp; go-live</div>
+    <div class="checklist" id="demoSummary"></div>
 
     <div class="drawer-section-title">Setup tasks (ops)</div>
     <div class="checklist" id="tasksChecklist"></div>
@@ -453,6 +482,8 @@
   const tasksChecklist = document.getElementById("tasksChecklist");
   const opsButtons = document.getElementById("opsButtons");
   const salesChecklist = document.getElementById("salesChecklist");
+  const nextActionBox = document.getElementById("nextActionBox");
+  const demoSummary = document.getElementById("demoSummary");
 
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
   const btnOpenWizard = document.getElementById("btnOpenWizard");
@@ -496,13 +527,6 @@
 
   function wizardIsComplete(row){
     return !!row?.wizard_completed || !!row?.setup_complete;
-  }
-
-  function wizardPillHTML(row){
-    const done = wizardIsComplete(row);
-    return done
-      ? `<span class="pill done">🔒 Complete</span>`
-      : `<span class="pill not">⏳ Incomplete</span>`;
   }
 
   function rowMatchesSearch(row,q){
@@ -564,6 +588,7 @@
     statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
   }
 
+  // OPS tasks
   function setupTasks(row){
     return [
       { key:"wizard",   label:"Wizard complete",   done: wizardIsComplete(row) },
@@ -619,6 +644,99 @@
     }).join("");
   }
 
+  function renderDemoSummary(row){
+    // These fields only show if they exist / have values
+    const style = row?.demo_style;
+    const slot = row?.demo_slot;
+    const golive = row?.golive_timing;
+
+    const items = [];
+    if(style) items.push({ label:"Demo style", value: style });
+    if(slot) items.push({ label:"Preferred slot", value: slot });
+    if(golive) items.push({ label:"Go-live timing", value: golive });
+
+    if(!items.length){
+      demoSummary.innerHTML = `<div style="color:var(--muted-text);font-size:.85rem;">No demo details saved yet.</div>`;
+      return;
+    }
+
+    demoSummary.innerHTML = items.map(x=>`
+      <div class="check-item" style="cursor:default;">
+        <div class="check-left">
+          <div class="check-badge done">✓</div>
+          <div class="check-name">${escapeHtml(x.label)}</div>
+        </div>
+        <div class="check-state">${escapeHtml(x.value)}</div>
+      </div>
+    `).join("");
+  }
+
+  function renderNextActions(row){
+    const complete = wizardIsComplete(row);
+    const whatsapp = !!row?.whatsapp_connected;
+    const cal = !!row?.calendar_connected;
+    const pay = !!row?.payments_connected;
+
+    const pills = [
+      complete ? `<span class="mini-pill ok">🔒 Wizard complete</span>` : `<span class="mini-pill">⏳ Wizard incomplete</span>`,
+      whatsapp ? `<span class="mini-pill ok">WhatsApp</span>` : `<span class="mini-pill">WhatsApp</span>`,
+      cal ? `<span class="mini-pill ok">Calendar</span>` : `<span class="mini-pill">Calendar</span>`,
+      pay ? `<span class="mini-pill ok">Payments</span>` : `<span class="mini-pill">Payments</span>`
+    ].join(" ");
+
+    let title = "All good ✅";
+    let sub = "This customer is ready for demo / go-live steps.";
+    let ctaLabel = "View wizard";
+    let ctaFn = ()=> window.open(`app.html?customer_id=${encodeURIComponent(row.id)}`, "_blank", "noopener");
+
+    if(!complete){
+      title = "Finish the wizard";
+      sub = "Get the core profile saved so the AI can respond properly.";
+      ctaLabel = "Finish wizard";
+      ctaFn = ()=> window.open(`app.html?customer_id=${encodeURIComponent(row.id)}`, "_blank", "noopener");
+    }else if(!whatsapp){
+      title = "Connect WhatsApp";
+      sub = "Next big win: live customer conversations into TradeBotPro.";
+      ctaLabel = "Connect WhatsApp";
+      ctaFn = ()=> window.open(`whatsapp-setup.html?customer_id=${encodeURIComponent(row.id)}`, "_blank", "noopener");
+    }else if(!cal){
+      title = "Connect Calendar";
+      sub = "So bookings can drop straight into their diary.";
+      ctaLabel = "Connect Calendar";
+      ctaFn = ()=> window.open(`calendar-setup.html?customer_id=${encodeURIComponent(row.id)}`, "_blank", "noopener");
+    }else if(!pay){
+      title = "Connect Payments";
+      sub = "So deposits/invoices can be automated during the demo flow.";
+      ctaLabel = "Connect Payments";
+      ctaFn = ()=> window.open(`payments-setup.html?customer_id=${encodeURIComponent(row.id)}`, "_blank", "noopener");
+    }
+
+    nextActionBox.innerHTML = `
+      <div class="next-box">
+        <div class="next-kicker">Recommended next step</div>
+        <div class="next-title">${escapeHtml(title)}</div>
+        <div class="next-sub">${escapeHtml(sub)}</div>
+        <div style="margin:0 0 .6rem;">${pills}</div>
+        <div class="next-actions">
+          <button type="button" class="btn btn-primary" id="btnNextAction">${escapeHtml(ctaLabel)}</button>
+          <button type="button" class="btn btn-secondary" id="btnViewCustomerRow">Open in Supabase</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById("btnNextAction")?.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      ctaFn();
+    });
+
+    document.getElementById("btnViewCustomerRow")?.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      // Opens Supabase table in a new tab (best effort; user must be logged into Supabase)
+      const url = `${SUPABASE_URL.replace(".supabase.co","")}.supabase.com/project/${SUPABASE_URL.split("https://")[1].split(".")[0]}/editor?table=customers`;
+      window.open(url, "_blank", "noopener");
+    });
+  }
+
   async function updateCustomer(id, patch){
     setBanner("");
     const { data, error } = await sb.from("customers").update(patch).eq("id", id).select("*").single();
@@ -631,18 +749,6 @@
     if(idx !== -1) allRows[idx] = data;
     if(activeRow && activeRow.id===id) activeRow = data;
     return data;
-  }
-
-  async function backfillWizardCompleteIfNeeded(row){
-    if(!row) return row;
-    if(row.setup_complete && !row.wizard_completed){
-      const updated = await updateCustomer(row.id, {
-        wizard_completed: true,
-        onboarding_status: (!row.onboarding_status || row.onboarding_status === "New Signup") ? "In Setup" : row.onboarding_status
-      });
-      return updated || row;
-    }
-    return row;
   }
 
   function renderOpsButtons(row){
@@ -677,8 +783,7 @@
     });
   }
 
-  async function openDrawer(row){
-    row = await backfillWizardCompleteIfNeeded(row);
+  function openDrawer(row){
     activeRow = row;
 
     drawerTitle.textContent = row.business_name || "Customer";
@@ -694,6 +799,10 @@
     drawerPhone.value = row.phone || "";
     drawerNotes.value = row.notes || "";
     drawerLeadNotes.value = row.lead_notes || "";
+
+    // ✅ NEW
+    renderNextActions(row);
+    renderDemoSummary(row);
 
     renderSalesChecklist(row);
     renderTasksChecklist(row);
@@ -761,7 +870,7 @@
     tbody.innerHTML = "";
 
     if(!rows.length){
-      tbody.innerHTML = `<tr><td colspan="9">No matches.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8">No matches.</td></tr>`;
       statusBar.textContent = `0 shown • ${allRows.length} total`;
       return;
     }
@@ -770,7 +879,6 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${escapeHtml(salesStatus(r))}</td>
-        <td>${wizardPillHTML(r)}</td>
         <td>${tasksDotsHTML(r)}</td>
         <td>${escapeHtml(r.business_name || "—")}</td>
         <td>${escapeHtml(r.contact_name || "—")}</td>
@@ -791,14 +899,14 @@
   async function loadCustomersAndStatuses(){
     setBanner("");
     statusBar.textContent = "Loading…";
-    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8">Loading…</td></tr>`;
 
     const { data, error } = await sb.from("customers").select("*");
     if(error){
       console.error("LOAD ERROR:", error);
       setBanner("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
       allRows = [];
-      tbody.innerHTML = `<tr><td colspan="9">No data loaded.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8">No data loaded.</td></tr>`;
       statusBar.textContent = "Load failed.";
       return;
     }
@@ -817,11 +925,10 @@
   btnClear.addEventListener("click", ()=>{ activeStatus=null; search.value=""; render(); });
   search.addEventListener("input", render);
 
-  // Drawer note autosave
+  // Drawer
   drawerNotes.addEventListener("input", queueNotesSave);
   drawerLeadNotes.addEventListener("input", queueNotesSave);
 
-  // Close controls
   btnCloseDrawer.addEventListener("click", (e)=>{
     e.preventDefault();
     e.stopPropagation();
@@ -846,7 +953,7 @@
     window.open(`app.html?customer_id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
   });
 
-  // Sales stage click
+  // Sales checklist
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-sales]");
     if(!item || !activeRow) return;
@@ -859,7 +966,7 @@
     if(updated){ render(); openDrawer(updated); }
   }, true);
 
-  // Table dots click
+  // Task dots in table
   document.addEventListener("click", async (e)=>{
     const dot = e.target.closest(".dot[data-task][data-id]");
     if(!dot) return;
@@ -884,7 +991,7 @@
     }
   }, true);
 
-  // Drawer checklist click
+  // Drawer checklist
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-task]");
     if(!item || !activeRow) return;
