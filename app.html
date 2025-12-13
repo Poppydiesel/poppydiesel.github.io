@@ -1153,13 +1153,10 @@ function setCompletionUI(isComplete){
 
 /* ================= READ-ONLY (LOCK VIEW MODE) ================= */
 function setReadOnly(on){
-  // Inputs / textarea become readonly so you can still select/copy values
   $$("input,textarea", root()).forEach(el=>{
     if(el.type === "hidden") return;
     el.readOnly = !!on;
   });
-
-  // Selects must be disabled
   $$("select", root()).forEach(el=>{
     el.disabled = !!on;
   });
@@ -1228,16 +1225,13 @@ function injectLockControls(){
   $("#btn-cancel").addEventListener("click", ()=>{
     if(!ORIGINAL) return;
 
-    // restore fields
     Object.entries(ORIGINAL).forEach(([k,v])=>{
       const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
       if(el && el.type !== "hidden") el.value = v ?? "";
     });
 
-    // restore chips
     loadChips(ORIGINAL);
 
-    // return to locked view (if complete) or editable view (if not)
     EDIT_MODE = false;
     if(LOCKED){
       setReadOnly(true);
@@ -1317,7 +1311,6 @@ function syncAllChips(){
 }
 
 function wireChipClicks(){
-  // Event delegation => never “falls off”
   document.addEventListener("click", (e)=>{
     const chip = e.target.closest(".chip");
     if(!chip) return;
@@ -1326,8 +1319,6 @@ function wireChipClicks(){
     if(!row) return;
 
     e.preventDefault();
-
-    // locked view mode blocks changes
     if(LOCKED && !EDIT_MODE) return;
 
     const mode = (row.dataset.select || "single").toLowerCase();
@@ -1383,65 +1374,47 @@ function snapshot(){
   $$('input[type="hidden"][name]', root()).forEach(el=>{
     o[el.name] = el.value ?? "";
   });
+
+  // also include inputs that have id=column but no name
+  $$("input[id],textarea[id],select[id]", root()).forEach(el=>{
+    if(el.name) return;
+    const key = el.id;
+    if(!key) return;
+    if(o[key] === undefined) o[key] = el.value ?? "";
+  });
+
   return o;
 }
 
-/* ================= AUTO-CREATE CUSTOMER (for +New customer opening app.html) ================= */
-async function ensureCustomerId(){
-  CUSTOMER_ID = qp("customer_id");
-  if(CUSTOMER_ID) return CUSTOMER_ID;
-
-  status("Creating new customer…", "info");
-
-  const draft = {
-    pending_setup: true,
-    setup_complete: false,
-    onboarding_status: "New Signup",
-    wizard_completed: false
-  };
-
-  const { data, error } = await sb
-    .from(TABLE)
-    .insert(draft)
-    .select("id")
-    .single();
-
-  if(error){
-    status(`Cannot create new customer: ${error.message}`, "error");
-    return null;
-  }
-
-  CUSTOMER_ID = data.id;
-
+/* ================= URL ID HANDLING ================= */
+function setCustomerIdInUrl(id){
   const url = new URL(location.href);
-  url.searchParams.set("customer_id", CUSTOMER_ID);
+  url.searchParams.set("customer_id", id);
+  url.searchParams.delete("new");
   history.replaceState({}, "", url.toString());
-
-  status("New customer created ✅", "success");
-  return CUSTOMER_ID;
 }
 
 /* ================= SAVE ================= */
 async function save(){
-  if((LOCKED && !EDIT_MODE) || !CUSTOMER_ID) return;
+  if(LOCKED && !EDIT_MODE) return;
 
   setSaveState("saving");
   syncAllChips();
 
   const now = snapshot();
 
-  // Allow both naming styles if you have legacy fields
+  // map optional fields
   if(now.contact_mobile && !now.phone) now.phone = now.contact_mobile;
   if(now.contact_email && !now.email) now.email = now.contact_email;
 
-  // Completion rule: adjust if you want stricter/looser
+  // Completion rule (your current rule)
   const complete = !!(
     String(now.business_name||"").trim() &&
     String(now.email||"").trim() &&
     String(now.main_trade||"").trim()
   );
 
-  // Core flags
+  // flags
   now.setup_complete = complete;
   now.pending_setup = !complete;
   now.updated_at = new Date().toISOString();
@@ -1449,17 +1422,57 @@ async function save(){
     now.setup_completed_at = new Date().toISOString();
   }
 
-  // ✅ Step 1 automation: if complete, mark ops + move sales stage
-  // (only set these when the wizard is complete)
+  // automation on completion
   if(complete){
     now.wizard_completed = true;
-    // only promote stage if it’s blank / New Signup (won’t overwrite later stages)
-    if(!now.onboarding_status || String(now.onboarding_status).trim() === "" || String(now.onboarding_status).trim() === "New Signup"){
+    if(!now.onboarding_status || String(now.onboarding_status).trim()==="" || String(now.onboarding_status).trim()==="New Signup"){
       now.onboarding_status = "In Setup";
     }
+  } else {
+    // keep sensible defaults for drafts
+    if(!now.onboarding_status) now.onboarding_status = "New Signup";
+    if(now.wizard_completed === undefined) now.wizard_completed = false;
   }
 
   try{
+    // ✅ If no ID yet: INSERT first save (prevents blank UUID rows)
+    if(!CUSTOMER_ID){
+      // IMPORTANT: only insert non-empty-ish fields + flags
+      const insertPayload = { ...now };
+      delete insertPayload.id;
+
+      const { data, error } = await sb
+        .from(TABLE)
+        .insert(insertPayload)
+        .select("*")
+        .single();
+
+      if(error) throw error;
+
+      CUSTOMER_ID = data.id;
+      setCustomerIdInUrl(CUSTOMER_ID);
+
+      ORIGINAL = { ...snapshot(), ...data };
+      setSaveState("saved");
+      status("Created + Saved to Supabase ✅", "success");
+
+      LOCKED = truthy(data.setup_complete);
+      EDIT_MODE = false;
+
+      if(LOCKED){
+        setReadOnly(true);
+        setCompletionUI(true);
+        showSave(false);
+      }else{
+        setReadOnly(false);
+        setCompletionUI(false);
+        showSave(true);
+      }
+      updateLockButtons();
+      return;
+    }
+
+    // ✅ Otherwise: UPDATE
     const { error } = await sb.from(TABLE).update(now).eq("id", CUSTOMER_ID);
     if(error) throw error;
 
@@ -1467,21 +1480,19 @@ async function save(){
     setSaveState("saved");
     status("Saved to Supabase ✅", "success");
 
-    // Apply UI state
     if(complete){
       LOCKED = true;
       EDIT_MODE = false;
       setReadOnly(true);
       setCompletionUI(true);
       showSave(false);
-      updateLockButtons();
     } else {
       LOCKED = false;
       setReadOnly(false);
       setCompletionUI(false);
       showSave(true);
-      updateLockButtons();
     }
+    updateLockButtons();
   } catch(e){
     console.error("[Wizard] Save failed", e);
     setSaveState("idle");
@@ -1495,54 +1506,58 @@ async function init(){
   wireChipClicks();
   injectLockControls();
 
-  const id = await ensureCustomerId();
-  if(!id) return;
+  CUSTOMER_ID = qp("customer_id") || null;
 
-  // Load row
-  const { data, error } = await sb.from(TABLE).select("*").eq("id", id).maybeSingle();
-  if(error || !data){
-    status("Customer not found", "error");
-    return;
-  }
+  // If we have an ID, load existing customer
+  if(CUSTOMER_ID){
+    const { data, error } = await sb.from(TABLE).select("*").eq("id", CUSTOMER_ID).maybeSingle();
+    if(error || !data){
+      status("Customer not found", "error");
+      return;
+    }
 
-  // Prefill normal inputs by both name=col or id=col
-  Object.entries(data).forEach(([k,v])=>{
-    const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
-    if(el && el.type !== "hidden") el.value = v ?? "";
-  });
+    // Prefill
+    Object.entries(data).forEach(([k,v])=>{
+      const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
+      if(el && el.type !== "hidden") el.value = v ?? "";
+    });
 
-  // Chips
-  loadChips(data);
+    loadChips(data);
+    ORIGINAL = snapshot();
 
-  ORIGINAL = snapshot();
+    LOCKED = truthy(data.setup_complete);
+    EDIT_MODE = false;
 
-  // Locked view mode
-  LOCKED = truthy(data.setup_complete);
-  EDIT_MODE = false;
-
-  if(LOCKED){
-    setReadOnly(true);
-    setCompletionUI(true);
-    showSave(false);
-    status("Setup complete — read-only.", "info");
+    if(LOCKED){
+      setReadOnly(true);
+      setCompletionUI(true);
+      showSave(false);
+      status("Setup complete — read-only.", "info");
+    } else {
+      setReadOnly(false);
+      setCompletionUI(false);
+      showSave(true);
+      status("Resumed — editable.", "info");
+    }
   } else {
+    // No ID: do NOT create a row yet (prevents phantom UUID rows)
+    LOCKED = false;
+    EDIT_MODE = true;
     setReadOnly(false);
     setCompletionUI(false);
     showSave(true);
-    status("Resumed — editable.", "info");
+    status("New customer — fill the form, then Save/Next to create the record.", "info");
   }
 
   updateLockButtons();
 
-  // Ensure step 1 visible
   if(!getActiveStepPanel()) getStepPanel(1)?.classList.add("is-active");
   showStep(getActiveStepNumber() || 1);
 
-  // Nav always navigates (save does not block navigation)
   $("#btn-next")?.addEventListener("click", (e)=>{
     e.preventDefault();
-    if(!LOCKED || EDIT_MODE) save();
-    nextStep();
+    save();      // create/update
+    nextStep();  // always navigate
   });
 
   $("#btn-back")?.addEventListener("click", (e)=>{
@@ -1550,7 +1565,6 @@ async function init(){
     prevStep();
   });
 
-  // Manual save
   $("#btn-save-draft")?.addEventListener("click", (e)=>{
     e.preventDefault();
     save();
