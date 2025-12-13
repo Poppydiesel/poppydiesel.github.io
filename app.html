@@ -656,6 +656,14 @@
       box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2) !important;
       font-weight: 600;
     }
+
+    /* chip selected state (safe, only affects chips that get .is-selected) */
+.is-selected {
+  outline: 2px solid rgba(31, 78, 121, 0.45);
+  background: rgba(31, 78, 121, 0.08);
+}
+
+    
   </style>
 </head>
 <body>
@@ -1129,6 +1137,108 @@
     })();
     // ===== YOUR BOOTSTRAP ENDS HERE =====
   })();
+
+  // ===============================
+// CHIP ENGINE (single + multi select)
+// ===============================
+(function initChipEngine() {
+  function findField(fieldName) {
+    return document.querySelector(`[name="${fieldName}"]`) || document.getElementById(fieldName);
+  }
+
+  function setSingle(groupEl, fieldName, value) {
+    const field = findField(fieldName);
+    if (!field) {
+      console.warn("[TBP] No field for chip group:", fieldName);
+      return;
+    }
+    field.value = value;
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+
+    groupEl.querySelectorAll("[data-value]").forEach(ch => {
+      const v = (ch.getAttribute("data-value") || "").trim();
+      const on = v === value;
+      ch.classList.toggle("is-selected", on);
+      ch.setAttribute("aria-pressed", on ? "true" : "false");
+      if (ch.tagName === "BUTTON") ch.type = "button";
+    });
+  }
+
+  function toggleMulti(chipEl, fieldName, value) {
+    const field = findField(fieldName);
+    if (!field) {
+      console.warn("[TBP] No field for chip group:", fieldName);
+      return;
+    }
+    let arr = [];
+    try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
+    const idx = arr.indexOf(value);
+    if (idx >= 0) arr.splice(idx, 1); else arr.push(value);
+
+    field.value = JSON.stringify(arr);
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+
+    chipEl.classList.toggle("is-selected");
+    chipEl.setAttribute("aria-pressed", chipEl.classList.contains("is-selected") ? "true" : "false");
+  }
+
+  // Event delegation (works even if chips added later)
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-chip-group] [data-value]");
+    if (!chip) return;
+
+    // stop form submit side effects
+    if (chip.tagName === "BUTTON") chip.type = "button";
+
+    const groupEl = chip.closest("[data-chip-group]");
+    const fieldName = groupEl?.getAttribute("data-chip-group");
+    if (!fieldName) return;
+
+    const value = (chip.getAttribute("data-value") || "").trim();
+    const isMulti = groupEl.getAttribute("data-multi") === "true";
+
+    if (!isMulti) setSingle(groupEl, fieldName, value);
+    else toggleMulti(chip, fieldName, value);
+  });
+
+  // initial sync if wizard prefilled values
+  function syncFromFields() {
+    document.querySelectorAll("[data-chip-group]").forEach(groupEl => {
+      const fieldName = groupEl.getAttribute("data-chip-group");
+      const field = fieldName ? findField(fieldName) : null;
+      if (!field) return;
+
+      const isMulti = groupEl.getAttribute("data-multi") === "true";
+      if (!isMulti) {
+        const current = (field.value || "").trim();
+        groupEl.querySelectorAll("[data-value]").forEach(ch => {
+          const v = (ch.getAttribute("data-value") || "").trim();
+          ch.classList.toggle("is-selected", v === current);
+          ch.setAttribute("aria-pressed", v === current ? "true" : "false");
+          if (ch.tagName === "BUTTON") ch.type = "button";
+        });
+      } else {
+        let arr = [];
+        try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
+        groupEl.querySelectorAll("[data-value]").forEach(ch => {
+          const v = (ch.getAttribute("data-value") || "").trim();
+          const on = arr.includes(v);
+          ch.classList.toggle("is-selected", on);
+          ch.setAttribute("aria-pressed", on ? "true" : "false");
+          if (ch.tagName === "BUTTON") ch.type = "button";
+        });
+      }
+    });
+  }
+
+  syncFromFields();
+  setTimeout(syncFromFields, 300);
+  setTimeout(syncFromFields, 1200);
+})();
+
+  
 </script>
 
  
