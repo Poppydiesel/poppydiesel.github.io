@@ -1698,6 +1698,249 @@ document.getElementById("ask-help-btn")?.addEventListener("click", async () => {
   }
 });
 
+  // ===============================
+// Chip controls (robust + save-safe)
+// Requirements:
+// - Each chip group wrapper has: data-chip-group="FIELD_NAME"
+// - Inside it, each chip button has: data-value="VALUE" and type="button"
+// - There is a hidden/real input/select/textarea with name="FIELD_NAME"
+// ===============================
+(function initChips() {
+  function setFieldValue(fieldName, value) {
+    // find the real field (hidden input/select/textarea)
+    const field =
+      document.querySelector(`[name="${fieldName}"]`) ||
+      document.getElementById(fieldName);
+
+    if (!field) {
+      console.warn("Chip group has no matching field:", fieldName);
+      return;
+    }
+
+    field.value = value;
+
+    // Trigger change/input so any existing autosave/validation hooks fire
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function setSelectedUI(groupEl, selectedValue, multi = false) {
+    const chips = groupEl.querySelectorAll("[data-value]");
+    chips.forEach(chip => {
+      const v = chip.getAttribute("data-value") ?? "";
+      if (multi) {
+        // multi-select handled elsewhere
+        return;
+      }
+      chip.classList.toggle("is-selected", v === selectedValue);
+      chip.setAttribute("aria-pressed", v === selectedValue ? "true" : "false");
+    });
+  }
+
+  // Single-select groups: click one chip → sets field value → highlights selection
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-chip-group] [data-value]");
+    if (!chip) return;
+
+    // ensure chip is not accidentally submitting the form
+    if (chip.tagName === "BUTTON") chip.type = "button";
+
+    const groupEl = chip.closest("[data-chip-group]");
+    if (!groupEl) return;
+
+    const fieldName = groupEl.getAttribute("data-chip-group");
+    if (!fieldName) return;
+
+    const value = (chip.getAttribute("data-value") || "").trim();
+
+    // If you later want multi-select, add data-multi="true" to the group
+    const isMulti = groupEl.getAttribute("data-multi") === "true";
+
+    if (!isMulti) {
+      setFieldValue(fieldName, value);
+      setSelectedUI(groupEl, value, false);
+      return;
+    }
+
+    // Multi-select: store JSON array in the field
+    const field =
+      document.querySelector(`[name="${fieldName}"]`) ||
+      document.getElementById(fieldName);
+
+    if (!field) return;
+
+    let arr = [];
+    try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
+    const idx = arr.indexOf(value);
+    if (idx >= 0) arr.splice(idx, 1);
+    else arr.push(value);
+
+    field.value = JSON.stringify(arr);
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+
+    // UI toggle
+    chip.classList.toggle("is-selected");
+    chip.setAttribute("aria-pressed", chip.classList.contains("is-selected") ? "true" : "false");
+  });
+
+  // On load: if field already has a value, reflect it on chips (prefill UI)
+  function syncAllChipGroupsFromFields() {
+    document.querySelectorAll("[data-chip-group]").forEach(groupEl => {
+      const fieldName = groupEl.getAttribute("data-chip-group");
+      if (!fieldName) return;
+
+      const field =
+        document.querySelector(`[name="${fieldName}"]`) ||
+        document.getElementById(fieldName);
+
+      if (!field) return;
+
+      const isMulti = groupEl.getAttribute("data-multi") === "true";
+
+      if (!isMulti) {
+        setSelectedUI(groupEl, (field.value || "").trim(), false);
+        return;
+      }
+
+      // multi-select
+      let arr = [];
+      try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
+      groupEl.querySelectorAll("[data-value]").forEach(chip => {
+        const v = (chip.getAttribute("data-value") || "").trim();
+        const on = arr.includes(v);
+        chip.classList.toggle("is-selected", on);
+        chip.setAttribute("aria-pressed", on ? "true" : "false");
+        if (chip.tagName === "BUTTON") chip.type = "button";
+      });
+    });
+  }
+
+// ===============================
+// Chip controls (robust + save-safe)
+// Requirements:
+// - Each chip group wrapper has: data-chip-group="FIELD_NAME"
+// - Inside it, each chip button has: data-value="VALUE" and type="button"
+// - There is a hidden/real input/select/textarea with name="FIELD_NAME"
+// ===============================
+(function initChips() {
+  function setFieldValue(fieldName, value) {
+    // find the real field (hidden input/select/textarea)
+    const field =
+      document.querySelector(`[name="${fieldName}"]`) ||
+      document.getElementById(fieldName);
+
+    if (!field) {
+      console.warn("Chip group has no matching field:", fieldName);
+      return;
+    }
+
+    field.value = value;
+
+    // Trigger change/input so any existing autosave/validation hooks fire
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function setSelectedUI(groupEl, selectedValue, multi = false) {
+    const chips = groupEl.querySelectorAll("[data-value]");
+    chips.forEach(chip => {
+      const v = chip.getAttribute("data-value") ?? "";
+      if (multi) {
+        // multi-select handled elsewhere
+        return;
+      }
+      chip.classList.toggle("is-selected", v === selectedValue);
+      chip.setAttribute("aria-pressed", v === selectedValue ? "true" : "false");
+    });
+  }
+
+  // Single-select groups: click one chip → sets field value → highlights selection
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-chip-group] [data-value]");
+    if (!chip) return;
+
+    // ensure chip is not accidentally submitting the form
+    if (chip.tagName === "BUTTON") chip.type = "button";
+
+    const groupEl = chip.closest("[data-chip-group]");
+    if (!groupEl) return;
+
+    const fieldName = groupEl.getAttribute("data-chip-group");
+    if (!fieldName) return;
+
+    const value = (chip.getAttribute("data-value") || "").trim();
+
+    // If you later want multi-select, add data-multi="true" to the group
+    const isMulti = groupEl.getAttribute("data-multi") === "true";
+
+    if (!isMulti) {
+      setFieldValue(fieldName, value);
+      setSelectedUI(groupEl, value, false);
+      return;
+    }
+
+    // Multi-select: store JSON array in the field
+    const field =
+      document.querySelector(`[name="${fieldName}"]`) ||
+      document.getElementById(fieldName);
+
+    if (!field) return;
+
+    let arr = [];
+    try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
+    const idx = arr.indexOf(value);
+    if (idx >= 0) arr.splice(idx, 1);
+    else arr.push(value);
+
+    field.value = JSON.stringify(arr);
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+
+    // UI toggle
+    chip.classList.toggle("is-selected");
+    chip.setAttribute("aria-pressed", chip.classList.contains("is-selected") ? "true" : "false");
+  });
+
+  // On load: if field already has a value, reflect it on chips (prefill UI)
+  function syncAllChipGroupsFromFields() {
+    document.querySelectorAll("[data-chip-group]").forEach(groupEl => {
+      const fieldName = groupEl.getAttribute("data-chip-group");
+      if (!fieldName) return;
+
+      const field =
+        document.querySelector(`[name="${fieldName}"]`) ||
+        document.getElementById(fieldName);
+
+      if (!field) return;
+
+      const isMulti = groupEl.getAttribute("data-multi") === "true";
+
+      if (!isMulti) {
+        setSelectedUI(groupEl, (field.value || "").trim(), false);
+        return;
+      }
+
+      // multi-select
+      let arr = [];
+      try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
+      groupEl.querySelectorAll("[data-value]").forEach(chip => {
+        const v = (chip.getAttribute("data-value") || "").trim();
+        const on = arr.includes(v);
+        chip.classList.toggle("is-selected", on);
+        chip.setAttribute("aria-pressed", on ? "true" : "false");
+        if (chip.tagName === "BUTTON") chip.type = "button";
+      });
+    });
+  }
+
+  // run now + after a short delay (covers late-rendered content)
+  syncAllChipGroupsFromFields();
+  setTimeout(syncAllChipGroupsFromFields, 250);
+  setTimeout(syncAllChipGroupsFromFields, 1000);
+})();
+
+
 </script>
 </body>
 </html>
