@@ -128,7 +128,7 @@
       background:#fff1f2;
       color:#7f1d1d;
     }
-    .btn-danger:hover{filter:brightness(0.98)}
+    .btn-danger:hover{background:#ffe4e6}
 
     @media (max-width: 900px){
       .controls{flex-wrap:wrap;}
@@ -178,7 +178,6 @@
     tbody tr{cursor:pointer}
     tbody tr:hover{background:#f7fbff}
 
-    /* Task dots */
     .pipe{display:inline-flex;align-items:center;gap:6px}
     .dot{
       width:10px;height:10px;border-radius:999px;
@@ -191,7 +190,6 @@
     .dot.readonly{cursor:default; opacity:.85}
     .dot-label{font-size:.75rem;color:var(--muted-text);margin-left:6px;white-space:nowrap}
 
-    /* Wizard badge column */
     .badge{
       display:inline-flex;align-items:center;gap:.35rem;
       padding:.25rem .6rem;
@@ -213,7 +211,6 @@
       color:#7f1d1d;
     }
 
-    /* Overlay + Drawer */
     .drawer-overlay{
       position:fixed; inset:0;
       background:rgba(0,0,0,.25);
@@ -385,14 +382,15 @@
       </div>
     </div>
 
-    <!-- ✅ NEW: Onboarding actions -->
+    <!-- ✅ NEW: Onboarding one-click actions -->
     <div class="drawer-section-title">Onboarding actions (one-click)</div>
-    <div class="action-grid" id="onboardingActions"></div>
+    <div class="checklist" id="onboardingChecklist"></div>
+    <div class="action-grid" id="onboardingButtons"></div>
 
     <div class="drawer-section-title">Setup tasks (ops)</div>
     <div class="checklist" id="tasksChecklist"></div>
 
-    <div class="drawer-section-title">Setup tasks (ops toggles)</div>
+    <div class="drawer-section-title">Setup tasks (one-click actions)</div>
     <div class="action-grid" id="opsButtons"></div>
 
     <div class="drawer-row" style="margin-top:.8rem;">
@@ -467,7 +465,8 @@
   const tasksChecklist = document.getElementById("tasksChecklist");
   const opsButtons = document.getElementById("opsButtons");
   const salesChecklist = document.getElementById("salesChecklist");
-  const onboardingActions = document.getElementById("onboardingActions");
+  const onboardingChecklist = document.getElementById("onboardingChecklist");
+  const onboardingButtons = document.getElementById("onboardingButtons");
 
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
   const btnOpenWizard = document.getElementById("btnOpenWizard");
@@ -579,10 +578,10 @@
     statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
   }
 
-  // OPS tasks (Wizard is read-only here)
+  // OPS tasks (Wizard read-only)
   function setupTasks(row){
     return [
-      { key:"wizard",   label:"Wizard complete",   done: wizardIsComplete(row), readonly:true },
+      { key:"wizard",   label:"Wizard complete",    done: wizardIsComplete(row), readonly:true },
       { key:"whatsapp", label:"WhatsApp connected", done: !!row?.whatsapp_connected, readonly:false },
       { key:"calendar", label:"Calendar connected", done: !!row?.calendar_connected, readonly:false },
       { key:"payments", label:"Payments connected", done: !!row?.payments_connected, readonly:false },
@@ -611,7 +610,6 @@
         i.key === "wizard"
           ? (i.done ? "Completed" : "Incomplete")
           : (i.done ? "Completed" : "Click to toggle");
-
       const cursor = i.key === "wizard" ? "cursor:default;" : "";
       return `
         <div class="check-item" data-task="${i.key}" style="${cursor}">
@@ -637,6 +635,36 @@
             <div class="check-name">${escapeHtml(stage)}</div>
           </div>
           <div class="check-state">${state}</div>
+        </div>`;
+    }).join("");
+  }
+
+  function onboardingItems(row){
+    const booked = !!row?.demo_booked;
+    const done = !!row?.demo_completed;
+    const trial = !!row?.trial_active;
+    const live = !!row?.is_live;
+
+    return [
+      { key:"demo_booked", label:"Demo booked", done: booked, value: row?.demo_datetime ? fmtDate(row.demo_datetime) : "—" },
+      { key:"demo_completed", label:"Demo completed", done: done, value: done ? "Yes" : "No" },
+      { key:"trial_active", label:"Free trial active", done: trial, value: trial ? `${row?.trial_end ? ("Ends: " + fmtDate(row.trial_end)) : "—"}` : "No" },
+      { key:"is_live", label:"Live", done: live, value: live ? (row?.go_live_date ? fmtDate(row.go_live_date) : "Yes") : "No" },
+    ];
+  }
+
+  function renderOnboardingChecklist(row){
+    const items = onboardingItems(row);
+    onboardingChecklist.innerHTML = items.map(i=>{
+      const badge = i.done ? "✓" : "";
+      const badgeCls = i.done ? "check-badge done" : "check-badge";
+      return `
+        <div class="check-item" style="cursor:default;">
+          <div class="check-left">
+            <div class="${badgeCls}">${badge}</div>
+            <div class="check-name">${escapeHtml(i.label)}</div>
+          </div>
+          <div class="check-state">${escapeHtml(i.value)}</div>
         </div>`;
     }).join("");
   }
@@ -682,74 +710,105 @@
     });
   }
 
-  function renderOnboardingActions(row){
-    onboardingActions.innerHTML = "";
+  function renderOnboardingButtons(row){
+    onboardingButtons.innerHTML = "";
 
     const mk = (label, cls, onClick) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "btn " + (cls || "btn-secondary");
+      b.className = `btn ${cls || "btn-secondary"}`;
       b.textContent = label;
       b.addEventListener("click", (e)=>{ e.stopPropagation(); onClick(); });
-      onboardingActions.appendChild(b);
+      onboardingButtons.appendChild(b);
     };
 
-    const demoBooked = !!row?.demo_booked;
-    const demoDone = !!row?.demo_completed;
-    const trialActive = !!row?.trial_active;
-    const isLive = !!row?.is_live;
+    mk(row.demo_booked ? "Edit demo time" : "Book demo", "btn-secondary", async ()=>{
+      if(!activeRow) return;
+      const current = row.demo_datetime ? new Date(row.demo_datetime).toISOString().slice(0,16) : "";
+      const input = window.prompt(
+        "Enter demo date/time (optional).\n\nBest format: 2025-12-20T19:30\nLeave blank to just mark as booked.",
+        current
+      );
+      if(input === null) return;
 
-    // Book demo (sets status to Demo)
-    mk(demoBooked ? "Demo booked ✅" : "Book demo", "btn-secondary", async ()=>{
+      let demoIso = null;
+      const trimmed = String(input).trim();
+      if(trimmed){
+        const parsed = new Date(trimmed);
+        if(Number.isNaN(parsed.getTime())){
+          setBanner("Invalid date/time.\nTry: 2025-12-20T19:30");
+          return;
+        }
+        demoIso = parsed.toISOString();
+      }
+
       const patch = {
         demo_booked: true,
-        demo_scheduled_at: row?.demo_scheduled_at || new Date().toISOString(),
+        demo_datetime: demoIso,
         onboarding_status: "Demo"
       };
+
       const updated = await updateCustomer(row.id, patch);
       if(updated){ render(); openDrawer(updated); }
     });
 
-    // Mark demo done
-    mk(demoDone ? "Demo done ✅" : "Mark demo done", "btn-secondary", async ()=>{
-      const patch = {
-        demo_completed: true,
-        onboarding_status: "Free Trial" // sensible next step
-      };
+    mk(row.demo_completed ? "Demo completed ✅" : "Mark demo completed", row.demo_completed ? "btn-secondary" : "btn-primary", async ()=>{
+      if(!activeRow) return;
+      const ok = window.confirm("Mark demo as completed?");
+      if(!ok) return;
+
+      const patch = { demo_completed: true };
       const updated = await updateCustomer(row.id, patch);
       if(updated){ render(); openDrawer(updated); }
     });
 
-    // Start free trial (7 days default)
-    mk(trialActive ? "Trial active ✅" : "Start free trial", "btn-secondary", async ()=>{
+    mk(row.trial_active ? "Trial active ✅" : "Start free trial", row.trial_active ? "btn-secondary" : "btn-primary", async ()=>{
+      if(!activeRow) return;
+
+      const daysRaw = window.prompt("Free trial length in days? (default 7)", "7");
+      if(daysRaw === null) return;
+
+      const days = Math.max(1, Math.min(60, parseInt(daysRaw, 10) || 7));
       const start = new Date();
-      const end = new Date(start.getTime() + 7*24*60*60*1000);
+      const end = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
+
       const patch = {
         trial_active: true,
-        trial_start: row?.trial_start || start.toISOString(),
-        trial_end: row?.trial_end || end.toISOString(),
+        trial_start: start.toISOString(),
+        trial_end: end.toISOString(),
         onboarding_status: "Free Trial"
       };
+
       const updated = await updateCustomer(row.id, patch);
       if(updated){ render(); openDrawer(updated); }
     });
 
-    // Go live
-    mk(isLive ? "Live ✅" : "Go live ✅", "btn-primary", async ()=>{
+    mk(row.is_live ? "Live ✅" : "Go live", row.is_live ? "btn-secondary" : "btn-primary", async ()=>{
+      if(!activeRow) return;
+      const ok = window.confirm("Go live now?\n\nThis marks the customer as Live.");
+      if(!ok) return;
+
+      const now = new Date();
       const patch = {
         is_live: true,
-        go_live_date: row?.go_live_date || new Date().toISOString(),
+        go_live_date: now.toISOString(),
+        trial_active: false,
         onboarding_status: "Live"
       };
+
       const updated = await updateCustomer(row.id, patch);
       if(updated){ render(); openDrawer(updated); }
     });
 
-    // Optional: reset pipeline (handy while testing)
-    mk("Reset pipeline (testing)", "btn-danger", async ()=>{
+    // Optional safety reset (hidden-ish but useful)
+    mk("Reset onboarding (careful)", "btn-danger", async ()=>{
+      if(!activeRow) return;
+      const ok = window.confirm("Reset onboarding flags for this customer?\n\nThis will NOT delete the customer, but will clear demo/trial/live.");
+      if(!ok) return;
+
       const patch = {
         demo_booked: false,
-        demo_scheduled_at: null,
+        demo_datetime: null,
         demo_completed: false,
         trial_active: false,
         trial_start: null,
@@ -758,6 +817,7 @@
         go_live_date: null,
         onboarding_status: "In Setup"
       };
+
       const updated = await updateCustomer(row.id, patch);
       if(updated){ render(); openDrawer(updated); }
     });
@@ -781,7 +841,8 @@
     drawerLeadNotes.value = row.lead_notes || "";
 
     renderSalesChecklist(row);
-    renderOnboardingActions(row);
+    renderOnboardingChecklist(row);
+    renderOnboardingButtons(row);
     renderTasksChecklist(row);
     renderOpsButtons(row);
 
@@ -903,10 +964,11 @@
   btnClear.addEventListener("click", ()=>{ activeStatus=null; search.value=""; render(); });
   search.addEventListener("input", render);
 
-  // Drawer
+  // Drawer autosave notes
   drawerNotes.addEventListener("input", queueNotesSave);
   drawerLeadNotes.addEventListener("input", queueNotesSave);
 
+  // Close drawer
   btnCloseDrawer.addEventListener("click", (e)=>{
     e.preventDefault();
     e.stopPropagation();
@@ -924,7 +986,7 @@
     }
   });
 
-  // Open wizard uses customer_id
+  // Open wizard (customer_id)
   btnOpenWizard.addEventListener("click", (e)=>{
     e.stopPropagation();
     if(!activeRow) return;
@@ -944,7 +1006,7 @@
     if(updated){ render(); openDrawer(updated); }
   }, true);
 
-  // Click task dots in table to toggle (Wizard ignored)
+  // Toggle ops dots in table (Wizard ignored)
   document.addEventListener("click", async (e)=>{
     const dot = e.target.closest(".dot[data-task][data-id]");
     if(!dot) return;
@@ -970,13 +1032,13 @@
     }
   }, true);
 
-  // Click tasks checklist in drawer to toggle (Wizard ignored)
+  // Toggle ops checklist in drawer (Wizard ignored)
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-task]");
     if(!item || !activeRow) return;
 
     const key = item.dataset.task;
-    if(key === "wizard") return;
+    if(key === "wizard") return; // read-only
 
     e.stopPropagation();
 
