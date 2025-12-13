@@ -1093,6 +1093,12 @@
       console.error("[TBP] Supabase UMD did not load yet. Retrying…");
       return setTimeout(bootWhenSupabaseReady, 50);
     }
+window.addEventListener("error", (e) => {
+  console.error("[TBP] JS Error:", e.message, "at", e.filename, "line", e.lineno);
+});
+window.addEventListener("unhandledrejection", (e) => {
+  console.error("[TBP] Unhandled Promise:", e.reason);
+});
 
     console.log("[TBP] Supabase loaded OK:", window.supabase);
 
