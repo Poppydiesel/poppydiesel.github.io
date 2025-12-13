@@ -1061,177 +1061,327 @@
 <script type="module">
 /* =========================================================
    TradeBotPro — Wizard (customers table only)
-   Resume + Lock / Unlock
+   Resume + Prefill + Lock/Unlock
+   Paste WHOLE block from <script> downwards.
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // ================= CONFIG =================
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const TABLE = "customers";
 
 // ================= HELPERS =================
-const $ = s => document.querySelector(s);
+const $ = (sel, root=document) => root.querySelector(sel);
 
 function qp(name){
-  return new URLSearchParams(window.location.search).get(name);
+  return new URLSearchParams(location.search).get(name);
 }
 
 function getForm(){
-  return document.querySelector("#setupForm") || document.querySelector("form");
+  return $("#setupForm") || $("#wizardForm") || $("form");
 }
 
-function setField(form, name, value){
-  form.querySelectorAll(`[name="${CSS.escape(name)}"]`).forEach(el=>{
-    if(el.type === "checkbox") el.checked = value == true || value == "1";
-    else if(el.type === "radio") el.checked = el.value == value;
-    else el.value = value ?? "";
+function truthy(v){
+  return v === true || v === "true" || v === 1 || v === "1" || v === "on" || v === "yes";
+}
+
+function setFieldValue(form, fieldName, value){
+  const els = form.querySelectorAll(`[name="${CSS.escape(fieldName)}"]`);
+  if(!els.length) return false;
+
+  els.forEach(el => {
+    if(el.type === "checkbox") el.checked = truthy(value);
+    else if(el.type === "radio") el.checked = (String(el.value) === String(value));
+    else el.value = (value ?? "");
   });
+
+  return true;
 }
 
-function snapshot(form){
+function snapshotForm(form){
   const o = {};
-  new FormData(form).forEach((v,k)=>o[k]=v);
-  form.querySelectorAll('input[type="checkbox"]').forEach(i=>{
-    if(!(i.name in o)) o[i.name] = i.checked ? "1":"0";
+  new FormData(form).forEach((v,k)=> o[k]=v);
+
+  // ensure unchecked checkboxes are included
+  form.querySelectorAll('input[type="checkbox"][name]').forEach(i=>{
+    if(!(i.name in o)) o[i.name] = i.checked ? "1" : "0";
   });
+
   return o;
 }
 
-function same(a,b){ return JSON.stringify(a)===JSON.stringify(b); }
-function truthy(v){ return v===true||v==="true"||v==="1"||v===1; }
+function same(a,b){
+  return JSON.stringify(a) === JSON.stringify(b);
+}
 
-// ================= LOCK STATE =================
+function logInfo(...args){ console.log("[Wizard]", ...args); }
+function logErr(...args){ console.error("[Wizard]", ...args); }
+
+// ================= FIELD MAPPING (IMPORTANT) =================
+//
+// Left side = customers table column
+// Right side = possible <input name="..."> values in your form
+//
+// Add to this list as we discover your real input names.
+// This makes prefill work even if your HTML uses camelCase.
+//
+const FIELD_MAP = {
+  business_name: ["business_name", "businessName", "company_name", "companyName", "business", "company"],
+  owner_name: ["owner_name", "ownerName", "contact_name", "contactName", "name"],
+  email: ["email", "email_address", "emailAddress"],
+  phone: ["phone", "phone_number", "phoneNumber", "mobile", "mobile_number"],
+  whatsapp_number: ["whatsapp_number", "whatsappNumber", "whatsapp", "whatsapp_phone", "whatsappPhone"],
+  trade_type: ["trade_type", "tradeType", "trade", "service_type", "serviceType"],
+  base_postcode: ["base_postcode", "basePostcode", "postcode", "post_code", "postCode"],
+  callout_fee: ["callout_fee", "calloutFee"],
+  first_hour_rate: ["first_hour_rate", "firstHourRate"],
+  hourly_rate: ["hourly_rate", "hourlyRate"],
+  website_url: ["website_url", "websiteUrl", "website"],
+  services_summary: ["services_summary", "servicesSummary", "services", "serviceSummary"],
+  pricing_notes: ["pricing_notes", "pricingNotes"],
+  ai_style_notes: ["ai_style_notes", "aiStyleNotes"]
+};
+
+// Try exact match first, then mapping fallback
+function prefillFormFromRow(form, row){
+  // 1) exact name matches (column name == input name)
+  Object.keys(row).forEach(col => {
+    if(form.querySelector(`[name="${CSS.escape(col)}"]`)){
+      setFieldValue(form, col, row[col]);
+    }
+  });
+
+  // 2) mapping fallback (e.g., business_name -> businessName)
+  Object.entries(FIELD_MAP).forEach(([col, candidates]) => {
+    if(row[col] === undefined || row[col] === null) return;
+
+    for(const fname of candidates){
+      const filled = setFieldValue(form, fname, row[col]);
+      if(filled) break;
+    }
+  });
+}
+
+// ================= LOCK / UNLOCK =================
 let LOCKED = false;
 let ORIGINAL = null;
 
-function lock(on){
-  LOCKED = on;
-  const f = getForm();
-  if(!f) return;
+function lockWizard(on){
+  LOCKED = !!on;
+  const form = getForm();
+  if(!form) return;
 
-  f.querySelectorAll("input,select,textarea,button").forEach(el=>{
+  form.querySelectorAll("input,select,textarea,button").forEach(el=>{
     if(["btnUnlock","btnCancel","btnRelock"].includes(el.id)) return;
     el.disabled = on;
   });
 
-  $("#btnUnlock") && ($("#btnUnlock").style.display = on?"inline-flex":"none");
-  $("#btnCancel") && ($("#btnCancel").style.display = on?"none":"inline-flex");
-  $("#btnRelock") && ($("#btnRelock").style.display = on?"none":"inline-flex");
+  const bU = $("#btnUnlock");
+  const bC = $("#btnCancel");
+  const bR = $("#btnRelock");
+  if(bU) bU.style.display = on ? "inline-flex" : "none";
+  if(bC) bC.style.display = on ? "none" : "inline-flex";
+  if(bR) bR.style.display = on ? "none" : "inline-flex";
 }
 
-// ================= INIT =================
+function injectButtons(form){
+  if($("#btnUnlock") && $("#btnCancel") && $("#btnRelock")) return;
+
+  const div = document.createElement("div");
+  div.style.marginTop="12px";
+  div.style.display="flex";
+  div.style.gap="10px";
+  div.style.flexWrap="wrap";
+
+  div.innerHTML = `
+    <button type="button" id="btnUnlock" style="display:none">Unlock to edit</button>
+    <button type="button" id="btnCancel" style="display:none">Cancel edits</button>
+    <button type="button" id="btnRelock" style="display:none">Re-lock</button>
+  `;
+  form.appendChild(div);
+
+  $("#btnUnlock").onclick = ()=>{
+    if(!confirm("Unlock this setup to make changes?")) return;
+    lockWizard(false);
+  };
+
+  $("#btnCancel").onclick = ()=>{
+    const f = getForm();
+    if(!f || !ORIGINAL) return lockWizard(true);
+    Object.entries(ORIGINAL).forEach(([k,v]) => setFieldValue(f, k, v));
+    lockWizard(true);
+    logInfo("Edits cancelled and re-locked.");
+  };
+
+  $("#btnRelock").onclick = ()=>{
+    lockWizard(true);
+    logInfo("Wizard locked.");
+  };
+}
+
+// ================= LOAD / SAVE =================
 let CUSTOMER_ID = null;
 let ROW = null;
+
+async function loadCustomer(id){
+  const { data, error } = await sb
+    .from(TABLE)
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if(error) throw error;
+  return data || null;
+}
+
+async function saveCustomer(updateObj){
+  const { data, error } = await sb
+    .from(TABLE)
+    .update(updateObj)
+    .eq("id", CUSTOMER_ID)
+    .select("*")
+    .maybeSingle();
+  if(error) throw error;
+  return data || null;
+}
+
+// When saving, also map form field names back to known columns
+// so even if HTML uses businessName, we still write to business_name.
+function buildUpdatePayloadFromForm(form){
+  const raw = snapshotForm(form);
+  const payload = { ...raw };
+
+  // Back-map known columns from any of their candidate field names
+  Object.entries(FIELD_MAP).forEach(([col, candidates]) => {
+    if(payload[col] != null && payload[col] !== "") return; // already present
+    for(const fname of candidates){
+      if(payload[fname] != null && payload[fname] !== ""){
+        payload[col] = payload[fname];
+        break;
+      }
+    }
+  });
+
+  // housekeeping
+  payload.updated_at = new Date().toISOString();
+
+  return payload;
+}
 
 async function init(){
   const form = getForm();
   if(!form){
-    console.error("No <form> found");
-    return;
-  }
-
-  CUSTOMER_ID = qp("customer_id");
-  if(!CUSTOMER_ID){
-    console.error("Missing customer_id");
+    logErr("Wizard form not found. Ensure you have a <form> (ideally <form id='setupForm'>).");
     return;
   }
 
   injectButtons(form);
 
-  const { data, error } = await sb
-    .from(TABLE)
-    .select("*")
-    .eq("id", CUSTOMER_ID)
-    .maybeSingle();
-
-  if(error){
-    console.error("Load error", error);
+  CUSTOMER_ID = qp("customer_id");
+  if(!CUSTOMER_ID){
+    logErr("Missing customer_id in URL. Use: app.html?customer_id=UUID");
     return;
   }
 
-  if(!data){
-    console.error("Customer not found");
-    return;
-  }
-
-  ROW = data;
-
-  // PREFILL
-  Object.keys(data).forEach(k=>{
-    if(form.querySelector(`[name="${CSS.escape(k)}"]`)){
-      setField(form, k, data[k]);
+  try{
+    ROW = await loadCustomer(CUSTOMER_ID);
+    if(!ROW){
+      logErr("Customer not found in customers table for this ID:", CUSTOMER_ID);
+      return;
     }
+
+    // Prefill
+    prefillFormFromRow(form, ROW);
+
+    // Snapshot AFTER prefill
+    ORIGINAL = snapshotForm(form);
+
+    // Lock state
+    if(truthy(ROW.setup_complete)){
+      lockWizard(true);
+      logInfo("Setup complete — locked.");
+    } else {
+      lockWizard(false);
+      logInfo("Resumed — editable.");
+    }
+
+  }catch(err){
+    logErr("Init load error:", err);
+    return;
+  }
+
+  // Submit/save handling
+  form.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    await onSave();
   });
 
-  ORIGINAL = snapshot(form);
-
-  if(truthy(data.setup_complete)){
-    lock(true);
-    console.log("Setup complete — locked");
-  } else {
-    lock(false);
-    console.log("Resumed — editable");
+  // Also bind common save button ids if present
+  const saveBtn = $("#btnSave") || $("#saveBtn") || $("#saveProfile");
+  if(saveBtn){
+    saveBtn.addEventListener("click", async (e)=>{
+      e.preventDefault();
+      await onSave();
+    });
   }
-
-  form.addEventListener("submit", save);
 }
 
-// ================= SAVE =================
-async function save(e){
-  e.preventDefault();
-  if(LOCKED) return alert("Unlock first");
-
+async function onSave(){
   const form = getForm();
-  const now = snapshot(form);
-  if(same(now, ORIGINAL)) return console.log("No changes");
+  if(!form) return;
 
-  now.updated_at = new Date().toISOString();
-
-  const { error } = await sb
-    .from(TABLE)
-    .update(now)
-    .eq("id", CUSTOMER_ID);
-
-  if(error){
-    console.error("Save error", error);
-    alert("Save failed");
+  if(LOCKED){
+    alert("This setup is locked. Click 'Unlock to edit' first.");
     return;
   }
 
-  ORIGINAL = now;
-  if(truthy(now.setup_complete)) lock(true);
-  console.log("Saved");
-}
+  const now = snapshotForm(form);
+  if(same(now, ORIGINAL)){
+    logInfo("No changes — skipping save.");
+    return;
+  }
 
-// ================= BUTTONS =================
-function injectButtons(form){
-  const div = document.createElement("div");
-  div.style.marginTop="12px";
-  div.style.display="flex";
-  div.style.gap="10px";
+  const payload = buildUpdatePayloadFromForm(form);
 
-  div.innerHTML = `
-    <button type="button" id="btnUnlock" style="display:none">Unlock</button>
-    <button type="button" id="btnCancel" style="display:none">Cancel</button>
-    <button type="button" id="btnRelock" style="display:none">Re-lock</button>
-  `;
+  // Optional: infer completion if you want (safe defaults)
+  const hasBusiness = !!(payload.business_name || ROW?.business_name);
+  const hasEmail = !!(payload.email || ROW?.email);
+  const hasTrade = !!(payload.trade_type || ROW?.trade_type);
 
-  form.appendChild(div);
+  const inferredComplete = hasBusiness && hasEmail && hasTrade;
 
-  $("#btnUnlock").onclick = ()=>lock(false);
-  $("#btnCancel").onclick = ()=>{
-    Object.entries(ORIGINAL).forEach(([k,v])=>setField(form,k,v));
-    lock(true);
-  };
-  $("#btnRelock").onclick = ()=>lock(true);
+  if(truthy(ROW?.setup_complete) || inferredComplete){
+    payload.setup_complete = true;
+    payload.pending_setup = false;
+    if(!ROW?.setup_completed_at) payload.setup_completed_at = new Date().toISOString();
+  } else {
+    payload.setup_complete = false;
+    payload.pending_setup = true;
+  }
+
+  try{
+    const saved = await saveCustomer(payload);
+    ROW = saved || { ...ROW, ...payload };
+    ORIGINAL = snapshotForm(form);
+
+    logInfo("Saved.");
+
+    if(truthy(ROW.setup_complete)){
+      lockWizard(true);
+      logInfo("Now complete — locked.");
+    }
+  }catch(err){
+    logErr("Save error:", err);
+    alert("There was a problem saving your form. Check console.");
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);
 </script>
 </body>
 </html>
+
 
