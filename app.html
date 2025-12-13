@@ -776,7 +776,8 @@
               <label for="contact_name">Main contact name</label>
               <span class="field-hint">Who TradeBotPro should refer to by name.</span>
             </div>
-            <input id="contact_name" type="text" autocomplete="name" />
+            <input id="contact_name" name="contact_name" type="text" autocomplete="name" />
+
           </div>
 
           <div class="field-group">
@@ -784,7 +785,8 @@
               <label for="business_name">Business name</label>
               <span class="field-hint">Exactly as you want it shown to customers.</span>
             </div>
-            <input id="business_name" type="text" autocomplete="organization" />
+            <input id="business_name" name="business_name" placeholder="Business name">
+
           </div>
 
           <div class="field-group">
@@ -826,7 +828,8 @@
               <label for="contact_email">Best email for setup &amp; reports</label>
               <span class="field-hint">We’ll send onboarding details and monthly stats here.</span>
             </div>
-            <input id="contact_email" type="email" autocomplete="email" />
+            <input id="contact_email" name="email" type="email" autocomplete="email" />
+
           </div>
 
           <div class="field-group">
@@ -834,7 +837,8 @@
               <label for="contact_mobile">Mobile / WhatsApp number</label>
               <span class="field-hint">The main number customers currently use.</span>
             </div>
-            <input id="contact_mobile" type="tel" autocomplete="tel" />
+            <input id="contact_mobile" name="phone" type="tel" autocomplete="tel" />
+
           </div>
         </div>
 
@@ -845,7 +849,8 @@
               <label for="base_postcode">Base postcode</label>
               <span class="field-hint">We always work from postcode, not town.</span>
             </div>
-            <input id="base_postcode" type="text" placeholder="e.g. OX2 7AB" autocomplete="postal-code" />
+           <input id="base_postcode" name="base_postcode" type="text" ... />
+
           </div>
 
           <div class="field-group">
@@ -953,7 +958,8 @@
               <label for="review_link">Paste your main review link (optional)</label>
               <span class="field-hint">We’ll wire this into your follow-up messages.</span>
             </div>
-            <input id="review_link" type="text" placeholder="https://..." />
+            <input id="review_link" name="review_link" type="text" ... />
+
           </div>
 
           <div class="field-group">
@@ -973,7 +979,8 @@
               <label for="ai_avoid">Anything you never want the AI to say?</label>
               <span class="field-hint">Phrases, promises or situations to avoid.</span>
             </div>
-            <textarea id="ai_avoid" placeholder="e.g. don’t promise exact arrival times, never discuss prices over WhatsApp without confirmation, etc."></textarea>
+           <textarea id="ai_avoid" name="ai_avoid" ...></textarea>
+
           </div>
         </div>
 
@@ -1022,7 +1029,8 @@
               <label for="extra_notes">Anything else we should know before we build your setup?</label>
               <span class="field-hint">Special rules, pricing quirks, calendars you use, etc.</span>
             </div>
-            <textarea id="extra_notes" placeholder="e.g. connect to my Google calendar, no work in certain postcodes, different prices at weekends, etc."></textarea>
+            <textarea id="extra_notes" name="extra_notes" ...></textarea>
+
           </div>
 
           <div class="summary-box" id="summary-box" hidden>
@@ -1060,10 +1068,13 @@
   
 <script type="module">
 /* =========================================================
-   TradeBotPro — Wizard (customers table only)
-   Works WITHOUT <form>
-   Resume + Prefill + Lock/Unlock + Save
-   Paste WHOLE block from <script> downwards.
+   TradeBotPro Wizard — customers table only
+   - Works without <form>
+   - Prefills inputs by name/id
+   - Saves chip selections (single + multi) into hidden inputs
+   - Loads chip selections back from Supabase
+   - Save triggered by: Next step + Save draft button
+   - Lock/Unlock UX included
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1071,59 +1082,43 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // ================= CONFIG =================
 const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const TABLE = "customers";
+
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ================= HELPERS =================
 const $ = (sel, root=document) => root.querySelector(sel);
 const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+const esc = (s) => { try { return CSS.escape(s); } catch { return String(s).replace(/"/g, '\\"'); } };
 
-function qp(name){
-  return new URLSearchParams(location.search).get(name);
+function qp(name){ return new URLSearchParams(location.search).get(name); }
+function truthy(v){ return v === true || v === "true" || v === 1 || v === "1" || v === "on" || v === "yes"; }
+
+function setStatus(msg, type="info"){
+  const el = $("#wizard-status-message");
+  if(el){
+    el.textContent = msg;
+    el.classList.remove("is-error","is-success","is-info");
+    el.classList.add(type === "error" ? "is-error" : type === "success" ? "is-success" : "is-info");
+  }
+  console.log(`[Wizard:${type}]`, msg);
 }
 
-function truthy(v){
-  return v === true || v === "true" || v === 1 || v === "1" || v === "on" || v === "yes";
+function getRoot(){
+  return $(".wizard-shell") || document.body;
 }
 
-function logInfo(...a){ console.log("[Wizard]", ...a); }
-function logErr(...a){ console.error("[Wizard]", ...a); }
+// Set value into inputs/textarea/select by name OR id
+function setField(nameOrId, value){
+  const root = getRoot();
 
-function getWizardRoot(){
-  // Try your likely containers first. If none exist, fall back to body.
-  return (
-    $("#setupWizardBox") ||
-    $("#wizardBox") ||
-    $("#wizardPanel") ||
-    $(".wizard-panel") ||
-    $(".wizard") ||
-    document.body
-  );
-}
+  // Try name first
+  const byName = $$(`[name="${esc(nameOrId)}"]`, root);
+  const candidates = byName.length ? byName : $$(`#${esc(nameOrId)}`, root);
 
-// ================= FIELD MAPPING (optional safety) =================
-const FIELD_MAP = {
-  business_name: ["business_name", "businessName", "company_name", "companyName", "business", "company"],
-  owner_name: ["owner_name", "ownerName", "contact_name", "contactName", "name"],
-  email: ["email", "email_address", "emailAddress"],
-  phone: ["phone", "phone_number", "phoneNumber", "mobile", "mobile_number"],
-  whatsapp_number: ["whatsapp_number", "whatsappNumber", "whatsapp", "whatsapp_phone", "whatsappPhone"],
-  trade_type: ["trade_type", "tradeType", "trade", "service_type", "serviceType"],
-  base_postcode: ["base_postcode", "basePostcode", "postcode", "post_code", "postCode"],
-  callout_fee: ["callout_fee", "calloutFee"],
-  first_hour_rate: ["first_hour_rate", "firstHourRate"],
-  hourly_rate: ["hourly_rate", "hourlyRate"],
-  website_url: ["website_url", "websiteUrl", "website"],
-  services_summary: ["services_summary", "servicesSummary", "services", "serviceSummary"],
-  pricing_notes: ["pricing_notes", "pricingNotes"],
-  ai_style_notes: ["ai_style_notes", "aiStyleNotes"]
-};
+  if(!candidates.length) return false;
 
-function setFieldByName(root, name, value){
-  const els = $$(`[name="${CSS.escape(name)}"]`, root);
-  if(!els.length) return false;
-
-  els.forEach(el => {
+  candidates.forEach(el => {
     const tag = (el.tagName || "").toLowerCase();
     const type = (el.getAttribute("type") || "").toLowerCase();
 
@@ -1139,111 +1134,235 @@ function setFieldByName(root, name, value){
   return true;
 }
 
-function snapshotRoot(root){
+// Read all fields that have a name attribute (plus our chip hidden inputs)
+function snapshot(){
+  const root = getRoot();
   const obj = {};
 
-  // Grab all named fields
-  const fields = $$("[name]", root).filter(el => {
-    // ignore buttons
-    const tag = (el.tagName || "").toLowerCase();
-    return tag !== "button";
-  });
-
-  // Group radios by name
-  const radiosByName = new Map();
-
-  fields.forEach(el => {
+  // Named inputs / selects / textareas
+  $$("input[name], select[name], textarea[name]", root).forEach(el => {
     const name = el.getAttribute("name");
     const tag = (el.tagName || "").toLowerCase();
     const type = (el.getAttribute("type") || "").toLowerCase();
-
-    if(tag === "input" && type === "radio"){
-      if(!radiosByName.has(name)) radiosByName.set(name, []);
-      radiosByName.get(name).push(el);
-      return;
-    }
 
     if(tag === "input" && type === "checkbox"){
       obj[name] = el.checked ? "1" : "0";
       return;
     }
 
+    if(tag === "input" && type === "radio"){
+      // handled by group later
+      return;
+    }
+
     obj[name] = el.value ?? "";
   });
 
-  // Radios: store the checked value (or empty)
-  radiosByName.forEach((list, name) => {
+  // Radio groups
+  const radios = $$('input[type="radio"][name]', root);
+  const groups = new Map();
+  radios.forEach(r => {
+    const n = r.name;
+    if(!groups.has(n)) groups.set(n, []);
+    groups.get(n).push(r);
+  });
+  groups.forEach((list, n) => {
     const checked = list.find(r => r.checked);
-    obj[name] = checked ? checked.value : "";
+    obj[n] = checked ? checked.value : (obj[n] ?? "");
   });
 
   return obj;
 }
 
-function same(a,b){ return JSON.stringify(a) === JSON.stringify(b); }
+// ================= CHIP ROWS =================
+//
+// We convert each chip-row into a hidden input named exactly as data-field.
+// - single: stores a string (chosen label)
+// - multi: stores JSON array of strings
+//
+function ensureChipHiddenInputs(){
+  const root = getRoot();
+  const rows = $$(".chip-row[data-field]", root);
+
+  rows.forEach(row => {
+    const field = row.getAttribute("data-field")?.trim();
+    if(!field) return;
+
+    // If an input already exists, don't duplicate
+    const exists = $(`input[type="hidden"][name="${esc(field)}"]`, root);
+    if(exists) return;
+
+    const hidden = document.createElement("input");
+    hidden.type = "hidden";
+    hidden.name = field;
+    hidden.id = `tbp_hidden_${field}`;
+
+    // Put it right after the chip row (no layout change)
+    row.insertAdjacentElement("afterend", hidden);
+  });
+}
+
+function getChipValues(row){
+  const field = row.getAttribute("data-field");
+  const selectMode = (row.getAttribute("data-select") || "single").toLowerCase();
+
+  const selected = $$(".chip.is-selected, .chip.is-active", row)
+    .map(btn => btn.textContent.trim())
+    .filter(Boolean);
+
+  if(selectMode === "multi") return selected;
+  return selected[0] || "";
+}
+
+function setChipValues(row, value){
+  const selectMode = (row.getAttribute("data-select") || "single").toLowerCase();
+
+  let selectedArr = [];
+  if(selectMode === "multi"){
+    if(Array.isArray(value)) selectedArr = value.map(v => String(v));
+    else if(typeof value === "string"){
+      // accept JSON array or comma-separated
+      const t = value.trim();
+      if(t.startsWith("[")){
+        try { selectedArr = JSON.parse(t) || []; } catch { selectedArr = t.split(",").map(s=>s.trim()).filter(Boolean); }
+      } else {
+        selectedArr = t.split(",").map(s=>s.trim()).filter(Boolean);
+      }
+    }
+  } else {
+    selectedArr = [String(value ?? "").trim()].filter(Boolean);
+  }
+
+  // Update classes on buttons
+  const chips = $$(".chip", row);
+  chips.forEach(btn => {
+    const label = btn.textContent.trim();
+    const on = selectedArr.includes(label);
+    btn.classList.toggle("is-selected", on);
+    btn.classList.toggle("is-active", on);
+    // accessibility
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+
+function syncChipRowToHidden(row){
+  const root = getRoot();
+  const field = row.getAttribute("data-field");
+  const selectMode = (row.getAttribute("data-select") || "single").toLowerCase();
+  const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root);
+  if(!hidden) return;
+
+  const val = getChipValues(row);
+  hidden.value = (selectMode === "multi") ? JSON.stringify(val) : String(val || "");
+}
+
+function wireChipClicks(){
+  const root = getRoot();
+  $$(".chip-row[data-field]", root).forEach(row => {
+    const selectMode = (row.getAttribute("data-select") || "single").toLowerCase();
+
+    $$(".chip", row).forEach(btn => {
+      btn.addEventListener("click", () => {
+        if(LOCKED) return;
+
+        if(selectMode === "single"){
+          // clear others
+          $$(".chip", row).forEach(b => {
+            b.classList.remove("is-selected","is-active");
+            b.setAttribute("aria-pressed","false");
+          });
+          btn.classList.add("is-selected","is-active");
+          btn.setAttribute("aria-pressed","true");
+        } else {
+          // toggle
+          const on = btn.classList.toggle("is-selected");
+          btn.classList.toggle("is-active", on);
+          btn.setAttribute("aria-pressed", on ? "true" : "false");
+        }
+
+        syncChipRowToHidden(row);
+      });
+    });
+
+    // initial sync
+    syncChipRowToHidden(row);
+  });
+}
 
 // ================= LOCK / UNLOCK =================
 let LOCKED = false;
 let ORIGINAL = null;
-
-function lockWizard(on){
-  LOCKED = !!on;
-  const root = getWizardRoot();
-
-  $$("input, select, textarea, button", root).forEach(el=>{
-    if(["btnUnlock","btnCancel","btnRelock"].includes(el.id)) return;
-    el.disabled = on;
-  });
-
-  const bU = $("#btnUnlock", root);
-  const bC = $("#btnCancel", root);
-  const bR = $("#btnRelock", root);
-
-  if(bU) bU.style.display = on ? "inline-flex" : "none";
-  if(bC) bC.style.display = on ? "none" : "inline-flex";
-  if(bR) bR.style.display = on ? "none" : "inline-flex";
-}
-
-function injectButtons(root){
-  if($("#btnUnlock", root) && $("#btnCancel", root) && $("#btnRelock", root)) return;
-
-  const div = document.createElement("div");
-  div.style.marginTop="12px";
-  div.style.display="flex";
-  div.style.gap="10px";
-  div.style.flexWrap="wrap";
-
-  div.innerHTML = `
-    <button type="button" id="btnUnlock" style="display:none">Unlock to edit</button>
-    <button type="button" id="btnCancel" style="display:none">Cancel edits</button>
-    <button type="button" id="btnRelock" style="display:none">Re-lock</button>
-  `;
-
-  // Put controls at the end of your wizard root
-  root.appendChild(div);
-
-  $("#btnUnlock", root).onclick = ()=>{
-    if(!confirm("Unlock this setup to make changes?")) return;
-    lockWizard(false);
-  };
-
-  $("#btnCancel", root).onclick = ()=>{
-    if(!ORIGINAL) return lockWizard(true);
-    Object.entries(ORIGINAL).forEach(([k,v]) => setFieldByName(root, k, v));
-    lockWizard(true);
-    logInfo("Edits cancelled and re-locked.");
-  };
-
-  $("#btnRelock", root).onclick = ()=>{
-    lockWizard(true);
-    logInfo("Wizard locked.");
-  };
-}
-
-// ================= LOAD / SAVE =================
 let CUSTOMER_ID = null;
 let ROW = null;
 
+function ensureEditControls(){
+  const root = getRoot();
+  if($("#tbpUnlock", root) && $("#tbpCancel", root) && $("#tbpRelock", root)) return;
+
+  const bar = document.createElement("div");
+  bar.style.display = "flex";
+  bar.style.gap = "10px";
+  bar.style.flexWrap = "wrap";
+  bar.style.marginTop = "12px";
+
+  bar.innerHTML = `
+    <button type="button" id="tbpUnlock" style="display:none;">Unlock to edit</button>
+    <button type="button" id="tbpCancel" style="display:none;">Cancel edits</button>
+    <button type="button" id="tbpRelock" style="display:none;">Re-lock</button>
+  `;
+
+  // Put controls near the bottom: after the footer actions
+  const footer = $(".wizard-footer", root) || root;
+  footer.insertAdjacentElement("afterend", bar);
+
+  $("#tbpUnlock", root).addEventListener("click", () => {
+    if(!confirm("Unlock this setup to make changes?")) return;
+    setLocked(false);
+  });
+
+  $("#tbpCancel", root).addEventListener("click", () => {
+    if(!ORIGINAL) return setLocked(true);
+    // restore all named fields
+    Object.entries(ORIGINAL).forEach(([k,v]) => setField(k, v));
+    // restore chips from hidden input values
+    $$(".chip-row[data-field]", root).forEach(row => {
+      const field = row.getAttribute("data-field");
+      const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root);
+      if(hidden) setChipValues(row, hidden.value);
+      syncChipRowToHidden(row);
+    });
+    setLocked(true);
+    setStatus("Edits cancelled. Wizard locked again.", "info");
+  });
+
+  $("#tbpRelock", root).addEventListener("click", () => {
+    setLocked(true);
+    setStatus("Wizard locked.", "info");
+  });
+}
+
+function setLocked(on){
+  LOCKED = !!on;
+  const root = getRoot();
+
+  // Disable inputs + selects + textareas + chip buttons + nav buttons
+  $$("input, select, textarea, button", root).forEach(el => {
+    if(["tbpUnlock","tbpCancel","tbpRelock"].includes(el.id)) return;
+    // keep navigation buttons clickable if you prefer; for now lock everything except unlock controls
+    el.disabled = on;
+  });
+
+  // But allow unlock button while locked
+  const u = $("#tbpUnlock", root);
+  const c = $("#tbpCancel", root);
+  const r = $("#tbpRelock", root);
+
+  if(u) u.style.display = on ? "inline-flex" : "none";
+  if(c) c.style.display = on ? "none" : "inline-flex";
+  if(r) r.style.display = on ? "none" : "inline-flex";
+}
+
+// ================= LOAD / SAVE =================
 async function loadCustomer(id){
   const { data, error } = await sb
     .from(TABLE)
@@ -1265,148 +1384,138 @@ async function saveCustomer(updateObj){
   return data || null;
 }
 
-function prefill(root, row){
-  // exact matches
-  Object.keys(row).forEach(col => {
-    if($(`[name="${CSS.escape(col)}"]`, root)){
-      setFieldByName(root, col, row[col]);
-    }
-  });
-
-  // mapping fallback
-  Object.entries(FIELD_MAP).forEach(([col, candidates]) => {
-    if(row[col] == null) return;
-    for(const fname of candidates){
-      const ok = setFieldByName(root, fname, row[col]);
-      if(ok) break;
-    }
-  });
+function hasChanges(now){
+  if(!ORIGINAL) return true;
+  return JSON.stringify(now) !== JSON.stringify(ORIGINAL);
 }
 
-function buildPayload(root){
-  const raw = snapshotRoot(root);
-  const payload = { ...raw };
-
-  // Back-map known columns if user used alias names
-  Object.entries(FIELD_MAP).forEach(([col, candidates]) => {
-    if(payload[col] != null && payload[col] !== "") return;
-    for(const fname of candidates){
-      if(payload[fname] != null && payload[fname] !== ""){
-        payload[col] = payload[fname];
-        break;
-      }
-    }
-  });
-
-  payload.updated_at = new Date().toISOString();
-  return payload;
-}
-
-async function onSave(){
-  const root = getWizardRoot();
+async function doSave({silent=false} = {}){
   if(LOCKED){
-    alert("This setup is locked. Click 'Unlock to edit' first.");
+    if(!silent) setStatus("Wizard is locked. Click Unlock to edit.", "error");
     return;
   }
 
-  const now = snapshotRoot(root);
-  if(same(now, ORIGINAL)){
-    logInfo("No changes — skipping save.");
+  const root = getRoot();
+
+  // ensure hidden values are up to date
+  $$(".chip-row[data-field]", root).forEach(syncChipRowToHidden);
+
+  const now = snapshot();
+  // Mirror phone → whatsapp_number if whatsapp_number isn't explicitly set
+  if(now.phone && !now.whatsapp_number) now.whatsapp_number = now.phone;
+
+  if(!hasChanges(now)){
+    if(!silent) setStatus("No changes to save.", "info");
     return;
   }
 
-  const payload = buildPayload(root);
+  const payload = { ...now, updated_at: new Date().toISOString() };
 
-  // Optional completion inference (safe)
-  const hasBusiness = !!(payload.business_name || ROW?.business_name);
-  const hasEmail = !!(payload.email || ROW?.email);
-  const hasTrade = !!(payload.trade_type || ROW?.trade_type);
-  const inferredComplete = hasBusiness && hasEmail && hasTrade;
+  // Inferred completion (keep simple)
+  const complete = !!(payload.business_name || ROW?.business_name) &&
+                   !!(payload.email || ROW?.email) &&
+                   !!(payload.main_trade || ROW?.main_trade);
 
-  if(truthy(ROW?.setup_complete) || inferredComplete){
-    payload.setup_complete = true;
-    payload.pending_setup = false;
-    if(!ROW?.setup_completed_at) payload.setup_completed_at = new Date().toISOString();
-  } else {
-    payload.setup_complete = false;
-    payload.pending_setup = true;
+  payload.setup_complete = truthy(ROW?.setup_complete) || complete;
+  payload.pending_setup = !payload.setup_complete;
+  if(payload.setup_complete && !ROW?.setup_completed_at){
+    payload.setup_completed_at = new Date().toISOString();
   }
 
   try{
     const saved = await saveCustomer(payload);
     ROW = saved || { ...ROW, ...payload };
-    ORIGINAL = snapshotRoot(root);
+    ORIGINAL = snapshot(); // after save
 
-    logInfo("Saved.");
+    if(!silent) setStatus("Saved to Supabase ✅", "success");
 
     if(truthy(ROW.setup_complete)){
-      lockWizard(true);
-      logInfo("Now complete — locked.");
+      setLocked(true);
+      setStatus("Setup complete — locked ✅", "success");
     }
-  }catch(err){
-    logErr("Save error:", err);
-    alert("There was a problem saving your form. Check console.");
+  }catch(e){
+    console.error("[Wizard] Save error:", e);
+    if(!silent) setStatus("Save failed — check console.", "error");
   }
-}
-
-// Wire to any existing save button ids (and auto-add a safe one if none)
-function wireSave(root){
-  const existing =
-    $("#btnSave", root) || $("#saveBtn", root) || $("#saveProfile", root) ||
-    $("#btnSave") || $("#saveBtn") || $("#saveProfile");
-
-  if(existing){
-    existing.addEventListener("click", (e)=>{
-      e.preventDefault();
-      onSave();
-    });
-    return;
-  }
-
-  // If no save button exists, we add a small one at the bottom (non-layout-breaking)
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.id = "btnSaveInjected";
-  btn.textContent = "Save";
-  btn.style.marginTop = "12px";
-  btn.onclick = onSave;
-  root.appendChild(btn);
 }
 
 // ================= INIT =================
 async function init(){
-  const root = getWizardRoot();
-  injectButtons(root);
+  const root = getRoot();
 
   CUSTOMER_ID = qp("customer_id");
   if(!CUSTOMER_ID){
-    logErr("Missing customer_id in URL. Use: app.html?customer_id=UUID");
+    setStatus("Missing customer_id in URL (use ?customer_id=UUID)", "error");
     return;
   }
 
+  // 1) create hidden inputs for chip rows
+  ensureChipHiddenInputs();
+
+  // 2) wire chip clicks (keeps hidden inputs updated)
+  wireChipClicks();
+
+  // 3) inject lock/unlock controls
+  ensureEditControls();
+
+  // 4) load customer row
   try{
     ROW = await loadCustomer(CUSTOMER_ID);
     if(!ROW){
-      logErr("Customer not found in customers table for this ID:", CUSTOMER_ID);
+      setStatus("Customer not found in customers table for this ID.", "error");
       return;
     }
+  }catch(e){
+    console.error("[Wizard] Load error:", e);
+    setStatus("Failed to load customer record — check console.", "error");
+    return;
+  }
 
-    prefill(root, ROW);
+  // 5) prefill named/id inputs where possible
+  // First: exact column -> name/id
+  Object.keys(ROW).forEach(col => setField(col, ROW[col]));
 
-    ORIGINAL = snapshotRoot(root);
+  // 6) prefill chips from their hidden inputs (by data-field = column)
+  $$(".chip-row[data-field]", root).forEach(row => {
+    const field = row.getAttribute("data-field");
+    const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root);
+    if(!hidden) return;
 
-    if(truthy(ROW.setup_complete)){
-      lockWizard(true);
-      logInfo("Setup complete — locked.");
-    } else {
-      lockWizard(false);
-      logInfo("Resumed — editable.");
+    // load from row
+    if(ROW[field] != null){
+      hidden.value = String(ROW[field]);
     }
+    setChipValues(row, hidden.value);
+    syncChipRowToHidden(row);
+  });
 
-    wireSave(root);
+  // 7) snapshot (for change detection)
+  ORIGINAL = snapshot();
 
-  }catch(err){
-    logErr("Init load error:", err);
+  // 8) lock if complete
+  if(truthy(ROW.setup_complete)){
+    setLocked(true);
+    setStatus("Setup complete — your answers are locked. Click Unlock to edit.", "info");
+  } else {
+    setLocked(false);
+    setStatus("Resumed — editable.", "info");
+  }
+
+  // 9) Hook your existing buttons (no layout change)
+  const btnDraft = $("#btn-save-draft");
+  if(btnDraft){
+    btnDraft.addEventListener("click", async (e) => {
+      e.preventDefault();
+      await doSave();
+    });
+  }
+
+  const btnNext = $("#btn-next");
+  if(btnNext){
+    btnNext.addEventListener("click", async () => {
+      // Save silently on next step so you don't lose changes
+      await doSave({silent:true});
+    });
   }
 }
 
@@ -1414,6 +1523,7 @@ document.addEventListener("DOMContentLoaded", init);
 </script>
 </body>
 </html>
+
 
 
 
