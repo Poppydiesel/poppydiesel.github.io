@@ -567,7 +567,7 @@
 
   function setupTasks(row){
     return [
-      { key:"wizard",   label:"Wizard submitted",   col:"wizard_completed",   done: !!row?.wizard_completed },
+     { key:"wizard",   label:"Wizard complete",   col:"wizard_completed",   done: !!row?.wizard_completed },
       { key:"whatsapp", label:"WhatsApp connected", col:"whatsapp_connected", done: !!row?.whatsapp_connected },
       { key:"calendar", label:"Calendar connected", col:"calendar_connected", done: !!row?.calendar_connected },
       { key:"payments", label:"Payments connected", col:"payments_connected", done: !!row?.payments_connected },
@@ -825,11 +825,11 @@
   });
 
   // ✅ FIXED: wizard expects ?customer_id=
-  btnOpenWizard.addEventListener("click", (e)=>{
-    e.stopPropagation();
-    if(!activeRow) return;
-    window.open(`app.html?customer_id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
-  });
+ btnOpenWizard.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  if(!activeRow) return;
+  window.open(`app.html?customer_id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
+});
 
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-sales]");
