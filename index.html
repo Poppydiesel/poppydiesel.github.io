@@ -1384,7 +1384,7 @@ if (!form) {
       const { data, error } = await sb
         .from("customers")
         .upsert(payload, { onConflict: "email" })
-        .select("id,email,setup_token")
+        .select("id,email")
         .single();
 
       if (error) {
@@ -1423,6 +1423,7 @@ if (!form) {
 
 </body>
 </html>
+
 
 
 
