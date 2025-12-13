@@ -159,50 +159,53 @@
   </header>
 
   <main>
-    <div class="inner">
-      <div class="card">
-        <div class="row">
-          <div>
-            <div class="h1">Customers</div>
-            <div class="muted">Secure view. Requires login + admin email allowlist.</div>
-          </div>
-        </div>
+  <section class="panel">
+    <div class="kicker">Sales stage</div>
+    <h1 class="title">Customers by onboarding status (sales) + setup tasks (ops)</h1>
+    <p class="subtitle">Wizard is controlled by the setup wizard (read-only here). Onboarding actions work via buttons or by clicking the rows.</p>
+
+    <div class="status-strip" id="status-strip"></div>
+
+    <div class="controls">
+      <div class="controls-left">
+        <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filters</button>
 
         <div class="search">
-          <input id="q" type="text" placeholder="Search name / email / postcode…" />
-          <label class="pill" style="display:flex;gap:.45rem;align-items:center;">
-            <input id="onlyIncomplete" type="checkbox" />
-            Show only wizard incomplete
-          </label>
-        </div>
-
-        <div id="status" class="status" aria-live="polite"></div>
-
-        <div style="overflow:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Business</th>
-                <th>Contact</th>
-                <th>Email / Phone</th>
-                <th>Wizard</th>
-                <th>Created</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="rows">
-              <tr><td colspan="6">Loading…</td></tr>
-            </tbody>
-          </table>
+          <span style="opacity:.7">🔎</span>
+          <input id="search" type="text" placeholder="Search name, business, email, phone, postcode…" />
         </div>
       </div>
 
-      <div class="card" style="font-size:.9rem;color:var(--muted-text)">
-        <strong style="color:var(--primary-blue)">Note:</strong>
-        This page is “secure UI”. For real security you’ll add Supabase RLS next (so anon users can’t read customers at all).
+      <div class="controls-right">
+        <button class="btn btn-secondary" id="btn-refresh" type="button">↻ Refresh</button>
+        <button class="btn btn-primary" id="btn-new" type="button">+ New customer</button>
       </div>
     </div>
-  </main>
+
+    <div id="banner" class="banner"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Onboarding status (sales)</th>
+            <th>Wizard</th>
+            <th>Setup tasks (ops)</th>
+            <th>Business</th>
+            <th>Contact</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Postcode</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="logo-tag" id="status-bar" style="margin-top:.75rem;">Loading…</div>
+  </section>
+</main>
 
   <!-- Supabase UMD -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
