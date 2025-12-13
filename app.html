@@ -1072,6 +1072,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8"; // <-- put your anon key
 const TABLE = "customers";
+const DASHBOARD_URL = "dashboard.html"; // <-- change if needed
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= HELPERS ================= */
@@ -1096,11 +1097,71 @@ let LOCKED = false;        // read-only view mode when complete
 let EDIT_MODE = false;     // true only after Unlock
 let ORIGINAL = null;
 let saving = false;
+let dirty = false;
 
-/* ================= FORM CHECK ================= */
+/* ================= ROOT ================= */
 function getRoot(){
   return $(".wizard-shell") || document.body;
 }
+
+/* ================= EXIT BUTTON ================= */
+function ensureExitButton(){
+  // Adds button without changing your HTML layout
+  if($("#btn-exit-wizard")) return;
+
+  // best place: wizard footer right side (beside Next)
+  const footerRight = $(".wizard-footer-right");
+  const footer = $(".wizard-footer");
+  const host = footerRight || footer || getRoot();
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.id = "btn-exit-wizard";
+  btn.className = "btn btn-ghost";
+  btn.textContent = "Back to dashboard";
+  btn.style.marginLeft = "10px";
+
+  // place it after Next if possible
+  if(footerRight){
+    footerRight.appendChild(btn);
+  }else{
+    host.appendChild(btn);
+  }
+
+  btn.addEventListener("click", ()=>{
+    // If user is editing and has unsaved changes, warn
+    if((EDIT_MODE || !LOCKED) && dirty){
+      const ok = confirm("Leave wizard without saving your latest changes?");
+      if(!ok) return;
+    }
+    window.location.href = DASHBOARD_URL;
+  });
+}
+
+/* ================= FORM / DIRTY TRACKING ================= */
+function markDirty(){ dirty = true; }
+
+function bindDirtyTracking(){
+  const root = getRoot();
+
+  // mark dirty on any input/textarea/select change
+  root.addEventListener("input", (e)=>{
+    const el = e.target;
+    if(!el) return;
+    // ignore hidden
+    if(el.type === "hidden") return;
+    markDirty();
+  }, true);
+
+  root.addEventListener("change", (e)=>{
+    const el = e.target;
+    if(!el) return;
+    if(el.type === "hidden") return;
+    markDirty();
+  }, true);
+}
+
+/* ================= FIELD SNAPSHOT ================= */
 function findNamedFields(){
   const root = getRoot();
   const fields = [];
@@ -1200,6 +1261,7 @@ function wireChipClicks(){
     }
 
     syncChipRow(row);
+    markDirty();
   });
 }
 function loadChips(data){
@@ -1284,6 +1346,7 @@ function ensureUnlockUI(){
 
     loadChips(ORIGINAL);
 
+    dirty = false;
     EDIT_MODE = false;
     if(LOCKED){
       setReadOnly(true);
@@ -1347,7 +1410,7 @@ function isWizardComplete(data){
   return !!(business && email && trade);
 }
 
-/* ================= PATCH BUILDER (AUTO-TICKS OPS) ================= */
+/* ================= PATCH BUILDER (AUTO OPS FLAGS) ================= */
 function buildCustomerPatchFromForm(){
   syncAllChips();
   const data = snapshot();
@@ -1357,12 +1420,10 @@ function buildCustomerPatchFromForm(){
 
   const complete = isWizardComplete(data);
 
-  // ✅ AUTO FLAGS FOR OPS
   data.setup_complete = complete;
   data.pending_setup = !complete;
   data.wizard_completed = complete;
 
-  // onboarding status automation
   const currentStage = String(data.onboarding_status || "").trim();
   if(complete){
     if(!currentStage || currentStage === "New Signup"){
@@ -1398,18 +1459,11 @@ async function loadCustomer(id){
 
   loadChips(data);
   ORIGINAL = { ...data, ...snapshot() };
+  dirty = false;
   return data;
 }
 
 /* ================= 2.1 BACKFILL ON LOAD ================= */
-/**
- * Ensures these are always consistent in Supabase:
- * - wizard_completed mirrors setup_complete
- * - pending_setup mirrors NOT setup_complete
- * - onboarding_status becomes "In Setup" if complete and stage is blank/New Signup
- *
- * Runs once on load, silently.
- */
 async function backfillWizardFlagsOnLoad(row){
   if(!row || !CUSTOMER_ID) return row;
 
@@ -1423,7 +1477,6 @@ async function backfillWizardFlagsOnLoad(row){
 
   const patch = {};
 
-  // fix mismatch between flags
   if(shouldBeComplete && (!setupComplete || !wizardCompleted)){
     patch.setup_complete = true;
     patch.wizard_completed = true;
@@ -1433,21 +1486,17 @@ async function backfillWizardFlagsOnLoad(row){
     patch.wizard_completed = false;
   }
 
-  // fix pending_setup
   if(pendingSetup !== shouldPending){
     patch.pending_setup = shouldPending;
   }
 
-  // fix stage when complete
   if(shouldBeComplete && (!stage || stage === "New Signup")){
     patch.onboarding_status = "In Setup";
   }
-  // default stage when not complete
   if(!shouldBeComplete && !stage){
     patch.onboarding_status = "New Signup";
   }
 
-  // optional completed_at
   if(shouldBeComplete && !row.setup_completed_at){
     patch.setup_completed_at = new Date().toISOString();
   }
@@ -1458,12 +1507,10 @@ async function backfillWizardFlagsOnLoad(row){
 
   const { error } = await sb.from(TABLE).update(patch).eq("id", CUSTOMER_ID);
   if(error){
-    // don't block UI if backfill fails
     console.warn("[Wizard] Backfill skipped (error):", error);
     return row;
   }
 
-  // return merged row so UI reflects it immediately
   return { ...row, ...patch };
 }
 
@@ -1502,6 +1549,7 @@ async function saveToSupabase(){
     }
 
     ORIGINAL = { ...patch };
+    dirty = false;
 
     if(complete){
       LOCKED = true;
@@ -1554,11 +1602,13 @@ function prevStep(){ showStep(getActiveStep()-1); }
 
 /* ================= INIT ================= */
 async function init(){
+  ensureExitButton();
   ensureChipHiddens();
   wireChipClicks();
   ensureUnlockUI();
+  bindDirtyTracking();
 
-  // rename button from "Save draft..." to plain Save, and hide it when locked
+  // rename button from "Save draft..." to "Save"
   showSave(true);
 
   if(!CUSTOMER_ID){
@@ -1570,14 +1620,12 @@ async function init(){
     return;
   }
 
-  // load row from DB
   let row = await loadCustomer(CUSTOMER_ID);
   if(!row) return;
 
-  // ✅ 2.1: backfill old records on load (silent)
+  // ✅ 2.1 backfill on load
   row = await backfillWizardFlagsOnLoad(row);
 
-  // determine lock state from corrected flags
   const complete = !!row.setup_complete || !!row.wizard_completed;
 
   if(complete){
@@ -1596,7 +1644,6 @@ async function init(){
 
   updateUnlockUI();
 
-  // wire buttons
   $("#btn-save-draft")?.addEventListener("click", (e)=>{
     e.preventDefault();
     saveToSupabase();
@@ -1604,8 +1651,8 @@ async function init(){
 
   $("#btn-next")?.addEventListener("click", async (e)=>{
     e.preventDefault();
-    await saveToSupabase();  // save + auto-tick flags
-    nextStep();              // always navigate
+    await saveToSupabase();
+    nextStep();
   });
 
   $("#btn-back")?.addEventListener("click", (e)=>{
@@ -1613,7 +1660,6 @@ async function init(){
     prevStep();
   });
 
-  // ensure step 1 visible
   if(!getActiveStepPanel()){
     const first = $(".step-panel[data-step='1']");
     if(first) first.classList.add("is-active");
