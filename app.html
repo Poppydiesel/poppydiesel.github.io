@@ -829,14 +829,19 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
     // Admin emails allowed to open any customer via ?customer_id=...
-    // IMPORTANT: set this to the email(s) you use to log into Supabase Auth.
     const ADMIN_EMAILS = ["hello@tradebotpro.co.uk"];
 
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const params = new URLSearchParams(location.search);
-    const customer_id_param = (params.get("customer_id") || "").trim();  // admin-only override
-    const invite_token = (params.get("token") || "").trim();             // optional: claim link
+
+    // ✅ NEW: public setup link from homepage
+    const signup_id = (params.get("signup_id") || "").trim();
+    const setup_token = (params.get("setup_token") || "").trim();
+
+    // Existing admin override (secure via Auth session)
+    const customer_id_param = (params.get("customer_id") || "").trim(); // admin-only override
+    const invite_token = (params.get("token") || "").trim();            // optional claim link (kept)
 
     // ==== ELEMENTS ====
     const panels = Array.from(document.querySelectorAll(".step-panel"));
@@ -866,7 +871,6 @@
     const totalSteps = 4;
 
     const answers = {
-      // text inputs
       contact_name: "",
       business_name: "",
       email: "",
@@ -875,7 +879,6 @@
       review_link: "",
       ai_avoid: "",
       extra_notes: "",
-      // chips
       main_trade: null,
       business_stage: null,
       coverage_radius: null,
@@ -894,8 +897,11 @@
     // Auth/session + effective customer targeting
     let session = null;
     let isAdmin = false;
-    let effectiveCustomerId = null; // if admin override is allowed
-    let effectiveUserId = null;     // normal mode
+
+    // ✅ NEW: mode flags
+    const isPublicSetup = !!(signup_id && setup_token);
+    let effectiveCustomerId = null; // admin override OR public signup_id
+    let effectiveUserId = null;     // normal logged-in mode
 
     function setStatus(msg, type) {
       statusEl.textContent = msg || "";
@@ -945,21 +951,14 @@
       wizardStepTitle.textContent = meta.title;
       wizardStepSubtitle.textContent = meta.subtitle;
 
-      // (You didn’t like the “you can tweak later” line, so keep it clean)
       footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${totalSteps}</strong>.`;
 
       btnBack.disabled = currentStep === 1;
-
-      if (currentStep === totalSteps) {
-        btnNext.textContent = "Finish →";
-      } else {
-        btnNext.textContent = "Next step →";
-      }
+      btnNext.textContent = (currentStep === totalSteps) ? "Finish →" : "Next step →";
     }
 
     function readInputsIntoAnswers() {
       const v = (x) => (x ?? "").toString().trim();
-
       answers.contact_name = v(document.getElementById("contact_name")?.value);
       answers.business_name = v(document.getElementById("business_name")?.value);
       answers.email = v(document.getElementById("contact_email")?.value);
@@ -973,20 +972,15 @@
     function applyChipVisualsFromAnswers() {
       document.querySelectorAll(".chip-row").forEach(row => {
         const field = row.getAttribute("data-field");
-        const mode = row.getAttribute("data-select"); // single|multi
+        const mode = row.getAttribute("data-select");
         if (!field || !mode) return;
 
         const chips = Array.from(row.querySelectorAll(".chip"));
         chips.forEach(ch => {
           const label = (ch.textContent || "").trim();
           let selected = false;
-
-          if (mode === "single") {
-            selected = answers[field] === label;
-          } else {
-            const arr = Array.isArray(answers[field]) ? answers[field] : [];
-            selected = arr.includes(label);
-          }
+          if (mode === "single") selected = answers[field] === label;
+          else selected = (Array.isArray(answers[field]) ? answers[field] : []).includes(label);
 
           ch.classList.toggle("is-selected", selected);
           ch.setAttribute("aria-pressed", selected ? "true" : "false");
@@ -994,7 +988,6 @@
       });
     }
 
-    // Chip click handler (does not touch Next/Back)
     document.addEventListener("click", (e) => {
       const chip = e.target.closest(".chip-row .chip");
       if (!chip) return;
@@ -1016,18 +1009,15 @@
         if (idx >= 0) answers[field].splice(idx, 1);
         else answers[field].push(label);
       }
-
       applyChipVisualsFromAnswers();
     }, true);
 
-    // Save draft to localStorage (browser only)
     btnSaveDraft.addEventListener("click", () => {
       readInputsIntoAnswers();
       localStorage.setItem("tbp_wizard_draft", JSON.stringify({ answers, ts: Date.now() }));
       setStatus("Draft saved in this browser.", "success");
     });
 
-    // Back / Next navigation
     btnBack.addEventListener("click", () => {
       setStatus("");
       if (currentStep > 1) {
@@ -1036,11 +1026,29 @@
       }
     });
 
+    // ✅ FIX: dashboard button used an undefined variable before
+    btnDashboard.addEventListener("click", async () => {
+      // Admin -> secure dashboard
+      try {
+        const { data } = await sb.auth.getSession();
+        if (data?.session) {
+          window.location.href = "/dashboard-secure.html";
+          return;
+        }
+      } catch (_) {}
+
+      // Public setup -> client dashboard (carry id)
+      if (effectiveCustomerId) {
+        window.location.href = `/client-dashboard.html?customer_id=${encodeURIComponent(effectiveCustomerId)}`;
+      } else {
+        window.location.href = "/client-dashboard.html";
+      }
+    });
+
     btnNext.addEventListener("click", async () => {
       setStatus("");
       readInputsIntoAnswers();
 
-      // Minimal guardrails for step 1
       if (currentStep === 1) {
         if (!answers.contact_name || !answers.business_name) {
           setStatus("Please enter contact name and business name.", "error");
@@ -1052,7 +1060,6 @@
         }
       }
 
-      // Not last step -> move forward
       if (currentStep < totalSteps) {
         currentStep += 1;
         renderStep();
@@ -1060,11 +1067,6 @@
       }
 
       // FINISH (Step 4)
-      if (!session) {
-        setStatus("Please log in again, then try finish.", "error");
-        return;
-      }
-
       btnNext.disabled = true;
       setStatus("Saving…");
 
@@ -1075,22 +1077,36 @@
           email: answers.email || null,
           phone: answers.phone || null,
           base_postcode: answers.base_postcode || null,
-
           wizard_answers: answers,
           wizard_completed: true,
           wizard_completed_at: new Date().toISOString()
         };
 
-        // Secure update:
-        // - normal users: update by user_id (auth.uid)
-        // - admin override: update by id (only if allowed)
+        // ✅ NEW: secure update rules by mode
         let q = sb.from("customers").update(patch);
 
-        if (effectiveCustomerId) q = q.eq("id", effectiveCustomerId);
-        else q = q.eq("user_id", effectiveUserId);
+        if (isPublicSetup) {
+          // public setup: must match id + setup_token
+          q = q.eq("id", signup_id).eq("setup_token", setup_token);
+        } else if (effectiveCustomerId) {
+          // admin override: by id (admin only)
+          q = q.eq("id", effectiveCustomerId);
+        } else {
+          // logged-in normal mode: by user_id
+          q = q.eq("user_id", effectiveUserId);
+        }
 
-        const { error } = await q;
+        const { data, error } = await q.select("id").single();
         if (error) throw error;
+
+        // ✅ Invalidate setup token once finished (public mode)
+        if (isPublicSetup) {
+          await sb
+            .from("customers")
+            .update({ setup_token: null })
+            .eq("id", signup_id)
+            .eq("setup_token", setup_token);
+        }
 
         setStatus("Saved. Wizard complete ✅", "success");
         if (summaryBoxEl) summaryBoxEl.hidden = false;
@@ -1099,7 +1115,6 @@
         btnDashboard.style.display = "inline-flex";
 
         window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-
       } catch (err) {
         console.error("[TBP] Finish save error:", err);
         setStatus("Couldn’t save right now. Please try again.", "error");
@@ -1107,33 +1122,12 @@
       }
     });
 
-    // Back to dashboard (only visible after Finish)
- // Back to dashboard (only visible after Finish)
-btnDashboard.addEventListener("click", async () => {
-  // If logged in (admin), go to secure dashboard
-  try {
-    const { data } = await sb.auth.getSession();
-    if (data?.session) {
-      window.location.href = "/dashboard-secure.html";
-      return;
-    }
-  } catch (_) {}
-
-  // Otherwise (client), go to client dashboard
-  if (customer_id) {
-    window.location.href = `/client-dashboard.html?customer_id=${encodeURIComponent(customer_id)}`;
-  } else {
-    window.location.href = "/client-dashboard.html";
-  }
-});
-
-
     async function ensureSessionOrRedirect() {
       const { data } = await sb.auth.getSession();
       session = data?.session || null;
 
       if (!session) {
-        // No session = send them to login (keep token if present)
+        // No session = send them to login
         const tokenBit = invite_token ? `?token=${encodeURIComponent(invite_token)}` : "";
         window.location.href = "/login.html" + tokenBit;
         return false;
@@ -1150,42 +1144,38 @@ btnDashboard.addEventListener("click", async () => {
 
     async function claimIfTokenPresent() {
       if (!invite_token) return;
-
       try {
         setStatus("Linking your account…");
         const { error } = await sb.rpc("claim_customer", { p_invite_token: invite_token });
         if (error) throw error;
-
         setStatus("Account linked ✅", "success");
 
-        // Remove token from URL to avoid re-claim attempts on refresh
         const clean = new URL(window.location.href);
         clean.searchParams.delete("token");
         window.history.replaceState({}, "", clean.toString());
-
       } catch (err) {
         console.error("[TBP] claim_customer failed:", err);
         setStatus("Could not link account (token invalid or already used).", "error");
       }
     }
 
-    // Prefill from customers row (secure)
     async function prefillFromCustomer() {
       try {
         setStatus("");
 
-        let q = sb
-          .from("customers")
-          .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers");
+        let q = sb.from("customers").select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers");
 
-        // admin override: by id, otherwise by user_id
-        if (effectiveCustomerId) q = q.eq("id", effectiveCustomerId).single();
-        else q = q.eq("user_id", effectiveUserId).single();
+        if (isPublicSetup) {
+          q = q.eq("id", signup_id).eq("setup_token", setup_token).single();
+        } else if (effectiveCustomerId) {
+          q = q.eq("id", effectiveCustomerId).single();
+        } else {
+          q = q.eq("user_id", effectiveUserId).single();
+        }
 
         const { data, error } = await q;
         if (error) throw error;
 
-        // basic fields
         if (data?.contact_name) document.getElementById("contact_name").value = data.contact_name;
         if (data?.business_name) document.getElementById("business_name").value = data.business_name;
         if (data?.email) document.getElementById("contact_email").value = data.email;
@@ -1195,50 +1185,46 @@ btnDashboard.addEventListener("click", async () => {
 
         if (data?.base_postcode) document.getElementById("base_postcode").value = data.base_postcode;
 
-        // restore wizard answers if present
         if (data?.wizard_answers && typeof data.wizard_answers === "object") {
           Object.assign(answers, data.wizard_answers);
         }
 
-        // ensure latest typed input values flow into answers (so chips reflect correctly)
         readInputsIntoAnswers();
         applyChipVisualsFromAnswers();
 
-        // expose the loaded row id for debug/admin awareness
         window.TBP_LOADED_CUSTOMER_ID = data?.id || null;
-
+        effectiveCustomerId = data?.id || effectiveCustomerId;
       } catch (err) {
         console.error("[TBP] Prefill failed:", err);
-        setStatus("Couldn’t load your profile. If this is a new account, use your invite link first.", "error");
+        setStatus("Couldn’t load your profile. Check your link is valid.", "error");
       }
     }
 
-    // Initial render
     (async function init() {
       renderStep();
 
+      if (isPublicSetup) {
+        // ✅ Public setup mode (no login)
+        effectiveCustomerId = signup_id;
+        await prefillFromCustomer();
+        return;
+      }
+
+      // Logged-in mode (admin/secure)
       const ok = await ensureSessionOrRedirect();
       if (!ok) return;
 
-      // if they arrived with a token, link the customer row to this login
       await claimIfTokenPresent();
-
       await prefillFromCustomer();
 
-      // Expose tiny debug helper
-      window.TBP = {
-        sb,
-        isAdmin,
-        effectiveCustomerId,
-        effectiveUserId,
-        answers
-      };
+      window.TBP = { sb, isAdmin, effectiveCustomerId, effectiveUserId, answers };
     })();
   }
 
   bootWhenSupabaseReady();
 })();
 </script>
+
 
 </body>
 </html>
