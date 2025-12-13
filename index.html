@@ -1272,11 +1272,11 @@
   // =========================
   // CONFIG — SET THESE
   // =========================
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Optional: status output (won't break if missing)
+  // Optional status output (won't break if missing)
   const statusEl =
     document.querySelector("#status") ||
     document.querySelector(".form-status") ||
@@ -1291,12 +1291,12 @@
   const safe = (v) => String(v ?? "").trim();
   const safeEmail = (v) => safe(v).toLowerCase();
 
-  // If a previous GET submit polluted the URL, clean it
+  // Clean URL if a previous GET submit polluted it
   if (window.location.search && window.location.search.length > 1) {
     history.replaceState({}, document.title, window.location.pathname);
   }
 
-  // Find the correct form by field names you already submit
+  // Find your signup form by the field names you already use
   function findSignupForm() {
     const forms = Array.from(document.querySelectorAll("form"));
     const has = (f, sel) => !!f.querySelector(sel);
@@ -1333,11 +1333,6 @@
     return safe(form.querySelector(`[name="${name}"]`)?.value);
   }
 
-  function isChecked(form, name) {
-    const el = form.querySelector(`[name="${name}"]`);
-    return !!(el && "checked" in el && el.checked);
-  }
-
   const form = findSignupForm();
 
   if (!form) {
@@ -1346,7 +1341,7 @@
     throw new Error("Signup form not found");
   }
 
-  // Stop native GET submit (URL params)
+  // Prevent native GET submit dumping values into the URL
   form.setAttribute("method", "post");
   form.setAttribute("action", "#");
 
@@ -1368,7 +1363,7 @@
 
       setStatus("Saving…", "muted");
 
-      // Build payload ONLY from known columns (avoid 400)
+      // IMPORTANT: Only include columns that exist in customers (avoid 400)
       const payload = {
         contact_name: val(form, "contact_name") || null,
         business_name: val(form, "business_name") || null,
@@ -1376,11 +1371,6 @@
         whatsapp_number: val(form, "whatsapp_number") || null,
         trade_type: val(form, "trade_type") || null,
         base_postcode: val(form, "base_postcode") || null,
-
-        // Only keep these two lines if you added columns in SQL:
-        // referrer: val(form, "referrer") || null,
-        // agree: isChecked(form, "agree"),
-
         wizard_complete: false,
         is_admin: false
       };
@@ -1390,7 +1380,7 @@
         return;
       }
 
-      // Upsert by email (requires unique index on customers.email)
+      // Upsert by email (requires customers.email unique index)
       const { data, error } = await sb
         .from("customers")
         .upsert(payload, { onConflict: "email" })
@@ -1409,12 +1399,14 @@
         return;
       }
 
+      // Backup for wizard fallback
       localStorage.setItem("tbp_last_signup_id", data.id);
       localStorage.setItem("tbp_last_email", data.email);
 
       setStatus("Saved. Opening wizard…", "ok");
-      window.location.assign(wizardUrl(data.id));
 
+      // ✅ This is the “connect to wizard” step
+      window.location.assign(wizardUrl(data.id));
     } catch (err) {
       console.log("Signup catch error:", err);
       setStatus(`Save failed: ${err?.message || err}`, "err");
@@ -1427,9 +1419,9 @@
   }, true);
 </script>
 
-
 </body>
 </html>
+
 
 
 
