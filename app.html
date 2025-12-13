@@ -1067,7 +1067,8 @@
 </div>
 <script type="module">
 /* =========================================================
-   TradeBotPro Wizard — FIX: Unlock → Next does NOT re-lock
+   TradeBotPro Wizard — FINAL FIX
+   Unlock button restored + edit-mode navigation fixed
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1082,7 +1083,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 /* ================= STATE ================= */
 let CUSTOMER_ID = null;
 let LOCKED = false;
-let UNLOCKED_EDIT_MODE = false;   // 👈 KEY FIX
+let UNLOCKED_EDIT_MODE = false;
 let ORIGINAL = null;
 
 /* ================= HELPERS ================= */
@@ -1204,6 +1205,50 @@ function loadChips(data){
   });
 }
 
+/* ================= LOCK CONTROLS (RESTORED) ================= */
+function injectLockControls(){
+  if($("#btn-unlock")) return;
+
+  const bar = document.createElement("div");
+  bar.style.display = "flex";
+  bar.style.gap = "10px";
+  bar.style.marginTop = "12px";
+
+  bar.innerHTML = `
+    <button id="btn-unlock" class="btn btn-secondary">Unlock to edit</button>
+    <button id="btn-cancel" class="btn btn-ghost">Cancel edits</button>
+    <button id="btn-relock" class="btn btn-ghost">Re-lock</button>
+  `;
+
+  $(".wizard-footer")?.after(bar);
+
+  $("#btn-unlock").onclick = () => {
+    if(confirm("Unlock this setup to make changes?")){
+      UNLOCKED_EDIT_MODE = true;
+      lockWizard(false);
+      setSaveState("idle");
+      status("Editing unlocked.", "info");
+    }
+  };
+
+  $("#btn-cancel").onclick = () => {
+    if(!ORIGINAL) return;
+    Object.entries(ORIGINAL).forEach(([k,v])=>{
+      const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
+      if(el && el.type !== "hidden") el.value = v ?? "";
+    });
+    loadChips(ORIGINAL);
+    lockWizard(true);
+    status("Changes discarded.", "info");
+  };
+
+  $("#btn-relock").onclick = () => {
+    UNLOCKED_EDIT_MODE = false;
+    lockWizard(true);
+    status("Wizard locked.", "info");
+  };
+}
+
 /* ================= LOCK / UNLOCK ================= */
 function lockWizard(on){
   LOCKED = !!on;
@@ -1238,10 +1283,9 @@ async function save(){
   if(LOCKED) return;
 
   setSaveState("saving");
-
   $$(".chip-row[data-field]", root()).forEach(syncChipRow);
-  const now = snapshot();
 
+  const now = snapshot();
   if(now.phone && !now.whatsapp_number) now.whatsapp_number = now.phone;
 
   const complete = !!(now.business_name && now.email && now.main_trade);
@@ -1261,7 +1305,6 @@ async function save(){
     setSaveState("saved");
     status("Saved to Supabase ✅", "success");
 
-    // 🔑 ONLY auto-lock if NOT editing
     if(complete && !UNLOCKED_EDIT_MODE){
       lockWizard(true);
       status("Setup complete — wizard locked 🔒", "success");
@@ -1282,6 +1325,7 @@ async function init(){
 
   ensureChipInputs();
   wireChipClicks();
+  injectLockControls();
 
   const { data, error } = await sb.from(TABLE).select("*").eq("id", CUSTOMER_ID).maybeSingle();
   if(error || !data){
@@ -1307,20 +1351,6 @@ async function init(){
 
   $("#btn-save-draft")?.addEventListener("click", e=>{ e.preventDefault(); save(); });
   $("#btn-next")?.addEventListener("click", ()=>{ save(); });
-
-  $("#btn-unlock")?.addEventListener("click", ()=>{
-    if(confirm("Unlock this setup to make changes?")){
-      UNLOCKED_EDIT_MODE = true;
-      lockWizard(false);
-      setSaveState("idle");
-    }
-  });
-
-  $("#btn-relock")?.addEventListener("click", ()=>{
-    UNLOCKED_EDIT_MODE = false;
-    lockWizard(true);
-    status("Wizard locked.", "info");
-  });
 }
 
 document.addEventListener("DOMContentLoaded", init);
