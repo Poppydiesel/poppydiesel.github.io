@@ -1087,7 +1087,7 @@
             <div id="signup-status" class="signup-status" aria-live="polite"></div>
 
             <!-- SIGNUP FORM (Supabase-powered) -->
-           <form id="signupForm" class="signup-form">
+          <form id="signupForm" class="signup-form">
 
               <div class="signup-field">
                 <label for="contact_name">Contact name</label>
@@ -1278,11 +1278,26 @@
   const planStep = document.getElementById("planStep");
   if (planStep) planStep.style.display = "none";
 
-  const form = document.getElementById("signupForm");
-  if (!form) {
-    alert("TBP ERROR: signup form not found. Add id='signupForm' to the form tag.");
-    throw new Error("Missing #signupForm");
+ function findSignupForm() {
+  const forms = Array.from(document.querySelectorAll("form"));
+  const has = (f, sel) => !!f.querySelector(sel);
+  for (const f of forms) {
+    const ok =
+      has(f, '[name="contact_name"]') &&
+      has(f, '[name="business_name"]') &&
+      (has(f, '[name="email"]') || has(f, 'input[type="email"]'));
+    if (ok) return f;
   }
+  // fallback: first form with email
+  return forms.find(f => f.querySelector('[name="email"], input[type="email"]')) || null;
+}
+
+const form = findSignupForm();
+if (!form) {
+  alert("TBP ERROR: could not locate signup form. Ensure it contains name=email.");
+  throw new Error("Signup form not found");
+}
+
 
   // Stop URL querystring submits forever
   form.method = "post";
@@ -1408,6 +1423,7 @@
 
 </body>
 </html>
+
 
 
 
