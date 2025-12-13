@@ -1267,107 +1267,176 @@
   </footer>
 </div>
 
-<!-- SUPABASE JS (via CDN) -->
-<script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-
-  // ✅ 1) SUPABASE CLIENT (UMD build uses supabase.createClient)
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  // =========================
+  // CONFIG — SET THESE
+  // =========================
+   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // ✅ 2) ELEMENTS (safe because DOMContentLoaded)
-  const form = document.getElementById("tradebotpro-signup-form");
-  const statusEl = document.getElementById("signup-status");
-  const btn = document.getElementById("signup-submit-btn");
+  // Optional status element (won't break if missing)
+  const statusEl =
+    document.querySelector("#status") ||
+    document.querySelector(".form-status") ||
+    document.querySelector("[data-status]");
 
-  if (!form || !statusEl || !btn) {
-    console.error("Signup form elements not found. Check IDs in HTML.");
-    return;
+  function setStatus(msg, type = "muted") {
+    if (!statusEl) return;
+    const colors = { ok: "#0f7b46", err: "#b3261e", muted: "#6b7280" };
+    statusEl.innerHTML = `<span style="color:${colors[type]};font-weight:800">${msg}</span>`;
   }
 
-  let submitting = false;
-  const val = (v) => (v ?? "").toString().trim();
+  const safe = (v) => String(v ?? "").trim();
+  const safeEmail = (v) => safe(v).toLowerCase();
 
-  function setStatus(msg, type) {
-    statusEl.textContent = msg || "";
-    statusEl.className = "signup-status" + (type ? ` ${type}` : "");
+  // Clean querystring if a native GET submit happened earlier
+  if (window.location.search && window.location.search.length > 1) {
+    history.replaceState({}, document.title, window.location.pathname);
   }
 
-  // ✅ 3) SUBMIT HANDLER (ONLY INSERTS ON VALID SUBMIT)
+  // Find the correct form by the names you actually submit
+  function findSignupForm() {
+    const forms = Array.from(document.querySelectorAll("form"));
+    const has = (f, sel) => !!f.querySelector(sel);
+
+    for (const f of forms) {
+      const ok =
+        has(f, '[name="contact_name"]') &&
+        has(f, '[name="business_name"]') &&
+        (has(f, '[name="email"]') || has(f, 'input[type="email"]')) &&
+        has(f, '[name="whatsapp_number"]') &&
+        has(f, '[name="trade_type"]') &&
+        has(f, '[name="base_postcode"]');
+
+      if (ok) return f;
+    }
+
+    // fallback
+    for (const f of forms) {
+      if (
+        has(f, '[name="business_name"]') &&
+        (has(f, '[name="email"]') || has(f, 'input[type="email"]'))
+      ) return f;
+    }
+    return null;
+  }
+
+  function wizardUrl(id) {
+    const u = new URL("app.html", window.location.origin);
+    u.searchParams.set("signup_id", id);
+    return u.toString();
+  }
+
+  function val(form, name) {
+    return safe(form.querySelector(`[name="${name}"]`)?.value);
+  }
+
+  function checked(form, name) {
+    const el = form.querySelector(`[name="${name}"]`);
+    return !!(el && "checked" in el && el.checked);
+  }
+
+  const form = findSignupForm();
+
+  if (!form) {
+    console.error("Homepage signup: could not find the form (expected name= fields).");
+    setStatus("Internal error: signup form not found.", "err");
+    throw new Error("Signup form not found");
+  }
+
+  // Hard stop the browser doing GET submits (URL full of data)
+  form.setAttribute("method", "post");
+  form.setAttribute("action", "#");
+
+  const submitBtn =
+    form.querySelector('button[type="submit"]') ||
+    form.querySelector('input[type="submit"]') ||
+    form.querySelector("button");
+
+  // IMPORTANT: remove any other submit handlers on the page if you can.
+  // This capture-phase handler wins if any remain.
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (submitting) return;
+    e.stopPropagation();
+    e.stopImmediatePropagation();
 
-    const payload = {
-      contact_name: val(form.contact_name.value),
-      business_name: val(form.business_name.value),
-      email: val(form.email.value),
-      whatsapp_number: val(form.whatsapp_number.value),
-      trade_type: val(form.trade_type.value),
-      service_area: val(form.service_area.value),
-      plan: val(form.plan.value),
-      referrer: val(form.referrer.value),
-
-      // optional defaults (only keep if these columns exist in customers)
-      wizard_complete: false,
-      pending_setup: true,
-      account_status: "New"
-    };
-
-    // ✅ Guardrails
-    if (!payload.contact_name || !payload.business_name) {
-      setStatus("Please enter contact name and business name.", "error");
-      return;
-    }
-    if (!payload.email && !payload.whatsapp_number) {
-      setStatus("Please enter an email or a mobile/WhatsApp number.", "error");
-      return;
-    }
-    if (!payload.trade_type || !payload.service_area || !payload.plan) {
-      setStatus("Please choose a trade type, service area, and plan.", "error");
-      return;
-    }
-    if (!form.agree.checked) {
-      setStatus("Please tick the Terms & Conditions checkbox to continue.", "error");
-      return;
-    }
-
-    // ✅ prevent double inserts
-    submitting = true;
-    btn.disabled = true;
-    setStatus("Submitting…");
+    const originalBtnText = submitBtn?.textContent;
 
     try {
-      // ✅ Insert into CUSTOMERS table (this is the key change)
+      if (submitBtn && "disabled" in submitBtn) submitBtn.disabled = true;
+      if (submitBtn && submitBtn.textContent) submitBtn.textContent = "Saving…";
+
+      setStatus("Saving…", "muted");
+
+      // Build payload ONLY from known fields (prevents random 400s)
+      const payload = {
+        contact_name: val(form, "contact_name") || null,
+        business_name: val(form, "business_name") || null,
+        email: safeEmail(val(form, "email") || form.querySelector('input[type="email"]')?.value),
+        whatsapp_number: val(form, "whatsapp_number") || null,
+        trade_type: val(form, "trade_type") || null,
+        base_postcode: val(form, "base_postcode") || null,
+
+        // Only include these if you added the columns
+        // If you haven’t added them, comment them out.
+        referrer: val(form, "referrer") || null,
+        agree: checked(form, "agree"),
+
+        wizard_complete: false,
+        is_admin: false
+      };
+
+      if (!payload.email || !payload.email.includes("@")) {
+        setStatus("Please enter a valid email.", "err");
+        return;
+      }
+
+      // ✅ Use UPSERT so repeated testing doesn't create duplicates
+      // Requires unique index on customers.email (which we already handled)
       const { data, error } = await sb
         .from("customers")
-        .insert([payload])
-        .select("id")
+        .upsert(payload, { onConflict: "email" })
+        .select("id,email")
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.log("Supabase error:", error);
+        console.log("Supabase error json:", JSON.stringify(error, null, 2));
+        setStatus(`Save failed: ${error.message || "Unknown error"}`, "err");
+        return;
+      }
 
-      setStatus("Thanks — we’ll be in touch shortly.", "success");
-      form.reset();
+      if (!data?.id) {
+        setStatus("Saved but no ID returned (check Supabase response).", "err");
+        return;
+      }
 
-      // Optional later:
-      // window.location.href = `/app.html?customer_id=${data.id}`;
+      localStorage.setItem("tbp_last_signup_id", data.id);
+      localStorage.setItem("tbp_last_email", data.email);
+
+      setStatus("Saved. Opening wizard…", "ok");
+
+      // ✅ Go straight to wizard, bypass any old “choose plan” flow
+      window.location.assign(wizardUrl(data.id));
+
     } catch (err) {
-      console.error("Signup insert failed:", err);
-      setStatus("Couldn’t submit right now. Please try again.", "error");
+      console.log("Signup catch error:", err);
+      setStatus(`Save failed: ${err?.message || err}`, "err");
     } finally {
-      submitting = false;
-      btn.disabled = false;
+      if (submitBtn && "disabled" in submitBtn) submitBtn.disabled = false;
+      if (submitBtn && submitBtn.textContent && originalBtnText) {
+        submitBtn.textContent = originalBtnText;
+      }
     }
-  });
-});
+  }, true);
 </script>
 
 </body>
 </html>
+
 
 
 
