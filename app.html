@@ -1065,10 +1065,9 @@
     </div>
   </main>
 </div>
-  <script type="module">
+<script type="module">
 /* =========================================================
-   TradeBotPro Wizard — FINAL SAFE SAVE VERSION
-   Fixes: "Save error: Object"
+   TradeBotPro Wizard — FINAL AUTO-LOCK VERSION
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1081,49 +1080,24 @@ const TABLE = "customers";
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= COLUMN WHITELIST ================= */
-/* ONLY these columns will ever be saved */
 const CUSTOMER_COLUMNS = [
-  "business_name",
-  "contact_name",
-  "owner_name",
-  "email",
-  "phone",
-  "whatsapp_number",
-  "base_postcode",
-  "review_link",
-  "ai_avoid",
-  "extra_notes",
+  "business_name","contact_name","owner_name","email","phone","whatsapp_number",
+  "base_postcode","review_link","ai_avoid","extra_notes",
 
-  // chips
-  "main_trade",
-  "business_stage",
-  "coverage_radius",
-  "callout_style",
-  "callout_band",
-  "preferred_jobs",
-  "tone_of_voice",
-  "channels",
-  "review_platforms",
-  "review_push_level",
-  "demo_style",
-  "demo_slot",
-  "golive_timing",
+  "main_trade","business_stage","coverage_radius","callout_style","callout_band",
+  "preferred_jobs","tone_of_voice","channels","review_platforms","review_push_level",
+  "demo_style","demo_slot","golive_timing",
 
-  // system
-  "setup_complete",
-  "pending_setup",
-  "setup_completed_at",
-  "updated_at"
+  "setup_complete","pending_setup","setup_completed_at","updated_at"
 ];
 
 /* ================= HELPERS ================= */
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => { try { return CSS.escape(s); } catch { return s; } };
 
 function qp(n){ return new URLSearchParams(location.search).get(n); }
-function esc(s){ try { return CSS.escape(s); } catch { return s; } }
-function truthy(v){ return v===true||v==="true"||v===1||v==="1"; }
-
+function truthy(v){ return v === true || v === "true" || v === 1 || v === "1"; }
 function root(){ return $(".wizard-shell") || document.body; }
 
 function status(msg, type="info"){
@@ -1136,7 +1110,7 @@ function status(msg, type="info"){
 }
 
 /* ================= CHIP HANDLING ================= */
-function initChipStorage(){
+function initChips(){
   $$(".chip-row[data-field]", root()).forEach(row=>{
     const field = row.dataset.field;
     if($(`input[name="${esc(field)}"]`, root())) return;
@@ -1164,18 +1138,18 @@ function syncChips(){
   });
 }
 
-function loadChipsFromRow(row){
-  $$(".chip-row[data-field]", root()).forEach(r=>{
-    const field = r.dataset.field;
-    if(row[field] == null) return;
+function loadChips(data){
+  $$(".chip-row[data-field]", root()).forEach(row=>{
+    const field = row.dataset.field;
+    if(data[field] == null) return;
 
     let vals = [];
-    if(Array.isArray(row[field])) vals = row[field];
-    else if(String(row[field]).startsWith("[")){
-      try { vals = JSON.parse(row[field]); } catch {}
-    } else vals = [String(row[field])];
+    if(Array.isArray(data[field])) vals = data[field];
+    else if(String(data[field]).startsWith("[")){
+      try { vals = JSON.parse(data[field]); } catch {}
+    } else vals = [String(data[field])];
 
-    $$(".chip", r).forEach(b=>{
+    $$(".chip", row).forEach(b=>{
       const on = vals.includes(b.textContent.trim());
       b.classList.toggle("is-selected", on);
       b.classList.toggle("is-active", on);
@@ -1183,38 +1157,95 @@ function loadChipsFromRow(row){
   });
 }
 
-/* ================= FORM SNAPSHOT ================= */
-function snapshot(){
-  const data = {};
-  $$("input[name],textarea[name],select[name]", root()).forEach(el=>{
-    data[el.name] = el.value ?? "";
+/* ================= LOCK / UNLOCK ================= */
+let LOCKED = false;
+let ORIGINAL = null;
+
+function lockWizard(on){
+  LOCKED = !!on;
+
+  $$("input,textarea,select,button", root()).forEach(el=>{
+    if(["btn-unlock","btn-cancel","btn-relock","btn-save-draft","btn-next"].includes(el.id)) return;
+    el.disabled = on;
   });
-  return data;
+
+  $("#btn-unlock")?.style.setProperty("display", on ? "inline-flex" : "none");
+  $("#btn-cancel")?.style.setProperty("display", on ? "none" : "inline-flex");
+  $("#btn-relock")?.style.setProperty("display", on ? "none" : "inline-flex");
+}
+
+function injectLockControls(){
+  if($("#btn-unlock")) return;
+
+  const bar = document.createElement("div");
+  bar.style.display = "flex";
+  bar.style.gap = "10px";
+  bar.style.marginTop = "12px";
+
+  bar.innerHTML = `
+    <button id="btn-unlock" class="btn btn-secondary" style="display:none">Unlock to edit</button>
+    <button id="btn-cancel" class="btn btn-ghost">Cancel edits</button>
+    <button id="btn-relock" class="btn btn-ghost">Re-lock</button>
+  `;
+
+  $(".wizard-footer")?.after(bar);
+
+  $("#btn-unlock").onclick = () => {
+    if(confirm("Unlock this setup to make changes?")) lockWizard(false);
+  };
+
+  $("#btn-cancel").onclick = () => {
+    if(!ORIGINAL) return;
+    Object.entries(ORIGINAL).forEach(([k,v])=>{
+      const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
+      if(el) el.value = v ?? "";
+    });
+    loadChips(ORIGINAL);
+    lockWizard(true);
+    status("Changes discarded.", "info");
+  };
+
+  $("#btn-relock").onclick = () => {
+    lockWizard(true);
+    status("Wizard locked.", "info");
+  };
+}
+
+/* ================= SNAPSHOT ================= */
+function snapshot(){
+  const o = {};
+  $$("input[name],textarea[name],select[name]", root()).forEach(el=>{
+    o[el.name] = el.value ?? "";
+  });
+  return o;
 }
 
 /* ================= SAVE ================= */
 async function save(){
+  if(LOCKED){
+    status("Wizard is locked. Click Unlock to edit.", "error");
+    return;
+  }
+
   syncChips();
+  const now = snapshot();
 
-  let raw = snapshot();
-
-  // mirror phone -> whatsapp
-  if(raw.phone && !raw.whatsapp_number){
-    raw.whatsapp_number = raw.phone;
+  if(now.phone && !now.whatsapp_number){
+    now.whatsapp_number = now.phone;
   }
 
-  // inferred completion
-  raw.setup_complete = !!(raw.business_name && raw.email && raw.main_trade);
-  raw.pending_setup = !raw.setup_complete;
-  raw.updated_at = new Date().toISOString();
+  // ✅ COMPLETION RULE
+  const complete = !!(now.business_name && now.email && now.main_trade);
 
-  if(raw.setup_complete){
-    raw.setup_completed_at ??= new Date().toISOString();
+  now.setup_complete = complete;
+  now.pending_setup = !complete;
+  now.updated_at = new Date().toISOString();
+  if(complete && !now.setup_completed_at){
+    now.setup_completed_at = new Date().toISOString();
   }
 
-  // 🔒 WHITELIST PAYLOAD
   const payload = Object.fromEntries(
-    Object.entries(raw).filter(([k]) => CUSTOMER_COLUMNS.includes(k))
+    Object.entries(now).filter(([k]) => CUSTOMER_COLUMNS.includes(k))
   );
 
   try{
@@ -1225,15 +1256,15 @@ async function save(){
 
     if(error) throw error;
 
+    ORIGINAL = { ...now };
     status("Saved to Supabase ✅", "success");
+
+    if(complete){
+      lockWizard(true);
+      status("Setup complete — wizard locked ✅", "success");
+    }
   }catch(e){
-    console.error("[Wizard] SAVE FAILED", {
-      message: e.message,
-      code: e.code,
-      details: e.details,
-      hint: e.hint,
-      status: e.status
-    });
+    console.error("[Wizard] Save failed", e);
     status(`Save failed: ${e.message}`, "error");
   }
 }
@@ -1244,13 +1275,13 @@ let CUSTOMER_ID = null;
 async function init(){
   CUSTOMER_ID = qp("customer_id");
   if(!CUSTOMER_ID){
-    status("Missing customer_id in URL", "error");
+    status("Missing customer_id", "error");
     return;
   }
 
-  initChipStorage();
+  initChips();
+  injectLockControls();
 
-  // load customer
   const { data, error } = await sb
     .from(TABLE)
     .select("*")
@@ -1262,23 +1293,29 @@ async function init(){
     return;
   }
 
-  // prefill inputs
   Object.entries(data).forEach(([k,v])=>{
     const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
     if(el) el.value = v ?? "";
   });
 
-  loadChipsFromRow(data);
-  status("Resumed — editable", "info");
+  loadChips(data);
+  ORIGINAL = snapshot();
 
-  // wire save buttons
+  if(truthy(data.setup_complete)){
+    lockWizard(true);
+    status("Setup complete — locked.", "info");
+  } else {
+    lockWizard(false);
+    status("Resumed — editable.", "info");
+  }
+
   $("#btn-save-draft")?.addEventListener("click", e=>{
     e.preventDefault();
     save();
   });
 
   $("#btn-next")?.addEventListener("click", ()=>{
-    save(); // autosave
+    save(); // silent autosave
   });
 }
 
