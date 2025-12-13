@@ -1270,10 +1270,10 @@
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   // =========================
-  // CONFIG — SET THESE
+  // CONFIG
   // =========================
-   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // Optional status output (won't break if missing)
@@ -1323,9 +1323,18 @@
     return null;
   }
 
-  function wizardUrl(id) {
+  // ✅ Create a token for setup links
+  function makeSetupToken() {
+    // 32 hex chars (128-bit)
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  function wizardUrl(id, token) {
     const u = new URL("app.html", window.location.origin);
     u.searchParams.set("signup_id", id);
+    u.searchParams.set("setup_token", token);
     return u.toString();
   }
 
@@ -1363,7 +1372,9 @@
 
       setStatus("Saving…", "muted");
 
-      // IMPORTANT: Only include columns that exist in customers (avoid 400)
+      const setup_token = makeSetupToken();
+
+      // IMPORTANT: setup_token must exist as a column in customers
       const payload = {
         contact_name: val(form, "contact_name") || null,
         business_name: val(form, "business_name") || null,
@@ -1372,7 +1383,8 @@
         trade_type: val(form, "trade_type") || null,
         base_postcode: val(form, "base_postcode") || null,
         wizard_complete: false,
-        is_admin: false
+        is_admin: false,
+        setup_token
       };
 
       if (!payload.email || !payload.email.includes("@")) {
@@ -1380,11 +1392,10 @@
         return;
       }
 
-      // Upsert by email (requires customers.email unique index)
       const { data, error } = await sb
         .from("customers")
         .upsert(payload, { onConflict: "email" })
-        .select("id,email")
+        .select("id,email,setup_token")
         .single();
 
       if (error) {
@@ -1402,11 +1413,11 @@
       // Backup for wizard fallback
       localStorage.setItem("tbp_last_signup_id", data.id);
       localStorage.setItem("tbp_last_email", data.email);
+      localStorage.setItem("tbp_last_setup_token", data.setup_token || setup_token);
 
       setStatus("Saved. Opening wizard…", "ok");
 
-      // ✅ This is the “connect to wizard” step
-      window.location.assign(wizardUrl(data.id));
+      window.location.assign(wizardUrl(data.id, data.setup_token || setup_token));
     } catch (err) {
       console.log("Signup catch error:", err);
       setStatus(`Save failed: ${err?.message || err}`, "err");
@@ -1421,6 +1432,7 @@
 
 </body>
 </html>
+
 
 
 
