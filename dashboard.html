@@ -84,12 +84,23 @@
     }
 
     .controls{
-      display:flex;align-items:center;gap:.65rem;margin-bottom:.85rem;flex-wrap:nowrap;
+      display:flex;
+      align-items:center;
+      gap:.65rem;
+      margin-bottom:.85rem;
+      flex-wrap:nowrap;
     }
-    .controls-left,.controls-right{display:flex;align-items:center;gap:.55rem;flex-wrap:nowrap;}
+    .controls-left,
+    .controls-right{
+      display:flex;
+      align-items:center;
+      gap:.55rem;
+      flex-wrap:nowrap;
+    }
     .controls-left{flex:1; min-width:0;}
     .search{
-      flex:1;min-width:260px;
+      flex:1;
+      min-width:260px;
       display:flex;gap:.5rem;align-items:center;
       padding:.6rem .7rem;border-radius:.75rem;
       border:1px solid var(--border-subtle);background:var(--white);
@@ -100,7 +111,9 @@
       border-radius:999px;border:1px solid transparent;
       padding:.55rem 1.05rem;font-size:.86rem;font-weight:550;
       cursor:pointer;display:inline-flex;align-items:center;gap:.35rem;
-      background:transparent;user-select:none;white-space:nowrap;
+      background:transparent;
+      user-select:none;
+      white-space:nowrap;
     }
     .btn-secondary{border-color:var(--border-subtle);background:#f9fafb;color:var(--dark-text)}
     .btn-secondary:hover{background:#e5e7eb}
@@ -134,20 +147,33 @@
     .banner.show{display:block}
 
     .table-wrap{
-      width:100%;overflow:auto;border-radius:1rem;
-      border:1px solid rgba(15,23,42,0.08);background:#fff;
+      width:100%;
+      overflow:auto;
+      border-radius:1rem;
+      border:1px solid rgba(15,23,42,0.08);
+      background:#fff;
     }
-    table{width:100%;border-collapse:collapse;min-width:1060px;}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width: 1060px;
+    }
     thead th{
-      position:sticky;top:0;background:#f8fafc;
+      position:sticky;top:0;
+      background:#f8fafc;
       border-bottom:1px solid rgba(15,23,42,0.08);
       font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;
-      color:var(--muted-text);text-align:left;
-      padding:.75rem .85rem;white-space:nowrap;
+      color:var(--muted-text);
+      text-align:left;
+      padding:.75rem .85rem;
+      white-space:nowrap;
     }
     tbody td{
       border-bottom:1px solid rgba(15,23,42,0.06);
-      padding:.75rem .85rem;font-size:.9rem;vertical-align:middle;white-space:nowrap;
+      padding:.75rem .85rem;
+      font-size:.9rem;
+      vertical-align:middle;
+      white-space:nowrap;
     }
     tbody tr{cursor:pointer}
     tbody tr:hover{background:#f7fbff}
@@ -156,21 +182,34 @@
     .dot{
       width:10px;height:10px;border-radius:999px;
       border:2px solid rgba(148,163,184,0.9);
-      background:#fff;cursor:pointer;
+      background:#fff;
+      cursor:pointer;
     }
     .dot.done{border-color:rgba(15,123,70,0.65);background:#dcfce7}
     .dot.need{border-color:rgba(179,38,30,0.45);background:#fff1f2}
-    .dot.readonly{cursor:default;opacity:.85}
+    .dot.readonly{cursor:default; opacity:.85}
     .dot-label{font-size:.75rem;color:var(--muted-text);margin-left:6px;white-space:nowrap}
 
     .badge{
       display:inline-flex;align-items:center;gap:.35rem;
-      padding:.25rem .6rem;border-radius:999px;
+      padding:.25rem .6rem;
+      border-radius:999px;
       border:1px solid rgba(148,163,184,0.45);
-      background:#f8fafc;font-size:.82rem;font-weight:750;color:#334155;
+      background:#f8fafc;
+      font-size:.82rem;
+      font-weight:750;
+      color:#334155;
     }
-    .badge.ok{border-color:rgba(15,123,70,0.35);background:#ecfdf5;color:#065f46}
-    .badge.no{border-color:rgba(179,38,30,0.25);background:#fff1f2;color:#7f1d1d}
+    .badge.ok{
+      border-color:rgba(15,123,70,0.35);
+      background:#ecfdf5;
+      color:#065f46;
+    }
+    .badge.no{
+      border-color:rgba(179,38,30,0.25);
+      background:#fff1f2;
+      color:#7f1d1d;
+    }
 
     .drawer-overlay{
       position:fixed; inset:0;
@@ -180,7 +219,10 @@
       transition:opacity .18s ease;
       z-index:998;
     }
-    .drawer-overlay.open{opacity:1;pointer-events:auto}
+    .drawer-overlay.open{
+      opacity:1;
+      pointer-events:auto;
+    }
 
     .drawer{
       position:fixed;top:0;right:-860px;
@@ -205,7 +247,10 @@
     }
     .drawer-body textarea{min-height:110px;resize:vertical}
 
-    .drawer-section-title{margin:.8rem 0 .35rem;font-weight:750;color:var(--primary-blue);font-size:.92rem}
+    .drawer-section-title{
+      margin:.8rem 0 .35rem;
+      font-weight:750;color:var(--primary-blue);font-size:.92rem;
+    }
 
     .checklist{
       border:1px solid rgba(15,23,42,0.08);
@@ -227,10 +272,16 @@
       background:#f1f5f9;color:#475569;flex:0 0 auto;
     }
     .check-badge.done{border-color:rgba(15,123,70,0.35);background:#ecfdf5;color:#14532d}
-    .check-name{font-weight:650;font-size:.9rem;color:var(--dark-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .check-name{
+      font-weight:650;font-size:.9rem;color:var(--dark-text);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
     .check-state{font-size:.82rem;color:var(--muted-text);flex:0 0 auto}
 
-    .action-grid{display:flex;flex-wrap:wrap;gap:.5rem;margin:.4rem 0 .2rem}
+    .action-grid{
+      display:flex;flex-wrap:wrap;gap:.5rem;
+      margin:.4rem 0 .2rem;
+    }
     .action-grid .btn{padding:.48rem .85rem;font-size:.84rem}
 
     .drawer-footer{
@@ -266,7 +317,7 @@
   <section class="panel">
     <div class="kicker">Sales stage</div>
     <h1 class="title">Customers by onboarding status (sales) + setup tasks (ops)</h1>
-    <p class="subtitle">Wizard is controlled by the setup wizard (read-only here). Onboarding actions can be done in the drawer.</p>
+    <p class="subtitle">Wizard is controlled by the setup wizard (read-only here). Onboarding actions work via buttons or by clicking the rows.</p>
 
     <div class="status-strip" id="status-strip"></div>
 
@@ -391,6 +442,10 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // ✅ Demo calendar link (change to your real booking page)
+  const DEMO_CALENDAR_URL = "https://calendly.com/tradebotpro/demo";
+
+  // DOM
   const statusStrip = document.getElementById("status-strip");
   const tbody = document.getElementById("tbody");
   const banner = document.getElementById("banner");
@@ -400,6 +455,7 @@
   const btnNew = document.getElementById("btn-new");
   const btnClear = document.getElementById("btn-clear-filter");
 
+  // Drawer + overlay
   const drawer = document.getElementById("drawer");
   const drawerOverlay = document.getElementById("drawerOverlay");
   const drawerTitle = document.getElementById("drawerTitle");
@@ -420,6 +476,7 @@
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
   const btnOpenWizard = document.getElementById("btnOpenWizard");
 
+  // State
   let allRows = [];
   let activeStatus = null;
   let statusOrder = [];
@@ -457,6 +514,7 @@
   }
 
   function wizardIsComplete(row){
+    // support either name
     return !!row?.wizard_completed || !!row?.setup_complete;
   }
 
@@ -526,6 +584,7 @@
     statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
   }
 
+  // OPS tasks (Wizard read-only)
   function setupTasks(row){
     return [
       { key:"wizard",   label:"Wizard complete",    done: wizardIsComplete(row), readonly:true },
@@ -586,10 +645,10 @@
     }).join("");
   }
 
-  // ---- Onboarding actions ----
+  // Onboarding checklist rows (clickable)
   function onboardingItems(row){
     return [
-      { key:"demo_booked",    label:"Demo booked",       done: !!row?.demo_booked,    value: row?.demo_datetime ? fmtDate(row.demo_datetime) : "Click to set" },
+      { key:"demo_booked",    label:"Demo booked",       done: !!row?.demo_booked,    value: row?.demo_datetime ? fmtDate(row.demo_datetime) : "Click to set (opens calendar)" },
       { key:"demo_completed", label:"Demo completed",    done: !!row?.demo_completed, value: row?.demo_completed ? "Completed" : "Click to mark" },
       { key:"trial_active",   label:"Free trial active", done: !!row?.trial_active,   value: row?.trial_active ? (row?.trial_end ? ("Ends: " + fmtDate(row.trial_end)) : "Active") : "Click to start" },
       { key:"is_live",        label:"Live",             done: !!row?.is_live,        value: row?.is_live ? (row?.go_live_date ? fmtDate(row.go_live_date) : "Live") : "Click to go live" },
@@ -630,9 +689,23 @@
     if(!activeRow) return;
 
     if(key === "demo_booked"){
-      const current = activeRow.demo_datetime ? new Date(activeRow.demo_datetime).toISOString().slice(0,16) : "";
+      // 1) Open calendar first
+      try{
+        window.open(DEMO_CALENDAR_URL, "_blank", "noopener");
+      }catch(e){
+        console.warn("Calendar popup blocked:", e);
+      }
+
+      // 2) Confirm then mark booked
+      const ok = window.confirm("Calendar opened.\n\nOnce you’ve booked the demo, click OK to mark it as booked.\nClick Cancel if you haven’t booked yet.");
+      if(!ok) return;
+
+      const current = activeRow.demo_datetime
+        ? new Date(activeRow.demo_datetime).toISOString().slice(0,16)
+        : "";
+
       const input = window.prompt(
-        "Enter demo date/time (optional).\n\nBest format: 2025-12-20T19:30\nLeave blank to just mark as booked.",
+        "Optional: enter the demo date/time to store on the customer.\n\nFormat: 2025-12-20T19:30\nLeave blank if you don’t want to store a time.",
         current
       );
       if(input === null) return;
@@ -648,7 +721,12 @@
         demoIso = parsed.toISOString();
       }
 
-      const patch = { demo_booked:true, demo_datetime:demoIso, onboarding_status:"Demo" };
+      const patch = {
+        demo_booked: true,
+        demo_datetime: demoIso,
+        onboarding_status: "Demo"
+      };
+
       const updated = await updateCustomer(activeRow.id, patch);
       if(updated){ render(); openDrawer(updated); }
       return;
@@ -665,6 +743,7 @@
     if(key === "trial_active"){
       const daysRaw = window.prompt("Free trial length in days? (default 7)", "7");
       if(daysRaw === null) return;
+
       const days = Math.max(1, Math.min(60, parseInt(daysRaw, 10) || 7));
       const start = new Date();
       const end = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
@@ -675,6 +754,7 @@
         trial_end:end.toISOString(),
         onboarding_status:"Free Trial"
       };
+
       const updated = await updateCustomer(activeRow.id, patch);
       if(updated){ render(); openDrawer(updated); }
       return;
@@ -683,6 +763,7 @@
     if(key === "is_live"){
       const ok = window.confirm("Go live now?\n\nThis marks the customer as Live.");
       if(!ok) return;
+
       const now = new Date();
       const patch = {
         is_live:true,
@@ -690,6 +771,7 @@
         trial_active:false,
         onboarding_status:"Live"
       };
+
       const updated = await updateCustomer(activeRow.id, patch);
       if(updated){ render(); openDrawer(updated); }
       return;
@@ -708,7 +790,14 @@
       onboardingButtons.appendChild(b);
     };
 
-    mk(row.demo_booked ? "Edit demo time" : "Book demo", "btn-secondary", ()=>doOnboardingAction("demo_booked"));
+    // Calendar button
+    mk("📅 Open demo calendar", "btn-primary", ()=>{
+      window.open(DEMO_CALENDAR_URL, "_blank", "noopener");
+    });
+
+    // Demo booked = calendar-first flow
+    mk(row.demo_booked ? "Update demo booked" : "Book demo (after calendar)", "btn-secondary", ()=>doOnboardingAction("demo_booked"));
+
     mk(row.demo_completed ? "Demo completed ✅" : "Mark demo completed", row.demo_completed ? "btn-secondary" : "btn-primary", ()=>doOnboardingAction("demo_completed"));
     mk(row.trial_active ? "Trial active ✅" : "Start free trial", row.trial_active ? "btn-secondary" : "btn-primary", ()=>doOnboardingAction("trial_active"));
     mk(row.is_live ? "Live ✅" : "Go live", row.is_live ? "btn-secondary" : "btn-primary", ()=>doOnboardingAction("is_live"));
@@ -903,13 +992,14 @@
   btnClear.addEventListener("click", ()=>{ activeStatus=null; search.value=""; render(); });
   search.addEventListener("input", render);
 
-  // Notes autosave
+  // Drawer autosave notes
   drawerNotes.addEventListener("input", queueNotesSave);
   drawerLeadNotes.addEventListener("input", queueNotesSave);
 
-  // Close drawer
+  // Close drawer always works
   btnCloseDrawer.addEventListener("click", (e)=>{
-    e.preventDefault(); e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
     closeDrawer();
   }, true);
 
@@ -919,17 +1009,19 @@
   });
 
   document.addEventListener("keydown", (e)=>{
-    if(e.key === "Escape" && drawer.classList.contains("open")) closeDrawer();
+    if(e.key === "Escape" && drawer.classList.contains("open")){
+      closeDrawer();
+    }
   });
 
-  // Open wizard
+  // Open wizard (customer_id)
   btnOpenWizard.addEventListener("click", (e)=>{
     e.stopPropagation();
     if(!activeRow) return;
     window.open(`app.html?customer_id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
   });
 
-  // Sales checklist click
+  // Sales checklist to set stage
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-sales]");
     if(!item || !activeRow) return;
@@ -942,7 +1034,7 @@
     if(updated){ render(); openDrawer(updated); }
   }, true);
 
-  // ✅ NEW: Onboarding checklist rows are clickable
+  // ✅ Onboarding checklist rows click = action
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-onb]");
     if(!item || !activeRow) return;
@@ -982,7 +1074,7 @@
     if(!item || !activeRow) return;
 
     const key = item.dataset.task;
-    if(key === "wizard") return;
+    if(key === "wizard") return; // read-only
 
     e.stopPropagation();
 
