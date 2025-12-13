@@ -783,26 +783,14 @@
           </div>
 
           <div class="wizard-footer-right">
-           <button type="button" class="btn btn-primary" id="btn-save-draft">
-  Save draft
-</button>
+            <button type="button" class="btn btn-primary" id="btn-save-draft">Save draft</button>
 
+            <button type="button" class="btn btn-secondary" id="btn-back" disabled>← Back</button>
 
-            <button type="button" class="btn btn-secondary" id="btn-back" disabled>
-              ← Back
-            </button>
+            <button type="button" class="btn btn-primary" id="btn-next">Next step →</button>
 
-            <button type="button" class="btn btn-primary" id="btn-next">
-              Next step →
-            </button>
-
-            <!-- NEW: shows only after Finish succeeds -->
-            <button
-              type="button"
-              class="btn btn-primary"
-              id="btn-dashboard"
-              style="display:none"
-            >
+            <!-- shows only after Finish succeeds -->
+            <button type="button" class="btn btn-primary" id="btn-dashboard" style="display:none">
               Back to dashboard →
             </button>
           </div>
@@ -827,7 +815,6 @@
     console.error("[TBP] Unhandled Promise:", e.reason);
   });
 
-  // ==== BOOT ONLY WHEN SUPABASE READY ====
   function bootWhenSupabaseReady() {
     if (typeof window.supabase === "undefined") {
       console.error("[TBP] Supabase UMD not loaded yet. Retrying...");
@@ -841,10 +828,15 @@
     const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
+    // Admin emails allowed to open any customer via ?customer_id=...
+    // IMPORTANT: set this to the email(s) you use to log into Supabase Auth.
+    const ADMIN_EMAILS = ["hello@tradebotpro.co.uk"];
+
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const params = new URLSearchParams(location.search);
-    const customer_id = (params.get("customer_id") || "").trim();
+    const customer_id_param = (params.get("customer_id") || "").trim();  // admin-only override
+    const invite_token = (params.get("token") || "").trim();             // optional: claim link
 
     // ==== ELEMENTS ====
     const panels = Array.from(document.querySelectorAll(".step-panel"));
@@ -862,21 +854,6 @@
     const btnNext = document.getElementById("btn-next");
     const btnSaveDraft = document.getElementById("btn-save-draft");
     const btnDashboard = document.getElementById("btn-dashboard");
-const btnBackDashboard = document.getElementById("btn-back-dashboard");
-
-if (btnBackDashboard) {
-  btnBackDashboard.addEventListener("click", () => {
-    const params = new URLSearchParams(window.location.search);
-    const customerId = params.get("customer_id");
-
-    if (customerId) {
-      window.location.href = `/client-dashboard.html?customer_id=${customerId}`;
-    } else {
-      window.location.href = `/dashboard.html`;
-    }
-  });
-}
-
     const summaryBoxEl = document.getElementById("summary-box");
 
     // Ensure chip buttons can never submit anything (safe)
@@ -913,6 +890,12 @@ if (btnBackDashboard) {
       demo_slot: null,
       golive_timing: null
     };
+
+    // Auth/session + effective customer targeting
+    let session = null;
+    let isAdmin = false;
+    let effectiveCustomerId = null; // if admin override is allowed
+    let effectiveUserId = null;     // normal mode
 
     function setStatus(msg, type) {
       statusEl.textContent = msg || "";
@@ -962,7 +945,8 @@ if (btnBackDashboard) {
       wizardStepTitle.textContent = meta.title;
       wizardStepSubtitle.textContent = meta.subtitle;
 
-      footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${totalSteps}</strong>. You can tweak anything later.`;
+      // (You didn’t like the “you can tweak later” line, so keep it clean)
+      footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${totalSteps}</strong>.`;
 
       btnBack.disabled = currentStep === 1;
 
@@ -1039,7 +1023,7 @@ if (btnBackDashboard) {
     // Save draft to localStorage (browser only)
     btnSaveDraft.addEventListener("click", () => {
       readInputsIntoAnswers();
-      localStorage.setItem("tbp_wizard_draft", JSON.stringify({ answers, customer_id, ts: Date.now() }));
+      localStorage.setItem("tbp_wizard_draft", JSON.stringify({ answers, ts: Date.now() }));
       setStatus("Draft saved in this browser.", "success");
     });
 
@@ -1076,8 +1060,8 @@ if (btnBackDashboard) {
       }
 
       // FINISH (Step 4)
-      if (!customer_id) {
-        setStatus("Missing customer_id in the URL. Please start from the signup form link.", "error");
+      if (!session) {
+        setStatus("Please log in again, then try finish.", "error");
         return;
       }
 
@@ -1085,7 +1069,6 @@ if (btnBackDashboard) {
       setStatus("Saving…");
 
       try {
-        // Save wizard answers into customers row
         const patch = {
           contact_name: answers.contact_name || null,
           business_name: answers.business_name || null,
@@ -1098,18 +1081,20 @@ if (btnBackDashboard) {
           wizard_completed_at: new Date().toISOString()
         };
 
-        const { error } = await sb
-          .from("customers")
-          .update(patch)
-          .eq("id", customer_id);
+        // Secure update:
+        // - normal users: update by user_id (auth.uid)
+        // - admin override: update by id (only if allowed)
+        let q = sb.from("customers").update(patch);
 
+        if (effectiveCustomerId) q = q.eq("id", effectiveCustomerId);
+        else q = q.eq("user_id", effectiveUserId);
+
+        const { error } = await q;
         if (error) throw error;
 
         setStatus("Saved. Wizard complete ✅", "success");
-
         if (summaryBoxEl) summaryBoxEl.hidden = false;
 
-        // Show Back to dashboard button, hide Next button
         btnNext.style.display = "none";
         btnDashboard.style.display = "inline-flex";
 
@@ -1124,21 +1109,66 @@ if (btnBackDashboard) {
 
     // Back to dashboard (only visible after Finish)
     btnDashboard.addEventListener("click", () => {
-      if (!customer_id) return (window.location.href = "/dashboard.html");
-      window.location.href = `/dashboard.html?customer_id=${encodeURIComponent(customer_id)}`;
+      // Admin goes to admin dashboard, customer goes to their client dashboard
+      if (isAdmin) window.location.href = "/dashboard.html";
+      else window.location.href = "/client-dashboard.html";
     });
 
-    // Prefill from customers row
-    async function prefillFromCustomer() {
-      if (!customer_id) return;
+    async function ensureSessionOrRedirect() {
+      const { data } = await sb.auth.getSession();
+      session = data?.session || null;
+
+      if (!session) {
+        // No session = send them to login (keep token if present)
+        const tokenBit = invite_token ? `?token=${encodeURIComponent(invite_token)}` : "";
+        window.location.href = "/login.html" + tokenBit;
+        return false;
+      }
+
+      const email = (session.user?.email || "").toLowerCase().trim();
+      isAdmin = ADMIN_EMAILS.map(x => (x || "").toLowerCase().trim()).includes(email);
+
+      effectiveUserId = session.user.id;
+      effectiveCustomerId = (isAdmin && customer_id_param) ? customer_id_param : null;
+
+      return true;
+    }
+
+    async function claimIfTokenPresent() {
+      if (!invite_token) return;
 
       try {
-        const { data, error } = await sb
-          .from("customers")
-          .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers")
-          .eq("id", customer_id)
-          .single();
+        setStatus("Linking your account…");
+        const { error } = await sb.rpc("claim_customer", { p_invite_token: invite_token });
+        if (error) throw error;
 
+        setStatus("Account linked ✅", "success");
+
+        // Remove token from URL to avoid re-claim attempts on refresh
+        const clean = new URL(window.location.href);
+        clean.searchParams.delete("token");
+        window.history.replaceState({}, "", clean.toString());
+
+      } catch (err) {
+        console.error("[TBP] claim_customer failed:", err);
+        setStatus("Could not link account (token invalid or already used).", "error");
+      }
+    }
+
+    // Prefill from customers row (secure)
+    async function prefillFromCustomer() {
+      try {
+        setStatus("");
+
+        let q = sb
+          .from("customers")
+          .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers");
+
+        // admin override: by id, otherwise by user_id
+        if (effectiveCustomerId) q = q.eq("id", effectiveCustomerId).single();
+        else q = q.eq("user_id", effectiveUserId).single();
+
+        const { data, error } = await q;
         if (error) throw error;
 
         // basic fields
@@ -1156,21 +1186,40 @@ if (btnBackDashboard) {
           Object.assign(answers, data.wizard_answers);
         }
 
-        // also take latest typed input values into answers (so chips reflect correctly)
+        // ensure latest typed input values flow into answers (so chips reflect correctly)
         readInputsIntoAnswers();
         applyChipVisualsFromAnswers();
 
+        // expose the loaded row id for debug/admin awareness
+        window.TBP_LOADED_CUSTOMER_ID = data?.id || null;
+
       } catch (err) {
         console.error("[TBP] Prefill failed:", err);
+        setStatus("Couldn’t load your profile. If this is a new account, use your invite link first.", "error");
       }
     }
 
     // Initial render
-    renderStep();
-    prefillFromCustomer();
+    (async function init() {
+      renderStep();
 
-    // Expose tiny debug helper
-    window.TBP = { sb, customer_id, answers };
+      const ok = await ensureSessionOrRedirect();
+      if (!ok) return;
+
+      // if they arrived with a token, link the customer row to this login
+      await claimIfTokenPresent();
+
+      await prefillFromCustomer();
+
+      // Expose tiny debug helper
+      window.TBP = {
+        sb,
+        isAdmin,
+        effectiveCustomerId,
+        effectiveUserId,
+        answers
+      };
+    })();
   }
 
   bootWhenSupabaseReady();
