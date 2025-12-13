@@ -862,6 +862,20 @@
     const btnNext = document.getElementById("btn-next");
     const btnSaveDraft = document.getElementById("btn-save-draft");
     const btnDashboard = document.getElementById("btn-dashboard");
+const btnBackDashboard = document.getElementById("btn-back-dashboard");
+
+if (btnBackDashboard) {
+  btnBackDashboard.addEventListener("click", () => {
+    const params = new URLSearchParams(window.location.search);
+    const customerId = params.get("customer_id");
+
+    if (customerId) {
+      window.location.href = `/client-dashboard.html?customer_id=${customerId}`;
+    } else {
+      window.location.href = `/dashboard.html`;
+    }
+  });
+}
 
     const summaryBoxEl = document.getElementById("summary-box");
 
