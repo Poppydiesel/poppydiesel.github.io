@@ -1668,6 +1668,36 @@ async function init(){
 }
 
 document.addEventListener("DOMContentLoaded", init);
+  // ===============================
+// Ask for help button (non-destructive)
+// ===============================
+document.getElementById("ask-help-btn")?.addEventListener("click", async () => {
+  if (!customer_id) {
+    alert("Missing customer reference.");
+    return;
+  }
+
+  const msg = (prompt("What do you need help with? (optional)") || "").trim();
+
+  try {
+    const { error } = await sb
+      .from("customers")
+      .update({
+        help_requested: true,
+        help_requested_at: new Date().toISOString(),
+        help_message: msg || null
+      })
+      .eq("id", customer_id);
+
+    if (error) throw error;
+
+    alert("Got it — we’ll help you shortly.");
+  } catch (e) {
+    console.error("Help request failed:", e);
+    alert("Sorry — we couldn’t send your help request. Please try again.");
+  }
+});
+
 </script>
 </body>
 </html>
