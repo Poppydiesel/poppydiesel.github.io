@@ -1067,7 +1067,7 @@
 </div>
 <script type="module">
 /* =========================================================
-   TradeBotPro Wizard — AUTO-LOCK + COMPLETED BADGE
+   TradeBotPro Wizard — AUTO-LOCK + SAVE POLISH
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1094,35 +1094,43 @@ function status(msg, type="info"){
     el.textContent = msg;
     el.className = "wizard-status-message is-" + type;
   }
-  console.log(`[Wizard:${type}]`, msg);
 }
 
-/* ================= COMPLETED BADGE ================= */
-function injectCompletedBadge(){
-  if($("#wizard-complete-badge")) return;
+/* ================= SAVE BUTTON UI ================= */
+const saveBtn = () => $("#btn-save-draft");
 
-  const badge = document.createElement("div");
-  badge.id = "wizard-complete-badge";
-  badge.className = "wizard-complete-badge hidden";
-  badge.textContent = "🔒 Completed";
+function setSaveState(state){
+  const btn = saveBtn();
+  if(!btn) return;
 
-  // Place it top-right in the right panel header
-  const header = $(".wizard-right-header");
-  if(header){
-    header.style.position = "relative";
-    badge.style.position = "absolute";
-    badge.style.top = "0";
-    badge.style.right = "0";
-    header.appendChild(badge);
+  btn.classList.remove("btn-saving","btn-saved");
+
+  if(state === "saving"){
+    btn.textContent = "Saving…";
+    btn.classList.add("btn-saving");
+    btn.disabled = true;
+  }
+
+  if(state === "saved"){
+    btn.textContent = "Saved ✓";
+    btn.classList.add("btn-saved");
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = "Save";
+      btn.classList.remove("btn-saved");
+      btn.disabled = false;
+    }, 1200);
+  }
+
+  if(state === "idle"){
+    btn.textContent = "Save";
+    btn.disabled = false;
   }
 }
 
-function showCompletedBadge(){
-  $("#wizard-complete-badge")?.classList.remove("hidden");
-}
-
-function hideCompletedBadge(){
-  $("#wizard-complete-badge")?.classList.add("hidden");
+function hideSaveButton(hide){
+  const btn = saveBtn();
+  if(btn) btn.style.display = hide ? "none" : "";
 }
 
 /* ================= CHIP HANDLING ================= */
@@ -1188,8 +1196,7 @@ function lockWizard(on){
   $("#btn-cancel")?.style.setProperty("display", on ? "none" : "inline-flex");
   $("#btn-relock")?.style.setProperty("display", on ? "none" : "inline-flex");
 
-  if(on) showCompletedBadge();
-  else hideCompletedBadge();
+  hideSaveButton(on); // 🔒 hide save when locked
 }
 
 function injectLockControls(){
@@ -1209,7 +1216,11 @@ function injectLockControls(){
   $(".wizard-footer")?.after(bar);
 
   $("#btn-unlock").onclick = () => {
-    if(confirm("Unlock this setup to make changes?")) lockWizard(false);
+    if(confirm("Unlock this setup to make changes?")){
+      lockWizard(false);
+      hideSaveButton(false);
+      setSaveState("idle");
+    }
   };
 
   $("#btn-cancel").onclick = () => {
@@ -1240,20 +1251,17 @@ function snapshot(){
 
 /* ================= SAVE ================= */
 async function save(){
-  if(LOCKED){
-    status("Wizard is locked. Click Unlock to edit.", "error");
-    return;
-  }
+  if(LOCKED) return;
 
+  setSaveState("saving");
   syncChips();
-  const now = snapshot();
 
+  const now = snapshot();
   if(now.phone && !now.whatsapp_number){
     now.whatsapp_number = now.phone;
   }
 
   const complete = !!(now.business_name && now.email && now.main_trade);
-
   now.setup_complete = complete;
   now.pending_setup = !complete;
   now.updated_at = new Date().toISOString();
@@ -1270,14 +1278,16 @@ async function save(){
     if(error) throw error;
 
     ORIGINAL = { ...now };
+    setSaveState("saved");
     status("Saved to Supabase ✅", "success");
 
     if(complete){
       lockWizard(true);
-      status("Setup complete — wizard locked ✅", "success");
+      status("Setup complete — wizard locked 🔒", "success");
     }
   }catch(e){
     console.error("[Wizard] Save failed", e);
+    setSaveState("idle");
     status(`Save failed: ${e.message}`, "error");
   }
 }
@@ -1292,7 +1302,6 @@ async function init(){
     return;
   }
 
-  injectCompletedBadge();
   initChips();
   injectLockControls();
 
@@ -1317,9 +1326,10 @@ async function init(){
 
   if(truthy(data.setup_complete)){
     lockWizard(true);
-    status("Setup complete — locked.", "info");
+    status("Setup complete — locked 🔒", "info");
   } else {
     lockWizard(false);
+    setSaveState("idle");
     status("Resumed — editable.", "info");
   }
 
@@ -1329,7 +1339,7 @@ async function init(){
   });
 
   $("#btn-next")?.addEventListener("click", ()=>{
-    save();
+    save(); // autosave
   });
 }
 
@@ -1337,8 +1347,3 @@ document.addEventListener("DOMContentLoaded", init);
 </script>
 </body>
 </html>
-
-
-
-
-
