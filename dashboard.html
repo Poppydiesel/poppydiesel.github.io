@@ -16,7 +16,6 @@
       --border-subtle:rgba(15,23,42,0.12);
       --success-green:#0f7b46;
       --error-red:#b3261e;
-      --warn-amber:#b45309;
     }
 
     *{box-sizing:border-box}
@@ -84,6 +83,7 @@
       color:var(--primary-blue);font-weight:800;font-size:.85rem;
     }
 
+    /* ✅ CONTROLS: ONE ROW ON DESKTOP */
     .controls{
       display:flex;
       align-items:center;
@@ -151,7 +151,7 @@
     table{
       width:100%;
       border-collapse:collapse;
-      min-width: 1060px; /* slightly wider for the new column */
+      min-width: 980px;
     }
     thead th{
       position:sticky;top:0;
@@ -184,26 +184,6 @@
     .dot.done{border-color:rgba(15,123,70,0.65);background:#dcfce7}
     .dot.need{border-color:rgba(179,38,30,0.45);background:#fff1f2}
     .dot-label{font-size:.75rem;color:var(--muted-text);margin-left:6px;white-space:nowrap}
-
-    /* ✅ Wizard badge */
-    .wiz-pill{
-      display:inline-flex;align-items:center;gap:6px;
-      padding:.28rem .6rem;border-radius:999px;
-      border:1px solid rgba(15,23,42,0.10);
-      background:#fff;
-      font-size:.8rem;
-      font-weight:750;
-    }
-    .wiz-pill.ok{
-      border-color:rgba(15,123,70,0.25);
-      background:#ecfdf5;
-      color:var(--success-green);
-    }
-    .wiz-pill.bad{
-      border-color:rgba(180,83,9,0.25);
-      background:#fff7ed;
-      color:var(--warn-amber);
-    }
 
     /* ✅ Overlay so click-outside closes drawer */
     .drawer-overlay{
@@ -239,7 +219,8 @@
     .drawer-field label{display:block;font-size:.78rem;color:var(--muted-text);margin:0 0 .25rem}
     .drawer-field input,.drawer-body textarea{
       width:100%;padding:.6rem .7rem;border-radius:.85rem;
-      border:1px solid var(--border-subtle);font:inherit;outline:none;background:#fff;
+      border:1px solid var(--border-subtle);font:inherit;outline:none reminding me
+      background:#fff;
     }
     .drawer-body textarea{min-height:110px;resize:vertical}
 
@@ -289,7 +270,7 @@
 
     @media (max-width: 900px){
       .drawer-row{grid-template-columns:1fr}
-      table{min-width:1040px}
+      table{min-width:900px}
       .drawer{right:-96vw;}
     }
   </style>
@@ -317,6 +298,7 @@
 
     <div class="status-strip" id="status-strip"></div>
 
+    <!-- ✅ ONE ROW: Clear filters | Search | Refresh | New customer -->
     <div class="controls">
       <div class="controls-left">
         <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filters</button>
@@ -340,7 +322,6 @@
         <thead>
           <tr>
             <th>Onboarding status (sales)</th>
-            <th>Wizard</th> <!-- ✅ NEW -->
             <th>Setup tasks (ops)</th>
             <th>Business</th>
             <th>Contact</th>
@@ -358,8 +339,10 @@
   </section>
 </main>
 
+<!-- ✅ Overlay -->
 <div class="drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
 
+<!-- Drawer -->
 <div class="drawer" id="drawer" aria-hidden="true">
   <div class="drawer-header">
     <div class="drawer-title" id="drawerTitle">Customer</div>
@@ -431,9 +414,11 @@
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
+refI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // DOM
   const statusStrip = document.getElementById("status-strip");
   const tbody = document.getElementById("tbody");
   const banner = document.getElementById("banner");
@@ -443,6 +428,7 @@
   const btnNew = document.getElementById("btn-new");
   const btnClear = document.getElementById("btn-clear-filter");
 
+  // Drawer + overlay
   const drawer = document.getElementById("drawer");
   const drawerOverlay = document.getElementById("drawerOverlay");
   const drawerTitle = document.getElementById("drawerTitle");
@@ -461,6 +447,7 @@
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
   const btnOpenWizard = document.getElementById("btnOpenWizard");
 
+  // State
   let allRows = [];
   let activeStatus = null;
   let statusOrder = [];
@@ -497,19 +484,10 @@
     return raw || "New Signup";
   }
 
-  function wizardBadge(row){
-    const done = !!row?.setup_complete;
-    if(done){
-      return `<span class="wiz-pill ok">✅ Complete</span>`;
-    }
-    return `<span class="wiz-pill bad">🟠 Incomplete</span>`;
-  }
-
   function rowMatchesSearch(row,q){
     if(!q) return true;
     const hay = [
-      row.business_name,row.contact_name,row.email,row.phone,row.base_postcode,salesStatus(row),
-      (row.setup_complete ? "complete" : "incomplete")
+      row.business_name,row.contact_name,row.email,row.phone,row.base_postcode,salesStatus(row)
     ].join(" ").toLowerCase();
     return hay.includes(q.toLowerCase());
   }
@@ -565,9 +543,11 @@
     statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
   }
 
+  // ✅ OPS tasks: Wizard is complete if wizard_completed OR setup_complete (backwards compatible)
   function setupTasks(row){
+    const wizardDone = !!row?.wizard_completed || !!row?.setup_complete;
     return [
-    { key:"wizard",   label:"Wizard complete",   col:"wizard_completed",   done: !!row?.wizard_completed || !!row?.setup_complete },
+      { key:"wizard",   label:"Wizard complete",   col:"wizard_completed",   done: wizardDone },
       { key:"whatsapp", label:"WhatsApp connected", col:"whatsapp_connected", done: !!row?.whatsapp_connected },
       { key:"calendar", label:"Calendar connected", col:"calendar_connected", done: !!row?.calendar_connected },
       { key:"payments", label:"Payments connected", col:"payments_connected", done: !!row?.payments_connected },
@@ -634,6 +614,19 @@
     return data;
   }
 
+  // ✅ Backfill: if setup_complete=true but wizard_completed=false, fix DB on first open
+  async function backfillWizardCompleteIfNeeded(row){
+    if(!row) return row;
+    if(row.setup_complete && !row.wizard_completed){
+      const updated = await updateCustomer(row.id, {
+        wizard_completed: true,
+        onboarding_status: (!row.onboarding_status || row.onboarding_status === "New Signup") ? "In Setup" : row.onboarding_status
+      });
+      return updated || row;
+    }
+    return row;
+  }
+
   function renderOpsButtons(row){
     opsButtons.innerHTML = "";
     const mk = (label, onClick) => {
@@ -645,8 +638,10 @@
       opsButtons.appendChild(b);
     };
 
-    mk(row.wizard_completed ? "Unmark Wizard" : "Mark Wizard", async ()=>{
-      const updated = await updateCustomer(row.id, { wizard_completed: !row.wizard_completed });
+    // Wizard toggle remains available, but most of the time it will be auto
+    mk((row.wizard_completed || row reminding me
+      .setup_complete) ? "Wizard ✅ (toggle)" : "Wizard ❌ (toggle)", async ()=>{
+      const updated = await updateCustomer(row.id, { wizard_completed: !(row.wizard_completed || row.setup_complete) });
       if(updated){ render(); openDrawer(updated); }
     });
 
@@ -666,7 +661,8 @@
     });
   }
 
-  function openDrawer(row){
+  async function openDrawer(row){
+    row = await backfillWizardCompleteIfNeeded(row);
     activeRow = row;
 
     drawerTitle.textContent = row.business_name || "Customer";
@@ -749,7 +745,7 @@
     tbody.innerHTML = "";
 
     if(!rows.length){
-      tbody.innerHTML = `<tr><td colspan="9">No matches.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8">No matches.</td></tr>`;
       statusBar.textContent = `0 shown • ${allRows.length} total`;
       return;
     }
@@ -758,7 +754,6 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${escapeHtml(salesStatus(r))}</td>
-        <td>${wizardBadge(r)}</td>
         <td>${tasksDotsHTML(r)}</td>
         <td>${escapeHtml(r.business_name || "—")}</td>
         <td>${escapeHtml(r.contact_name || "—")}</td>
@@ -779,14 +774,14 @@
   async function loadCustomersAndStatuses(){
     setBanner("");
     statusBar.textContent = "Loading…";
-    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8">Loading…</td></tr>`;
 
     const { data, error } = await sb.from("customers").select("*");
     if(error){
       console.error("LOAD ERROR:", error);
       setBanner("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
       allRows = [];
-      tbody.innerHTML = `<tr><td colspan="9">No data loaded.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8">No data loaded.</td></tr>`;
       statusBar.textContent = "Load failed.";
       return;
     }
@@ -799,38 +794,44 @@
     render();
   }
 
+  // Controls
   btnRefresh.addEventListener("click", loadCustomersAndStatuses);
   btnNew.addEventListener("click", ()=>window.open("app.html", "_blank", "noopener"));
   btnClear.addEventListener("click", ()=>{ activeStatus=null; search.value=""; render(); });
   search.addEventListener("input", render);
 
+  // Drawer
   drawerNotes.addEventListener("input", queueNotesSave);
   drawerLeadNotes.addEventListener("input", queueNotesSave);
 
+  // ✅ Close button MUST win (capture) so it never gets blocked by document listeners
   btnCloseDrawer.addEventListener("click", (e)=>{
     e.preventDefault();
     e.stopPropagation();
     closeDrawer();
   }, true);
 
+  // ✅ Click outside closes
   drawerOverlay.addEventListener("click", (e)=>{
     e.preventDefault();
     closeDrawer();
   });
 
+  // ✅ ESC closes
   document.addEventListener("keydown", (e)=>{
     if(e.key === "Escape" && drawer.classList.contains("open")){
       closeDrawer();
     }
   });
 
-  // ✅ FIXED: wizard expects ?customer_id=
- btnOpenWizard.addEventListener("click", (e)=>{
-  e.stopPropagation();
-  if(!activeRow) return;
-  window.open(`app.html?customer_id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
-});
+  // ✅ FIX: Open wizard uses customer_id
+  btnOpenWizard.addEventListener("click", (e)=>{
+    e.stopPropagation();
+    if(!activeRow) return;
+    window.open(`app.html?customer_id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
+  });
 
+  // Click sales checklist to set status (single-select)
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-sales]");
     if(!item || !activeRow) return;
@@ -843,6 +844,7 @@
     if(updated){ render(); openDrawer(updated); }
   }, true);
 
+  // Click task dots in table to toggle
   document.addEventListener("click", async (e)=>{
     const dot = e.target.closest(".dot[data-task][data-id]");
     if(!dot) return;
@@ -855,7 +857,7 @@
     if(!row) return;
 
     const patch = {};
-    if(key === "wizard")   patch.wizard_completed   = !row.wizard_completed;
+    if(key === "wizard")   patch.wizard_completed   = ! (row.wizard_completed || row.setup_complete);
     if(key === "whatsapp") patch.whatsapp_connected = !row.whatsapp_connected;
     if(key === "calendar") patch.calendar_connected = !row.calendar_connected;
     if(key === "payments") patch.payments_connected = !row.payments_connected;
@@ -867,6 +869,7 @@
     }
   }, true);
 
+  // Click tasks checklist in drawer to toggle
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-task]");
     if(!item || !activeRow) return;
@@ -874,7 +877,7 @@
 
     const key = item.dataset.task;
     const patch = {};
-    if(key === "wizard")   patch.wizard_completed   = !activeRow.wizard_completed;
+    if(key === "wizard")   patch.wizard_completed   = ! (activeRow.wizard_completed || activeRow.setup_complete);
     if(key === "whatsapp") patch.whatsapp_connected = !activeRow.whatsapp_connected;
     if(key === "calendar") patch.calendar_connected = !activeRow.calendar_connected;
     if(key === "payments") patch.payments_connected = !activeRow.payments_connected;
