@@ -1108,7 +1108,25 @@
     });
 
     // Back to dashboard (only visible after Finish)
-   btnDashboard.addEventListener
+ // Back to dashboard (only visible after Finish)
+btnDashboard.addEventListener("click", async () => {
+  // If logged in (admin), go to secure dashboard
+  try {
+    const { data } = await sb.auth.getSession();
+    if (data?.session) {
+      window.location.href = "/dashboard-secure.html";
+      return;
+    }
+  } catch (_) {}
+
+  // Otherwise (client), go to client dashboard
+  if (customer_id) {
+    window.location.href = `/client-dashboard.html?customer_id=${encodeURIComponent(customer_id)}`;
+  } else {
+    window.location.href = "/client-dashboard.html";
+  }
+});
+
 
     async function ensureSessionOrRedirect() {
       const { data } = await sb.auth.getSession();
