@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro – Dashboard (Secure)</title>
+  <title>TradeBotPro – Secure Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
@@ -46,8 +46,12 @@
     .logo-icon::after{width:6px;height:11px;right:7px;top:9px}
     .logo-main{font-weight:700;font-size:1rem;color:var(--primary-blue)}
     .logo-tag{font-size:.75rem;color:var(--muted-text)}
-    .header-note{font-size:.75rem;color:var(--muted-text)}
-    .header-note strong{color:var(--primary-blue);font-weight:600}
+
+    .header-right{
+      display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .header-note{font-size:.75rem;color:var(--muted-text);white-space:nowrap}
+    .header-note strong{color:var(--primary-blue);font-weight:650}
 
     main{max-width:1180px;margin:0 auto;padding:1.2rem 1.25rem 2.2rem}
 
@@ -178,6 +182,18 @@
     tbody tr{cursor:pointer}
     tbody tr:hover{background:#f7fbff}
 
+    .pipe{display:inline-flex;align-items:center;gap:6px}
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      border:2px solid rgba(148,163,184,0.9);
+      background:#fff;
+      cursor:pointer;
+    }
+    .dot.done{border-color:rgba(15,123,70,0.65);background:#dcfce7}
+    .dot.need{border-color:rgba(179,38,30,0.45);background:#fff1f2}
+    .dot.readonly{cursor:default; opacity:.85}
+    .dot-label{font-size:.75rem;color:var(--muted-text);margin-left:6px;white-space:nowrap}
+
     .badge{
       display:inline-flex;align-items:center;gap:.35rem;
       padding:.25rem .6rem;
@@ -198,6 +214,92 @@
       background:#fff1f2;
       color:#7f1d1d;
     }
+
+    .drawer-overlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.25);
+      backdrop-filter:blur(1px);
+      opacity:0; pointer-events:none;
+      transition:opacity .18s ease;
+      z-index:998;
+    }
+    .drawer-overlay.open{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    .drawer{
+      position:fixed;top:0;right:-860px;
+      width:860px; max-width:96vw; height:100%;
+      background:#fff;
+      box-shadow:-20px 0 40px rgba(0,0,0,.15);
+      transition:right .22s ease;
+      z-index:999;
+      display:flex;flex-direction:column;
+    }
+    .drawer.open{right:0}
+    .drawer-header{padding:1rem;border-bottom:1px solid var(--border-subtle);background:#f8fafc}
+    .drawer-title{font-weight:750;color:var(--primary-blue);font-size:1.05rem}
+    .drawer-sub{margin-top:.25rem;font-size:.85rem;color:var(--muted-text)}
+    .drawer-body{padding:1rem;flex:1;overflow:auto}
+
+    .drawer-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.9rem}
+    .drawer-field label{display:block;font-size:.78rem;color:var(--muted-text);margin:0 0 .25rem}
+    .drawer-field input,.drawer-body textarea{
+      width:100%;padding:.6rem .7rem;border-radius:.85rem;
+      border:1px solid var(--border-subtle);font:inherit;outline:none;background:#fff;
+    }
+    .drawer-body textarea{min-height:110px;resize:vertical}
+
+    .drawer-section-title{
+      margin:.8rem 0 .35rem;
+      font-weight:750;color:var(--primary-blue);font-size:.92rem;
+    }
+
+    .checklist{
+      border:1px solid rgba(15,23,42,0.08);
+      border-radius:.9rem;background:#fff;
+      padding:.75rem .8rem;margin-bottom:.9rem;
+    }
+    .check-item{
+      display:flex;align-items:center;justify-content:space-between;gap:.6rem;
+      padding:.45rem 0;border-bottom:1px dashed rgba(148,163,184,0.55);
+      cursor:pointer;
+    }
+    .check-item:last-child{border-bottom:0}
+    .check-left{display:flex;align-items:center;gap:.55rem;min-width:0}
+    .check-badge{
+      width:22px;height:22px;border-radius:8px;
+      display:inline-flex;align-items:center;justify-content:center;
+      font-size:.85rem;
+      border:1px solid rgba(148,163,184,0.55);
+      background:#f1f5f9;color:#475569;flex:0 0 auto;
+    }
+    .check-badge.done{border-color:rgba(15,123,70,0.35);background:#ecfdf5;color:#14532d}
+    .check-name{
+      font-weight:650;font-size:.9rem;color:var(--dark-text);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .check-state{font-size:.82rem;color:var(--muted-text);flex:0 0 auto}
+
+    .action-grid{
+      display:flex;flex-wrap:wrap;gap:.5rem;
+      margin:.4rem 0 .2rem;
+    }
+    .action-grid .btn{padding:.48rem .85rem;font-size:.84rem}
+
+    .drawer-footer{
+      padding:1rem;border-top:1px solid var(--border-subtle);
+      display:flex;justify-content:space-between;align-items:center;gap:.6rem;
+      background:#fff;
+    }
+    .drawer-hint{font-size:.82rem;color:var(--muted-text)}
+
+    @media (max-width: 900px){
+      .drawer-row{grid-template-columns:1fr}
+      table{min-width:980px}
+      .drawer{right:-96vw;}
+    }
   </style>
 </head>
 
@@ -212,9 +314,8 @@
       </div>
     </div>
 
-    <div style="display:flex; align-items:center; gap:.6rem;">
-      <div class="header-note">View: <strong>Onboarding Dashboard (Secure)</strong></div>
-      <!-- MUST exist for script -->
+    <div class="header-right">
+      <div class="header-note">View: <strong>Secure Admin Dashboard</strong></div>
       <button class="btn btn-secondary" id="btnLogout" type="button">Log out</button>
     </div>
   </div>
@@ -230,20 +331,16 @@
 
     <div class="controls">
       <div class="controls-left">
-        <!-- MUST match script -->
         <button class="btn btn-secondary" id="btn-clear-filter" type="button">Clear filters</button>
 
         <div class="search">
           <span style="opacity:.7">🔎</span>
-          <!-- MUST match script -->
           <input id="search" type="text" placeholder="Search name, business, email, phone, postcode…" />
         </div>
       </div>
 
       <div class="controls-right">
-        <!-- MUST match script -->
         <button class="btn btn-secondary" id="btn-refresh" type="button">↻ Refresh</button>
-        <!-- MUST match script -->
         <button class="btn btn-primary" id="btn-new" type="button">+ New customer</button>
       </div>
     </div>
@@ -256,6 +353,7 @@
           <tr>
             <th>Onboarding status (sales)</th>
             <th>Wizard</th>
+            <th>Setup tasks (ops)</th>
             <th>Business</th>
             <th>Contact</th>
             <th>Email</th>
@@ -272,6 +370,79 @@
   </section>
 </main>
 
+<div class="drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
+
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-header">
+    <div class="drawer-title" id="drawerTitle">Customer</div>
+    <div class="drawer-sub" id="drawerSub">—</div>
+  </div>
+
+  <div class="drawer-body">
+    <div class="drawer-row">
+      <div>
+        <div class="drawer-section-title">Sales stage</div>
+        <div class="checklist" id="salesChecklist"></div>
+      </div>
+
+      <div>
+        <div class="drawer-section-title">Actions</div>
+        <div class="action-grid">
+          <button class="btn btn-secondary" id="btnOpenWizard" type="button">Open wizard</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section-title">Onboarding actions (one-click)</div>
+    <div class="checklist" id="onboardingChecklist"></div>
+    <div class="action-grid" id="onboardingButtons"></div>
+
+    <div class="drawer-section-title">Setup tasks (ops)</div>
+    <div class="checklist" id="tasksChecklist"></div>
+
+    <div class="drawer-section-title">Setup tasks (one-click actions)</div>
+    <div class="action-grid" id="opsButtons"></div>
+
+    <div class="drawer-row" style="margin-top:.8rem;">
+      <div class="drawer-field">
+        <label for="drawer_business">Business name</label>
+        <input id="drawer_business" type="text" disabled />
+      </div>
+      <div class="drawer-field">
+        <label for="drawer_contact">Contact name</label>
+        <input id="drawer_contact" type="text" disabled />
+      </div>
+    </div>
+
+    <div class="drawer-field" style="margin-bottom:.9rem;">
+      <label for="drawer_email">Email</label>
+      <input id="drawer_email" type="text" disabled />
+    </div>
+
+    <div class="drawer-field" style="margin-bottom:.9rem;">
+      <label for="drawer_phone">Phone</label>
+      <input id="drawer_phone" type="text" disabled />
+    </div>
+
+    <div class="drawer-field" style="margin-bottom:.9rem;">
+      <label for="drawer_notes">Internal notes</label>
+      <textarea id="drawer_notes" placeholder="Sales notes / setup notes / follow-ups…"></textarea>
+    </div>
+
+    <div class="drawer-field">
+      <label for="drawer_lead_notes">Lead notes</label>
+      <textarea id="drawer_lead_notes" placeholder="Lead context, objections, reminders…"></textarea>
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <div class="drawer-hint" id="drawerHint">Autosaves</div>
+    <div>
+      <button class="btn btn-secondary" id="btnCloseDrawer" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -282,52 +453,55 @@
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
 
-  // DOM (safe lookup)
-  const byId = (id) => document.getElementById(id);
+  // ✅ Demo calendar link (change to your real booking page)
+  const DEMO_CALENDAR_URL = "https://calendly.com/tradebotpro/demo";
 
-  const statusStrip = byId("status-strip");
-  const tbody = byId("tbody");
-  const banner = byId("banner");
-  const search = byId("search");
-  const statusBar = byId("status-bar");
-  const btnRefresh = byId("btn-refresh");
-  const btnNew = byId("btn-new");
-  const btnClear = byId("btn-clear-filter");
-  const btnLogout = byId("btnLogout");
+  // DOM
+  const statusStrip = document.getElementById("status-strip");
+  const tbody = document.getElementById("tbody");
+  const banner = document.getElementById("banner");
+  const search = document.getElementById("search");
+  const statusBar = document.getElementById("status-bar");
+  const btnRefresh = document.getElementById("btn-refresh");
+  const btnNew = document.getElementById("btn-new");
+  const btnClear = document.getElementById("btn-clear-filter");
+  const btnLogout = document.getElementById("btnLogout");
+
+  // Drawer + overlay
+  const drawer = document.getElementById("drawer");
+  const drawerOverlay = document.getElementById("drawerOverlay");
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerSub = document.getElementById("drawerSub");
+  const drawerBusiness = document.getElementById("drawer_business");
+  const drawerContact = document.getElementById("drawer_contact");
+  const drawerEmail = document.getElementById("drawer_email");
+  const drawerPhone = document.getElementById("drawer_phone");
+  const drawerNotes = document.getElementById("drawer_notes");
+  const drawerLeadNotes = document.getElementById("drawer_lead_notes");
+  const drawerHint = document.getElementById("drawerHint");
+  const tasksChecklist = document.getElementById("tasksChecklist");
+  const opsButtons = document.getElementById("opsButtons");
+  const salesChecklist = document.getElementById("salesChecklist");
+  const onboardingChecklist = document.getElementById("onboardingChecklist");
+  const onboardingButtons = document.getElementById("onboardingButtons");
+
+  const btnCloseDrawer = document.getElementById("btnCloseDrawer");
+  const btnOpenWizard = document.getElementById("btnOpenWizard");
+
+  // State
+  let allRows = [];
+  let activeStatus = null;
+  let statusOrder = [];
+  let activeRow = null;
+  let noteTimer = null;
+
+  const SALES_STAGES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
 
   function setBanner(msg){
-    if(!banner) return;
     if(!msg){ banner.textContent=""; banner.classList.remove("show"); return; }
     banner.textContent = msg;
     banner.classList.add("show");
   }
-
-  // Prevent the null addEventListener crash — and tell you exactly what's missing
-  const missing = [];
-  if(!statusStrip) missing.push("status-strip");
-  if(!tbody) missing.push("tbody");
-  if(!banner) missing.push("banner");
-  if(!search) missing.push("search");
-  if(!statusBar) missing.push("status-bar");
-  if(!btnRefresh) missing.push("btn-refresh");
-  if(!btnNew) missing.push("btn-new");
-  if(!btnClear) missing.push("btn-clear-filter");
-  if(!btnLogout) missing.push("btnLogout");
-
-  if(missing.length){
-    setBanner(
-      "Dashboard HTML is missing required elements (IDs):\n\n" +
-      missing.map(x => "• " + x).join("\n") +
-      "\n\nFix: make sure those IDs exist exactly, or paste this full file as-is."
-    );
-    // Stop boot so we don't crash
-    console.error("[TBP] Missing DOM IDs:", missing);
-  }
-
-  let allRows = [];
-  let activeStatus = null;
-
-  const SALES_STAGES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
 
   function escapeHtml(s){
     return String(s ?? "")
@@ -370,6 +544,32 @@
     return hay.includes(q.toLowerCase());
   }
 
+  async function loadDistinctStatuses(){
+    const { data, error } = await sb.from("customers").select("onboarding_status");
+    if(error) return null;
+    const set = new Set();
+    for(const r of (data||[])){
+      const s = (r.onboarding_status ?? "").toString().trim();
+      if(s) set.add(s);
+    }
+    return Array.from(set);
+  }
+
+  function computeStatusOrder(distinctFromDb){
+    const set = new Set(SALES_STAGES);
+    (distinctFromDb||[]).forEach(s=>set.add(s));
+    const all = Array.from(set);
+    all.sort((a,b)=>{
+      const ia = SALES_STAGES.indexOf(a);
+      const ib = SALES_STAGES.indexOf(b);
+      if(ia!==-1 && ib!==-1) return ia-ib;
+      if(ia!==-1) return -1;
+      if(ib!==-1) return 1;
+      return a.localeCompare(b);
+    });
+    return all;
+  }
+
   function computeCounts(){
     const counts = {};
     for(const r of allRows){
@@ -380,7 +580,6 @@
   }
 
   function buildStatusStrip(){
-    if(!statusStrip) return;
     const counts = computeCounts();
     statusStrip.innerHTML = "";
 
@@ -393,17 +592,307 @@
     };
 
     addChip("All", allRows.length, null);
+    statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
+  }
 
-    const extras = Array.from(new Set(allRows.map(r => salesStatus(r)))).filter(s => !SALES_STAGES.includes(s));
-    const order = [...SALES_STAGES, ...extras.sort((a,b)=>a.localeCompare(b))];
+  // OPS tasks (Wizard read-only)
+  function setupTasks(row){
+    return [
+      { key:"wizard",   label:"Wizard complete",    done: wizardIsComplete(row), readonly:true },
+      { key:"whatsapp", label:"WhatsApp connected", done: !!row?.whatsapp_connected, readonly:false },
+      { key:"calendar", label:"Calendar connected", done: !!row?.calendar_connected, readonly:false },
+      { key:"payments", label:"Payments connected", done: !!row?.payments_connected, readonly:false },
+    ];
+  }
 
-    order.forEach(s => addChip(s, counts[s] || 0, s));
+  function tasksDotsHTML(row){
+    const items = setupTasks(row);
+    const dots = items.map(i=>{
+      const cls = `dot ${i.done ? "done" : "need"} ${i.readonly ? "readonly" : ""}`;
+      const attrs = i.readonly ? "" : `data-task="${i.key}" data-id="${row.id}"`;
+      const hint = i.readonly ? "" : " — click to toggle";
+      return `<span class="${cls}" ${attrs} title="${escapeHtml(i.label)}${hint}"></span>`;
+    }).join("");
+
+    const doneCount = items.filter(i => i.done).length;
+    return `<span class="pipe">${dots}<span class="dot-label">${doneCount}/${items.length}</span></span>`;
+  }
+
+  function renderTasksChecklist(row){
+    const items = setupTasks(row);
+    tasksChecklist.innerHTML = items.map(i=>{
+      const badge = i.done ? "✓" : "";
+      const badgeCls = i.done ? "check-badge done" : "check-badge";
+      const state =
+        i.key === "wizard"
+          ? (i.done ? "Completed" : "Incomplete")
+          : (i.done ? "Completed" : "Click to toggle");
+      const cursor = i.key === "wizard" ? "cursor:default;" : "";
+      return `
+        <div class="check-item" data-task="${i.key}" style="${cursor}">
+          <div class="check-left">
+            <div class="${badgeCls}">${badge}</div>
+            <div class="check-name">${escapeHtml(i.label)}</div>
+          </div>
+          <div class="check-state">${escapeHtml(state)}</div>
+        </div>`;
+    }).join("");
+  }
+
+  function renderSalesChecklist(row){
+    const current = salesStatus(row);
+    salesChecklist.innerHTML = SALES_STAGES.map(stage=>{
+      const done = current === stage;
+      const badgeCls = done ? "check-badge done" : "check-badge";
+      const state = done ? "Current" : "Click to set";
+      return `
+        <div class="check-item" data-sales="${escapeHtml(stage)}">
+          <div class="check-left">
+            <div class="${badgeCls}">${done ? "✓" : ""}</div>
+            <div class="check-name">${escapeHtml(stage)}</div>
+          </div>
+          <div class="check-state">${state}</div>
+        </div>`;
+    }).join("");
+  }
+
+  function onboardingItems(row){
+    return [
+      { key:"demo_booked",    label:"Demo booked",       done: !!row?.demo_booked,    value: row?.demo_datetime ? fmtDate(row.demo_datetime) : "Click to set (opens calendar)" },
+      { key:"demo_completed", label:"Demo completed",    done: !!row?.demo_completed, value: row?.demo_completed ? "Completed" : "Click to mark" },
+      { key:"trial_active",   label:"Free trial active", done: !!row?.trial_active,   value: row?.trial_active ? (row?.trial_end ? ("Ends: " + fmtDate(row.trial_end)) : "Active") : "Click to start" },
+      { key:"is_live",        label:"Live",             done: !!row?.is_live,        value: row?.is_live ? (row?.go_live_date ? fmtDate(row.go_live_date) : "Live") : "Click to go live" },
+    ];
+  }
+
+  function renderOnboardingChecklist(row){
+    const items = onboardingItems(row);
+    onboardingChecklist.innerHTML = items.map(i=>{
+      const badge = i.done ? "✓" : "";
+      const badgeCls = i.done ? "check-badge done" : "check-badge";
+      return `
+        <div class="check-item" data-onb="${i.key}">
+          <div class="check-left">
+            <div class="${badgeCls}">${badge}</div>
+            <div class="check-name">${escapeHtml(i.label)}</div>
+          </div>
+          <div class="check-state">${escapeHtml(i.value)}</div>
+        </div>`;
+    }).join("");
+  }
+
+  async function updateCustomer(id, patch){
+    setBanner("");
+    const { data, error } = await sb.from("customers").update(patch).eq("id", id).select("*").single();
+    if(error){
+      console.error("UPDATE ERROR:", error);
+      setBanner("Save failed:\n\n" + (error.message || JSON.stringify(error)));
+      return null;
+    }
+    const idx = allRows.findIndex(r=>r.id===id);
+    if(idx !== -1) allRows[idx] = data;
+    if(activeRow && activeRow.id===id) activeRow = data;
+    return data;
+  }
+
+  async function doOnboardingAction(key){
+    if(!activeRow) return;
+
+    if(key === "demo_booked"){
+      try{ window.open(DEMO_CALENDAR_URL, "_blank", "noopener"); }catch{}
+      const ok = window.confirm("Calendar opened.\n\nOnce you’ve booked the demo, click OK to mark it as booked.\nClick Cancel if you haven’t booked yet.");
+      if(!ok) return;
+
+      const current = activeRow.demo_datetime
+        ? new Date(activeRow.demo_datetime).toISOString().slice(0,16)
+        : "";
+
+      const input = window.prompt(
+        "Optional: enter the demo date/time to store on the customer.\n\nFormat: 2025-12-20T19:30\nLeave blank if you don’t want to store a time.",
+        current
+      );
+      if(input === null) return;
+
+      let demoIso = null;
+      const trimmed = String(input).trim();
+      if(trimmed){
+        const parsed = new Date(trimmed);
+        if(Number.isNaN(parsed.getTime())){
+          setBanner("Invalid date/time.\nTry: 2025-12-20T19:30");
+          return;
+        }
+        demoIso = parsed.toISOString();
+      }
+
+      const patch = { demo_booked:true, demo_datetime:demoIso, onboarding_status:"Demo" };
+      const updated = await updateCustomer(activeRow.id, patch);
+      if(updated){ render(); openDrawer(updated); }
+      return;
+    }
+
+    if(key === "demo_completed"){
+      if(!window.confirm("Mark demo as completed?")) return;
+      const updated = await updateCustomer(activeRow.id, { demo_completed:true });
+      if(updated){ render(); openDrawer(updated); }
+      return;
+    }
+
+    if(key === "trial_active"){
+      const daysRaw = window.prompt("Free trial length in days? (default 7)", "7");
+      if(daysRaw === null) return;
+
+      const days = Math.max(1, Math.min(60, parseInt(daysRaw, 10) || 7));
+      const start = new Date();
+      const end = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
+
+      const patch = { trial_active:true, trial_start:start.toISOString(), trial_end:end.toISOString(), onboarding_status:"Free Trial" };
+      const updated = await updateCustomer(activeRow.id, patch);
+      if(updated){ render(); openDrawer(updated); }
+      return;
+    }
+
+    if(key === "is_live"){
+      if(!window.confirm("Go live now?\n\nThis marks the customer as Live.")) return;
+      const now = new Date();
+      const patch = { is_live:true, go_live_date:now.toISOString(), trial_active:false, onboarding_status:"Live" };
+      const updated = await updateCustomer(activeRow.id, patch);
+      if(updated){ render(); openDrawer(updated); }
+      return;
+    }
+  }
+
+  function renderOnboardingButtons(row){
+    onboardingButtons.innerHTML = "";
+
+    const mk = (label, cls, onClick) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = `btn ${cls || "btn-secondary"}`;
+      b.textContent = label;
+      b.addEventListener("click", (e)=>{ e.stopPropagation(); onClick(); });
+      onboardingButtons.appendChild(b);
+    };
+
+    mk("📅 Open demo calendar", "btn-primary", ()=>window.open(DEMO_CALENDAR_URL, "_blank", "noopener"));
+    mk(row.demo_booked ? "Update demo booked" : "Book demo (after calendar)", "btn-secondary", ()=>doOnboardingAction("demo_booked"));
+    mk(row.demo_completed ? "Demo completed ✅" : "Mark demo completed", row.demo_completed ? "btn-secondary" : "btn-primary", ()=>doOnboardingAction("demo_completed"));
+    mk(row.trial_active ? "Trial active ✅" : "Start free trial", row.trial_active ? "btn-secondary" : "btn-primary", ()=>doOnboardingAction("trial_active"));
+    mk(row.is_live ? "Live ✅" : "Go live", row.is_live ? "btn-secondary" : "btn-primary", ()=>doOnboardingAction("is_live"));
+
+    mk("Reset onboarding (careful)", "btn-danger", async ()=>{
+      if(!activeRow) return;
+      if(!window.confirm("Reset onboarding flags for this customer?\n\nThis will NOT delete the customer, but will clear demo/trial/live.")) return;
+
+      const patch = {
+        demo_booked:false, demo_datetime:null, demo_completed:false,
+        trial_active:false, trial_start:null, trial_end:null,
+        is_live:false, go_live_date:null,
+        onboarding_status:"In Setup"
+      };
+
+      const updated = await updateCustomer(activeRow.id, patch);
+      if(updated){ render(); openDrawer(updated); }
+    });
+  }
+
+  function renderOpsButtons(row){
+    opsButtons.innerHTML = "";
+    const mk = (label, onClick) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn btn-secondary";
+      b.textContent = label;
+      b.addEventListener("click", (e)=>{ e.stopPropagation(); onClick(); });
+      opsButtons.appendChild(b);
+    };
+
+    mk(row.whatsapp_connected ? "WhatsApp ✅ (toggle)" : "WhatsApp ❌ (toggle)", async ()=>{
+      const updated = await updateCustomer(row.id, { whatsapp_connected: !row.whatsapp_connected });
+      if(updated){ render(); openDrawer(updated); }
+    });
+
+    mk(row.calendar_connected ? "Calendar ✅ (toggle)" : "Calendar ❌ (toggle)", async ()=>{
+      const updated = await updateCustomer(row.id, { calendar_connected: !row.calendar_connected });
+      if(updated){ render(); openDrawer(updated); }
+    });
+
+    mk(row.payments_connected ? "Payments ✅ (toggle)" : "Payments ❌ (toggle)", async ()=>{
+      const updated = await updateCustomer(row.id, { payments_connected: !row.payments_connected });
+      if(updated){ render(); openDrawer(updated); }
+    });
+  }
+
+  function openDrawer(row){
+    activeRow = row;
+
+    drawerTitle.textContent = row.business_name || "Customer";
+    drawerSub.textContent = [
+      row.contact_name ? `Contact: ${row.contact_name}` : "",
+      row.base_postcode ? `Postcode: ${row.base_postcode}` : "",
+      row.id ? `ID: ${row.id}` : ""
+    ].filter(Boolean).join(" • ");
+
+    drawerBusiness.value = row.business_name || "";
+    drawerContact.value = row.contact_name || "";
+    drawerEmail.value = row.email || "";
+    drawerPhone.value = row.phone || "";
+    drawerNotes.value = row.notes || "";
+    drawerLeadNotes.value = row.lead_notes || "";
+
+    renderSalesChecklist(row);
+    renderOnboardingChecklist(row);
+    renderOnboardingButtons(row);
+    renderTasksChecklist(row);
+    renderOpsButtons(row);
+
+    drawerHint.textContent = "Autosaves";
+
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden","false");
+
+    drawerOverlay.classList.add("open");
+    drawerOverlay.setAttribute("aria-hidden","false");
+  }
+
+  function closeDrawer(){
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden","true");
+    drawerOverlay.classList.remove("open");
+    drawerOverlay.setAttribute("aria-hidden","true");
+    activeRow = null;
+  }
+
+  async function saveNotesNow(){
+    if(!activeRow) return;
+    drawerHint.textContent = "Saving…";
+    const id = activeRow.id;
+    const patch = { notes: drawerNotes.value, lead_notes: drawerLeadNotes.value };
+    const { error } = await sb.from("customers").update(patch).eq("id", id);
+    if(error){
+      console.error("NOTES SAVE ERROR:", error);
+      setBanner("Failed to save notes:\n\n" + (error.message || JSON.stringify(error)));
+      drawerHint.textContent = "Save failed";
+      return;
+    }
+    drawerHint.textContent = "Saved";
+    const idx = allRows.findIndex(r=>r.id===id);
+    if(idx !== -1){
+      allRows[idx].notes = patch.notes;
+      allRows[idx].lead_notes = patch.lead_notes;
+    }
+    activeRow.notes = patch.notes;
+    activeRow.lead_notes = patch.lead_notes;
+  }
+
+  function queueNotesSave(){
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(saveNotesNow, 450);
   }
 
   function render(){
     buildStatusStrip();
 
-    const q = (search?.value || "").trim();
+    const q = (search.value || "").trim();
     const rows = allRows
       .filter(r => (activeStatus ? salesStatus(r)===activeStatus : true))
       .filter(r => rowMatchesSearch(r,q))
@@ -413,20 +902,21 @@
         return tb - ta;
       });
 
-    if(!tbody) return;
     tbody.innerHTML = "";
 
     if(!rows.length){
-      tbody.innerHTML = `<tr><td colspan="8">No matches.</td></tr>`;
-      if(statusBar) statusBar.textContent = `0 shown • ${allRows.length} total`;
+      tbody.innerHTML = `<tr><td colspan="9">No matches.</td></tr>`;
+      statusBar.textContent = `0 shown • ${allRows.length} total`;
       return;
     }
 
     for(const r of rows){
       const tr = document.createElement("tr");
+      tr.dataset.id = r.id; // ✅ IMPORTANT: used by delegated click handler
       tr.innerHTML = `
         <td>${escapeHtml(salesStatus(r))}</td>
         <td>${wizardBadgeHTML(r)}</td>
+        <td>${tasksDotsHTML(r)}</td>
         <td>${escapeHtml(r.business_name || "—")}</td>
         <td>${escapeHtml(r.contact_name || "—")}</td>
         <td>${escapeHtml(r.email || "—")}</td>
@@ -434,80 +924,189 @@
         <td>${escapeHtml(r.base_postcode || "—")}</td>
         <td>${escapeHtml(fmtDate(r.updated_at || r.created_at))}</td>
       `;
-    tbody.addEventListener("click", (e) => {
-  const tr = e.target.closest("tr");
-  if (!tr) return;
-
-  // ignore clicks on buttons/links inside a row (if any)
-  if (e.target.closest("button,a,input,select,textarea,label")) return;
-
-  const id = tr.dataset.id;
-  if (!id) return;
-
-  const row = allRows.find(r => r.id === id);
-  if (!row) return;
-
-  openDrawer(row);
-});
-
-
-    if(statusBar){
-      statusBar.textContent =
-        `${rows.length} shown • ${allRows.length} total` +
-        (activeStatus ? ` • Stage: ${activeStatus}` : "");
+      tbody.appendChild(tr);
     }
+
+    statusBar.textContent =
+      `${rows.length} shown • ${allRows.length} total` +
+      (activeStatus ? ` • Stage: ${activeStatus}` : "");
   }
 
-  async function requireAuth(){
-    const { data, error } = await sb.auth.getSession();
+  async function loadCustomersAndStatuses(){
+    setBanner("");
+    statusBar.textContent = "Loading…";
+    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
+
+    const { data, error } = await sb.from("customers").select("*");
     if(error){
-      setBanner("Auth error:\n\n" + (error.message || JSON.stringify(error)));
+      console.error("LOAD ERROR:", error);
+      setBanner("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
+      allRows = [];
+      tbody.innerHTML = `<tr><td colspan="9">No data loaded.</td></tr>`;
+      statusBar.textContent = "Load failed.";
+      return;
+    }
+
+    allRows = Array.isArray(data) ? data : [];
+
+    const distinct = await loadDistinctStatuses();
+    statusOrder = computeStatusOrder(distinct);
+
+    render();
+  }
+
+  // ✅ AUTH + ADMIN CHECK
+  async function requireAdmin(){
+    const { data: sess } = await sb.auth.getSession();
+    const session = sess?.session;
+    if(!session){
+      window.location.href = "/login.html?next=" + encodeURIComponent("/dashboard-secure.html");
       return false;
     }
-    if(!data?.session){
-      window.location.href = "login.html";
+
+    const uid = session.user.id;
+    const { data, error } = await sb.from("admin_users").select("user_id").eq("user_id", uid).maybeSingle();
+
+    if(error){
+      console.error("admin_users check failed:", error);
+      setBanner("Admin check failed:\n\n" + (error.message || JSON.stringify(error)));
+      return false;
+    }
+
+    if(!data){
+      setBanner("Access denied.\n\nYour login is valid, but you are not on the admin_users allow-list.");
       return false;
     }
     return true;
   }
 
-  async function loadCustomers(){
-    setBanner("");
-    if(statusBar) statusBar.textContent = "Loading…";
-    if(tbody) tbody.innerHTML = `<tr><td colspan="8">Loading…</td></tr>`;
+  // Controls
+  btnRefresh.addEventListener("click", loadCustomersAndStatuses);
+  btnNew.addEventListener("click", (e)=>{ e.preventDefault(); window.open("app.html", "_blank", "noopener"); });
+  btnClear.addEventListener("click", ()=>{ activeStatus=null; search.value=""; render(); });
+  search.addEventListener("input", render);
 
-    const { data, error } = await sb.from("customers").select("*");
+  // ✅ Delegated row click (fixes “rows don’t click / drawer doesn’t open”)
+  tbody.addEventListener("click", (e) => {
+    const tr = e.target.closest("tr");
+    if(!tr) return;
+    if(e.target.closest("button,a,input,select,textarea,label")) return;
 
-    if(error){
-      console.error("LOAD ERROR:", error);
-      setBanner("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
-      allRows = [];
-      if(tbody) tbody.innerHTML = `<tr><td colspan="8">No data loaded.</td></tr>`;
-      if(statusBar) statusBar.textContent = "Load failed.";
-      return;
-    }
+    const id = tr.dataset.id;
+    if(!id) return;
 
-    allRows = Array.isArray(data) ? data : [];
-    render();
-  }
+    const row = allRows.find(r => r.id === id);
+    if(!row) return;
 
-  // Only attach listeners if elements exist (prevents your crash)
-  if(btnRefresh) btnRefresh.addEventListener("click", loadCustomers);
-  if(btnNew) btnNew.addEventListener("click", ()=>window.open("app.html", "_blank", "noopener"));
-  if(btnClear) btnClear.addEventListener("click", ()=>{ activeStatus=null; if(search) search.value=""; render(); });
-  if(search) search.addEventListener("input", render);
-
-  if(btnLogout) btnLogout.addEventListener("click", async ()=>{
-    await sb.auth.signOut();
-    window.location.href = "login.html";
+    openDrawer(row);
   });
 
-  // Boot
+  // Drawer autosave notes
+  drawerNotes.addEventListener("input", queueNotesSave);
+  drawerLeadNotes.addEventListener("input", queueNotesSave);
+
+  // Close drawer always works
+  btnCloseDrawer.addEventListener("click", (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    closeDrawer();
+  }, true);
+
+  drawerOverlay.addEventListener("click", (e)=>{
+    e.preventDefault();
+    closeDrawer();
+  });
+
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape" && drawer.classList.contains("open")){
+      closeDrawer();
+    }
+  });
+
+  // Open wizard (customer_id) — only when button clicked
+  btnOpenWizard.addEventListener("click", (e)=>{
+    e.stopPropagation();
+    if(!activeRow) return;
+    window.open(`app.html?customer_id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
+  });
+
+  // Sales checklist to set stage
+  document.addEventListener("click", async (e)=>{
+    const item = e.target.closest(".check-item[data-sales]");
+    if(!item || !activeRow) return;
+    e.stopPropagation();
+
+    const stage = item.dataset.sales;
+    if(salesStatus(activeRow) === stage) return;
+
+    const updated = await updateCustomer(activeRow.id, { onboarding_status: stage });
+    if(updated){ render(); openDrawer(updated); }
+  }, true);
+
+  // Onboarding checklist rows click = action
+  document.addEventListener("click", async (e)=>{
+    const item = e.target.closest(".check-item[data-onb]");
+    if(!item || !activeRow) return;
+    e.stopPropagation();
+    await doOnboardingAction(item.dataset.onb);
+  }, true);
+
+  // Toggle ops dots in table (Wizard ignored)
+  document.addEventListener("click", async (e)=>{
+    const dot = e.target.closest(".dot[data-task][data-id]");
+    if(!dot) return;
+
+    e.stopPropagation();
+
+    const id = dot.dataset.id;
+    const key = dot.dataset.task;
+    const row = allRows.find(r => r.id === id);
+    if(!row) return;
+
+    const patch = {};
+    if(key === "whatsapp") patch.whatsapp_connected = !row.whatsapp_connected;
+    if(key === "calendar") patch.calendar_connected = !row.calendar_connected;
+    if(key === "payments") patch.payments_connected = !row.payments_connected;
+
+    if(Object.keys(patch).length === 0) return;
+
+    const updated = await updateCustomer(id, patch);
+    if(updated){
+      render();
+      if(activeRow && activeRow.id === id) openDrawer(updated);
+    }
+  }, true);
+
+  // Toggle ops checklist in drawer (Wizard ignored)
+  document.addEventListener("click", async (e)=>{
+    const item = e.target.closest(".check-item[data-task]");
+    if(!item || !activeRow) return;
+
+    const key = item.dataset.task;
+    if(key === "wizard") return;
+
+    e.stopPropagation();
+
+    const patch = {};
+    if(key === "whatsapp") patch.whatsapp_connected = !activeRow.whatsapp_connected;
+    if(key === "calendar") patch.calendar_connected = !activeRow.calendar_connected;
+    if(key === "payments") patch.payments_connected = !activeRow.payments_connected;
+
+    const updated = await updateCustomer(activeRow.id, patch);
+    if(updated){ render(); openDrawer(updated); }
+  }, true);
+
+  // Logout
+  btnLogout.addEventListener("click", async ()=>{
+    try{ await sb.auth.signOut(); }catch{}
+    window.location.href = "/login.html?next=" + encodeURIComponent("/dashboard-secure.html");
+  });
+
+  // Init
   (async ()=>{
-    if(missing.length) return; // don’t boot if HTML is incomplete
-    const ok = await requireAuth();
+    const ok = await requireAdmin();
     if(!ok) return;
-    await loadCustomers();
+    await loadCustomersAndStatuses();
   })();
 </script>
 </body>
