@@ -1126,123 +1126,114 @@
    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   // =========================
-
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // --- Change these selectors ONLY if your IDs differ ---
-  const FORM_SELECTOR = "#signupForm";                 // your form id
-  const STATUS_SELECTOR = "#status";                   // optional status element
-  const SUBMIT_SELECTOR = "#continueBtn";              // optional submit button id
+  // ---- Match YOUR existing elements (no layout change) ----
+  const FORM_SELECTOR   = "#signupForm";        // your form
+  const WIZ_BTN_SELECTOR = "#continueBtn";      // your "Continue with the wizard" button OR link
+  const STATUS_SELECTOR = "#status";            // optional status element
+  // --------------------------------------------------------
 
-  const form = document.querySelector(FORM_SELECTOR) || document.querySelector("form");
+  const form = document.querySelector(FORM_SELECTOR);
+  const wizBtn = document.querySelector(WIZ_BTN_SELECTOR);
   const statusEl = document.querySelector(STATUS_SELECTOR);
-  const submitBtn =
-    document.querySelector(SUBMIT_SELECTOR) ||
-    form?.querySelector('button[type="submit"], input[type="submit"]');
 
-  function setStatus(html) {
-    if (statusEl) statusEl.innerHTML = html;
+  function setStatus(html){
+    if(statusEl) statusEl.innerHTML = html;
   }
-  function safe(v){ return String(v || "").trim(); }
-  function safeEmail(v){ return safe(v).toLowerCase(); }
+  const safe = (v) => String(v || "").trim();
+  const safeEmail = (v) => safe(v).toLowerCase();
 
-  // ✅ hard safety net: prevents URL pollution even if something goes wrong
-  form?.addEventListener("submit", (e) => e.preventDefault());
+  function buildWizardUrl(id){
+    // robust absolute URL
+    const u = new URL("app.html", window.location.origin);
+    u.searchParams.set("signup_id", id);
+    return u.toString();
+  }
 
-  if (!form) {
-    console.error("TradeBotPro: Signup form not found.");
-  } else {
+  async function saveToCustomersAndGo(){
+    // Pull values from whatever you already have
+    const payload = {
+      business_name: safe(document.querySelector("#business_name")?.value || document.querySelector('[name="business_name"]')?.value) || null,
+      contact_name: safe(document.querySelector("#contact_name")?.value || document.querySelector('[name="contact_name"]')?.value || document.querySelector("#owner_name")?.value || document.querySelector('[name="owner_name"]')?.value) || null,
+      email: safeEmail(document.querySelector("#email")?.value || document.querySelector('[name="email"]')?.value || document.querySelector('input[type="email"]')?.value),
+      phone: safe(document.querySelector("#phone")?.value || document.querySelector('[name="phone"]')?.value || document.querySelector("#whatsapp_number")?.value || document.querySelector('[name="whatsapp_number"]')?.value) || null,
+      whatsapp_number: safe(document.querySelector("#phone")?.value || document.querySelector('[name="phone"]')?.value || document.querySelector("#whatsapp_number")?.value || document.querySelector('[name="whatsapp_number"]')?.value) || null,
+      trade_type: safe(document.querySelector("#trade_type")?.value || document.querySelector('[name="trade_type"]')?.value) || null,
+      base_postcode: safe(document.querySelector("#base_postcode")?.value || document.querySelector('[name="base_postcode"]')?.value || document.querySelector("#postcode")?.value || document.querySelector('[name="postcode"]')?.value) || null,
+      wizard_complete: false,
+      is_admin: false
+    };
+
+    if(!payload.email || !payload.email.includes("@")){
+      setStatus(`<span style="color:#b3261e;font-weight:800">Please enter a valid email.</span>`);
+      return;
+    }
+
+    setStatus(`<span style="color:#6b7280">Saving…</span>`);
+
+    // ✅ Save and RETURN the row id
+    const { data, error } = await sb
+      .from("customers")
+      .upsert(payload, { onConflict: "email" })
+      .select("id,email")
+      .single();
+
+    console.log("Signup save result:", { data, error });
+
+    if(error) throw error;
+    if(!data?.id) throw new Error("Saved, but Supabase did not return an id.");
+
+    localStorage.setItem("tbp_last_signup_id", data.id);
+    localStorage.setItem("tbp_last_email", data.email);
+
+    const wizardUrl = buildWizardUrl(data.id);
+
+    // ✅ Make your existing wizard button/link point to the correct wizard URL
+    if (wizBtn) {
+      if (wizBtn.tagName.toLowerCase() === "a") {
+        wizBtn.setAttribute("href", wizardUrl);
+      } else {
+        wizBtn.onclick = () => window.location.href = wizardUrl;
+      }
+    }
+
+    setStatus(`<span style="color:#0f7b46;font-weight:800">Saved. Opening wizard…</span>`);
+
+    // ✅ Force navigation regardless of button type / other scripts
+    window.location.href = wizardUrl;
+  }
+
+  // 1) If you have a FORM, intercept submit and do save+redirect
+  if(form){
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-
-      // Grab values from your existing inputs by id/name (no layout changes)
-      const business_name =
-        document.querySelector("#business_name")?.value ??
-        document.querySelector('[name="business_name"]')?.value ?? "";
-
-      const contact_name =
-        document.querySelector("#contact_name")?.value ??
-        document.querySelector('[name="contact_name"]')?.value ??
-        document.querySelector("#owner_name")?.value ??
-        document.querySelector('[name="owner_name"]')?.value ?? "";
-
-      const email =
-        safeEmail(
-          document.querySelector("#email")?.value ??
-          document.querySelector('[name="email"]')?.value ??
-          document.querySelector('input[type="email"]')?.value ?? ""
-        );
-
-      const phone =
-        document.querySelector("#phone")?.value ??
-        document.querySelector('[name="phone"]')?.value ??
-        document.querySelector("#whatsapp_number")?.value ??
-        document.querySelector('[name="whatsapp_number"]')?.value ?? "";
-
-      const trade_type =
-        document.querySelector("#trade_type")?.value ??
-        document.querySelector('[name="trade_type"]')?.value ?? "";
-
-      const base_postcode =
-        document.querySelector("#base_postcode")?.value ??
-        document.querySelector('[name="base_postcode"]')?.value ??
-        document.querySelector("#postcode")?.value ??
-        document.querySelector('[name="postcode"]')?.value ?? "";
-
-      if (!email || !email.includes("@")) {
-        setStatus(`<span style="color:#b3261e;font-weight:800">Please enter a valid email.</span>`);
-        return;
-      }
-
-      const payload = {
-        business_name: safe(business_name) || null,
-        contact_name: safe(contact_name) || null,
-        email,
-        phone: safe(phone) || null,
-        whatsapp_number: safe(phone) || null,
-        trade_type: safe(trade_type) || null,
-        base_postcode: safe(base_postcode) || null,
-        wizard_complete: false,
-        is_admin: false
-      };
-
-      const originalBtnText = submitBtn?.textContent;
-
       try {
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          if (submitBtn.textContent) submitBtn.textContent = "Saving…";
-        }
-        setStatus(`<span style="color:#6b7280">Saving…</span>`);
-
-        // ✅ KEY: return the row id so we can open wizard
-        const { data, error } = await sb
-          .from("customers")
-          .upsert(payload, { onConflict: "email" })
-          .select("id,email")
-          .single();
-
-        console.log("Signup result:", { data, error });
-
-        if (error) throw error;
-        if (!data?.id) throw new Error("No customer id returned from Supabase.");
-
-        localStorage.setItem("tbp_last_signup_id", data.id);
-        localStorage.setItem("tbp_last_email", data.email);
-
-        setStatus(`<span style="color:#0f7b46;font-weight:800">Saved. Opening wizard…</span>`);
-
-        // ✅ Redirect with correct id
-        window.location.assign(`app.html?signup_id=${encodeURIComponent(data.id)}`);
-
+        // disable button if present
+        if (wizBtn && "disabled" in wizBtn) wizBtn.disabled = true;
+        await saveToCustomersAndGo();
       } catch (err) {
         console.error("Signup failed:", err);
         setStatus(`<span style="color:#b3261e;font-weight:800">Save failed:</span> ${err?.message || err}`);
       } finally {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          if (originalBtnText) submitBtn.textContent = originalBtnText;
-        }
+        if (wizBtn && "disabled" in wizBtn) wizBtn.disabled = false;
+      }
+    });
+  }
+
+  // 2) If your “Continue with wizard” is NOT submitting the form, handle its click too
+  if(wizBtn){
+    wizBtn.addEventListener("click", async (e) => {
+      // prevent any default navigation until we have the id
+      e.preventDefault();
+      try {
+        if ("disabled" in wizBtn) wizBtn.disabled = true;
+        await saveToCustomersAndGo();
+      } catch (err) {
+        console.error("Continue failed:", err);
+        setStatus(`<span style="color:#b3261e;font-weight:800">Could not continue:</span> ${err?.message || err}`);
+      } finally {
+        if ("disabled" in wizBtn) wizBtn.disabled = false;
       }
     });
   }
@@ -1251,6 +1242,7 @@
 
 </body>
 </html>
+
 
 
 
