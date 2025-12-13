@@ -1062,17 +1062,15 @@
 /* =========================================================
    TradeBotPro — Wizard (customers table only)
    Resume-from-saved-state + Lock/Unlock UX
-   Paste this WHOLE block from <script> downwards.
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// ---------- 0) CONFIG (REPLACE THESE) ----------
+// ---------- 0) CONFIG ----------
 const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-// customers table is the ONLY table used
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const TABLE = "customers";
 
 // ---------- 1) HELPERS ----------
@@ -1084,38 +1082,18 @@ function qp(name){
 }
 
 function showMsg(text, type="info"){
-  // Optional: If you already have UI for messages, hook it here.
-  // Fallback: simple console + alert on errors.
   console.log(`[${type}]`, text);
-  const box = $("#saveStatus") || $("#statusBox");
-  if(box){
-    box.textContent = text;
-    box.style.display = "block";
-    box.dataset.type = type;
-  } else if(type === "error"){
-    alert(text);
-  }
 }
 
 function getFormEl(){
-  // Your wizard form usually has an id; we try common ones first.
   return $("#setupForm") || $("#wizardForm") || $("form");
 }
 
-function escapeName(name){
-  // CSS.escape not supported in very old browsers; provide fallback.
-  try { return CSS.escape(name); } catch { return name.replace(/"/g, '\\"'); }
-}
-
 function setFieldValue(form, name, value){
-  const els = form.querySelectorAll(`[name="${escapeName(name)}"]`);
-  if(!els || els.length === 0) return;
-
+  const els = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
   els.forEach(el => {
     if(el.type === "checkbox"){
-      // Accept "1"/"0", true/false, "true"/"false"
-      const truthy = value === true || value === "true" || value === 1 || value === "1" || value === "on" || value === "yes";
-      el.checked = !!truthy;
+      el.checked = (value === true || value === "true" || value === 1 || value === "1" || value === "on");
     } else if(el.type === "radio"){
       el.checked = (String(el.value) === String(value));
     } else {
@@ -1128,39 +1106,16 @@ function snapshotForm(form){
   const fd = new FormData(form);
   const obj = {};
   for(const [k,v] of fd.entries()) obj[k] = v;
-
-  // Ensure unchecked checkboxes are captured
   form.querySelectorAll('input[type="checkbox"][name]').forEach(i => {
-    if(!Object.prototype.hasOwnProperty.call(obj, i.name)){
-      obj[i.name] = i.checked ? "1" : "0";
-    }
+    if(!(i.name in obj)) obj[i.name] = i.checked ? "1" : "0";
   });
-
   return obj;
 }
 
-function deepEqual(a,b){
-  return JSON.stringify(a) === JSON.stringify(b);
-}
+function deepEqual(a,b){ return JSON.stringify(a) === JSON.stringify(b); }
+function safeBool(v){ return v === true || v === "true" || v === 1 || v === "1"; }
 
-function normalizeToCustomerPayload(formObj){
-  // Keep this generic: we store whatever fields exist in the wizard
-  // plus required system fields.
-  const payload = { ...formObj };
-
-  // Normalise a few common fields if present
-  if(payload.phone && !payload.whatsapp_number) payload.whatsapp_number = payload.phone;
-
-  // Always keep these fields consistent:
-  // setup_complete, pending_setup, account_status, etc. are controlled below.
-  return payload;
-}
-
-function safeBool(v){
-  return v === true || v === "true" || v === 1 || v === "1";
-}
-
-// ---------- 2) LOCK / UNLOCK UX ----------
+// ---------- 2) LOCK / UNLOCK ----------
 let WIZARD_LOCKED = false;
 let ORIGINAL_FORM_SNAPSHOT = null;
 
@@ -1170,15 +1125,10 @@ function setWizardLocked(locked){
   const form = getFormEl();
   if(!form) return;
 
-  // Disable all controls except our edit buttons
-  const controls = form.querySelectorAll("input, select, textarea, button");
-  controls.forEach(el => {
+  form.querySelectorAll("input, select, textarea, button").forEach(el => {
     if (el.id === "btnUnlock" || el.id === "btnCancelEdits" || el.id === "btnRelock") return;
-    if (el.dataset && el.dataset.allowWhenLocked === "1") return; // opt-out per element if you need it
     el.disabled = locked;
   });
-
-  form.classList.toggle("is-locked", locked);
 
   const btnUnlock = $("#btnUnlock");
   const btnCancel = $("#btnCancelEdits");
@@ -1203,15 +1153,12 @@ function isFormDirty(){
 }
 
 function ensureEditButtonsExist(){
-  // If you already added these in HTML, this will just find them.
-  // If not, we inject them at the end of the form.
   const form = getFormEl();
   if(!form) return;
 
   if($("#btnUnlock") && $("#btnCancelEdits") && $("#btnRelock")) return;
 
   const wrap = document.createElement("div");
-  wrap.className = "wizard-edit-controls";
   wrap.style.display = "flex";
   wrap.style.gap = "10px";
   wrap.style.flexWrap = "wrap";
@@ -1230,82 +1177,24 @@ function wireEditButtons(){
   const form = getFormEl();
   if(!form) return;
 
-  const btnUnlock = $("#btnUnlock");
-  const btnCancel = $("#btnCancelEdits");
-  const btnRelock  = $("#btnRelock");
+  $("#btnUnlock")?.addEventListener("click", () => {
+    if(!confirm("Unlock this setup to make changes?")) return;
+    setWizardLocked(false);
+  });
 
-  if(btnUnlock){
-    btnUnlock.addEventListener("click", () => {
-      const ok = confirm("Unlock this setup to make changes? You can re-lock after saving.");
-      if(!ok) return;
-      setWizardLocked(false);
-      if(btnCancel) btnCancel.style.display = "inline-flex";
-      if(btnRelock)  btnRelock.style.display  = "inline-flex";
-    });
-  }
+  $("#btnCancelEdits")?.addEventListener("click", () => {
+    if(!ORIGINAL_FORM_SNAPSHOT) return setWizardLocked(true);
+    Object.entries(ORIGINAL_FORM_SNAPSHOT).forEach(([name,val]) => setFieldValue(form, name, val));
+    setWizardLocked(true);
+  });
 
-  if(btnCancel){
-    btnCancel.addEventListener("click", () => {
-      if(!ORIGINAL_FORM_SNAPSHOT){
-        setWizardLocked(true);
-        return;
-      }
-
-      Object.entries(ORIGINAL_FORM_SNAPSHOT).forEach(([name,val]) => {
-        setFieldValue(form, name, val);
-      });
-
-      setWizardLocked(true);
-      showMsg("Edits cancelled. Wizard re-locked.", "info");
-    });
-  }
-
-  if(btnRelock){
-    btnRelock.addEventListener("click", () => {
-      if(isFormDirty()){
-        const ok = confirm("You have unsaved changes. Re-lock anyway and discard edits?");
-        if(!ok) return;
-      }
-      setWizardLocked(true);
-      showMsg("Wizard locked.", "info");
-    });
-  }
+  $("#btnRelock")?.addEventListener("click", () => {
+    if(isFormDirty() && !confirm("You have unsaved changes. Re-lock anyway?")) return;
+    setWizardLocked(true);
+  });
 }
 
-// ---------- 3) WIZARD STATE / STEPS (optional but safe) ----------
-function setResumeUI(row){
-  // If you have a setup-complete panel, toggle it here.
-  // We try a few common ids/classes without changing your layout.
-  const completePanel =
-    $("#setupCompletePanel") ||
-    $("#wizardCompletePanel") ||
-    $(".setup-complete") ||
-    $(".wizard-complete");
-
-  const wizardPanel =
-    $("#wizardPanel") ||
-    $("#wizardBox") ||
-    $(".wizard-panel") ||
-    $("#setupWizardBox");
-
-  const isComplete = safeBool(row?.setup_complete);
-
-  if(completePanel){
-    completePanel.style.display = isComplete ? "block" : "none";
-  }
-  if(wizardPanel){
-    // If you want the wizard hidden when complete, uncomment:
-    // wizardPanel.style.display = isComplete ? "none" : "block";
-  }
-
-  // If you have a "What happens next" text container:
-  const nextBox = $("#whatHappensNext") || $("#nextStepsBox");
-  if(nextBox && isComplete){
-    nextBox.style.display = "block";
-  }
-}
-
-// ---------- 4) DATA LOAD / PREFILL ----------
+// ---------- 3) LOAD / PREFILL ----------
 let CURRENT_CUSTOMER_ID = null;
 let CURRENT_ROW = null;
 
@@ -1324,7 +1213,6 @@ function prefillFormFromRow(row){
   const form = getFormEl();
   if(!form || !row) return;
 
-  // For every form field that exists, set from row if present.
   const names = new Set();
   form.querySelectorAll("[name]").forEach(el => names.add(el.name));
 
@@ -1345,8 +1233,7 @@ async function initWizard(){
     return;
   }
 
-  // Accept customer_id as primary
-  const customer_id = qp("customer_id") || qp("user_id") || qp("signup_id"); // fallback for your older links
+  const customer_id = qp("customer_id");
   if(!customer_id){
     showMsg("Missing customer_id in URL. Use: app.html?customer_id=UUID", "error");
     return;
@@ -1362,91 +1249,51 @@ async function initWizard(){
     }
 
     CURRENT_ROW = row;
-
-    // Prefill
     prefillFormFromRow(row);
-
-    // UI state
-    setResumeUI(row);
-
-    // Snapshot for dirty tracking
     markOriginalSnapshot();
 
-    // Lock if setup complete
     if(safeBool(row.setup_complete)){
       setWizardLocked(true);
-      showMsg("Setup complete — your answers are locked. Click 'Unlock to edit' to make changes.", "info");
+      showMsg("Setup complete — locked.", "info");
     } else {
       setWizardLocked(false);
-      showMsg("Resumed your setup — continue where you left off.", "info");
+      showMsg("Resumed — editable.", "info");
     }
-
   }catch(err){
     console.error("Init wizard load error:", err);
-    showMsg("Failed to load your saved setup. Check console for details.", "error");
+    showMsg("Failed to load saved setup. See console.", "error");
   }
 
-  // Save handler (works with any existing Save button OR form submit)
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     await saveWizard();
   });
-
-  // If you have a dedicated save button id, wire it too
-  const saveBtn = $("#btnSave") || $("#saveBtn") || $("#saveProfile");
-  if(saveBtn){
-    saveBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      await saveWizard();
-    });
-  }
 }
 
-// ---------- 5) SAVE (UPDATE SAME CUSTOMER ROW) ----------
+// ---------- 4) SAVE ----------
 async function saveWizard(){
   const form = getFormEl();
   if(!form) return;
 
-  // If locked, block saving
   if(WIZARD_LOCKED){
-    showMsg("Wizard is locked. Click 'Unlock to edit' first.", "error");
+    showMsg("Wizard is locked. Unlock to edit first.", "error");
     return;
   }
 
   if(!CURRENT_CUSTOMER_ID){
-    showMsg("No customer_id found — cannot save.", "error");
+    showMsg("No customer_id — cannot save.", "error");
     return;
   }
 
-  // Skip save if no changes
   if(!isFormDirty()){
     showMsg("No changes to save.", "info");
     return;
   }
 
-  const raw = snapshotForm(form);
-  const payload = normalizeToCustomerPayload(raw);
-
-  // System fields (customers table only)
-  payload.id = CURRENT_CUSTOMER_ID;
+  const payload = snapshotForm(form);
   payload.updated_at = new Date().toISOString();
 
-  // Decide completion: if you already have your own complete logic,
-  // keep it. Otherwise, we infer "complete" if a few core fields exist.
-  const hasBusiness = !!(payload.business_name || CURRENT_ROW?.business_name);
-  const hasEmail = !!(payload.email || CURRENT_ROW?.email);
-  const hasTrade = !!(payload.trade_type || CURRENT_ROW?.trade_type);
-  const inferredComplete = hasBusiness && hasEmail && hasTrade;
-
-  // Only set setup_complete true if inferred (or if it was already true)
-  payload.setup_complete = safeBool(CURRENT_ROW?.setup_complete) ? true : inferredComplete;
-  payload.pending_setup = payload.setup_complete ? false : true;
-  if(payload.setup_complete && !CURRENT_ROW?.setup_completed_at){
-    payload.setup_completed_at = new Date().toISOString();
-  }
-
   try{
-    // Update existing row
     const { data, error } = await sb
       .from(TABLE)
       .update(payload)
@@ -1457,30 +1304,22 @@ async function saveWizard(){
     if(error) throw error;
 
     CURRENT_ROW = data || { ...CURRENT_ROW, ...payload };
-
     markOriginalSnapshot();
-    setResumeUI(CURRENT_ROW);
 
     showMsg("Saved successfully.", "success");
 
-    // If now complete, lock it
     if(safeBool(CURRENT_ROW.setup_complete)){
       setWizardLocked(true);
-      showMsg("Setup complete — your answers are now locked.", "success");
+      showMsg("Setup complete — locked.", "success");
     }
-
   }catch(err){
     console.error("Save profile error:", err);
     showMsg("There was a problem saving your form. Please try again.", "error");
   }
 }
 
-// ---------- 6) START ----------
 document.addEventListener("DOMContentLoaded", initWizard);
-
 </script>
-
-
 
 </body>
 </html>
