@@ -128,7 +128,7 @@
     statusEl.className = "status" + (type ? (" " + type) : "");
   }
   function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, c => ({
+    return String(s ?? "").replace(/[&<>"']/g, c => ({
       "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
     }[c]));
   }
@@ -141,24 +141,20 @@
   // Require login
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
-    // If they came here without a session, send to login
-    const params = new URLSearchParams(location.search);
-    const token = (params.get("token") || "").trim();
-    window.location.href = `/login.html${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+    window.location.href = "/login.html";
     return;
   }
 
-  // If token is present, claim/link the customer row securely
+  // Optional: invite token claim (only if you actually created claim_customer RPC)
   const params = new URLSearchParams(location.search);
   const token = (params.get("token") || "").trim();
 
   if (token) {
     try {
       setStatus("Linking your account…");
-      const { data, error } = await sb.rpc("claim_customer", { p_invite_token: token });
+      const { error } = await sb.rpc("claim_customer", { p_invite_token: token });
       if (error) throw error;
       setStatus("Account linked ✅", "success");
-      // clean URL (remove token)
       window.history.replaceState({}, "", "/client-dashboard.html");
     } catch (e) {
       console.error(e);
@@ -166,12 +162,13 @@
     }
   }
 
-  // Now load the customer row securely by user_id = auth.uid()
+  // Load customer row linked to this auth user
   setStatus("Loading…");
+
   const { data: customer, error } = await sb
     .from("customers")
-    .select("business_name, contact_name, email, phone, whatsapp_number, main_trade, base_postcode, onboarding_status, wizard_completed, wizard_locked, setup_complete, demo_booked, trial_active, is_live")
-    .eq("user_id", session.user.id)
+    .select("id, business_name, contact_name, email, phone, whatsapp_number, main_trade, base_postcode, onboarding_status, wizard_completed, wizard_locked, setup_complete, demo_booked, trial_active, is_live")
+    .eq("auth_user_id", session.user.id)
     .single();
 
   if (error || !customer) {
@@ -206,8 +203,8 @@
       badge("Live", !!customer.is_live),
     ].join("");
 
-    // Wizard link (no customer_id needed for security; login controls access)
-    btnWizard.href = "/app.html";
+    // IMPORTANT: wizard needs customer_id to save
+    btnWizard.href = `/app.html?customer_id=${encodeURIComponent(customer.id)}`;
     setStatus("");
   }
 
