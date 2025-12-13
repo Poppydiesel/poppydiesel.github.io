@@ -214,9 +214,7 @@
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ✅ Admin allowlist: only these emails can see this dashboard
-    const ADMIN_EMAILS = [
-      "PASTE_YOUR_ADMIN_EMAIL_HERE"
-      // e.g. "hello@tradebotpro.co.uk"
+    const ADMIN_EMAILS = "hello@tradebotpro.co.uk"
     ];
 
     const whoami = document.getElementById("whoami");
