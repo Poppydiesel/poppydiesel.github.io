@@ -1067,7 +1067,7 @@
 </div>
 <script type="module">
 /* =========================================================
-   TradeBotPro Wizard — FINAL AUTO-LOCK VERSION
+   TradeBotPro Wizard — AUTO-LOCK + COMPLETED BADGE
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1078,18 +1078,6 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const TABLE = "customers";
 
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-/* ================= COLUMN WHITELIST ================= */
-const CUSTOMER_COLUMNS = [
-  "business_name","contact_name","owner_name","email","phone","whatsapp_number",
-  "base_postcode","review_link","ai_avoid","extra_notes",
-
-  "main_trade","business_stage","coverage_radius","callout_style","callout_band",
-  "preferred_jobs","tone_of_voice","channels","review_platforms","review_push_level",
-  "demo_style","demo_slot","golive_timing",
-
-  "setup_complete","pending_setup","setup_completed_at","updated_at"
-];
 
 /* ================= HELPERS ================= */
 const $ = (s, r=document) => r.querySelector(s);
@@ -1109,12 +1097,39 @@ function status(msg, type="info"){
   console.log(`[Wizard:${type}]`, msg);
 }
 
+/* ================= COMPLETED BADGE ================= */
+function injectCompletedBadge(){
+  if($("#wizard-complete-badge")) return;
+
+  const badge = document.createElement("div");
+  badge.id = "wizard-complete-badge";
+  badge.className = "wizard-complete-badge hidden";
+  badge.textContent = "🔒 Completed";
+
+  // Place it top-right in the right panel header
+  const header = $(".wizard-right-header");
+  if(header){
+    header.style.position = "relative";
+    badge.style.position = "absolute";
+    badge.style.top = "0";
+    badge.style.right = "0";
+    header.appendChild(badge);
+  }
+}
+
+function showCompletedBadge(){
+  $("#wizard-complete-badge")?.classList.remove("hidden");
+}
+
+function hideCompletedBadge(){
+  $("#wizard-complete-badge")?.classList.add("hidden");
+}
+
 /* ================= CHIP HANDLING ================= */
 function initChips(){
   $$(".chip-row[data-field]", root()).forEach(row=>{
     const field = row.dataset.field;
     if($(`input[name="${esc(field)}"]`, root())) return;
-
     const h = document.createElement("input");
     h.type = "hidden";
     h.name = field;
@@ -1172,6 +1187,9 @@ function lockWizard(on){
   $("#btn-unlock")?.style.setProperty("display", on ? "inline-flex" : "none");
   $("#btn-cancel")?.style.setProperty("display", on ? "none" : "inline-flex");
   $("#btn-relock")?.style.setProperty("display", on ? "none" : "inline-flex");
+
+  if(on) showCompletedBadge();
+  else hideCompletedBadge();
 }
 
 function injectLockControls(){
@@ -1234,7 +1252,6 @@ async function save(){
     now.whatsapp_number = now.phone;
   }
 
-  // ✅ COMPLETION RULE
   const complete = !!(now.business_name && now.email && now.main_trade);
 
   now.setup_complete = complete;
@@ -1244,14 +1261,10 @@ async function save(){
     now.setup_completed_at = new Date().toISOString();
   }
 
-  const payload = Object.fromEntries(
-    Object.entries(now).filter(([k]) => CUSTOMER_COLUMNS.includes(k))
-  );
-
   try{
     const { error } = await sb
       .from(TABLE)
-      .update(payload)
+      .update(now)
       .eq("id", CUSTOMER_ID);
 
     if(error) throw error;
@@ -1279,6 +1292,7 @@ async function init(){
     return;
   }
 
+  injectCompletedBadge();
   initChips();
   injectLockControls();
 
@@ -1315,7 +1329,7 @@ async function init(){
   });
 
   $("#btn-next")?.addEventListener("click", ()=>{
-    save(); // silent autosave
+    save();
   });
 }
 
@@ -1323,6 +1337,7 @@ document.addEventListener("DOMContentLoaded", init);
 </script>
 </body>
 </html>
+
 
 
 
