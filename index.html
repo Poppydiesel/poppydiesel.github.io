@@ -1119,141 +1119,195 @@
   </footer>
 </div>
 
-<!-- SUPABASE JS (via CDN) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+  // =========================
+  // CONFIG — SET THESE
+  // =========================
+   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
+  // =========================
+  // HELPERS (do not affect layout)
+  // =========================
+  const $ = (sel) => document.querySelector(sel);
 
-  // Supabase client (UMD build uses supabase.createClient)
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  const form = document.getElementById("tradebotpro-signup-form");
-  const statusEl = document.getElementById("signup-status");
-  const btn = document.getElementById("signup-submit-btn");
-
-  const postActions = document.getElementById("post-signup-actions");
-  const continueBtn = document.getElementById("continue-to-wizard-btn");
-  const finishLaterBtn = document.getElementById("finish-later-btn");
-  const defaultNote = document.getElementById("signup-note-default");
-
-  if (!form || !statusEl || !btn) {
-    console.error("Signup form elements not found. Check IDs in HTML.");
-    return;
+  function firstValue(selectors) {
+    for (const sel of selectors) {
+      const el = $(sel);
+      if (!el) continue;
+      const v = (el.value ?? "").toString().trim();
+      if (v) return v;
+    }
+    return "";
   }
 
-  let submitting = false;
-  let createdCustomerId = null;
-
-  const val = (v) => (v ?? "").toString().trim();
-
-  function setStatus(msg, type) {
-    statusEl.textContent = msg || "";
-    statusEl.className = "signup-status" + (type ? ` ${type}` : "");
+  function setTextMaybe(selectors, html) {
+    for (const sel of selectors) {
+      const el = $(sel);
+      if (!el) continue;
+      el.innerHTML = html;
+      return true;
+    }
+    return false;
   }
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (submitting) return;
+  // Try to find your existing form and buttons without you renaming anything
+  const signupForm =
+    $("#signupForm") ||
+    $("#leadForm") ||
+    $("#signup-form") ||
+    document.querySelector("form");
 
-    const contact_name = val(form.contact_name.value);
-    const business_name = val(form.business_name.value);
-    const email = val(form.email.value);
-    const whatsapp_number = val(form.whatsapp_number.value);
-    const trade_type = val(form.trade_type.value);
-    const base_postcode = val(form.base_postcode.value);
-    const lead_source_detail = val(form.referrer.value);
-    const agreed = !!form.agree.checked;
+  // Optional: status message element (won't break if you don't have one)
+  const statusSelectors = [
+    "#status",
+    "#formStatus",
+    ".form-status",
+    "[data-status]",
+  ];
 
-    // Guardrails (no empty inserts)
-    if (!contact_name || !business_name) {
-      setStatus("Please enter contact name and business name.", "signup-status--error");
-      return;
-    }
-    if (!email && !whatsapp_number) {
-      setStatus("Please enter an email or a mobile/WhatsApp number.", "signup-status--error");
-      return;
-    }
-    if (!trade_type || !base_postcode) {
-      setStatus("Please select trade type and enter your main service area.", "signup-status--error");
-      return;
-    }
-    if (!agreed) {
-      setStatus("Please tick the Terms & Conditions checkbox to continue.", "signup-status--error");
-      return;
-    }
+  // Optional: button (we disable it while saving)
+  const continueBtn =
+    $("#continueBtn") ||
+    $("#continueWizardBtn") ||
+    $("#submitBtn") ||
+    signupForm?.querySelector('button[type="submit"], input[type="submit"]');
 
-    // Prevent double inserts
-    submitting = true;
-    btn.disabled = true;
-    setStatus("Saving…", "");
+  function setStatusOk(msg) {
+    setTextMaybe(statusSelectors, `<span style="color:#0f7b46;font-weight:800">${msg}</span>`);
+  }
+  function setStatusErr(msg) {
+    setTextMaybe(statusSelectors, `<span style="color:#b3261e;font-weight:800">${msg}</span>`);
+  }
+  function setStatusMuted(msg) {
+    setTextMaybe(statusSelectors, `<span style="color:#6b7280">${msg}</span>`);
+  }
 
-    try {
-      // Minimal homepage payload → customers table (NO plans, NO wizard answers)
+  // =========================
+  // MAIN HANDLER (this is the fix)
+  // =========================
+  if (!signupForm) {
+    console.warn("TradeBotPro: Could not find a signup form on this page.");
+  } else {
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // Pull values from whatever IDs/names you already use (no layout change)
+      const business_name = firstValue([
+        "#business_name",
+        "#businessName",
+        'input[name="business_name"]',
+        'input[name="businessName"]',
+      ]);
+
+      const contact_name = firstValue([
+        "#contact_name",
+        "#contactName",
+        "#owner_name",
+        "#ownerName",
+        'input[name="contact_name"]',
+        'input[name="contactName"]',
+        'input[name="owner_name"]',
+        'input[name="ownerName"]',
+      ]);
+
+      const emailRaw = firstValue([
+        "#email",
+        "#Email",
+        'input[type="email"]',
+        'input[name="email"]',
+      ]);
+      const email = (emailRaw || "").trim().toLowerCase();
+
+      const phone = firstValue([
+        "#phone",
+        "#mobile",
+        "#whatsapp_number",
+        "#whatsapp",
+        'input[name="phone"]',
+        'input[name="mobile"]',
+        'input[name="whatsapp_number"]',
+      ]);
+
+      const trade_type = firstValue([
+        "#trade_type",
+        "#tradeType",
+        'select[name="trade_type"]',
+        'select[name="tradeType"]',
+      ]);
+
+      const base_postcode = firstValue([
+        "#base_postcode",
+        "#postcode",
+        "#postCode",
+        'input[name="base_postcode"]',
+        'input[name="postcode"]',
+      ]);
+
+      if (!email || !email.includes("@")) {
+        setStatusErr("Please enter a valid email address.");
+        return;
+      }
+
+      // Build payload for your single-table Customers architecture
       const payload = {
-        lead_source: "TradeBotPro Website",
-        lead_source_detail: lead_source_detail || null,
-        onboarding_status: "New Signup",
+        business_name: business_name || null,
+        contact_name: contact_name || null,
+        owner_name: null,                 // keep null unless you store it separately
+        email,
+        phone: phone || null,
+        whatsapp_number: phone || null,
+        trade_type: trade_type || null,
+        base_postcode: base_postcode || null,
 
-        business_name,
-        contact_name,
-        email: email || null,
-        whatsapp_number: whatsapp_number || null,
-        trade_type,
-        base_postcode,
-
-        pending_setup: true,
-        wizard_completed: false,
-        wizard_locked: false,
-        account_status: "Active"
+        // keep predictable defaults
+        wizard_complete: false,
+        is_admin: false
       };
 
-      const { data, error } = await sb
-        .from("customers")
-        .insert([payload])
-        .select("id")
-        .single();
+      try {
+        if (continueBtn) {
+          continueBtn.disabled = true;
+          if ("textContent" in continueBtn) continueBtn.textContent = "Saving…";
+        }
+        setStatusMuted("Saving your details…");
 
-      if (error) throw error;
+        // ✅ KEY FIX: upsert + return the row so we get the ID
+        const { data, error } = await sb
+          .from("customers")
+          .upsert(payload, { onConflict: "email" })
+          .select("id,email")
+          .single();
 
-      createdCustomerId = data.id;
+        if (error) throw error;
+        if (!data?.id) throw new Error("No customer id returned from Supabase.");
 
-      // Hide submit to stop phantom repeat clicks
-      btn.style.display = "none";
-      if (defaultNote) defaultNote.style.display = "none";
+        // backup (helps if someone opens wizard without a querystring)
+        localStorage.setItem("tbp_last_signup_id", data.id);
+        localStorage.setItem("tbp_last_email", data.email);
 
-      setStatus("Saved. Want to continue into the setup wizard now?", "signup-status--success");
-      if (postActions) postActions.style.display = "block";
+        setStatusOk("Saved. Opening the setup wizard…");
 
-    } catch (err) {
-      console.error("Signup insert failed:", err);
-      setStatus("Couldn’t save your details. Please try again.", "signup-status--error");
-      btn.disabled = false;
-      btn.style.display = "";
-    } finally {
-      submitting = false;
-    }
-  });
-
-  continueBtn?.addEventListener("click", () => {
-    if (!createdCustomerId) return;
-    window.location.href = `/app.html?customer_id=${createdCustomerId}`;
-  });
-
-  finishLaterBtn?.addEventListener("click", () => {
-    setStatus("No problem — we’ll be in touch to arrange your demo.", "signup-status--success");
-    if (postActions) postActions.style.display = "none";
-  });
-
-  // Footer year
-  const year = document.getElementById("year");
-  if (year) year.textContent = new Date().getFullYear();
-});
+        // ✅ THIS is what makes the wizard load the same row
+        window.location.href = `app.html?signup_id=${encodeURIComponent(data.id)}`;
+      } catch (err) {
+        console.error("TradeBotPro signup error:", err);
+        setStatusErr(err?.message || String(err));
+      } finally {
+        if (continueBtn) {
+          continueBtn.disabled = false;
+          // don’t force a label if you used a custom one
+        }
+      }
+    });
+  }
 </script>
+
 
 </body>
 </html>
+
 
