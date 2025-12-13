@@ -1067,8 +1067,7 @@
 </div>
 <script type="module">
 /* =========================================================
-   TradeBotPro Wizard — FINAL FIX
-   Next step navigation restored + unlock-safe
+   TradeBotPro Wizard — FINAL, DOM-DRIVEN STEP NAVIGATION
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1084,8 +1083,6 @@ let CUSTOMER_ID = null;
 let LOCKED = false;
 let UNLOCKED_EDIT_MODE = false;
 let ORIGINAL = null;
-let CURRENT_STEP = 1;
-const TOTAL_STEPS = 4;
 
 /* ================= HELPERS ================= */
 const $ = (s, r=document) => r.querySelector(s);
@@ -1103,139 +1100,97 @@ function status(msg, type="info"){
   }
 }
 
-/* ================= STEP NAVIGATION ================= */
+/* ================= STEP NAV (DOM DRIVEN) ================= */
+function getActiveStepPanel(){
+  return $(".step-panel.is-active");
+}
+
+function getStepByNumber(n){
+  return $(`.step-panel[data-step="${n}"]`);
+}
+
+function getActiveStepNumber(){
+  const p = getActiveStepPanel();
+  return p ? Number(p.dataset.step) : 1;
+}
+
 function showStep(step){
-  CURRENT_STEP = Math.max(1, Math.min(TOTAL_STEPS, step));
+  const current = getActiveStepPanel();
+  const next = getStepByNumber(step);
+  if(!next) return;
 
-  $$(".step-panel").forEach(p => p.classList.remove("is-active"));
-  $(`.step-panel[data-step="${CURRENT_STEP}"]`)?.classList.add("is-active");
+  current?.classList.remove("is-active");
+  next.classList.add("is-active");
 
+  // dots
   $$(".step-dot").forEach(dot=>{
-    dot.classList.toggle("is-active", Number(dot.dataset.stepDot) === CURRENT_STEP);
+    dot.classList.toggle(
+      "is-active",
+      Number(dot.dataset.stepDot) === step
+    );
   });
 
-  $("#wizard-step-label").textContent = `Step ${CURRENT_STEP}`;
+  // header + footer
+  $("#wizard-step-label").textContent = `Step ${step}`;
   $("#wizard-footer-text").innerHTML =
-    `Step <strong>${CURRENT_STEP}</strong> of <strong>${TOTAL_STEPS}</strong>.`;
+    `Step <strong>${step}</strong> of <strong>4</strong>.`;
 
-  $("#btn-back").disabled = CURRENT_STEP === 1;
-  $("#btn-next").textContent =
-    CURRENT_STEP === TOTAL_STEPS ? "Finish →" : "Next step →";
+  $("#btn-back").disabled = step === 1;
+  $("#btn-next").textContent = step === 4 ? "Finish →" : "Next step →";
 }
 
 function nextStep(){
-  if(CURRENT_STEP < TOTAL_STEPS){
-    showStep(CURRENT_STEP + 1);
-  }
+  const step = getActiveStepNumber();
+  if(step < 4) showStep(step + 1);
 }
 
 function prevStep(){
-  if(CURRENT_STEP > 1){
-    showStep(CURRENT_STEP - 1);
+  const step = getActiveStepNumber();
+  if(step > 1) showStep(step - 1);
+}
+
+/* ================= SAVE ================= */
+async function save(){
+  if(LOCKED) return;
+
+  const now = {};
+  $$("input[name],textarea[name],select[name]", root()).forEach(el=>{
+    now[el.name] = el.value ?? "";
+  });
+  $$('input[type="hidden"][name]', root()).forEach(el=>{
+    now[el.name] = el.value ?? "";
+  });
+
+  if(now.phone && !now.whatsapp_number){
+    now.whatsapp_number = now.phone;
   }
-}
 
-/* ================= SAVE BUTTON ================= */
-function saveBtn(){ return $("#btn-save-draft"); }
+  const complete = !!(now.business_name && now.email && now.main_trade);
 
-function setSaveState(state){
-  const b = saveBtn();
-  if(!b) return;
-
-  b.classList.remove("btn-saving","btn-saved");
-
-  if(state === "saving"){
-    b.textContent = "Saving…";
-    b.classList.add("btn-saving");
-    b.disabled = true;
-  } else if(state === "saved"){
-    b.textContent = "Saved ✓";
-    b.classList.add("btn-saved");
-    b.disabled = true;
-    setTimeout(()=>{
-      b.textContent = "Save";
-      b.classList.remove("btn-saved");
-      b.disabled = false;
-    },1200);
-  } else {
-    b.textContent = "Save";
-    b.disabled = false;
+  now.setup_complete = complete;
+  now.pending_setup = !complete;
+  now.updated_at = new Date().toISOString();
+  if(complete && !now.setup_completed_at){
+    now.setup_completed_at = new Date().toISOString();
   }
-}
 
-function hideSaveButton(hide){
-  const b = saveBtn();
-  if(b) b.style.display = hide ? "none" : "";
-}
+  const { error } = await sb
+    .from(TABLE)
+    .update(now)
+    .eq("id", CUSTOMER_ID);
 
-/* ================= CHIPS ================= */
-function ensureChipInputs(){
-  $$(".chip-row[data-field]", root()).forEach(row=>{
-    const field = row.dataset.field;
-    if($(`input[type="hidden"][name="${esc(field)}"]`, root())) return;
-    const h = document.createElement("input");
-    h.type = "hidden";
-    h.name = field;
-    row.after(h);
-  });
-}
+  if(error){
+    status(`Save failed: ${error.message}`, "error");
+    return;
+  }
 
-function wireChipClicks(){
-  $$(".chip-row[data-field]", root()).forEach(row=>{
-    const mode = (row.dataset.select || "single").toLowerCase();
+  ORIGINAL = { ...now };
+  status("Saved to Supabase ✅", "success");
 
-    $$(".chip", row).forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        if(LOCKED) return;
-
-        if(mode === "single"){
-          $$(".chip", row).forEach(b=>b.classList.remove("is-selected","is-active"));
-          btn.classList.add("is-selected","is-active");
-        } else {
-          btn.classList.toggle("is-selected");
-          btn.classList.toggle("is-active");
-        }
-
-        syncChipRow(row);
-      });
-    });
-  });
-}
-
-function syncChipRow(row){
-  const field = row.dataset.field;
-  const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root());
-  if(!hidden) return;
-
-  const vals = $$(".chip.is-selected,.chip.is-active", row)
-    .map(b=>b.textContent.trim());
-
-  hidden.value = (row.dataset.select === "multi")
-    ? JSON.stringify(vals)
-    : (vals[0] || "");
-}
-
-function loadChips(data){
-  $$(".chip-row[data-field]", root()).forEach(row=>{
-    const field = row.dataset.field;
-    const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root());
-    if(!hidden) return;
-
-    hidden.value = data[field] ?? "";
-
-    let vals = [];
-    if(String(hidden.value).startsWith("[")){
-      try { vals = JSON.parse(hidden.value); } catch {}
-    } else if(hidden.value){
-      vals = [hidden.value];
-    }
-
-    $$(".chip", row).forEach(b=>{
-      const on = vals.includes(b.textContent.trim());
-      b.classList.toggle("is-selected", on);
-      b.classList.toggle("is-active", on);
-    });
-  });
+  if(complete && !UNLOCKED_EDIT_MODE){
+    lockWizard(true);
+    status("Setup complete — wizard locked 🔒", "success");
+  }
 }
 
 /* ================= LOCK / UNLOCK ================= */
@@ -1251,57 +1206,6 @@ function lockWizard(on){
   $("#btn-unlock")?.style.setProperty("display", on ? "inline-flex" : "none");
   $("#btn-cancel")?.style.setProperty("display", on ? "none" : "inline-flex");
   $("#btn-relock")?.style.setProperty("display", on ? "none" : "inline-flex");
-
-  hideSaveButton(on);
-}
-
-/* ================= SNAPSHOT ================= */
-function snapshot(){
-  const o = {};
-  $$("input[name],textarea[name],select[name]", root()).forEach(el=>{
-    o[el.name] = el.value ?? "";
-  });
-  $$('input[type="hidden"][name]', root()).forEach(el=>{
-    o[el.name] = el.value ?? "";
-  });
-  return o;
-}
-
-/* ================= SAVE ================= */
-async function save(){
-  if(LOCKED) return;
-
-  setSaveState("saving");
-  $$(".chip-row[data-field]", root()).forEach(syncChipRow);
-
-  const now = snapshot();
-  if(now.phone && !now.whatsapp_number) now.whatsapp_number = now.phone;
-
-  const complete = !!(now.business_name && now.email && now.main_trade);
-
-  now.setup_complete = complete;
-  now.pending_setup = !complete;
-  now.updated_at = new Date().toISOString();
-  if(complete && !now.setup_completed_at){
-    now.setup_completed_at = new Date().toISOString();
-  }
-
-  try{
-    const { error } = await sb.from(TABLE).update(now).eq("id", CUSTOMER_ID);
-    if(error) throw error;
-
-    ORIGINAL = { ...now };
-    setSaveState("saved");
-    status("Saved to Supabase ✅", "success");
-
-    if(complete && !UNLOCKED_EDIT_MODE){
-      lockWizard(true);
-      status("Setup complete — wizard locked 🔒", "success");
-    }
-  }catch(e){
-    setSaveState("idle");
-    status(`Save failed: ${e.message}`, "error");
-  }
 }
 
 /* ================= INIT ================= */
@@ -1312,10 +1216,12 @@ async function init(){
     return;
   }
 
-  ensureChipInputs();
-  wireChipClicks();
+  const { data, error } = await sb
+    .from(TABLE)
+    .select("*")
+    .eq("id", CUSTOMER_ID)
+    .maybeSingle();
 
-  const { data, error } = await sb.from(TABLE).select("*").eq("id", CUSTOMER_ID).maybeSingle();
   if(error || !data){
     status("Customer not found", "error");
     return;
@@ -1323,11 +1229,10 @@ async function init(){
 
   Object.entries(data).forEach(([k,v])=>{
     const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
-    if(el && el.type !== "hidden") el.value = v ?? "";
+    if(el) el.value = v ?? "";
   });
 
-  loadChips(data);
-  ORIGINAL = snapshot();
+  ORIGINAL = { ...data };
 
   if(truthy(data.setup_complete)){
     lockWizard(true);
@@ -1337,15 +1242,22 @@ async function init(){
     status("Resumed — editable.", "info");
   }
 
-  showStep(1);
-
-  $("#btn-next").addEventListener("click", ()=>{
-    save();       // autosave
-    nextStep();   // ALWAYS navigate
+  // 🚨 THIS IS THE KEY FIX
+  $("#btn-next").addEventListener("click", (e)=>{
+    e.preventDefault();
+    save();     // save first
+    nextStep(); // ALWAYS advance
   });
 
-  $("#btn-back").addEventListener("click", prevStep);
-  $("#btn-save-draft")?.addEventListener("click", e=>{ e.preventDefault(); save(); });
+  $("#btn-back").addEventListener("click", (e)=>{
+    e.preventDefault();
+    prevStep();
+  });
+
+  $("#btn-save-draft")?.addEventListener("click", e=>{
+    e.preventDefault();
+    save();
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);
