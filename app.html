@@ -1108,11 +1108,7 @@
     });
 
     // Back to dashboard (only visible after Finish)
-    btnDashboard.addEventListener("click", () => {
-      // Admin goes to admin dashboard, customer goes to their client dashboard
-      if (isAdmin) window.location.href = "/dashboard.html";
-      else window.location.href = "/client-dashboard.html";
-    });
+   btnDashboard.addEventListener
 
     async function ensureSessionOrRedirect() {
       const { data } = await sb.auth.getSession();
