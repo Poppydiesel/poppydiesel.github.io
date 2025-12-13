@@ -1247,6 +1247,52 @@
   setTimeout(syncFromFields, 1200);
 })();
 
+  (function universalChipSelector() {
+  // Treat any of these as "chips"
+  const CHIP_SELECTOR = '.chip, [role="button"].chip, button.chip, .chips button, .chip-row button, .chip-group button, [data-chip], [data-value]';
+
+  // Prevent buttons acting like submit
+  function forceButtonType(el) {
+    if (el && el.tagName === "BUTTON") el.type = "button";
+  }
+
+  // Find a reasonable "group" container (so only one chip is selected per group)
+  function findGroup(el) {
+    return el.closest(".chip-row, .chips, .chip-group, [data-chip-group], [data-group]") || el.parentElement;
+  }
+
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest(CHIP_SELECTOR);
+    if (!chip) return;
+
+    // Stop form submit / navigation side effects
+    forceButtonType(chip);
+    e.preventDefault();
+    e.stopPropagation();
+
+    const group = findGroup(chip);
+    if (!group) return;
+
+    const multi = group.getAttribute("data-multi") === "true";
+
+    if (!multi) {
+      // single-select: clear others in same group
+      group.querySelectorAll(CHIP_SELECTOR).forEach(c => c.classList.remove("is-selected"));
+      chip.classList.add("is-selected");
+    } else {
+      // multi-select: toggle
+      chip.classList.toggle("is-selected");
+    }
+  }, true);
+
+  // Also enforce button types once on load
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("button").forEach(forceButtonType);
+  });
+
+  console.log("[TBP] Universal chip selector enabled");
+})();
+
   
 </script>
 
