@@ -109,110 +109,350 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
+<!-- Supabase UMD (single include) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
+
 <script>
-(async function(){
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  const statusEl = document.getElementById("status");
-  const kvEl = document.getElementById("kv");
-  const badgesEl = document.getElementById("setup-badges");
-  const headerBusiness = document.getElementById("header-business");
-  const btnWizard = document.getElementById("btn-open-wizard");
-  const btnLogout = document.getElementById("btn-logout");
-
-  function setStatus(msg, type){
-    statusEl.textContent = msg || "";
-    statusEl.className = "status" + (type ? (" " + type) : "");
-  }
-  function escapeHtml(s){
-    return String(s ?? "").replace(/[&<>"']/g, c => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[c]));
-  }
-  function badge(label, ok){
-    return `<div style="margin-bottom:0.5rem;">
-      <span class="pill ${ok ? "ok" : "warn"}">${ok ? "✓" : "•"} ${escapeHtml(label)}</span>
-    </div>`;
-  }
-
-  // Require login
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) {
-    window.location.href = "/login.html";
-    return;
-  }
-
-  // Optional: invite token claim (only if you actually created claim_customer RPC)
-  const params = new URLSearchParams(location.search);
-  const token = (params.get("token") || "").trim();
-
-  if (token) {
-    try {
-      setStatus("Linking your account…");
-      const { error } = await sb.rpc("claim_customer", { p_invite_token: token });
-      if (error) throw error;
-      setStatus("Account linked ✅", "success");
-      window.history.replaceState({}, "", "/client-dashboard.html");
-    } catch (e) {
-      console.error(e);
-      setStatus("Could not link account (token invalid or already used).", "error");
-    }
-  }
-
-  // Load customer row linked to this auth user
-  setStatus("Loading…");
-
-  const { data: customer, error } = await sb
-    .from("customers")
-    .select("id, business_name, contact_name, email, phone, whatsapp_number, main_trade, base_postcode, onboarding_status, wizard_completed, wizard_locked, setup_complete, demo_booked, trial_active, is_live")
-    .eq("auth_user_id", session.user.id)
-    .single();
-
-  if (error || !customer) {
-    console.error(error);
-    setStatus("No customer record is linked to this login yet. Use your invite link or contact support.", "error");
-    btnWizard.href = "/app.html";
-  } else {
-    headerBusiness.textContent = customer.business_name ? `— ${customer.business_name}` : "";
-
-    const rows = [
-      ["Business name", customer.business_name || "—"],
-      ["Contact name", customer.contact_name || "—"],
-      ["Email", customer.email || "—"],
-      ["Phone", customer.phone || "—"],
-      ["WhatsApp", customer.whatsapp_number || "—"],
-      ["Main trade", customer.main_trade || "—"],
-      ["Base postcode", customer.base_postcode || "—"],
-      ["Onboarding status", customer.onboarding_status || "—"],
-    ];
-
-    kvEl.innerHTML = rows.map(([k,v]) => `
-      <div class="k">${escapeHtml(k)}</div>
-      <div class="v">${escapeHtml(v)}</div>
-    `).join("");
-
-    badgesEl.innerHTML = [
-      badge("Wizard completed", !!customer.wizard_completed),
-      badge("Wizard locked", !!customer.wizard_locked),
-      badge("Setup complete", !!customer.setup_complete),
-      badge("Demo booked", !!customer.demo_booked),
-      badge("Trial active", !!customer.trial_active),
-      badge("Live", !!customer.is_live),
-    ].join("");
-
-    // IMPORTANT: wizard needs customer_id to save
-    btnWizard.href = `/app.html?customer_id=${encodeURIComponent(customer.id)}`;
-    setStatus("");
-  }
-
-  btnLogout.addEventListener("click", async () => {
-    await sb.auth.signOut();
-    window.location.href = "/login.html";
+(function () {
+  window.addEventListener("error", (e) => {
+    console.error("[TBP] JS Error:", e.message, "at", e.filename, "line", e.lineno);
   });
+  window.addEventListener("unhandledrejection", (e) => {
+    console.error("[TBP] Unhandled Promise:", e.reason);
+  });
+
+  function bootWhenSupabaseReady() {
+    if (typeof window.supabase === "undefined") {
+      console.error("[TBP] Supabase UMD not loaded yet. Retrying...");
+      return setTimeout(bootWhenSupabaseReady, 50);
+    }
+    boot();
+  }
+
+  function boot() {
+    // ==== CONFIG (YOUR KEYS) ====
+    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ✅ ROLE-BASED REDIRECT (clients → client dashboard, admins → secure admin dashboard)
+    async function redirectAfterWizard() {
+      const { data: { session } } = await sb.auth.getSession();
+
+      if (!session) {
+        window.location.href = "/login.html";
+        return;
+      }
+
+      const { data: admin, error } = await sb
+        .from("admin_users")
+        .select("user_id")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("[TBP] Role check failed:", error);
+        window.location.href = "/login.html";
+        return;
+      }
+
+      window.location.href = admin ? "/dashboard-secure.html" : "/client-dashboard.html";
+    }
+
+    const params = new URLSearchParams(location.search);
+    const customer_id = (params.get("customer_id") || "").trim();
+
+    // ==== ELEMENTS ====
+    const panels = Array.from(document.querySelectorAll(".step-panel"));
+    const stepDots = Array.from(document.querySelectorAll(".step-dot"));
+    const progressInner = document.getElementById("progress-bar-inner");
+    const progressText = document.getElementById("progress-percent");
+
+    const wizardStepLabel = document.getElementById("wizard-step-label");
+    const wizardStepTitle = document.getElementById("wizard-step-title");
+    const wizardStepSubtitle = document.getElementById("wizard-step-subtitle");
+    const footerText = document.getElementById("wizard-footer-text");
+    const statusEl = document.getElementById("wizard-status-message");
+
+    const btnBack = document.getElementById("btn-back");
+    const btnNext = document.getElementById("btn-next");
+    const btnSaveDraft = document.getElementById("btn-save-draft");
+    const btnDashboard = document.getElementById("btn-dashboard");
+
+    const summaryBoxEl = document.getElementById("summary-box");
+
+    // Ensure chip buttons can never submit anything (safe)
+    document.querySelectorAll(".chip-row .chip").forEach(b => {
+      if (b.tagName === "BUTTON") b.type = "button";
+      b.setAttribute("aria-pressed", "false");
+    });
+
+    let currentStep = 1;
+    const totalSteps = 4;
+
+    const answers = {
+      contact_name: "",
+      business_name: "",
+      email: "",
+      phone: "",
+      base_postcode: "",
+      review_link: "",
+      ai_avoid: "",
+      extra_notes: "",
+      main_trade: null,
+      business_stage: null,
+      coverage_radius: null,
+      callout_style: null,
+      callout_band: null,
+      preferred_jobs: [],
+      tone_of_voice: null,
+      channels: [],
+      review_platforms: [],
+      review_push_level: null,
+      demo_style: [],
+      demo_slot: null,
+      golive_timing: null
+    };
+
+    function setStatus(msg, type) {
+      statusEl.textContent = msg || "";
+      statusEl.className = "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
+    }
+
+    function stepMeta(step) {
+      if (step === 1) return {
+        label: "Step 1",
+        title: "Business basics",
+        subtitle: "Who are you, what do you do and how do you like to run things?"
+      };
+      if (step === 2) return {
+        label: "Step 2",
+        title: "Area & pricing",
+        subtitle: "Where you cover and how you like to charge."
+      };
+      if (step === 3) return {
+        label: "Step 3",
+        title: "Messaging & reviews",
+        subtitle: "How the AI should talk and where reviews should go."
+      };
+      return {
+        label: "Step 4",
+        title: "Demo & go-live",
+        subtitle: "How you want to test it and when you’d like to go live."
+      };
+    }
+
+    function renderStep() {
+      panels.forEach(p => p.classList.remove("is-active"));
+      const active = document.querySelector(`.step-panel[data-step="${currentStep}"]`);
+      if (active) active.classList.add("is-active");
+
+      stepDots.forEach(d => {
+        const n = parseInt(d.getAttribute("data-step-dot"), 10);
+        d.classList.toggle("is-active", n === currentStep);
+        d.classList.toggle("is-complete", n < currentStep);
+      });
+
+      const pct = Math.round(((currentStep - 1) / (totalSteps - 1)) * 100);
+      progressInner.style.width = `${pct}%`;
+      progressText.textContent = `Step ${currentStep} of ${totalSteps}`;
+
+      const meta = stepMeta(currentStep);
+      wizardStepLabel.textContent = meta.label;
+      wizardStepTitle.textContent = meta.title;
+      wizardStepSubtitle.textContent = meta.subtitle;
+
+      footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${totalSteps}</strong>. You can tweak anything later.`;
+
+      btnBack.disabled = currentStep === 1;
+
+      btnNext.textContent = (currentStep === totalSteps) ? "Finish →" : "Next step →";
+    }
+
+    function readInputsIntoAnswers() {
+      const v = (x) => (x ?? "").toString().trim();
+      answers.contact_name = v(document.getElementById("contact_name")?.value);
+      answers.business_name = v(document.getElementById("business_name")?.value);
+      answers.email = v(document.getElementById("contact_email")?.value);
+      answers.phone = v(document.getElementById("contact_mobile")?.value);
+      answers.base_postcode = v(document.getElementById("base_postcode")?.value);
+      answers.review_link = v(document.getElementById("review_link")?.value);
+      answers.ai_avoid = v(document.getElementById("ai_avoid")?.value);
+      answers.extra_notes = v(document.getElementById("extra_notes")?.value);
+    }
+
+    function applyChipVisualsFromAnswers() {
+      document.querySelectorAll(".chip-row").forEach(row => {
+        const field = row.getAttribute("data-field");
+        const mode = row.getAttribute("data-select");
+        if (!field || !mode) return;
+
+        const chips = Array.from(row.querySelectorAll(".chip"));
+        chips.forEach(ch => {
+          const label = (ch.textContent || "").trim();
+          let selected = false;
+
+          if (mode === "single") selected = answers[field] === label;
+          else selected = (Array.isArray(answers[field]) ? answers[field] : []).includes(label);
+
+          ch.classList.toggle("is-selected", selected);
+          ch.setAttribute("aria-pressed", selected ? "true" : "false");
+        });
+      });
+    }
+
+    document.addEventListener("click", (e) => {
+      const chip = e.target.closest(".chip-row .chip");
+      if (!chip) return;
+
+      const row = chip.closest(".chip-row");
+      if (!row) return;
+
+      const field = row.getAttribute("data-field");
+      const mode = row.getAttribute("data-select");
+      if (!field || !mode) return;
+
+      const label = (chip.textContent || "").trim();
+
+      if (mode === "single") {
+        answers[field] = label;
+      } else {
+        if (!Array.isArray(answers[field])) answers[field] = [];
+        const idx = answers[field].indexOf(label);
+        if (idx >= 0) answers[field].splice(idx, 1);
+        else answers[field].push(label);
+      }
+
+      applyChipVisualsFromAnswers();
+    }, true);
+
+    // Save draft to localStorage (browser only)
+    btnSaveDraft.addEventListener("click", () => {
+      readInputsIntoAnswers();
+      localStorage.setItem("tbp_wizard_draft", JSON.stringify({ answers, customer_id, ts: Date.now() }));
+      setStatus("Draft saved in this browser.", "success");
+    });
+
+    // Back / Next navigation
+    btnBack.addEventListener("click", () => {
+      setStatus("");
+      if (currentStep > 1) {
+        currentStep -= 1;
+        renderStep();
+      }
+    });
+
+    btnNext.addEventListener("click", async () => {
+      setStatus("");
+      readInputsIntoAnswers();
+
+      if (currentStep === 1) {
+        if (!answers.contact_name || !answers.business_name) {
+          setStatus("Please enter contact name and business name.", "error");
+          return;
+        }
+        if (!answers.email && !answers.phone) {
+          setStatus("Please enter an email or a mobile number.", "error");
+          return;
+        }
+      }
+
+      if (currentStep < totalSteps) {
+        currentStep += 1;
+        renderStep();
+        return;
+      }
+
+      if (!customer_id) {
+        setStatus("Missing customer_id in the URL. Please start from the signup form link.", "error");
+        return;
+      }
+
+      btnNext.disabled = true;
+      setStatus("Saving…");
+
+      try {
+        const patch = {
+          contact_name: answers.contact_name || null,
+          business_name: answers.business_name || null,
+          email: answers.email || null,
+          phone: answers.phone || null,
+          base_postcode: answers.base_postcode || null,
+
+          wizard_answers: answers,
+          wizard_completed: true,
+          wizard_completed_at: new Date().toISOString()
+        };
+
+        const { error } = await sb
+          .from("customers")
+          .update(patch)
+          .eq("id", customer_id);
+
+        if (error) throw error;
+
+        setStatus("Saved. Wizard complete ✅", "success");
+        if (summaryBoxEl) summaryBoxEl.hidden = false;
+
+        btnNext.style.display = "none";
+        btnDashboard.style.display = "inline-flex";
+
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      } catch (err) {
+        console.error("[TBP] Finish save error:", err);
+        setStatus("Couldn’t save right now. Please try again.", "error");
+        btnNext.disabled = false;
+      }
+    });
+
+    // ✅ REPLACED: Back to dashboard now sends admins to secure admin dashboard + clients to client dashboard
+    btnDashboard.addEventListener("click", (e) => {
+      e.preventDefault();
+      redirectAfterWizard();
+    });
+
+    // Prefill from customers row
+    async function prefillFromCustomer() {
+      if (!customer_id) return;
+
+      try {
+        const { data, error } = await sb
+          .from("customers")
+          .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers")
+          .eq("id", customer_id)
+          .single();
+
+        if (error) throw error;
+
+        if (data?.contact_name) document.getElementById("contact_name").value = data.contact_name;
+        if (data?.business_name) document.getElementById("business_name").value = data.business_name;
+        if (data?.email) document.getElementById("contact_email").value = data.email;
+
+        const phone = data?.phone || data?.whatsapp_number || "";
+        if (phone) document.getElementById("contact_mobile").value = phone;
+
+        if (data?.base_postcode) document.getElementById("base_postcode").value = data.base_postcode;
+
+        if (data?.wizard_answers && typeof data.wizard_answers === "object") {
+          Object.assign(answers, data.wizard_answers);
+        }
+
+        readInputsIntoAnswers();
+        applyChipVisualsFromAnswers();
+      } catch (err) {
+        console.error("[TBP] Prefill failed:", err);
+      }
+    }
+
+    renderStep();
+    prefillFromCustomer();
+
+    window.TBP = { sb, customer_id, answers, redirectAfterWizard };
+  }
+
+  bootWhenSupabaseReady();
 })();
 </script>
+
 </body>
 </html>
