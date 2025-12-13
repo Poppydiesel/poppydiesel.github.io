@@ -434,10 +434,22 @@
         <td>${escapeHtml(r.base_postcode || "—")}</td>
         <td>${escapeHtml(fmtDate(r.updated_at || r.created_at))}</td>
       `;
-     tr.addEventListener("click", () => openDrawer(r));
-tbody.appendChild(tr);
+    tbody.addEventListener("click", (e) => {
+  const tr = e.target.closest("tr");
+  if (!tr) return;
 
-    }
+  // ignore clicks on buttons/links inside a row (if any)
+  if (e.target.closest("button,a,input,select,textarea,label")) return;
+
+  const id = tr.dataset.id;
+  if (!id) return;
+
+  const row = allRows.find(r => r.id === id);
+  if (!row) return;
+
+  openDrawer(row);
+});
+
 
     if(statusBar){
       statusBar.textContent =
