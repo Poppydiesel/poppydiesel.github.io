@@ -1253,9 +1253,6 @@ window.addEventListener("unhandledrejection", (e) => {
   setTimeout(syncFromFields, 1200);
 })();
 
-  (function universalChipSelector() {
-  // Treat any of these as "chips"
-  const CHIP_SELECTOR = '.chip, [role="button"].chip, button.chip, .chips button, .chip-row button, .chip-group button, [data-chip], [data-value]';
 
   // Prevent buttons acting like submit
   function forceButtonType(el) {
