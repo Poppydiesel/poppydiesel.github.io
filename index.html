@@ -1121,81 +1121,182 @@
 
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
- const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+
+  // =========================
+  // CONFIG — SET THESE
+  // =========================
+   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  function findForm(){
-    return [...document.querySelectorAll("form")].find(f =>
-      f.querySelector('[name="contact_name"]') &&
-      f.querySelector('[name="business_name"]') &&
-      (f.querySelector('[name="email"]') || f.querySelector('input[type="email"]'))
-    ) || null;
-  }
-  const form = findForm();
-  if(!form){ console.error("Could not find signup form"); }
+  // =========================
+  // HELPERS
+  // =========================
+  const statusEl =
+    document.querySelector("#status") ||
+    document.querySelector(".form-status") ||
+    document.querySelector("[data-status]");
 
-  const safe = v => String(v||"").trim();
-  const safeEmail = v => safe(v).toLowerCase();
-
-  function val(name){
-    return safe(form.querySelector(`[name="${name}"]`)?.value);
+  function setStatus(msg, type = "muted") {
+    if (!statusEl) return;
+    const colors = { ok: "#0f7b46", err: "#b3261e", muted: "#6b7280" };
+    statusEl.innerHTML = `<span style="color:${colors[type]};font-weight:800">${msg}</span>`;
   }
 
-  function wizardUrl(id){
+  const safe = (v) => String(v ?? "").trim();
+  const safeEmail = (v) => safe(v).toLowerCase();
+
+  // Clean URL if user previously did a GET submit (so it doesn't keep reappearing)
+  if (window.location.search && window.location.search.length > 1) {
+    history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  // Find your real signup form by the field names you already have
+  function findSignupForm() {
+    const forms = Array.from(document.querySelectorAll("form"));
+    const has = (f, sel) => !!f.querySelector(sel);
+
+    // Strong match
+    for (const f of forms) {
+      const ok =
+        has(f, '[name="contact_name"]') &&
+        has(f, '[name="business_name"]') &&
+        (has(f, '[name="email"]') || has(f, 'input[type="email"]')) &&
+        has(f, '[name="whatsapp_number"]') &&
+        has(f, '[name="trade_type"]') &&
+        has(f, '[name="base_postcode"]');
+
+      if (ok) return f;
+    }
+
+    // Fallback: any form containing business_name + email
+    for (const f of forms) {
+      if (
+        has(f, '[name="business_name"]') &&
+        (has(f, '[name="email"]') || has(f, 'input[type="email"]'))
+      ) return f;
+    }
+
+    return null;
+  }
+
+  function wizardUrl(id) {
     const u = new URL("app.html", window.location.origin);
     u.searchParams.set("signup_id", id);
     return u.toString();
   }
 
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-
-    const payload = {
-      contact_name: val("contact_name") || null,
-      business_name: val("business_name") || null,
-      email: safeEmail(val("email") || form.querySelector('input[type="email"]')?.value),
-      whatsapp_number: val("whatsapp_number") || null,
-      trade_type: val("trade_type") || null,
-      base_postcode: val("base_postcode") || null,
-      wizard_complete: false,
-      is_admin: false
-    };
-
-    if(!payload.email || !payload.email.includes("@")){
-      console.error("Invalid email");
-      return;
+  function getVal(form, selectors) {
+    for (const sel of selectors) {
+      const el = form.querySelector(sel);
+      if (el && "value" in el) {
+        const v = safe(el.value);
+        if (v) return v;
+      }
     }
+    return "";
+  }
 
-    try{
-      const { data, error } = await sb
-        .from("customers")
-        .upsert(payload, { onConflict: "email" })
-        .select("id,email")
-        .single();
-
-      console.log("Saved customer:", data);
-      console.log("Supabase error:", error);
-      console.log("Supabase error json:", JSON.stringify(error, null, 2));
-
-      if(error) throw error;
-      if(!data?.id) throw new Error("No id returned.");
-
-      localStorage.setItem("tbp_last_signup_id", data.id);
-      window.location.assign(wizardUrl(data.id));
-    }catch(err){
-      console.log("Signup flow error:", err);
-      console.log("Signup flow error json:", JSON.stringify(err, null, 2));
+  function getChecked(form, selectors) {
+    for (const sel of selectors) {
+      const el = form.querySelector(sel);
+      if (el && "checked" in el) return !!el.checked;
     }
-  }, true);
+    return false;
+  }
+
+  const form = findSignupForm();
+
+  if (!form) {
+    console.error("TradeBotPro: signup form not found (expected name= fields).");
+    setStatus("Internal error: signup form not found.", "err");
+    throw new Error("Signup form not found");
+  }
+
+  // Prevent native submit URL pollution forever
+  form.setAttribute("method", "post");
+  form.setAttribute("action", "#");
+
+  const submitBtn =
+    form.querySelector('button[type="submit"]') ||
+    form.querySelector('input[type="submit"]') ||
+    form.querySelector("button");
+
+  form.addEventListener(
+    "submit",
+    async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      const originalBtnText = submitBtn?.textContent;
+
+      try {
+        if (submitBtn && "disabled" in submitBtn) submitBtn.disabled = true;
+        if (submitBtn && submitBtn.textContent) submitBtn.textContent = "Saving…";
+
+        setStatus("Saving…", "muted");
+
+        const payload = {
+          contact_name: getVal(form, ['[name="contact_name"]']) || null,
+          business_name: getVal(form, ['[name="business_name"]']) || null,
+          email: safeEmail(getVal(form, ['[name="email"]', 'input[type="email"]'])),
+
+          whatsapp_number: getVal(form, ['[name="whatsapp_number"]']) || null,
+          phone: getVal(form, ['[name="whatsapp_number"]']) || null, // keep consistent
+
+          trade_type: getVal(form, ['[name="trade_type"]']) || null,
+          base_postcode: getVal(form, ['[name="base_postcode"]']) || null,
+
+          // Optional columns (only work if you added them in SQL)
+          referrer: getVal(form, ['[name="referrer"]']) || null,
+          agree: getChecked(form, ['[name="agree"]']) || false,
+
+          wizard_complete: false,
+          is_admin: false
+        };
+
+        if (!payload.email || !payload.email.includes("@")) {
+          setStatus("Please enter a valid email.", "err");
+          return;
+        }
+
+        const { data, error } = await sb
+          .from("customers")
+          .upsert(payload, { onConflict: "email" })
+          .select("id,email")
+          .single();
+
+        console.log("Saved customer:", data);
+        console.log("Supabase error:", error);
+        console.log("Supabase error json:", JSON.stringify(error, null, 2));
+
+        if (error) throw error;
+        if (!data?.id) throw new Error("Saved but no id returned.");
+
+        localStorage.setItem("tbp_last_signup_id", data.id);
+        localStorage.setItem("tbp_last_email", data.email);
+
+        setStatus("Saved. Opening wizard…", "ok");
+
+        window.location.assign(wizardUrl(data.id));
+      } catch (err) {
+        console.log("Signup flow error:", err);
+        console.log("Signup flow error json:", JSON.stringify(err, null, 2));
+        setStatus(`Save failed: ${err?.message || err}`, "err");
+      } finally {
+        if (submitBtn && "disabled" in submitBtn) submitBtn.disabled = false;
+        if (submitBtn && submitBtn.textContent && originalBtnText)
+          submitBtn.textContent = originalBtnText;
+      }
+    },
+    true
+  );
 </script>
-
-
 
 </body>
 </html>
+
 
 
 
