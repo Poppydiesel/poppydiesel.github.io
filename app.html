@@ -1065,882 +1065,218 @@
     </div>
   </main>
 </div>
-<script type="module">
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-/* ================= CONFIG ================= */
-const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8"; // <-- put your anon key
-const TABLE = "customers";
-const DASHBOARD_URL = "dashboard.html"; // <-- change if needed
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-/* ================= HELPERS ================= */
-const $ = (s, r=document) => r.querySelector(s);
-const $$ = (s, r=document) => [...r.querySelectorAll(s)];
-const esc = (s)=>{ try{ return CSS.escape(s); }catch{ return s; } };
-const qp = (n)=> new URLSearchParams(location.search).get(n);
-
-function logErr(...a){ console.error(...a); }
-function status(msg, kind="info"){
-  const el = $("#wizard-status-message");
-  if(el){
-    el.textContent = msg;
-    el.dataset.kind = kind;
-  }
-  console.log(`[Wizard] ${msg}`);
-}
-
-/* ================= STATE ================= */
-let CUSTOMER_ID = qp("customer_id");
-let LOCKED = false;        // read-only view mode when complete
-let EDIT_MODE = false;     // true only after Unlock
-let ORIGINAL = null;
-let saving = false;
-let dirty = false;
-
-/* ================= ROOT ================= */
-function getRoot(){
-  return $(".wizard-shell") || document.body;
-}
-
-/* ================= EXIT BUTTON ================= */
-function ensureExitButton(){
-  // Adds button without changing your HTML layout
-  if($("#btn-exit-wizard")) return;
-
-  // best place: wizard footer right side (beside Next)
-  const footerRight = $(".wizard-footer-right");
-  const footer = $(".wizard-footer");
-  const host = footerRight || footer || getRoot();
-
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.id = "btn-exit-wizard";
-  btn.className = "btn btn-ghost";
-  btn.textContent = "Back to dashboard";
-  btn.style.marginLeft = "10px";
-
-  // place it after Next if possible
-  if(footerRight){
-    footerRight.appendChild(btn);
-  }else{
-    host.appendChild(btn);
-  }
-
-  btn.addEventListener("click", ()=>{
-    // If user is editing and has unsaved changes, warn
-    if((EDIT_MODE || !LOCKED) && dirty){
-      const ok = confirm("Leave wizard without saving your latest changes?");
-      if(!ok) return;
-    }
-    window.location.href = DASHBOARD_URL;
-  });
-}
-
-/* ================= FORM / DIRTY TRACKING ================= */
-function markDirty(){ dirty = true; }
-
-function bindDirtyTracking(){
-  const root = getRoot();
-
-  // mark dirty on any input/textarea/select change
-  root.addEventListener("input", (e)=>{
-    const el = e.target;
-    if(!el) return;
-    // ignore hidden
-    if(el.type === "hidden") return;
-    markDirty();
-  }, true);
-
-  root.addEventListener("change", (e)=>{
-    const el = e.target;
-    if(!el) return;
-    if(el.type === "hidden") return;
-    markDirty();
-  }, true);
-}
-
-/* ================= FIELD SNAPSHOT ================= */
-function findNamedFields(){
-  const root = getRoot();
-  const fields = [];
-
-  $$("[name]", root).forEach(el=>{
-    if(el.tagName === "BUTTON") return;
-    fields.push(el);
-  });
-
-  $$("input[id],textarea[id],select[id]", root).forEach(el=>{
-    if(el.name) return;
-    fields.push(el);
-  });
-
-  return fields;
-}
-function snapshot(){
-  const root = getRoot();
-  const o = {};
-
-  $$("input[name],textarea[name],select[name]", root).forEach(el=>{
-    if(el.type === "button") return;
-    o[el.name] = el.value ?? "";
-  });
-
-  $$('input[type="hidden"][name]', root).forEach(el=>{
-    o[el.name] = el.value ?? "";
-  });
-
-  $$("input[id],textarea[id],select[id]", root).forEach(el=>{
-    if(el.name) return;
-    const key = el.id;
-    if(!key) return;
-    if(o[key] === undefined) o[key] = el.value ?? "";
-  });
-
-  return o;
-}
-
-/* ================= CHIPS ================= */
-function ensureChipHiddens(){
-  const root = getRoot();
-  $$(".chip-row[data-field]", root).forEach(row=>{
-    const field = row.dataset.field;
-    if(!field) return;
-    const existing = $(`input[type="hidden"][name="${esc(field)}"]`, root);
-    if(existing) return;
-    const h = document.createElement("input");
-    h.type = "hidden";
-    h.name = field;
-    row.insertAdjacentElement("afterend", h);
-  });
-}
-function syncChipRow(row){
-  const root = getRoot();
-  const field = row.dataset.field;
-  const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root);
-  if(!hidden) return;
-
-  const selected = $$(".chip.is-selected,.chip.is-active", row)
-    .map(b=>b.textContent.trim())
-    .filter(Boolean);
-
-  const mode = (row.dataset.select || "single").toLowerCase();
-  hidden.value = (mode === "multi") ? JSON.stringify(selected) : (selected[0] || "");
-}
-function syncAllChips(){
-  const root = getRoot();
-  $$(".chip-row[data-field]", root).forEach(syncChipRow);
-}
-function wireChipClicks(){
-  document.addEventListener("click", (e)=>{
-    const chip = e.target.closest(".chip");
-    if(!chip) return;
-
-    const row = chip.closest(".chip-row[data-field]");
-    if(!row) return;
-
-    e.preventDefault();
-
-    // locked view mode blocks selection unless unlocked
-    if(LOCKED && !EDIT_MODE) return;
-
-    const mode = (row.dataset.select || "single").toLowerCase();
-
-    if(mode === "single"){
-      $$(".chip", row).forEach(b=>{
-        b.classList.remove("is-selected","is-active");
-        b.setAttribute("aria-pressed","false");
-      });
-      chip.classList.add("is-selected","is-active");
-      chip.setAttribute("aria-pressed","true");
-    }else{
-      const on = chip.classList.toggle("is-selected");
-      chip.classList.toggle("is-active", on);
-      chip.setAttribute("aria-pressed", on ? "true" : "false");
-    }
-
-    syncChipRow(row);
-    markDirty();
-  });
-}
-function loadChips(data){
-  const root = getRoot();
-  $$(".chip-row[data-field]", root).forEach(row=>{
-    const field = row.dataset.field;
-    const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root);
-    if(!hidden) return;
-
-    const raw = (data?.[field] ?? "").toString().trim();
-    hidden.value = raw;
-
-    let vals = [];
-    if(raw.startsWith("[")){
-      try { vals = JSON.parse(raw) || []; } catch { vals = []; }
-    } else if(raw) vals = [raw];
-
-    $$(".chip", row).forEach(b=>{
-      const on = vals.includes(b.textContent.trim());
-      b.classList.toggle("is-selected", on);
-      b.classList.toggle("is-active", on);
-      b.setAttribute("aria-pressed", on ? "true" : "false");
-    });
-  });
-}
-
-/* ================= LOCK / UNLOCK ================= */
-function setReadOnly(on){
-  const root = getRoot();
-  $$("input,textarea", root).forEach(el=>{
-    if(el.type === "hidden") return;
-    el.readOnly = !!on;
-  });
-  $$("select", root).forEach(el=> el.disabled = !!on);
-}
-
-function ensureUnlockUI(){
-  if($("#btn-unlock")) return;
-
-  const host = $("#wizard-status-message")?.parentElement || getRoot();
-  const bar = document.createElement("div");
-  bar.style.display = "flex";
-  bar.style.gap = "10px";
-  bar.style.marginTop = "12px";
-  bar.innerHTML = `
-    <button id="btn-unlock" type="button" class="btn btn-secondary">Unlock to edit</button>
-    <button id="btn-relock" type="button" class="btn btn-ghost">Re-lock</button>
-    <button id="btn-cancel" type="button" class="btn btn-ghost">Cancel edits</button>
-  `;
-  host.insertAdjacentElement("afterend", bar);
-
-  $("#btn-unlock").addEventListener("click", ()=>{
-    EDIT_MODE = true;
-    setReadOnly(false);
-    showSave(true);
-    updateUnlockUI();
-    status("Unlocked — editable.", "info");
-  });
-
-  $("#btn-relock").addEventListener("click", ()=>{
-    EDIT_MODE = false;
-    if(LOCKED){
-      setReadOnly(true);
-      showSave(false);
-      status("Locked — read-only.", "info");
-    }else{
-      setReadOnly(false);
-      showSave(true);
-      status("Still incomplete — editable.", "info");
-    }
-    updateUnlockUI();
-  });
-
-  $("#btn-cancel").addEventListener("click", ()=>{
-    if(!ORIGINAL) return;
-    const root = getRoot();
-
-    Object.entries(ORIGINAL).forEach(([k,v])=>{
-      const el = $(`[name="${esc(k)}"],#${esc(k)}`, root);
-      if(el && el.type !== "hidden") el.value = v ?? "";
-    });
-
-    loadChips(ORIGINAL);
-
-    dirty = false;
-    EDIT_MODE = false;
-    if(LOCKED){
-      setReadOnly(true);
-      showSave(false);
-      status("Changes discarded (read-only).", "info");
-    }else{
-      setReadOnly(false);
-      showSave(true);
-      status("Changes discarded.", "info");
-    }
-    updateUnlockUI();
-  });
-}
-
-function updateUnlockUI(){
-  const u = $("#btn-unlock");
-  const r = $("#btn-relock");
-  const c = $("#btn-cancel");
-  if(!u || !r || !c) return;
-
-  if(LOCKED && !EDIT_MODE){
-    u.style.display = "";
-    r.style.display = "none";
-    c.style.display = "none";
-  }else{
-    u.style.display = "none";
-    r.style.display = "";
-    c.style.display = "";
-  }
-}
-
-/* ================= SAVE BUTTON LABEL ================= */
-function showSave(on){
-  const b = $("#btn-save-draft");
-  if(!b) return;
-  b.style.display = on ? "" : "none";
-  b.textContent = "Save";
-}
-function setSaveState(state){
-  const b = $("#btn-save-draft");
-  if(!b) return;
-
-  if(state === "saving"){
-    b.disabled = true;
-    b.textContent = "Saving…";
-  }else if(state === "saved"){
-    b.disabled = true;
-    b.textContent = "Saved ✓";
-    setTimeout(()=>{ b.disabled = false; b.textContent = "Save"; }, 800);
-  }else{
-    b.disabled = false;
-    b.textContent = "Save";
-  }
-}
-
-/* ================= COMPLETION RULE ================= */
-function isWizardComplete(data){
-  const business = String(data.business_name || data.business || "").trim();
-  const email = String(data.email || data.contact_email || "").trim();
-  const trade = String(data.main_trade || "").trim();
-  return !!(business && email && trade);
-}
-
-/* ================= PATCH BUILDER (AUTO OPS FLAGS) ================= */
-function buildCustomerPatchFromForm(){
-  syncAllChips();
-  const data = snapshot();
-
-  if(data.contact_mobile && !data.phone) data.phone = data.contact_mobile;
-  if(data.contact_email && !data.email) data.email = data.contact_email;
-
-  const complete = isWizardComplete(data);
-
-  data.setup_complete = complete;
-  data.pending_setup = !complete;
-  data.wizard_completed = complete;
-
-  const currentStage = String(data.onboarding_status || "").trim();
-  if(complete){
-    if(!currentStage || currentStage === "New Signup"){
-      data.onboarding_status = "In Setup";
-    }
-    if(!data.setup_completed_at) data.setup_completed_at = new Date().toISOString();
-  }else{
-    if(!currentStage) data.onboarding_status = "New Signup";
-  }
-
-  data.updated_at = new Date().toISOString();
-  return { data, complete };
-}
-
-/* ================= LOAD + PREFILL ================= */
-async function loadCustomer(id){
-  const { data, error } = await sb.from(TABLE).select("*").eq("id", id).maybeSingle();
-  if(error){
-    logErr("[Wizard] Load error:", error);
-    status(`Load failed: ${error.message}`, "error");
-    return null;
-  }
-  if(!data){
-    status("Customer not found.", "error");
-    return null;
-  }
-
-  const root = getRoot();
-  Object.entries(data).forEach(([k,v])=>{
-    const el = $(`[name="${esc(k)}"],#${esc(k)}`, root);
-    if(el && el.type !== "hidden") el.value = v ?? "";
-  });
-
-  loadChips(data);
-  ORIGINAL = { ...data, ...snapshot() };
-  dirty = false;
-  return data;
-}
-
-/* ================= 2.1 BACKFILL ON LOAD ================= */
-async function backfillWizardFlagsOnLoad(row){
-  if(!row || !CUSTOMER_ID) return row;
-
-  const setupComplete = !!row.setup_complete;
-  const wizardCompleted = !!row.wizard_completed;
-  const pendingSetup = !!row.pending_setup;
-  const stage = String(row.onboarding_status || "").trim();
-
-  const shouldBeComplete = setupComplete || wizardCompleted;
-  const shouldPending = !shouldBeComplete;
-
-  const patch = {};
-
-  if(shouldBeComplete && (!setupComplete || !wizardCompleted)){
-    patch.setup_complete = true;
-    patch.wizard_completed = true;
-  }
-  if(!shouldBeComplete && (setupComplete || wizardCompleted)){
-    patch.setup_complete = false;
-    patch.wizard_completed = false;
-  }
-
-  if(pendingSetup !== shouldPending){
-    patch.pending_setup = shouldPending;
-  }
-
-  if(shouldBeComplete && (!stage || stage === "New Signup")){
-    patch.onboarding_status = "In Setup";
-  }
-  if(!shouldBeComplete && !stage){
-    patch.onboarding_status = "New Signup";
-  }
-
-  if(shouldBeComplete && !row.setup_completed_at){
-    patch.setup_completed_at = new Date().toISOString();
-  }
-
-  if(Object.keys(patch).length === 0) return row;
-
-  patch.updated_at = new Date().toISOString();
-
-  const { error } = await sb.from(TABLE).update(patch).eq("id", CUSTOMER_ID);
-  if(error){
-    console.warn("[Wizard] Backfill skipped (error):", error);
-    return row;
-  }
-
-  return { ...row, ...patch };
-}
-
-/* ================= SAVE TO SUPABASE ================= */
-async function saveToSupabase(){
-  if(saving) return;
-  saving = true;
-
-  try{
-    if(LOCKED && !EDIT_MODE){
-      status("Wizard is complete (read-only). Click Unlock to edit.", "info");
-      return;
-    }
-
-    if(!findNamedFields().length){
-      status("No fields found on page (check your HTML ids/names).", "error");
-      return;
-    }
-
-    setSaveState("saving");
-
-    if(!CUSTOMER_ID){
-      status("Missing customer_id. Open from dashboard using ?customer_id=...", "error");
-      setSaveState("idle");
-      return;
-    }
-
-    const { data: patch, complete } = buildCustomerPatchFromForm();
-
-    const { error } = await sb.from(TABLE).update(patch).eq("id", CUSTOMER_ID);
-    if(error){
-      logErr("[Wizard] Save error:", error);
-      status(`Save failed: ${error.message}`, "error");
-      setSaveState("idle");
-      return;
-    }
-
-    ORIGINAL = { ...patch };
-    dirty = false;
-
-    if(complete){
-      LOCKED = true;
-      EDIT_MODE = false;
-      setReadOnly(true);
-      showSave(false);
-      status("🔒 Setup Wizard complete — saved to Supabase ✅", "success");
-    }else{
-      LOCKED = false;
-      setReadOnly(false);
-      showSave(true);
-      status("Saved to Supabase ✅", "success");
-    }
-
-    updateUnlockUI();
-    setSaveState("saved");
-  } finally {
-    saving = false;
-  }
-}
-
-/* ================= STEP NAV ================= */
-function getActiveStepPanel(){ return $(".step-panel.is-active"); }
-function getActiveStep(){
-  const p = getActiveStepPanel();
-  return p ? Number(p.dataset.step) : 1;
-}
-function showStep(n){
-  const step = Math.max(1, Math.min(4, n));
-  $$(".step-panel").forEach(p=>p.classList.toggle("is-active", Number(p.dataset.step)===step));
-  $$(".step-dot").forEach(d=>d.classList.toggle("is-active", Number(d.dataset.stepDot)===step));
-
-  const back = $("#btn-back");
-  if(back) back.disabled = (step === 1);
-
-  const next = $("#btn-next");
-  if(next) next.textContent = (step === 4 ? "Finish →" : "Next step →");
-
-  const pct = $("#progress-percent");
-  if(pct) pct.textContent = `Step ${step} of 4`;
-
-  const bar = $("#progress-bar-inner");
-  if(bar) bar.style.width = `${Math.round((step/4)*100)}%`;
-
-  const ft = $("#wizard-footer-text");
-  if(ft) ft.innerHTML = `Step <strong>${step}</strong> of <strong>4</strong>. You can tweak anything later.`;
-}
-function nextStep(){ showStep(getActiveStep()+1); }
-function prevStep(){ showStep(getActiveStep()-1); }
-
-/* ================= INIT ================= */
-async function init(){
-  ensureExitButton();
-  ensureChipHiddens();
-  wireChipClicks();
-  ensureUnlockUI();
-  bindDirtyTracking();
-
-  // rename button from "Save draft..." to "Save"
-  showSave(true);
-
-  if(!CUSTOMER_ID){
-    status("Missing customer_id. Open this from dashboard (Open wizard).", "error");
-    LOCKED = false;
-    EDIT_MODE = true;
-    setReadOnly(false);
-    updateUnlockUI();
-    return;
-  }
-
-  let row = await loadCustomer(CUSTOMER_ID);
-  if(!row) return;
-
-  // ✅ 2.1 backfill on load
-  row = await backfillWizardFlagsOnLoad(row);
-
-  const complete = !!row.setup_complete || !!row.wizard_completed;
-
-  if(complete){
-    LOCKED = true;
-    EDIT_MODE = false;
-    setReadOnly(true);
-    showSave(false);
-    status("🔒 Setup Wizard complete — read-only view.", "info");
-  }else{
-    LOCKED = false;
-    EDIT_MODE = true;
-    setReadOnly(false);
-    showSave(true);
-    status("[Wizard] Resumed — editable.", "info");
-  }
-
-  updateUnlockUI();
-
-  $("#btn-save-draft")?.addEventListener("click", (e)=>{
-    e.preventDefault();
-    saveToSupabase();
-  });
-
-  $("#btn-next")?.addEventListener("click", async (e)=>{
-    e.preventDefault();
-    await saveToSupabase();
-    nextStep();
-  });
-
-  $("#btn-back")?.addEventListener("click", (e)=>{
-    e.preventDefault();
-    prevStep();
-  });
-
-  if(!getActiveStepPanel()){
-    const first = $(".step-panel[data-step='1']");
-    if(first) first.classList.add("is-active");
-  }
-  showStep(getActiveStep());
-}
-
-document.addEventListener("DOMContentLoaded", init);
-  // ===============================
-// Ask for help button (non-destructive)
-// ===============================
-document.getElementById("ask-help-btn")?.addEventListener("click", async () => {
-  if (!customer_id) {
-    alert("Missing customer reference.");
-    return;
-  }
-
-  const msg = (prompt("What do you need help with? (optional)") || "").trim();
-
+<script>
+(function () {
+  // Hard fail protection: if anything throws, we still see the error in console.
   try {
-    const { error } = await sb
-      .from("customers")
-      .update({
-        help_requested: true,
-        help_requested_at: new Date().toISOString(),
-        help_message: msg || null
-      })
-      .eq("id", customer_id);
+    // 1) Supabase client (UMD)
+    // IMPORTANT: keep YOUR existing keys here
+    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    if (error) throw error;
+    // 2) Read IDs (support customer_id + legacy)
+    const params = new URLSearchParams(location.search);
+    const customer_id = params.get("customer_id") || ""; // ✅ from index.html
+    const signup_id = params.get("signup_id") || "";
+    const user_id = params.get("user_id") || "";
 
-    alert("Got it — we’ll help you shortly.");
-  } catch (e) {
-    console.error("Help request failed:", e);
-    alert("Sorry — we couldn’t send your help request. Please try again.");
-  }
-});
+    console.log("[TBP] URL ids:", { customer_id, signup_id, user_id });
 
-  // ===============================
-// Chip controls (robust + save-safe)
-// Requirements:
-// - Each chip group wrapper has: data-chip-group="FIELD_NAME"
-// - Inside it, each chip button has: data-value="VALUE" and type="button"
-// - There is a hidden/real input/select/textarea with name="FIELD_NAME"
-// ===============================
-(function initChips() {
-  function setFieldValue(fieldName, value) {
-    // find the real field (hidden input/select/textarea)
-    const field =
-      document.querySelector(`[name="${fieldName}"]`) ||
-      document.getElementById(fieldName);
+    // 3) Utility: set value by id OR name and trigger events
+    function setField(fieldName, value) {
+      if (value === undefined || value === null) return false;
+      const v = String(value);
 
-    if (!field) {
-      console.warn("Chip group has no matching field:", fieldName);
-      return;
+      let el = document.getElementById(fieldName);
+      if (!el) el = document.querySelector(`[name="${fieldName}"]`);
+      if (!el) return false;
+
+      el.value = v;
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+      return true;
     }
 
-    field.value = value;
+    // 4) Wait until wizard fields exist (prevents “runs too early”)
+    function waitForWizardFields(timeoutMs = 8000) {
+      const start = Date.now();
+      return new Promise((resolve, reject) => {
+        (function tick() {
+          // change these selectors if your wizard uses different IDs
+          const ready =
+            document.getElementById("contact_name") ||
+            document.getElementById("business_name") ||
+            document.querySelector('input[name="contact_name"]') ||
+            document.querySelector('input[name="business_name"]');
 
-    // Trigger change/input so any existing autosave/validation hooks fire
-    field.dispatchEvent(new Event("input", { bubbles: true }));
-    field.dispatchEvent(new Event("change", { bubbles: true }));
-  }
+          if (ready) return resolve(true);
+          if (Date.now() - start > timeoutMs) return reject(new Error("Wizard fields not found in time"));
+          requestAnimationFrame(tick);
+        })();
+      });
+    }
 
-  function setSelectedUI(groupEl, selectedValue, multi = false) {
-    const chips = groupEl.querySelectorAll("[data-value]");
-    chips.forEach(chip => {
-      const v = chip.getAttribute("data-value") ?? "";
-      if (multi) {
-        // multi-select handled elsewhere
+    // 5) Load customer row and prefill wizard
+    async function loadCustomerAndPrefill() {
+      if (!customer_id) {
+        console.warn("[TBP] No customer_id in URL, skipping prefill.");
         return;
       }
-      chip.classList.toggle("is-selected", v === selectedValue);
-      chip.setAttribute("aria-pressed", v === selectedValue ? "true" : "false");
-    });
-  }
 
-  // Single-select groups: click one chip → sets field value → highlights selection
-  document.addEventListener("click", (e) => {
-    const chip = e.target.closest("[data-chip-group] [data-value]");
-    if (!chip) return;
+      // If your customers table has RLS that blocks anon SELECT, this will fail.
+      const { data, error } = await sb
+        .from("customers")
+        .select("id, contact_name, business_name, email, phone, whatsapp_number, trade_type, base_postcode")
+        .eq("id", customer_id)
+        .single();
 
-    // ensure chip is not accidentally submitting the form
-    if (chip.tagName === "BUTTON") chip.type = "button";
+      if (error) {
+        console.error("[TBP] Prefill fetch error:", error);
+        return;
+      }
+      if (!data) {
+        console.warn("[TBP] No customer row found for id:", customer_id);
+        return;
+      }
 
-    const groupEl = chip.closest("[data-chip-group]");
-    if (!groupEl) return;
+      console.log("[TBP] Loaded customer row:", data);
 
-    const fieldName = groupEl.getAttribute("data-chip-group");
-    if (!fieldName) return;
+      // Map: customers columns -> wizard fields
+      setField("contact_name", data.contact_name);
+      setField("business_name", data.business_name);
+      setField("email", data.email);
 
-    const value = (chip.getAttribute("data-value") || "").trim();
+      // You said phone doesn’t transfer — homepage is using whatsapp_number.
+      // Prefill both common targets:
+      setField("whatsapp_number", data.whatsapp_number || data.phone);
+      setField("phone", data.phone || data.whatsapp_number);
 
-    // If you later want multi-select, add data-multi="true" to the group
-    const isMulti = groupEl.getAttribute("data-multi") === "true";
+      setField("trade_type", data.trade_type);
+      setField("base_postcode", data.base_postcode);
 
-    if (!isMulti) {
-      setFieldValue(fieldName, value);
-      setSelectedUI(groupEl, value, false);
-      return;
+      // After setting values, reflect on chips (if any)
+      syncAllChipGroupsFromFields();
     }
 
-    // Multi-select: store JSON array in the field
-    const field =
-      document.querySelector(`[name="${fieldName}"]`) ||
-      document.getElementById(fieldName);
+    // 6) CHIP ENGINE (works even if chips are rendered later)
+    // Requirements:
+    // - Wrapper: data-chip-group="field_name"
+    // - Each chip: data-value="Option" (button or div)
+    // - Real field exists: <input type="hidden" name="field_name" id="field_name">
+    function syncAllChipGroupsFromFields() {
+      document.querySelectorAll("[data-chip-group]").forEach(groupEl => {
+        const fieldName = groupEl.getAttribute("data-chip-group");
+        if (!fieldName) return;
 
-    if (!field) return;
+        const field =
+          document.querySelector(`[name="${fieldName}"]`) ||
+          document.getElementById(fieldName);
 
-    let arr = [];
-    try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
-    const idx = arr.indexOf(value);
-    if (idx >= 0) arr.splice(idx, 1);
-    else arr.push(value);
+        if (!field) return;
 
-    field.value = JSON.stringify(arr);
-    field.dispatchEvent(new Event("input", { bubbles: true }));
-    field.dispatchEvent(new Event("change", { bubbles: true }));
+        const isMulti = groupEl.getAttribute("data-multi") === "true";
 
-    // UI toggle
-    chip.classList.toggle("is-selected");
-    chip.setAttribute("aria-pressed", chip.classList.contains("is-selected") ? "true" : "false");
-  });
+        if (!isMulti) {
+          const current = (field.value || "").trim();
+          groupEl.querySelectorAll("[data-value]").forEach(chip => {
+            const v = (chip.getAttribute("data-value") || "").trim();
+            const on = v === current;
+            chip.classList.toggle("is-selected", on);
+            chip.setAttribute("aria-pressed", on ? "true" : "false");
+            if (chip.tagName === "BUTTON") chip.type = "button";
+          });
+        } else {
+          let arr = [];
+          try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
+          groupEl.querySelectorAll("[data-value]").forEach(chip => {
+            const v = (chip.getAttribute("data-value") || "").trim();
+            const on = arr.includes(v);
+            chip.classList.toggle("is-selected", on);
+            chip.setAttribute("aria-pressed", on ? "true" : "false");
+            if (chip.tagName === "BUTTON") chip.type = "button";
+          });
+        }
+      });
+    }
 
-  // On load: if field already has a value, reflect it on chips (prefill UI)
-  function syncAllChipGroupsFromFields() {
-    document.querySelectorAll("[data-chip-group]").forEach(groupEl => {
-      const fieldName = groupEl.getAttribute("data-chip-group");
+    document.addEventListener("click", (e) => {
+      const chip = e.target.closest("[data-chip-group] [data-value]");
+      if (!chip) return;
+
+      // stop accidental form submits
+      if (chip.tagName === "BUTTON") chip.type = "button";
+
+      const groupEl = chip.closest("[data-chip-group]");
+      const fieldName = groupEl?.getAttribute("data-chip-group");
       if (!fieldName) return;
+
+      const value = (chip.getAttribute("data-value") || "").trim();
+      const isMulti = groupEl.getAttribute("data-multi") === "true";
 
       const field =
         document.querySelector(`[name="${fieldName}"]`) ||
         document.getElementById(fieldName);
 
-      if (!field) return;
-
-      const isMulti = groupEl.getAttribute("data-multi") === "true";
+      if (!field) {
+        console.warn("[TBP] Chip group has no matching field:", fieldName);
+        return;
+      }
 
       if (!isMulti) {
-        setSelectedUI(groupEl, (field.value || "").trim(), false);
+        field.value = value;
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+        field.dispatchEvent(new Event("change", { bubbles: true }));
+        syncAllChipGroupsFromFields();
         return;
       }
 
-      // multi-select
+      // Multi-select stores JSON array in field
       let arr = [];
       try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
-      groupEl.querySelectorAll("[data-value]").forEach(chip => {
-        const v = (chip.getAttribute("data-value") || "").trim();
-        const on = arr.includes(v);
-        chip.classList.toggle("is-selected", on);
-        chip.setAttribute("aria-pressed", on ? "true" : "false");
-        if (chip.tagName === "BUTTON") chip.type = "button";
-      });
+      const idx = arr.indexOf(value);
+      if (idx >= 0) arr.splice(idx, 1);
+      else arr.push(value);
+
+      field.value = JSON.stringify(arr);
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+      chip.classList.toggle("is-selected");
     });
-  }
 
-// ===============================
-// Chip controls (robust + save-safe)
-// Requirements:
-// - Each chip group wrapper has: data-chip-group="FIELD_NAME"
-// - Inside it, each chip button has: data-value="VALUE" and type="button"
-// - There is a hidden/real input/select/textarea with name="FIELD_NAME"
-// ===============================
-(function initChips() {
-  function setFieldValue(fieldName, value) {
-    // find the real field (hidden input/select/textarea)
-    const field =
-      document.querySelector(`[name="${fieldName}"]`) ||
-      document.getElementById(fieldName);
+    // 7) Boot sequence
+    document.addEventListener("DOMContentLoaded", async () => {
+      console.log("[TBP] DOMContentLoaded");
 
-    if (!field) {
-      console.warn("Chip group has no matching field:", fieldName);
-      return;
-    }
+      // Ensure chips never submit forms even if missing type="button"
+      document.querySelectorAll("[data-chip-group] button").forEach(b => b.type = "button");
 
-    field.value = value;
-
-    // Trigger change/input so any existing autosave/validation hooks fire
-    field.dispatchEvent(new Event("input", { bubbles: true }));
-    field.dispatchEvent(new Event("change", { bubbles: true }));
-  }
-
-  function setSelectedUI(groupEl, selectedValue, multi = false) {
-    const chips = groupEl.querySelectorAll("[data-value]");
-    chips.forEach(chip => {
-      const v = chip.getAttribute("data-value") ?? "";
-      if (multi) {
-        // multi-select handled elsewhere
-        return;
-      }
-      chip.classList.toggle("is-selected", v === selectedValue);
-      chip.setAttribute("aria-pressed", v === selectedValue ? "true" : "false");
-    });
-  }
-
-  // Single-select groups: click one chip → sets field value → highlights selection
-  document.addEventListener("click", (e) => {
-    const chip = e.target.closest("[data-chip-group] [data-value]");
-    if (!chip) return;
-
-    // ensure chip is not accidentally submitting the form
-    if (chip.tagName === "BUTTON") chip.type = "button";
-
-    const groupEl = chip.closest("[data-chip-group]");
-    if (!groupEl) return;
-
-    const fieldName = groupEl.getAttribute("data-chip-group");
-    if (!fieldName) return;
-
-    const value = (chip.getAttribute("data-value") || "").trim();
-
-    // If you later want multi-select, add data-multi="true" to the group
-    const isMulti = groupEl.getAttribute("data-multi") === "true";
-
-    if (!isMulti) {
-      setFieldValue(fieldName, value);
-      setSelectedUI(groupEl, value, false);
-      return;
-    }
-
-    // Multi-select: store JSON array in the field
-    const field =
-      document.querySelector(`[name="${fieldName}"]`) ||
-      document.getElementById(fieldName);
-
-    if (!field) return;
-
-    let arr = [];
-    try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
-    const idx = arr.indexOf(value);
-    if (idx >= 0) arr.splice(idx, 1);
-    else arr.push(value);
-
-    field.value = JSON.stringify(arr);
-    field.dispatchEvent(new Event("input", { bubbles: true }));
-    field.dispatchEvent(new Event("change", { bubbles: true }));
-
-    // UI toggle
-    chip.classList.toggle("is-selected");
-    chip.setAttribute("aria-pressed", chip.classList.contains("is-selected") ? "true" : "false");
-  });
-
-  // On load: if field already has a value, reflect it on chips (prefill UI)
-  function syncAllChipGroupsFromFields() {
-    document.querySelectorAll("[data-chip-group]").forEach(groupEl => {
-      const fieldName = groupEl.getAttribute("data-chip-group");
-      if (!fieldName) return;
-
-      const field =
-        document.querySelector(`[name="${fieldName}"]`) ||
-        document.getElementById(fieldName);
-
-      if (!field) return;
-
-      const isMulti = groupEl.getAttribute("data-multi") === "true";
-
-      if (!isMulti) {
-        setSelectedUI(groupEl, (field.value || "").trim(), false);
-        return;
+      try {
+        await waitForWizardFields();
+      } catch (e) {
+        console.warn("[TBP] Wizard fields not detected yet:", e);
+        // still try to sync chips; sometimes fields are present under different ids
       }
 
-      // multi-select
-      let arr = [];
-      try { arr = JSON.parse(field.value || "[]"); } catch { arr = []; }
-      groupEl.querySelectorAll("[data-value]").forEach(chip => {
-        const v = (chip.getAttribute("data-value") || "").trim();
-        const on = arr.includes(v);
-        chip.classList.toggle("is-selected", on);
-        chip.setAttribute("aria-pressed", on ? "true" : "false");
-        if (chip.tagName === "BUTTON") chip.type = "button";
-      });
-    });
-  }
+      // sync chips once on load
+      syncAllChipGroupsFromFields();
 
-  // run now + after a short delay (covers late-rendered content)
-  syncAllChipGroupsFromFields();
-  setTimeout(syncAllChipGroupsFromFields, 250);
-  setTimeout(syncAllChipGroupsFromFields, 1000);
+      // prefill from customers if customer_id exists
+      await loadCustomerAndPrefill();
+
+      // extra sync after any late rendering
+      setTimeout(syncAllChipGroupsFromFields, 300);
+      setTimeout(syncAllChipGroupsFromFields, 1200);
+    });
+
+    // Expose for debugging in console if needed
+    window.TBP = { sb, customer_id, signup_id, user_id, loadCustomerAndPrefill, syncAllChipGroupsFromFields };
+
+  } catch (err) {
+    console.error("[TBP] app bootstrap crashed:", err);
+  }
 })();
-
-
 </script>
+
 </body>
 </html>
