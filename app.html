@@ -1067,11 +1067,10 @@
 </div>
 <script type="module">
 /* =========================================================
-   TradeBotPro Wizard — FINAL STABLE
-   - Injects Unlock/Cancel/Re-lock controls (so button can’t disappear)
-   - DOM-driven step navigation (Next always advances)
-   - Save on Next, without re-lock during unlocked edit mode
-   - Chips clickable (never disabled)
+   TradeBotPro Wizard — Correct Locked-View Mode
+   - If setup_complete: READ-ONLY + "Setup Wizard complete" message
+   - Next/Back ALWAYS works (no unlock needed to view all steps)
+   - Unlock required ONLY to edit
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1084,9 +1083,11 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= STATE ================= */
 let CUSTOMER_ID = null;
-let LOCKED = false;
-let UNLOCKED_EDIT_MODE = false;
+let LOCKED = false;                 // locked = read-only mode
+let EDIT_MODE = false;              // true only after clicking Unlock to edit
 let ORIGINAL = null;
+
+const TOTAL_STEPS = 4;
 
 /* ================= HELPERS ================= */
 const $ = (s, r=document) => r.querySelector(s);
@@ -1105,14 +1106,46 @@ function status(msg, type="info"){
   console.log(`[Wizard:${type}]`, msg);
 }
 
-/* ================= SAVE BUTTON POLISH ================= */
+/* ================= STEP NAV (DOM-DRIVEN) ================= */
+function getActiveStepPanel(){ return $(".step-panel.is-active"); }
+function getActiveStepNumber(){
+  const p = getActiveStepPanel();
+  return p ? Number(p.dataset.step) : 1;
+}
+function getStepPanel(n){ return $(`.step-panel[data-step="${n}"]`); }
+
+function showStep(n){
+  const step = Math.max(1, Math.min(TOTAL_STEPS, n));
+  const cur = getActiveStepPanel();
+  const next = getStepPanel(step);
+  if(!next) return;
+
+  cur?.classList.remove("is-active");
+  next.classList.add("is-active");
+
+  // dots
+  $$(".step-dot").forEach(dot=>{
+    dot.classList.toggle("is-active", Number(dot.dataset.stepDot) === step);
+  });
+
+  // labels
+  const lbl = $("#wizard-step-label"); if(lbl) lbl.textContent = `Step ${step}`;
+  const ft  = $("#wizard-footer-text");
+  if(ft) ft.innerHTML = `Step <strong>${step}</strong> of <strong>${TOTAL_STEPS}</strong>.`;
+
+  const back = $("#btn-back"); if(back) back.disabled = (step === 1);
+  const nextBtn = $("#btn-next"); if(nextBtn) nextBtn.textContent = (step === TOTAL_STEPS ? "Finish →" : "Next step →");
+}
+
+function nextStep(){ const s = getActiveStepNumber(); if(s < TOTAL_STEPS) showStep(s+1); }
+function prevStep(){ const s = getActiveStepNumber(); if(s > 1) showStep(s-1); }
+
+/* ================= SAVE BUTTON UI ================= */
 function saveBtn(){ return $("#btn-save-draft"); }
 
 function renameSaveButton(){
   const b = saveBtn();
-  if(!b) return;
-  b.textContent = "Save";
-  b.title = "Saves to Supabase";
+  if(b) b.textContent = "Save";
 }
 
 function setSaveState(state){
@@ -1145,41 +1178,20 @@ function hideSaveButton(hide){
   if(b) b.style.display = hide ? "none" : "";
 }
 
-/* ================= STEP NAV (DOM-DRIVEN) ================= */
-const TOTAL_STEPS = 4;
-
-function getActiveStepPanel(){ return $(".step-panel.is-active"); }
-function getActiveStepNumber(){
-  const p = getActiveStepPanel();
-  return p ? Number(p.dataset.step) : 1;
+/* ================= COMPLETION MESSAGE ================= */
+function setCompletionUI(isComplete){
+  const box = $("#summary-box");
+  if(box){
+    box.hidden = !isComplete;
+    if(isComplete){
+      box.innerHTML = `
+        <strong>🔒 Setup Wizard complete.</strong><br />
+        Your details are saved. You can browse all steps using Next/Back.
+        To change anything, click <strong>Unlock to edit</strong>.
+      `;
+    }
+  }
 }
-function getStepPanel(n){ return $(`.step-panel[data-step="${n}"]`); }
-
-function showStep(n){
-  const step = Math.max(1, Math.min(TOTAL_STEPS, n));
-  const cur = getActiveStepPanel();
-  const next = getStepPanel(step);
-  if(!next) return;
-
-  cur?.classList.remove("is-active");
-  next.classList.add("is-active");
-
-  // dots
-  $$(".step-dot").forEach(dot=>{
-    dot.classList.toggle("is-active", Number(dot.dataset.stepDot) === step);
-  });
-
-  // labels (minimal)
-  const lbl = $("#wizard-step-label"); if(lbl) lbl.textContent = `Step ${step}`;
-  const ft  = $("#wizard-footer-text");
-  if(ft) ft.innerHTML = `Step <strong>${step}</strong> of <strong>${TOTAL_STEPS}</strong>.`;
-
-  const back = $("#btn-back"); if(back) back.disabled = (step === 1);
-  const nextBtn = $("#btn-next"); if(nextBtn) nextBtn.textContent = (step === TOTAL_STEPS ? "Finish →" : "Next step →");
-}
-
-function nextStep(){ const s = getActiveStepNumber(); if(s < TOTAL_STEPS) showStep(s+1); }
-function prevStep(){ const s = getActiveStepNumber(); if(s > 1) showStep(s-1); }
 
 /* ================= CHIPS ================= */
 function ensureChipInputs(){
@@ -1199,7 +1211,10 @@ function syncChipRow(row){
   const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root());
   if(!hidden) return;
 
-  const vals = $$(".chip.is-selected,.chip.is-active", row).map(b=>b.textContent.trim()).filter(Boolean);
+  const vals = $$(".chip.is-selected,.chip.is-active", row)
+    .map(b=>b.textContent.trim())
+    .filter(Boolean);
+
   hidden.value = (row.dataset.select === "multi") ? JSON.stringify(vals) : (vals[0] || "");
 }
 
@@ -1214,7 +1229,7 @@ function wireChipClicks(){
     $$(".chip", row).forEach(btn=>{
       btn.addEventListener("click", (e)=>{
         e.preventDefault();
-        if(LOCKED) return;
+        if(LOCKED && !EDIT_MODE) return; // locked view mode = no changes
 
         if(mode === "single"){
           $$(".chip", row).forEach(b=>{
@@ -1233,7 +1248,6 @@ function wireChipClicks(){
       });
     });
 
-    // initial sync
     syncChipRow(row);
   });
 }
@@ -1250,9 +1264,7 @@ function loadChips(data){
     const v = String(hidden.value ?? "").trim();
     if(v.startsWith("[")){
       try { vals = JSON.parse(v) || []; } catch { vals = []; }
-    } else if(v) {
-      vals = [v];
-    }
+    } else if(v) vals = [v];
 
     $$(".chip", row).forEach(b=>{
       const on = vals.includes(b.textContent.trim());
@@ -1275,7 +1287,7 @@ function snapshot(){
   return o;
 }
 
-/* ================= LOCK CONTROLS (INJECTED) ================= */
+/* ================= LOCK CONTROLS ================= */
 function injectLockControls(){
   if($("#btn-unlock")) return;
 
@@ -1294,57 +1306,88 @@ function injectLockControls(){
 
   $("#btn-unlock").addEventListener("click", ()=>{
     if(confirm("Unlock this setup to make changes?")){
-      UNLOCKED_EDIT_MODE = true;
-      lockWizard(false);
+      EDIT_MODE = true;
+      setReadOnly(false);          // allow edits
       hideSaveButton(false);
       setSaveState("idle");
       status("Unlocked for editing.", "info");
+      updateLockButtons();
     }
   });
 
   $("#btn-cancel").addEventListener("click", ()=>{
     if(!ORIGINAL) return;
+
     // restore fields
     Object.entries(ORIGINAL).forEach(([k,v])=>{
       const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
       if(el && el.type !== "hidden") el.value = v ?? "";
     });
-    // restore chips
     loadChips(ORIGINAL);
 
-    // re-lock
-    UNLOCKED_EDIT_MODE = false;
-    lockWizard(true);
+    // return to locked view
+    EDIT_MODE = false;
+    setReadOnly(true);
+    hideSaveButton(true);
     status("Changes discarded.", "info");
+    updateLockButtons();
   });
 
   $("#btn-relock").addEventListener("click", ()=>{
-    UNLOCKED_EDIT_MODE = false;
-    lockWizard(true);
-    status("Wizard locked.", "info");
+    EDIT_MODE = false;
+    setReadOnly(true);
+    hideSaveButton(true);
+    status("Wizard locked (read-only).", "info");
+    updateLockButtons();
   });
 }
 
-function lockWizard(on){
-  LOCKED = !!on;
+function updateLockButtons(){
+  const unlock = $("#btn-unlock");
+  const cancel = $("#btn-cancel");
+  const relock = $("#btn-relock");
 
-  // Disable inputs but NEVER disable .chip buttons, and keep nav/save/lock controls enabled
-  $$("input,textarea,select,button", root()).forEach(el=>{
+  if(!unlock || !cancel || !relock) return;
+
+  // If wizard is locked and not editing: show Unlock only
+  if(LOCKED && !EDIT_MODE){
+    unlock.style.display = "inline-flex";
+    cancel.style.display = "none";
+    relock.style.display = "none";
+  } else {
+    // editing mode: show cancel/relock, hide unlock
+    unlock.style.display = "none";
+    cancel.style.display = "inline-flex";
+    relock.style.display = "inline-flex";
+  }
+}
+
+/* ================= READ-ONLY LOCKING (EDITING ONLY) ================= */
+function setReadOnly(on){
+  // text inputs + textarea: readonly (so user can still scroll/select text)
+  $$("input,textarea", root()).forEach(el=>{
     if(el.classList.contains("chip")) return;
-    if(["btn-unlock","btn-cancel","btn-relock","btn-save-draft","btn-next","btn-back"].includes(el.id)) return;
-    el.disabled = on;
+    if(["btn-save-draft","btn-next","btn-back","btn-unlock","btn-cancel","btn-relock"].includes(el.id)) return;
+    if(el.type === "hidden") return;
+
+    // keep email/tel/text etc readable
+    el.readOnly = !!on;
   });
 
-  $("#btn-unlock")?.style.setProperty("display", on ? "inline-flex" : "none");
-  $("#btn-cancel")?.style.setProperty("display", on ? "none" : "inline-flex");
-  $("#btn-relock")?.style.setProperty("display", on ? "none" : "inline-flex");
+  // selects: must be disabled to prevent changes
+  $$("select", root()).forEach(el=>{
+    el.disabled = !!on;
+  });
 
-  hideSaveButton(on);
+  // chips: still visible; click handler prevents changes when locked view
+  $$(".chip", root()).forEach(btn=>{
+    btn.setAttribute("aria-disabled", (on ? "true" : "false"));
+  });
 }
 
 /* ================= SAVE ================= */
 async function save(){
-  if(LOCKED) return;
+  if(LOCKED && !EDIT_MODE) return; // in locked view, do not save
 
   renameSaveButton();
   setSaveState("saving");
@@ -1354,7 +1397,6 @@ async function save(){
 
   if(now.phone && !now.whatsapp_number) now.whatsapp_number = now.phone;
 
-  // completion rule
   const complete = !!(String(now.business_name||"").trim() &&
                       String(now.email||"").trim() &&
                       String(now.main_trade||"").trim());
@@ -1374,10 +1416,16 @@ async function save(){
     setSaveState("saved");
     status("Saved to Supabase ✅", "success");
 
-    // IMPORTANT: do NOT auto-lock while in unlocked edit mode
-    if(complete && !UNLOCKED_EDIT_MODE){
-      lockWizard(true);
-      status("Setup complete — wizard locked 🔒", "success");
+    // If wizard is complete, set locked view mode (but allow navigation!)
+    if(complete){
+      LOCKED = true;
+      EDIT_MODE = false;
+      setReadOnly(true);
+      hideSaveButton(true);
+      setCompletionUI(true);
+      updateLockButtons();
+    } else {
+      setCompletionUI(false);
     }
   }catch(e){
     console.error("[Wizard] Save failed", e);
@@ -1399,14 +1447,13 @@ async function init(){
   wireChipClicks();
   injectLockControls();
 
-  // Load row
   const { data, error } = await sb.from(TABLE).select("*").eq("id", CUSTOMER_ID).maybeSingle();
   if(error || !data){
     status("Customer not found", "error");
     return;
   }
 
-  // Prefill inputs
+  // Prefill fields
   Object.entries(data).forEach(([k,v])=>{
     const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
     if(el && el.type !== "hidden") el.value = v ?? "";
@@ -1417,23 +1464,33 @@ async function init(){
 
   ORIGINAL = snapshot();
 
-  // Lock state from DB
-  if(truthy(data.setup_complete)){
-    lockWizard(true);
-    status("Setup complete — locked 🔒", "info");
+  // Determine locked view mode
+  LOCKED = truthy(data.setup_complete);
+  EDIT_MODE = false;
+
+  if(LOCKED){
+    setReadOnly(true);
+    hideSaveButton(true);
+    setCompletionUI(true);
+    status("Setup complete — read-only (use Next/Back to browse).", "info");
   } else {
-    lockWizard(false);
+    setReadOnly(false);
+    hideSaveButton(false);
+    setCompletionUI(false);
     status("Resumed — editable.", "info");
   }
 
-  // Ensure step 1 visible
+  updateLockButtons();
+
+  // ensure Step 1 visible on load
   showStep(getActiveStepNumber() || 1);
 
-  // NAV: Next ALWAYS advances (save is separate)
+  // Next/Back ALWAYS navigates (even when locked)
   $("#btn-next")?.addEventListener("click", (e)=>{
     e.preventDefault();
-    save();     // saves (won’t lock if UNLOCKED_EDIT_MODE)
-    nextStep(); // ALWAYS advance UI
+    // only save if we are allowed to edit
+    if(!LOCKED || EDIT_MODE) save();
+    nextStep();
   });
 
   $("#btn-back")?.addEventListener("click", (e)=>{
@@ -1441,7 +1498,7 @@ async function init(){
     prevStep();
   });
 
-  // Manual save
+  // Manual save (only when editable)
   $("#btn-save-draft")?.addEventListener("click", (e)=>{
     e.preventDefault();
     save();
