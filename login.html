@@ -1,185 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>TradeBotPro — Secure Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root{
-      --primary-blue:#1f4e79;
-      --accent-blue:#00a3ff;
-      --dark-text:#151820;
-      --muted-text:#6b7280;
-      --light-bg:#f3f4f9;
-      --white:#ffffff;
-      --border-subtle:rgba(15,23,42,0.12);
-      --success-green:#0f7b46;
-      --error-red:#b3261e;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-      background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 40%,#fdfdfd 100%);
-      color:var(--dark-text);
-      line-height:1.5;
-    }
-    header{
-      border-bottom:1px solid rgba(15,23,42,0.06);
-      background:rgba(248,250,252,0.96);
-      backdrop-filter:blur(6px);
-      position:sticky; top:0; z-index:20;
-    }
-    .header-inner{
-      max-width:1100px; margin:0 auto; padding:0.6rem 1.25rem;
-      display:flex; align-items:center; justify-content:space-between; gap:0.75rem; flex-wrap:wrap;
-    }
-    .logo-wrap{display:flex;align-items:center;gap:0.6rem}
-    .logo-icon{width:30px;height:30px;border-radius:9px;background:var(--primary-blue);position:relative}
-    .logo-icon::before,.logo-icon::after{content:"";position:absolute;background:var(--white);border-radius:4px}
-    .logo-icon::before{width:11px;height:17px;left:7px;top:6px}
-    .logo-icon::after{width:6px;height:11px;right:7px;top:9px}
-    .logo-main{font-weight:700;font-size:1rem;color:var(--primary-blue)}
-    .logo-tag{font-size:0.75rem;color:var(--muted-text)}
-    main{max-width:560px;margin:0 auto;padding:2.2rem 1.25rem}
-    .card{
-      background:rgba(255,255,255,0.92);
-      border-radius:1.2rem;
-      padding:1.3rem 1.35rem;
-      box-shadow:0 24px 60px rgba(15,23,42,0.12),0 0 0 1px rgba(15,23,42,0.03);
-    }
-    h1{margin:0 0 0.35rem;color:var(--primary-blue);font-size:1.35rem}
-    p{margin:0 0 1rem;color:var(--muted-text);font-size:0.92rem}
-    label{display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem}
-    input{
-      width:100%;
-      padding:0.6rem 0.7rem;
-      border-radius:0.55rem;
-      border:1px solid var(--border-subtle);
-      font:inherit;
-      background:var(--white);
-      margin-bottom:0.9rem;
-    }
-    input:focus{
-      outline:0;
-      border-color:rgba(37,99,235,0.7);
-      box-shadow:0 0 0 1px rgba(37,99,235,0.4);
-    }
-    .btn{
-      width:100%;
-      border-radius:999px;
-      border:1px solid transparent;
-      padding:0.7rem 1rem;
-      font-size:0.95rem;
-      font-weight:700;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      background:linear-gradient(135deg,var(--primary-blue),#163857);
-      color:var(--white);
-      box-shadow:0 12px 28px rgba(15,23,42,0.28);
-    }
-    .btn:disabled{opacity:0.65;cursor:default;box-shadow:none}
-    .status{margin-top:0.75rem;font-size:0.9rem;min-height:1.2em}
-    .status.error{color:var(--error-red)}
-    .status.success{color:var(--success-green)}
-    .tiny{font-size:0.78rem;color:var(--muted-text);margin-top:0.7rem}
-  </style>
-</head>
+<html>
+<head><meta charset="UTF-8"></head>
 <body>
-<header>
-  <div class="header-inner">
-    <div class="logo-wrap">
-      <div class="logo-icon" aria-hidden="true"></div>
-      <div>
-        <div class="logo-main">TradeBotPro</div>
-        <div class="logo-tag">Secure login</div>
-      </div>
-    </div>
-    <div class="logo-tag">Magic link (no password)</div>
-  </div>
-</header>
 
-<main>
-  <div class="card">
-    <h1>Access your dashboard</h1>
-    <p>Enter your email and we’ll send a secure magic link. No password needed.</p>
-
-    <form id="login-form">
-      <label for="email">Email</label>
-      <input id="email" name="email" type="email" autocomplete="email" required />
-
-      <!-- token can be passed in the URL and kept hidden -->
-      <input id="token" name="token" type="hidden" />
-
-      <button class="btn" id="btn" type="submit">Send magic link</button>
-      <div class="status" id="status"></div>
-      <div class="tiny" id="tiny"></div>
-    </form>
-  </div>
-</main>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 <script>
-(function(){
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "REPLACE_WITH_YOUR_ANON_KEY_IF_DIFFERENT";
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const SUPABASE_ANON_KEY = "YOUR_ANON_KEY_HERE";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const params = new URLSearchParams(location.search);
-  const token = (params.get("token") || "").trim();
+  (async () => {
+    const { data } = await sb.auth.getSession();
+    const user = data?.session?.user;
 
-  const form = document.getElementById("login-form");
-  const emailEl = document.getElementById("email");
-  const tokenEl = document.getElementById("token");
-  const btn = document.getElementById("btn");
-  const statusEl = document.getElementById("status");
-  const tinyEl = document.getElementById("tiny");
-
-  tokenEl.value = token;
-
-  if (token) {
-    tinyEl.textContent = "Access code detected. Your account will be linked after login.";
-  } else {
-    tinyEl.textContent = "If you were invited, use the exact invite link you were sent.";
-  }
-
-  function setStatus(msg, type){
-    statusEl.textContent = msg || "";
-    statusEl.className = "status" + (type ? (" " + type) : "");
-  }
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setStatus("");
-
-    const email = (emailEl.value || "").trim().toLowerCase();
-    if (!email) return setStatus("Please enter your email.", "error");
-
-    btn.disabled = true;
-    setStatus("Sending magic link…");
-
-    try {
-      // Redirect back to client dashboard with the same token
-      const redirectTo = `${location.origin}/client-dashboard.html${token ? `?token=${encodeURIComponent(token)}` : ""}`;
-
-      const { error } = await sb.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: redirectTo }
-      });
-
-      if (error) throw error;
-
-      setStatus("Magic link sent. Check your email and click the link.", "success");
-    } catch (err) {
-      console.error(err);
-      setStatus("Couldn’t send magic link. Please try again.", "error");
-    } finally {
-      btn.disabled = false;
+    if (!user) {
+      location.href = "/login.html";
+      return;
     }
-  });
-})();
+
+    const { data: admin } = await sb
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (admin) {
+      location.href = "/dashboard.html";
+    } else {
+      location.href = "/client-dashboard.html";
+    }
+  })();
 </script>
+
 </body>
 </html>
