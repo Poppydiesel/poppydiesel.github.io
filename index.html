@@ -1122,95 +1122,136 @@
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+  // ======= SET THESE =======
    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  // =========================
+
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const form =
-    document.querySelector("#signupForm") ||
-    document.querySelector("form");
+  // --- Change these selectors ONLY if your IDs differ ---
+  const FORM_SELECTOR = "#signupForm";                 // your form id
+  const STATUS_SELECTOR = "#status";                   // optional status element
+  const SUBMIT_SELECTOR = "#continueBtn";              // optional submit button id
+
+  const form = document.querySelector(FORM_SELECTOR) || document.querySelector("form");
+  const statusEl = document.querySelector(STATUS_SELECTOR);
+  const submitBtn =
+    document.querySelector(SUBMIT_SELECTOR) ||
+    form?.querySelector('button[type="submit"], input[type="submit"]');
+
+  function setStatus(html) {
+    if (statusEl) statusEl.innerHTML = html;
+  }
+  function safe(v){ return String(v || "").trim(); }
+  function safeEmail(v){ return safe(v).toLowerCase(); }
+
+  // ✅ hard safety net: prevents URL pollution even if something goes wrong
+  form?.addEventListener("submit", (e) => e.preventDefault());
 
   if (!form) {
-    console.error("Signup form not found");
-    return;
-  }
+    console.error("TradeBotPro: Signup form not found.");
+  } else {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-  const submitBtn =
-    form.querySelector('button[type="submit"], input[type="submit"]');
+      // Grab values from your existing inputs by id/name (no layout changes)
+      const business_name =
+        document.querySelector("#business_name")?.value ??
+        document.querySelector('[name="business_name"]')?.value ?? "";
 
-  const statusEl =
-    document.querySelector("#status") ||
-    document.querySelector(".form-status");
+      const contact_name =
+        document.querySelector("#contact_name")?.value ??
+        document.querySelector('[name="contact_name"]')?.value ??
+        document.querySelector("#owner_name")?.value ??
+        document.querySelector('[name="owner_name"]')?.value ?? "";
 
-  function setStatus(msg, color = "#6b7280") {
-    if (statusEl) {
-      statusEl.innerHTML = `<span style="color:${color};font-weight:700">${msg}</span>`;
-    }
-  }
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    if (submitBtn) submitBtn.disabled = true;
-    setStatus("Saving…");
-
-    try {
       const email =
-        (document.querySelector('input[type="email"]')?.value || "")
-          .trim()
-          .toLowerCase();
+        safeEmail(
+          document.querySelector("#email")?.value ??
+          document.querySelector('[name="email"]')?.value ??
+          document.querySelector('input[type="email"]')?.value ?? ""
+        );
 
-      if (!email) {
-        throw new Error("Email is required");
+      const phone =
+        document.querySelector("#phone")?.value ??
+        document.querySelector('[name="phone"]')?.value ??
+        document.querySelector("#whatsapp_number")?.value ??
+        document.querySelector('[name="whatsapp_number"]')?.value ?? "";
+
+      const trade_type =
+        document.querySelector("#trade_type")?.value ??
+        document.querySelector('[name="trade_type"]')?.value ?? "";
+
+      const base_postcode =
+        document.querySelector("#base_postcode")?.value ??
+        document.querySelector('[name="base_postcode"]')?.value ??
+        document.querySelector("#postcode")?.value ??
+        document.querySelector('[name="postcode"]')?.value ?? "";
+
+      if (!email || !email.includes("@")) {
+        setStatus(`<span style="color:#b3261e;font-weight:800">Please enter a valid email.</span>`);
+        return;
       }
 
       const payload = {
+        business_name: safe(business_name) || null,
+        contact_name: safe(contact_name) || null,
         email,
-        business_name: document.querySelector("#business_name")?.value || null,
-        contact_name: document.querySelector("#contact_name")?.value || null,
-        phone: document.querySelector("#phone")?.value || null,
-        whatsapp_number: document.querySelector("#phone")?.value || null,
-        trade_type: document.querySelector("#trade_type")?.value || null,
-        base_postcode: document.querySelector("#base_postcode")?.value || null,
+        phone: safe(phone) || null,
+        whatsapp_number: safe(phone) || null,
+        trade_type: safe(trade_type) || null,
+        base_postcode: safe(base_postcode) || null,
         wizard_complete: false,
         is_admin: false
       };
 
-      console.log("Submitting payload:", payload);
+      const originalBtnText = submitBtn?.textContent;
 
-      const { data, error } = await sb
-        .from("customers")
-        .upsert(payload, { onConflict: "email" })
-        .select("id")
-        .single();
+      try {
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          if (submitBtn.textContent) submitBtn.textContent = "Saving…";
+        }
+        setStatus(`<span style="color:#6b7280">Saving…</span>`);
 
-      console.log("Supabase response:", { data, error });
+        // ✅ KEY: return the row id so we can open wizard
+        const { data, error } = await sb
+          .from("customers")
+          .upsert(payload, { onConflict: "email" })
+          .select("id,email")
+          .single();
 
-      if (error) throw error;
-      if (!data?.id) throw new Error("No customer ID returned");
+        console.log("Signup result:", { data, error });
 
-      localStorage.setItem("tbp_last_signup_id", data.id);
+        if (error) throw error;
+        if (!data?.id) throw new Error("No customer id returned from Supabase.");
 
-      setStatus("Opening wizard…", "#0f7b46");
+        localStorage.setItem("tbp_last_signup_id", data.id);
+        localStorage.setItem("tbp_last_email", data.email);
 
-      // 🔑 GUARANTEED redirect
-      window.location.assign(
-        `app.html?signup_id=${encodeURIComponent(data.id)}`
-      );
+        setStatus(`<span style="color:#0f7b46;font-weight:800">Saved. Opening wizard…</span>`);
 
-    } catch (err) {
-      console.error("Signup failed:", err);
-      setStatus(err.message || "Signup failed", "#b3261e");
-    } finally {
-      // 🔑 NEVER leave the button frozen
-      if (submitBtn) submitBtn.disabled = false;
-    }
-  });
+        // ✅ Redirect with correct id
+        window.location.assign(`app.html?signup_id=${encodeURIComponent(data.id)}`);
+
+      } catch (err) {
+        console.error("Signup failed:", err);
+        setStatus(`<span style="color:#b3261e;font-weight:800">Save failed:</span> ${err?.message || err}`);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          if (originalBtnText) submitBtn.textContent = originalBtnText;
+        }
+      }
+    });
+  }
 </script>
 
 
 </body>
 </html>
+
 
 
 
