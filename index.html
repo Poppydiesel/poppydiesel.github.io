@@ -1122,192 +1122,95 @@
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  // =========================
-  // CONFIG — SET THESE
-  // =========================
    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // =========================
-  // HELPERS (do not affect layout)
-  // =========================
-  const $ = (sel) => document.querySelector(sel);
-
-  function firstValue(selectors) {
-    for (const sel of selectors) {
-      const el = $(sel);
-      if (!el) continue;
-      const v = (el.value ?? "").toString().trim();
-      if (v) return v;
-    }
-    return "";
-  }
-
-  function setTextMaybe(selectors, html) {
-    for (const sel of selectors) {
-      const el = $(sel);
-      if (!el) continue;
-      el.innerHTML = html;
-      return true;
-    }
-    return false;
-  }
-
-  // Try to find your existing form and buttons without you renaming anything
-  const signupForm =
-    $("#signupForm") ||
-    $("#leadForm") ||
-    $("#signup-form") ||
+  const form =
+    document.querySelector("#signupForm") ||
     document.querySelector("form");
 
-  // Optional: status message element (won't break if you don't have one)
-  const statusSelectors = [
-    "#status",
-    "#formStatus",
-    ".form-status",
-    "[data-status]",
-  ];
-
-  // Optional: button (we disable it while saving)
-  const continueBtn =
-    $("#continueBtn") ||
-    $("#continueWizardBtn") ||
-    $("#submitBtn") ||
-    signupForm?.querySelector('button[type="submit"], input[type="submit"]');
-
-  function setStatusOk(msg) {
-    setTextMaybe(statusSelectors, `<span style="color:#0f7b46;font-weight:800">${msg}</span>`);
-  }
-  function setStatusErr(msg) {
-    setTextMaybe(statusSelectors, `<span style="color:#b3261e;font-weight:800">${msg}</span>`);
-  }
-  function setStatusMuted(msg) {
-    setTextMaybe(statusSelectors, `<span style="color:#6b7280">${msg}</span>`);
+  if (!form) {
+    console.error("Signup form not found");
+    return;
   }
 
-  // =========================
-  // MAIN HANDLER (this is the fix)
-  // =========================
-  if (!signupForm) {
-    console.warn("TradeBotPro: Could not find a signup form on this page.");
-  } else {
-    signupForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+  const submitBtn =
+    form.querySelector('button[type="submit"], input[type="submit"]');
 
-      // Pull values from whatever IDs/names you already use (no layout change)
-      const business_name = firstValue([
-        "#business_name",
-        "#businessName",
-        'input[name="business_name"]',
-        'input[name="businessName"]',
-      ]);
+  const statusEl =
+    document.querySelector("#status") ||
+    document.querySelector(".form-status");
 
-      const contact_name = firstValue([
-        "#contact_name",
-        "#contactName",
-        "#owner_name",
-        "#ownerName",
-        'input[name="contact_name"]',
-        'input[name="contactName"]',
-        'input[name="owner_name"]',
-        'input[name="ownerName"]',
-      ]);
+  function setStatus(msg, color = "#6b7280") {
+    if (statusEl) {
+      statusEl.innerHTML = `<span style="color:${color};font-weight:700">${msg}</span>`;
+    }
+  }
 
-      const emailRaw = firstValue([
-        "#email",
-        "#Email",
-        'input[type="email"]',
-        'input[name="email"]',
-      ]);
-      const email = (emailRaw || "").trim().toLowerCase();
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      const phone = firstValue([
-        "#phone",
-        "#mobile",
-        "#whatsapp_number",
-        "#whatsapp",
-        'input[name="phone"]',
-        'input[name="mobile"]',
-        'input[name="whatsapp_number"]',
-      ]);
+    if (submitBtn) submitBtn.disabled = true;
+    setStatus("Saving…");
 
-      const trade_type = firstValue([
-        "#trade_type",
-        "#tradeType",
-        'select[name="trade_type"]',
-        'select[name="tradeType"]',
-      ]);
+    try {
+      const email =
+        (document.querySelector('input[type="email"]')?.value || "")
+          .trim()
+          .toLowerCase();
 
-      const base_postcode = firstValue([
-        "#base_postcode",
-        "#postcode",
-        "#postCode",
-        'input[name="base_postcode"]',
-        'input[name="postcode"]',
-      ]);
-
-      if (!email || !email.includes("@")) {
-        setStatusErr("Please enter a valid email address.");
-        return;
+      if (!email) {
+        throw new Error("Email is required");
       }
 
-      // Build payload for your single-table Customers architecture
       const payload = {
-        business_name: business_name || null,
-        contact_name: contact_name || null,
-        owner_name: null,                 // keep null unless you store it separately
         email,
-        phone: phone || null,
-        whatsapp_number: phone || null,
-        trade_type: trade_type || null,
-        base_postcode: base_postcode || null,
-
-        // keep predictable defaults
+        business_name: document.querySelector("#business_name")?.value || null,
+        contact_name: document.querySelector("#contact_name")?.value || null,
+        phone: document.querySelector("#phone")?.value || null,
+        whatsapp_number: document.querySelector("#phone")?.value || null,
+        trade_type: document.querySelector("#trade_type")?.value || null,
+        base_postcode: document.querySelector("#base_postcode")?.value || null,
         wizard_complete: false,
         is_admin: false
       };
 
-      try {
-        if (continueBtn) {
-          continueBtn.disabled = true;
-          if ("textContent" in continueBtn) continueBtn.textContent = "Saving…";
-        }
-        setStatusMuted("Saving your details…");
+      console.log("Submitting payload:", payload);
 
-        // ✅ KEY FIX: upsert + return the row so we get the ID
-        const { data, error } = await sb
-          .from("customers")
-          .upsert(payload, { onConflict: "email" })
-          .select("id,email")
-          .single();
+      const { data, error } = await sb
+        .from("customers")
+        .upsert(payload, { onConflict: "email" })
+        .select("id")
+        .single();
 
-        if (error) throw error;
-        if (!data?.id) throw new Error("No customer id returned from Supabase.");
+      console.log("Supabase response:", { data, error });
 
-        // backup (helps if someone opens wizard without a querystring)
-        localStorage.setItem("tbp_last_signup_id", data.id);
-        localStorage.setItem("tbp_last_email", data.email);
+      if (error) throw error;
+      if (!data?.id) throw new Error("No customer ID returned");
 
-        setStatusOk("Saved. Opening the setup wizard…");
+      localStorage.setItem("tbp_last_signup_id", data.id);
 
-        // ✅ THIS is what makes the wizard load the same row
-        window.location.href = `app.html?signup_id=${encodeURIComponent(data.id)}`;
-      } catch (err) {
-        console.error("TradeBotPro signup error:", err);
-        setStatusErr(err?.message || String(err));
-      } finally {
-        if (continueBtn) {
-          continueBtn.disabled = false;
-          // don’t force a label if you used a custom one
-        }
-      }
-    });
-  }
+      setStatus("Opening wizard…", "#0f7b46");
+
+      // 🔑 GUARANTEED redirect
+      window.location.assign(
+        `app.html?signup_id=${encodeURIComponent(data.id)}`
+      );
+
+    } catch (err) {
+      console.error("Signup failed:", err);
+      setStatus(err.message || "Signup failed", "#b3261e");
+    } finally {
+      // 🔑 NEVER leave the button frozen
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
 </script>
 
 
 </body>
 </html>
+
 
 
