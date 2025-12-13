@@ -434,10 +434,9 @@
         <td>${escapeHtml(r.base_postcode || "—")}</td>
         <td>${escapeHtml(fmtDate(r.updated_at || r.created_at))}</td>
       `;
-      tr.addEventListener("click", ()=> {
-        window.open(`app.html?customer_id=${encodeURIComponent(r.id)}`, "_blank", "noopener");
-      });
-      tbody.appendChild(tr);
+     tr.addEventListener("click", () => openDrawer(r));
+tbody.appendChild(tr);
+
     }
 
     if(statusBar){
