@@ -1065,457 +1065,228 @@
     </div>
   </main>
 </div>
-  
-<script type="module">
+  <script type="module">
 /* =========================================================
-   TradeBotPro Wizard — customers table only
-   - No <form> required
-   - Prefill by name/id
-   - Chips persist via hidden inputs (data-field columns)
-   - Adds a clear "Save to Supabase" button in the footer
-   - Wires existing #btn-save-draft to Supabase save too
-   - Lock/Unlock included (save buttons remain usable)
+   TradeBotPro Wizard — FINAL SAFE SAVE VERSION
+   Fixes: "Save error: Object"
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// ================= CONFIG =================
+/* ================= CONFIG ================= */
 const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 const TABLE = "customers";
 
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ================= HELPERS =================
-const $ = (sel, root=document) => root.querySelector(sel);
-const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
-const esc = (s) => { try { return CSS.escape(s); } catch { return String(s).replace(/"/g, '\\"'); } };
+/* ================= COLUMN WHITELIST ================= */
+/* ONLY these columns will ever be saved */
+const CUSTOMER_COLUMNS = [
+  "business_name",
+  "contact_name",
+  "owner_name",
+  "email",
+  "phone",
+  "whatsapp_number",
+  "base_postcode",
+  "review_link",
+  "ai_avoid",
+  "extra_notes",
 
-function qp(name){ return new URLSearchParams(location.search).get(name); }
-function truthy(v){ return v === true || v === "true" || v === 1 || v === "1" || v === "on" || v === "yes"; }
+  // chips
+  "main_trade",
+  "business_stage",
+  "coverage_radius",
+  "callout_style",
+  "callout_band",
+  "preferred_jobs",
+  "tone_of_voice",
+  "channels",
+  "review_platforms",
+  "review_push_level",
+  "demo_style",
+  "demo_slot",
+  "golive_timing",
 
-function getRoot(){
-  return $(".wizard-shell") || document.body;
-}
+  // system
+  "setup_complete",
+  "pending_setup",
+  "setup_completed_at",
+  "updated_at"
+];
 
-function setStatus(msg, type="info"){
+/* ================= HELPERS ================= */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+
+function qp(n){ return new URLSearchParams(location.search).get(n); }
+function esc(s){ try { return CSS.escape(s); } catch { return s; } }
+function truthy(v){ return v===true||v==="true"||v===1||v==="1"; }
+
+function root(){ return $(".wizard-shell") || document.body; }
+
+function status(msg, type="info"){
   const el = $("#wizard-status-message");
   if(el){
     el.textContent = msg;
-    el.classList.remove("is-error","is-success","is-info");
-    el.classList.add(type === "error" ? "is-error" : type === "success" ? "is-success" : "is-info");
+    el.className = "wizard-status-message is-" + type;
   }
   console.log(`[Wizard:${type}]`, msg);
 }
 
-function setField(nameOrId, value){
-  const root = getRoot();
+/* ================= CHIP HANDLING ================= */
+function initChipStorage(){
+  $$(".chip-row[data-field]", root()).forEach(row=>{
+    const field = row.dataset.field;
+    if($(`input[name="${esc(field)}"]`, root())) return;
 
-  // Try name first, then id
-  const byName = $$(`[name="${esc(nameOrId)}"]`, root);
-  const candidates = byName.length ? byName : $$(`#${esc(nameOrId)}`, root);
-
-  if(!candidates.length) return false;
-
-  candidates.forEach(el => {
-    const tag = (el.tagName || "").toLowerCase();
-    const type = (el.getAttribute("type") || "").toLowerCase();
-
-    if(tag === "input" && type === "checkbox"){
-      el.checked = truthy(value);
-    } else if(tag === "input" && type === "radio"){
-      el.checked = (String(el.value) === String(value));
-    } else {
-      el.value = (value ?? "");
-    }
-  });
-
-  return true;
-}
-
-function snapshot(){
-  const root = getRoot();
-  const obj = {};
-
-  $$("input[name], select[name], textarea[name]", root).forEach(el => {
-    const name = el.getAttribute("name");
-    const tag = (el.tagName || "").toLowerCase();
-    const type = (el.getAttribute("type") || "").toLowerCase();
-
-    if(tag === "input" && type === "checkbox"){
-      obj[name] = el.checked ? "1" : "0";
-      return;
-    }
-    if(tag === "input" && type === "radio"){
-      return; // handled below
-    }
-    obj[name] = el.value ?? "";
-  });
-
-  // Radio groups
-  const radios = $$('input[type="radio"][name]', root);
-  const groups = new Map();
-  radios.forEach(r => {
-    const n = r.name;
-    if(!groups.has(n)) groups.set(n, []);
-    groups.get(n).push(r);
-  });
-  groups.forEach((list, n) => {
-    const checked = list.find(r => r.checked);
-    obj[n] = checked ? checked.value : (obj[n] ?? "");
-  });
-
-  return obj;
-}
-
-function same(a,b){ return JSON.stringify(a) === JSON.stringify(b); }
-
-// ================= CHIP ROWS =================
-function ensureChipHiddenInputs(){
-  const root = getRoot();
-  const rows = $$(".chip-row[data-field]", root);
-
-  rows.forEach(row => {
-    const field = (row.getAttribute("data-field") || "").trim();
-    if(!field) return;
-
-    if($(`input[type="hidden"][name="${esc(field)}"]`, root)) return;
-
-    const hidden = document.createElement("input");
-    hidden.type = "hidden";
-    hidden.name = field;
-    hidden.id = `tbp_hidden_${field}`;
-    row.insertAdjacentElement("afterend", hidden);
+    const h = document.createElement("input");
+    h.type = "hidden";
+    h.name = field;
+    row.after(h);
   });
 }
 
-function getChipValues(row){
-  const selectMode = (row.getAttribute("data-select") || "single").toLowerCase();
-  const selected = $$(".chip.is-selected, .chip.is-active", row)
-    .map(btn => btn.textContent.trim())
-    .filter(Boolean);
-
-  if(selectMode === "multi") return selected;
-  return selected[0] || "";
-}
-
-function setChipValues(row, value){
-  const selectMode = (row.getAttribute("data-select") || "single").toLowerCase();
-  let selectedArr = [];
-
-  if(selectMode === "multi"){
-    if(Array.isArray(value)) selectedArr = value.map(v => String(v));
-    else if(typeof value === "string"){
-      const t = value.trim();
-      if(t.startsWith("[")){
-        try { selectedArr = JSON.parse(t) || []; } catch { selectedArr = t.split(",").map(s=>s.trim()).filter(Boolean); }
-      } else {
-        selectedArr = t.split(",").map(s=>s.trim()).filter(Boolean);
-      }
-    }
-  } else {
-    selectedArr = [String(value ?? "").trim()].filter(Boolean);
-  }
-
-  const chips = $$(".chip", row);
-  chips.forEach(btn => {
-    const label = btn.textContent.trim();
-    const on = selectedArr.includes(label);
-    btn.classList.toggle("is-selected", on);
-    btn.classList.toggle("is-active", on);
-    btn.setAttribute("aria-pressed", on ? "true" : "false");
-  });
-}
-
-function syncChipRowToHidden(row){
-  const root = getRoot();
-  const field = row.getAttribute("data-field");
-  const selectMode = (row.getAttribute("data-select") || "single").toLowerCase();
-  const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root);
-  if(!hidden) return;
-
-  const val = getChipValues(row);
-  hidden.value = (selectMode === "multi") ? JSON.stringify(val) : String(val || "");
-}
-
-function wireChipClicks(){
-  const root = getRoot();
-  $$(".chip-row[data-field]", root).forEach(row => {
-    const selectMode = (row.getAttribute("data-select") || "single").toLowerCase();
-
-    $$(".chip", row).forEach(btn => {
-      btn.addEventListener("click", () => {
-        if(LOCKED) return;
-
-        if(selectMode === "single"){
-          $$(".chip", row).forEach(b => {
-            b.classList.remove("is-selected","is-active");
-            b.setAttribute("aria-pressed","false");
-          });
-          btn.classList.add("is-selected","is-active");
-          btn.setAttribute("aria-pressed","true");
-        } else {
-          const on = btn.classList.toggle("is-selected");
-          btn.classList.toggle("is-active", on);
-          btn.setAttribute("aria-pressed", on ? "true" : "false");
-        }
-
-        syncChipRowToHidden(row);
-      });
-    });
-
-    syncChipRowToHidden(row);
-  });
-}
-
-// ================= LOCK / UNLOCK =================
-let LOCKED = false;
-let ORIGINAL = null;
-let CUSTOMER_ID = null;
-let ROW = null;
-
-function ensureEditControls(){
-  const root = getRoot();
-  if($("#tbpUnlock", root) && $("#tbpCancel", root) && $("#tbpRelock", root)) return;
-
-  const bar = document.createElement("div");
-  bar.style.display = "flex";
-  bar.style.gap = "10px";
-  bar.style.flexWrap = "wrap";
-  bar.style.marginTop = "12px";
-
-  bar.innerHTML = `
-    <button type="button" id="tbpUnlock" style="display:none;" class="btn btn-secondary">Unlock to edit</button>
-    <button type="button" id="tbpCancel" style="display:none;" class="btn btn-ghost">Cancel edits</button>
-    <button type="button" id="tbpRelock" style="display:none;" class="btn btn-ghost">Re-lock</button>
-  `;
-
-  const footer = $(".wizard-footer", root) || root;
-  footer.insertAdjacentElement("afterend", bar);
-
-  $("#tbpUnlock", root).addEventListener("click", () => {
-    if(!confirm("Unlock this setup to make changes?")) return;
-    setLocked(false);
-  });
-
-  $("#tbpCancel", root).addEventListener("click", () => {
-    if(!ORIGINAL) return setLocked(true);
-
-    Object.entries(ORIGINAL).forEach(([k,v]) => setField(k, v));
-
-    // restore chips too
-    $$(".chip-row[data-field]", root).forEach(row => {
-      const field = row.getAttribute("data-field");
-      const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root);
-      if(hidden) setChipValues(row, hidden.value);
-      syncChipRowToHidden(row);
-    });
-
-    setLocked(true);
-    setStatus("Edits cancelled. Wizard locked again.", "info");
-  });
-
-  $("#tbpRelock", root).addEventListener("click", () => {
-    setLocked(true);
-    setStatus("Wizard locked.", "info");
-  });
-}
-
-function setLocked(on){
-  LOCKED = !!on;
-  const root = getRoot();
-
-  // Disable all input controls and chip buttons, but keep our save + unlock controls usable
-  $$("input, select, textarea, button", root).forEach(el => {
-    const keepEnabledIds = new Set([
-      "tbpUnlock","tbpCancel","tbpRelock",
-      "tbpSaveSupabase", "btn-save-draft" // keep save usable
-    ]);
-    if(keepEnabledIds.has(el.id)) return;
-    el.disabled = on;
-  });
-
-  const u = $("#tbpUnlock", root);
-  const c = $("#tbpCancel", root);
-  const r = $("#tbpRelock", root);
-
-  if(u) u.style.display = on ? "inline-flex" : "none";
-  if(c) c.style.display = on ? "none" : "inline-flex";
-  if(r) r.style.display = on ? "none" : "inline-flex";
-}
-
-// ================= SAVE BUTTON (VISIBLE) =================
-function ensureSaveButton(){
-  const root = getRoot();
-  const footerRight = $(".wizard-footer-right", root);
-
-  if(!footerRight) return;
-
-  // If already exists, don’t add again
-  if($("#tbpSaveSupabase", root)) return;
-
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.id = "tbpSaveSupabase";
-  btn.className = "btn btn-primary";
-  btn.textContent = "Save to Supabase";
-  btn.style.marginLeft = "8px";
-
-  footerRight.insertAdjacentElement("afterbegin", btn);
-
-  btn.addEventListener("click", async (e) => {
-    e.preventDefault();
-    await doSave({ silent:false });
-  });
-
-  // Also repurpose the existing "Save draft" button to save to Supabase too
-  const draftBtn = $("#btn-save-draft", root);
-  if(draftBtn){
-    draftBtn.textContent = "Save";
-    draftBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      await doSave({ silent:false });
-    }, { once:false });
-  }
-}
-
-// ================= LOAD / SAVE =================
-async function loadCustomer(id){
-  const { data, error } = await sb
-    .from(TABLE)
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
-  if(error) throw error;
-  return data || null;
-}
-
-async function saveCustomer(updateObj){
-  const { data, error } = await sb
-    .from(TABLE)
-    .update(updateObj)
-    .eq("id", CUSTOMER_ID)
-    .select("*")
-    .maybeSingle();
-  if(error) throw error;
-  return data || null;
-}
-
-async function doSave({ silent=false } = {}){
-  if(LOCKED){
-    if(!silent) setStatus("Wizard is locked. Click Unlock to edit.", "error");
-    return;
-  }
-
-  const root = getRoot();
-
-  // Ensure chips are synced
-  $$(".chip-row[data-field]", root).forEach(syncChipRowToHidden);
-
-  const now = snapshot();
-
-  // convenience: mirror phone -> whatsapp_number if whatsapp not set
-  if(now.phone && !now.whatsapp_number) now.whatsapp_number = now.phone;
-
-  if(ORIGINAL && same(now, ORIGINAL)){
-    if(!silent) setStatus("No changes to save.", "info");
-    return;
-  }
-
-  const payload = { ...now, updated_at: new Date().toISOString() };
-
-  // Inferred completion (simple)
-  const complete = !!(payload.business_name || ROW?.business_name) &&
-                   !!(payload.email || ROW?.email) &&
-                   !!(payload.main_trade || ROW?.main_trade);
-
-  payload.setup_complete = truthy(ROW?.setup_complete) || complete;
-  payload.pending_setup = !payload.setup_complete;
-  if(payload.setup_complete && !ROW?.setup_completed_at){
-    payload.setup_completed_at = new Date().toISOString();
-  }
-
-  try{
-    const saved = await saveCustomer(payload);
-    ROW = saved || { ...ROW, ...payload };
-    ORIGINAL = snapshot();
-
-    if(!silent) setStatus("Saved to Supabase ✅", "success");
-
-    if(truthy(ROW.setup_complete)){
-      setLocked(true);
-      if(!silent) setStatus("Setup complete — locked ✅", "success");
-    }
-  }catch(e){
-    console.error("[Wizard] Save error:", e);
-    if(!silent) setStatus("Save failed — check console.", "error");
-  }
-}
-
-// ================= INIT =================
-async function init(){
-  const root = getRoot();
-
-  CUSTOMER_ID = qp("customer_id");
-  if(!CUSTOMER_ID){
-    setStatus("Missing customer_id in URL (use ?customer_id=UUID)", "error");
-    return;
-  }
-
-  ensureChipHiddenInputs();
-  wireChipClicks();
-  ensureEditControls();
-  ensureSaveButton();
-
-  try{
-    ROW = await loadCustomer(CUSTOMER_ID);
-    if(!ROW){
-      setStatus("Customer not found in customers table for this ID.", "error");
-      return;
-    }
-  }catch(e){
-    console.error("[Wizard] Load error:", e);
-    setStatus("Failed to load customer record — check console.", "error");
-    return;
-  }
-
-  // Prefill: try by name/id with same key as column
-  Object.keys(ROW).forEach(col => setField(col, ROW[col]));
-
-  // Prefill chips from Supabase row values
-  $$(".chip-row[data-field]", root).forEach(row => {
-    const field = row.getAttribute("data-field");
-    const hidden = $(`input[type="hidden"][name="${esc(field)}"]`, root);
+function syncChips(){
+  $$(".chip-row[data-field]", root()).forEach(row=>{
+    const field = row.dataset.field;
+    const mode = row.dataset.select || "single";
+    const hidden = $(`input[name="${esc(field)}"]`, root());
     if(!hidden) return;
 
-    if(ROW[field] != null) hidden.value = String(ROW[field]);
-    setChipValues(row, hidden.value);
-    syncChipRowToHidden(row);
+    const selected = $$(".chip.is-selected,.chip.is-active", row)
+      .map(b=>b.textContent.trim());
+
+    hidden.value = mode === "multi"
+      ? JSON.stringify(selected)
+      : (selected[0] || "");
+  });
+}
+
+function loadChipsFromRow(row){
+  $$(".chip-row[data-field]", root()).forEach(r=>{
+    const field = r.dataset.field;
+    if(row[field] == null) return;
+
+    let vals = [];
+    if(Array.isArray(row[field])) vals = row[field];
+    else if(String(row[field]).startsWith("[")){
+      try { vals = JSON.parse(row[field]); } catch {}
+    } else vals = [String(row[field])];
+
+    $$(".chip", r).forEach(b=>{
+      const on = vals.includes(b.textContent.trim());
+      b.classList.toggle("is-selected", on);
+      b.classList.toggle("is-active", on);
+    });
+  });
+}
+
+/* ================= FORM SNAPSHOT ================= */
+function snapshot(){
+  const data = {};
+  $$("input[name],textarea[name],select[name]", root()).forEach(el=>{
+    data[el.name] = el.value ?? "";
+  });
+  return data;
+}
+
+/* ================= SAVE ================= */
+async function save(){
+  syncChips();
+
+  let raw = snapshot();
+
+  // mirror phone -> whatsapp
+  if(raw.phone && !raw.whatsapp_number){
+    raw.whatsapp_number = raw.phone;
+  }
+
+  // inferred completion
+  raw.setup_complete = !!(raw.business_name && raw.email && raw.main_trade);
+  raw.pending_setup = !raw.setup_complete;
+  raw.updated_at = new Date().toISOString();
+
+  if(raw.setup_complete){
+    raw.setup_completed_at ??= new Date().toISOString();
+  }
+
+  // 🔒 WHITELIST PAYLOAD
+  const payload = Object.fromEntries(
+    Object.entries(raw).filter(([k]) => CUSTOMER_COLUMNS.includes(k))
+  );
+
+  try{
+    const { error } = await sb
+      .from(TABLE)
+      .update(payload)
+      .eq("id", CUSTOMER_ID);
+
+    if(error) throw error;
+
+    status("Saved to Supabase ✅", "success");
+  }catch(e){
+    console.error("[Wizard] SAVE FAILED", {
+      message: e.message,
+      code: e.code,
+      details: e.details,
+      hint: e.hint,
+      status: e.status
+    });
+    status(`Save failed: ${e.message}`, "error");
+  }
+}
+
+/* ================= INIT ================= */
+let CUSTOMER_ID = null;
+
+async function init(){
+  CUSTOMER_ID = qp("customer_id");
+  if(!CUSTOMER_ID){
+    status("Missing customer_id in URL", "error");
+    return;
+  }
+
+  initChipStorage();
+
+  // load customer
+  const { data, error } = await sb
+    .from(TABLE)
+    .select("*")
+    .eq("id", CUSTOMER_ID)
+    .maybeSingle();
+
+  if(error || !data){
+    status("Customer not found", "error");
+    return;
+  }
+
+  // prefill inputs
+  Object.entries(data).forEach(([k,v])=>{
+    const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
+    if(el) el.value = v ?? "";
   });
 
-  ORIGINAL = snapshot();
+  loadChipsFromRow(data);
+  status("Resumed — editable", "info");
 
-  if(truthy(ROW.setup_complete)){
-    setLocked(true);
-    setStatus("Setup complete — your answers are locked. Click Unlock to edit.", "info");
-  } else {
-    setLocked(false);
-    setStatus("[Wizard] Resumed — editable.", "info");
-  }
+  // wire save buttons
+  $("#btn-save-draft")?.addEventListener("click", e=>{
+    e.preventDefault();
+    save();
+  });
 
-  // Optional autosave when going next
-  const btnNext = $("#btn-next", root);
-  if(btnNext){
-    btnNext.addEventListener("click", async () => {
-      await doSave({ silent:true });
-    });
-  }
+  $("#btn-next")?.addEventListener("click", ()=>{
+    save(); // autosave
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);
 </script>
 </body>
 </html>
+
 
 
 
