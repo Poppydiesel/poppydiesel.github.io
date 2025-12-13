@@ -15,201 +15,1268 @@
       --light-bg: #f3f4f9;
       --white: #ffffff;
       --border-subtle: rgba(15, 23, 42, 0.12);
+      --chip-bg: #eef2ff;
+      --chip-border: rgba(37, 99, 235, 0.3);
+      --chip-bg-muted: #f3f4f6;
+      --chip-border-muted: rgba(148, 163, 184, 0.6);
       --success-green: #0f7b46;
       --error-red: #b3261e;
     }
 
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
     body {
       margin: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       background: radial-gradient(circle at top left, #e0ebff 0, #f3f4f9 40%, #fdfdfd 100%);
       color: var(--dark-text);
+      line-height: 1.5;
     }
 
-    /* CHIP STYLES */
+    a { color: inherit; text-decoration: none; }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      background: rgba(248, 250, 252, 0.96);
+      backdrop-filter: blur(6px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0.6rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .logo-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: var(--primary-blue);
+      position: relative;
+    }
+
+    .logo-icon::before,
+    .logo-icon::after {
+      content: "";
+      position: absolute;
+      background: var(--white);
+      border-radius: 4px;
+    }
+
+    .logo-icon::before {
+      width: 11px;
+      height: 17px;
+      left: 7px;
+      top: 6px;
+    }
+
+    .logo-icon::after {
+      width: 6px;
+      height: 11px;
+      right: 7px;
+      top: 9px;
+    }
+
+    .logo-main {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--primary-blue);
+    }
+
+    .logo-tag {
+      font-size: 0.75rem;
+      color: var(--muted-text);
+    }
+
+    .header-note {
+      font-size: 0.75rem;
+      color: var(--muted-text);
+    }
+
+    .header-note strong {
+      color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.25rem 3rem;
+    }
+
+    .wizard-shell {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr);
+      gap: 1.75rem;
+      align-items: flex-start;
+    }
+
+    .wizard-left {
+      padding: 1.5rem 1.6rem;
+      border-radius: 1.2rem;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow:
+        0 24px 60px rgba(15, 23, 42, 0.15),
+        0 0 0 1px rgba(15, 23, 42, 0.03);
+    }
+
+    .wizard-right {
+      padding: 1.5rem 1.6rem;
+      border-radius: 1.2rem;
+      background: rgba(248, 250, 252, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      backdrop-filter: blur(4px);
+    }
+
+    /* PROGRESS BAR */
+    .wizard-progress-wrap { margin-bottom: 1.4rem; }
+
+    .progress-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.35rem;
+      font-size: 0.75rem;
+      color: var(--muted-text);
+    }
+
+    .progress-label-row span strong { color: var(--primary-blue); }
+
+    .progress-bar-outer {
+      position: relative;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.3);
+      overflow: hidden;
+    }
+
+    .progress-bar-inner {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary-blue), var(--accent-blue));
+      border-radius: inherit;
+      transition: width 0.25s ease;
+    }
+
+    .step-dots {
+      margin-top: 0.35rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.7rem;
+      color: var(--muted-text);
+    }
+
+    .step-dot {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      white-space: nowrap;
+    }
+
+    .step-dot-circle {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(148, 163, 184, 0.7);
+      background: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      color: rgba(148, 163, 184, 0.8);
+    }
+
+    .step-dot.is-active .step-dot-circle {
+      border-color: var(--primary-blue);
+      color: var(--primary-blue);
+      background: #e0ecff;
+    }
+
+    .step-dot.is-complete .step-dot-circle {
+      border-color: var(--success-green);
+      background: #dcfce7;
+      color: var(--success-green);
+    }
+
+    .step-dot-label { opacity: 0.9; }
+
+    /* LEFT PANEL CONTENT */
+    .wizard-title-kicker {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-blue);
+      margin-bottom: 0.35rem;
+    }
+
+    .wizard-title {
+      margin: 0 0 0.4rem;
+      font-size: 1.6rem;
+      color: var(--primary-blue);
+    }
+
+    .wizard-subtitle {
+      margin: 0 0 0.85rem;
+      font-size: 0.92rem;
+      color: var(--muted-text);
+    }
+
+    .wizard-benefits {
+      margin: 0 0 1rem;
+      padding: 0;
+      list-style: none;
+      font-size: 0.86rem;
+      color: var(--dark-text);
+    }
+
+    .wizard-benefits li {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .wizard-benefits li span:first-child { font-size: 0.9rem; }
+
+    .wizard-note {
+      margin-top: 0.9rem;
+      font-size: 0.8rem;
+      color: var(--muted-text);
+      border-radius: 0.7rem;
+      padding: 0.7rem 0.8rem;
+      background: #f1f5f9;
+    }
+
+    .wizard-note strong {
+      color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    /* FORM / STEPS */
+    .wizard-right-header { margin-bottom: 1rem; }
+
+    .wizard-step-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--accent-blue);
+      margin-bottom: 0.25rem;
+    }
+
+    .wizard-step-title {
+      margin: 0 0 0.25rem;
+      font-size: 1.2rem;
+      color: var(--primary-blue);
+    }
+
+    .wizard-step-subtitle {
+      margin: 0;
+      font-size: 0.88rem;
+      color: var(--muted-text);
+    }
+
+    .step-panel { display: none; margin-top: 0.9rem; }
+    .step-panel.is-active { display: block; }
+
+    .field-group { margin-bottom: 1rem; }
+
+    .field-label-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--dark-text);
+    }
+
+    .field-hint {
+      font-size: 0.75rem;
+      color: var(--muted-text);
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.6rem 0.7rem;
+      border-radius: 0.55rem;
+      border: 1px solid var(--border-subtle);
+      font: inherit;
+      font-size: 0.9rem;
+      background: var(--white);
+    }
+
+    textarea { min-height: 80px; resize: vertical; }
+
+    input:focus, textarea:focus, select:focus {
+      outline: 0;
+      border-color: rgba(37, 99, 235, 0.7);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+    }
+
+    /* CHIPS (your active class is is-active) */
     .chip-row {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-top: 6px;
+      margin-bottom: 14px;
     }
 
     .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       padding: 0.4rem 0.9rem;
       border-radius: 999px;
-      border: 1px solid rgba(0,0,0,0.15);
-      background: #fff;
-      cursor: pointer;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: #ffffff;
       font-size: 0.85rem;
-      transition: all 0.15s ease;
-    }
-
-    .chip:hover {
-      border-color: var(--primary-blue);
-      background: rgba(31,78,121,0.05);
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
     }
 
     .chip.is-active {
-      background: #e8f0fa;
-      border-color: var(--primary-blue);
-      color: var(--primary-blue);
+      background: #e8f0fa !important;
+      border-color: #1f4e79 !important;
+      color: #1f4e79 !important;
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.2) !important;
       font-weight: 600;
-      box-shadow: 0 0 0 2px rgba(31,78,121,0.15);
     }
 
-    /* BUTTONS */
-    .btn {
-      border-radius: 999px;
-      padding: 0.55rem 1.1rem;
-      font-size: 0.86rem;
-      cursor: pointer;
+    .chip:hover {
+      border-color: #1f4e79;
+      background: rgba(31, 78, 121, 0.06);
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary-blue), #163857);
-      color: #fff;
-      border: none;
+    /* FOOTER ACTIONS */
+    .wizard-footer {
+      margin-top: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      border-top: 1px dashed rgba(148, 163, 184, 0.7);
+      padding-top: 0.8rem;
     }
 
-    .btn-secondary {
-      background: #f1f5f9;
-      border: 1px solid var(--border-subtle);
-    }
-
-    .btn-ghost {
-      background: transparent;
-      border: none;
+    .wizard-footer-left {
+      font-size: 0.78rem;
       color: var(--muted-text);
     }
 
-    /* SIMPLE LAYOUT HELPERS */
-    main { padding: 2rem; }
-    .wizard-footer {
+    .wizard-footer-left strong { color: var(--primary-blue); }
+
+    .wizard-footer-right {
       display: flex;
-      justify-content: space-between;
-      margin-top: 1.5rem;
-      padding-top: 1rem;
-      border-top: 1px dashed rgba(148,163,184,0.6);
+      gap: 0.6rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid transparent;
+      padding: 0.55rem 1.1rem;
+      font-size: 0.86rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: transparent;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--accent-blue);
+      outline-offset: 2px;
+    }
+
+    .btn-secondary {
+      border-color: var(--border-subtle);
+      background: #f9fafb;
+      color: var(--dark-text);
+    }
+
+    .btn-secondary:hover { background: #e5e7eb; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-blue), #163857);
+      color: var(--white);
+      border-color: transparent;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.35);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.03);
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.4);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .btn-ghost {
+      border-color: transparent;
+      background: transparent;
+      color: var(--muted-text);
+    }
+
+    .btn-ghost:hover { color: var(--primary-blue); }
+
+    .wizard-status-message {
+      margin-top: 0.7rem;
+      font-size: 0.8rem;
+      min-height: 1.2em;
+    }
+
+    .wizard-status-message--success { color: var(--success-green); }
+    .wizard-status-message--error { color: var(--error-red); }
+
+    .summary-box {
+      margin-top: 0.9rem;
+      padding: 0.8rem 0.9rem;
+      border-radius: 0.7rem;
+      background: #ecfdf5;
+      border: 1px solid rgba(22, 163, 74, 0.45);
+      font-size: 0.8rem;
+      color: #14532d;
+    }
+
+    .summary-box strong { font-weight: 600; }
+
+    @media (max-width: 900px) {
+      main { padding-top: 1.5rem; }
+      .wizard-shell { grid-template-columns: minmax(0, 1fr); }
+      .wizard-left { order: -1; }
+    }
+
+    @media (max-width: 600px) {
+      .header-inner { flex-direction: column; align-items: flex-start; }
+      .wizard-left, .wizard-right { padding: 1.1rem 1.1rem; }
+      .step-dots { font-size: 0.65rem; }
     }
   </style>
 </head>
 
 <body>
+<div class="page">
 
-<main>
-
-  <!-- STEP 1 (example, rest of your steps unchanged) -->
-  <div class="step-panel is-active" data-step="1">
-
-    <label>Main trade</label>
-    <div class="chip-row" data-field="main_trade" data-select="single">
-      <button class="chip" type="button">Plumbing & heating</button>
-      <button class="chip" type="button">Heating only</button>
-      <button class="chip" type="button">Gas engineer</button>
-      <button class="chip" type="button">Electrician</button>
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="logo-wrap">
+        <div class="logo-icon" aria-hidden="true"></div>
+        <div>
+          <div class="logo-main">TradeBotPro</div>
+          <div class="logo-tag">More jobs. Less admin. Powered by AI.</div>
+        </div>
+      </div>
+      <div class="header-note">
+        Goal: make you <strong>wish you had signed up years ago</strong> in the first month.
+      </div>
     </div>
+  </header>
 
-    <label style="margin-top:1rem;">Preferred jobs</label>
-    <div class="chip-row" data-field="preferred_jobs" data-select="multi">
-      <button class="chip" type="button">Emergency / urgent jobs</button>
-      <button class="chip" type="button">Small jobs / quick wins</button>
-      <button class="chip" type="button">Maintenance / servicing</button>
+  <!-- MAIN -->
+  <main>
+    <div class="wizard-shell">
+
+      <!-- LEFT PANEL -->
+      <aside class="wizard-left">
+        <div class="wizard-progress-wrap">
+          <div class="progress-label-row">
+            <span><strong>Setup progress</strong></span>
+            <span id="progress-percent">Step 1 of 4</span>
+          </div>
+          <div class="progress-bar-outer">
+            <div id="progress-bar-inner" class="progress-bar-inner"></div>
+          </div>
+          <div class="step-dots">
+            <div class="step-dot is-active" data-step-dot="1">
+              <div class="step-dot-circle">1</div>
+              <div class="step-dot-label">Business basics</div>
+            </div>
+            <div class="step-dot" data-step-dot="2">
+              <div class="step-dot-circle">2</div>
+              <div class="step-dot-label">Area &amp; pricing</div>
+            </div>
+            <div class="step-dot" data-step-dot="3">
+              <div class="step-dot-circle">3</div>
+              <div class="step-dot-label">Messaging &amp; reviews</div>
+            </div>
+            <div class="step-dot" data-step-dot="4">
+              <div class="step-dot-circle">4</div>
+              <div class="step-dot-label">Demo &amp; go-live</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-title-kicker">Setup wizard</div>
+        <h1 class="wizard-title">Let’s tune TradeBotPro to your business</h1>
+        <p class="wizard-subtitle">
+          This takes around 5–10 minutes. Your answers help us configure how TradeBotPro
+          talks to customers, where it books jobs and which enquiries it chases hardest.
+        </p>
+
+        <ul class="wizard-benefits">
+          <li><span>⚡</span><span><strong>Instant replies</strong> that feel like a real member of your team.</span></li>
+          <li><span>📍</span><span><strong>Postcode-based coverage</strong> so you only quote in the areas you want.</span></li>
+          <li><span>⭐</span><span><strong>Review follow-ups</strong> tuned to your preferred platform.</span></li>
+          <li><span>📅</span><span><strong>Calendar-ready</strong> so confirmed jobs can drop straight into your diary.</span></li>
+        </ul>
+
+        <div class="wizard-note">
+          <strong>Important:</strong> This page is your setup wizard only – nothing goes live
+          to customers until you give the go-ahead. You’ll get a full demo evening to test
+          everything from your own phones first.
+        </div>
+
+        <div class="wizard-note">
+          <strong>What happens next?</strong><br />
+          Once this wizard is complete, we’ll plug in your WhatsApp, build your first flows
+          and set up your calendar links behind the scenes.
+          <br /><br />
+          During your demo evening:
+          <ul>
+            <li>You’ll message yourself from a partner’s phone.</li>
+            <li>TradeBotPro will reply like a real customer conversation.</li>
+            <li>You’ll even be able to book a test job into your diary.</li>
+          </ul>
+          <strong>Free trial offer:</strong><br />
+          We can offer a short free trial after the demo for anyone who isn’t fully convinced
+          yet — your setup stays in place so it’s easy to switch on.
+        </div>
+      </aside>
+
+      <!-- RIGHT PANEL -->
+      <section class="wizard-right" aria-live="polite">
+        <div class="wizard-right-header">
+          <div id="wizard-step-label" class="wizard-step-label">Step 1</div>
+          <h2 id="wizard-step-title" class="wizard-step-title">Business basics</h2>
+          <p id="wizard-step-subtitle" class="wizard-step-subtitle">
+            Who are you, what do you do and how do you like to run things?
+          </p>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="step-panel is-active" data-step="1">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="contact_name">Main contact name</label>
+              <span class="field-hint">Who TradeBotPro should refer to by name.</span>
+            </div>
+            <input id="contact_name" name="contact_name" type="text" autocomplete="name" />
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="business_name">Business name</label>
+              <span class="field-hint">Exactly as you want it shown to customers.</span>
+            </div>
+            <input id="business_name" name="business_name" type="text" placeholder="Business name" />
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>What trade are you?</label>
+              <span class="field-hint">Pick the closest match – we’ll fine-tune later.</span>
+            </div>
+            <div class="chip-row" data-field="main_trade" data-select="single">
+              <button type="button" class="chip"><span>Plumbing &amp; heating</span></button>
+              <button type="button" class="chip"><span>Heating only</span></button>
+              <button type="button" class="chip"><span>Gas engineer</span></button>
+              <button type="button" class="chip"><span>Electrician</span></button>
+              <button type="button" class="chip"><span>Roofing &amp; guttering</span></button>
+              <button type="button" class="chip"><span>Landscaping / gardening</span></button>
+              <button type="button" class="chip"><span>Window cleaning</span></button>
+              <button type="button" class="chip"><span>Cleaning / carpet cleaning</span></button>
+              <button type="button" class="chip"><span>Builder</span></button>
+              <button type="button" class="chip"><span>Handyman</span></button>
+              <button type="button" class="chip"><span>Pest control</span></button>
+              <button type="button" class="chip"><span>Home repairs &amp; maintenance</span></button>
+              <button type="button" class="chip"><span>Other</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Where are you as a business?</label>
+              <span class="field-hint">This just helps us set expectations on go-live.</span>
+            </div>
+            <div class="chip-row" data-field="business_stage" data-select="single">
+              <button type="button" class="chip"><span>Already trading</span></button>
+              <button type="button" class="chip"><span>Launching in next 3 months</span></button>
+              <button type="button" class="chip"><span>Just exploring options</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="contact_email">Best email for setup &amp; reports</label>
+              <span class="field-hint">We’ll send onboarding details and monthly stats here.</span>
+            </div>
+            <input id="contact_email" name="email" type="email" autocomplete="email" />
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="contact_mobile">Mobile / WhatsApp number</label>
+              <span class="field-hint">The main number customers currently use.</span>
+            </div>
+            <input id="contact_mobile" name="phone" type="tel" autocomplete="tel" />
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-panel" data-step="2">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="base_postcode">Base postcode</label>
+              <span class="field-hint">We always work from postcode, not town.</span>
+            </div>
+            <input id="base_postcode" name="base_postcode" type="text" />
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Where do you want TradeBotPro to quote?</label>
+              <span class="field-hint">We’ll filter enquiries outside your preferred area.</span>
+            </div>
+            <div class="chip-row" data-field="coverage_radius" data-select="single">
+              <button type="button" class="chip"><span>Just my town / city</span></button>
+              <button type="button" class="chip"><span>Up to ~10 miles from base</span></button>
+              <button type="button" class="chip"><span>Up to ~20 miles from base</span></button>
+              <button type="button" class="chip"><span>City-wide / multiple postcodes</span></button>
+              <button type="button" class="chip"><span>Custom list (we’ll import later)</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>How do you usually charge call-outs?</label>
+              <span class="field-hint">Helps the AI give sensible ballpark prices.</span>
+            </div>
+            <div class="chip-row" data-field="callout_style" data-select="single">
+              <button type="button" class="chip"><span>Free estimates (no call-out fee)</span></button>
+              <button type="button" class="chip"><span>Paid call-out, deducted from job</span></button>
+              <button type="button" class="chip"><span>Fixed call-out fee</span></button>
+              <button type="button" class="chip"><span>No emergency call-outs</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Typical call-out fee band</label>
+              <span class="field-hint">We can refine by job type later.</span>
+            </div>
+            <div class="chip-row" data-field="callout_band" data-select="single">
+              <button type="button" class="chip"><span>Up to £79</span></button>
+              <button type="button" class="chip"><span>£80–£119</span></button>
+              <button type="button" class="chip"><span>£120–£179</span></button>
+              <button type="button" class="chip"><span>£180+</span></button>
+              <button type="button" class="chip"><span>Varies – discuss with us</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Which jobs do you want more of?</label>
+              <span class="field-hint">TradeBotPro can prioritise the work you enjoy.</span>
+            </div>
+            <div class="chip-row" data-field="preferred_jobs" data-select="multi">
+              <button type="button" class="chip"><span>Emergency / urgent jobs</span></button>
+              <button type="button" class="chip"><span>Small jobs / quick wins</span></button>
+              <button type="button" class="chip"><span>Bigger projects / installs</span></button>
+              <button type="button" class="chip"><span>Maintenance / servicing</span></button>
+              <button type="button" class="chip"><span>Landlords / repeat clients</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-panel" data-step="3">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>How should TradeBotPro sound?</label>
+              <span class="field-hint">We’ll match your tone of voice.</span>
+            </div>
+            <div class="chip-row" data-field="tone_of_voice" data-select="single">
+              <button type="button" class="chip"><span>Friendly &amp; informal</span></button>
+              <button type="button" class="chip"><span>Professional &amp; straight to the point</span></button>
+              <button type="button" class="chip"><span>Premium / high-end feel</span></button>
+              <button type="button" class="chip"><span>Very short &amp; efficient</span></button>
+              <button type="button" class="chip"><span>We’ll decide together</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Which channels should we start with?</label>
+              <span class="field-hint">You can add more later.</span>
+            </div>
+            <div class="chip-row" data-field="channels" data-select="multi">
+              <button type="button" class="chip"><span>WhatsApp</span></button>
+              <button type="button" class="chip"><span>SMS / text messages</span></button>
+              <button type="button" class="chip"><span>Facebook Messenger</span></button>
+              <button type="button" class="chip"><span>Website chat widget</span></button>
+              <button type="button" class="chip"><span>Instagram DMs</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Which review platform do you use or want to use?</label>
+              <span class="field-hint">We’ll send customers there automatically after jobs.</span>
+            </div>
+            <div class="chip-row" data-field="review_platforms" data-select="multi">
+              <button type="button" class="chip"><span>Google Reviews</span></button>
+              <button type="button" class="chip"><span>Trustpilot</span></button>
+              <button type="button" class="chip"><span>Facebook page reviews</span></button>
+              <button type="button" class="chip"><span>Yell / similar directories</span></button>
+              <button type="button" class="chip"><span>Checkatrade / trade portals</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="review_link">Paste your main review link (optional)</label>
+              <span class="field-hint">We’ll wire this into your follow-up messages.</span>
+            </div>
+            <input id="review_link" name="review_link" type="text" />
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>How hard should we push for reviews?</label>
+              <span class="field-hint">You stay in control – no over-the-top nagging.</span>
+            </div>
+            <div class="chip-row" data-field="review_push_level" data-select="single">
+              <button type="button" class="chip"><span>Very gentle reminder only</span></button>
+              <button type="button" class="chip"><span>Standard follow-up &amp; one reminder</span></button>
+              <button type="button" class="chip"><span>Quite proactive (several reminders)</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="ai_avoid">Anything you never want the AI to say?</label>
+              <span class="field-hint">Phrases, promises or situations to avoid.</span>
+            </div>
+            <textarea id="ai_avoid" name="ai_avoid"></textarea>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step-panel" data-step="4">
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>How would you like to run your demo?</label>
+              <span class="field-hint">We’ll set up a “test evening” for you and your partner/team.</span>
+            </div>
+            <div class="chip-row" data-field="demo_style" data-select="multi">
+              <button type="button" class="chip"><span>Test from our own phones first</span></button>
+              <button type="button" class="chip"><span>Test with a few real customers</span></button>
+              <button type="button" class="chip"><span>Test calendar bookings</span></button>
+              <button type="button" class="chip"><span>Test review follow-up flow</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Preferred evening to test from your own phones</label>
+              <span class="field-hint">So you can send messages from one phone to the other and see it in action.</span>
+            </div>
+            <div class="chip-row" data-field="demo_slot" data-select="single">
+              <button type="button" class="chip"><span>Weekday – 6–8pm</span></button>
+              <button type="button" class="chip"><span>Weekday – 8–10pm</span></button>
+              <button type="button" class="chip"><span>Weekend evening</span></button>
+              <button type="button" class="chip"><span>Daytime (I’m flexible)</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Roughly when do you want to go fully live?</label>
+              <span class="field-hint">Purely for planning – nothing switches on without your say-so.</span>
+            </div>
+            <div class="chip-row" data-field="golive_timing" data-select="single">
+              <button type="button" class="chip"><span>Within 1 week of the demo</span></button>
+              <button type="button" class="chip"><span>Within 1 month</span></button>
+              <button type="button" class="chip"><span>Later – just getting ready</span></button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="extra_notes">Anything else we should know before we build your setup?</label>
+              <span class="field-hint">Special rules, pricing quirks, calendars you use, etc.</span>
+            </div>
+            <textarea id="extra_notes" name="extra_notes"></textarea>
+          </div>
+
+          <div class="summary-box" id="summary-box" hidden>
+            <strong>Nice work – that’s your wizard complete.</strong><br />
+            Your answers will be saved to your TradeBotPro profile and used to configure
+            your AI assistant, calendar connection and review follow-ups. We’ll confirm
+            your demo evening and go-live plan with you before anything switches on.
+          </div>
+        </div>
+
+        <!-- FOOTER ACTIONS -->
+        <div class="wizard-footer">
+          <div class="wizard-footer-left">
+            <span id="wizard-footer-text">
+              Step <strong>1</strong> of <strong>4</strong>. You can tweak anything later.
+            </span>
+          </div>
+          <div class="wizard-footer-right">
+            <button type="button" class="btn btn-ghost" id="btn-save-draft">
+              Save draft (browser only for now)
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-back" disabled>
+              ← Back
+            </button>
+            <button type="button" class="btn btn-primary" id="btn-next">
+              Next step →
+            </button>
+          </div>
+        </div>
+
+        <div id="wizard-status-message" class="wizard-status-message"></div>
+      </section>
+
     </div>
+  </main>
+</div>
 
-  </div>
-
-  <!-- FOOTER -->
-  <div class="wizard-footer">
-    <button class="btn btn-ghost" id="btn-save-draft">Save draft</button>
-    <div>
-      <button class="btn btn-secondary" id="btn-back">← Back</button>
-      <button class="btn btn-primary" id="btn-next">Next step →</button>
-    </div>
-  </div>
-
-</main>
-
-<!-- SUPABASE (ONCE, CLEAN) -->
+<!-- Supabase UMD (ONE include only) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
 
 <script>
 (function () {
-  function boot() {
-    if (!window.supabase) return setTimeout(boot, 50);
+  // ---------- CONFIG ----------
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const params = new URLSearchParams(location.search);
+  const customer_id = params.get("customer_id") || "";
 
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const customer_id = new URLSearchParams(location.search).get("customer_id");
+  // ---------- DOM ----------
+  const statusEl = document.getElementById("wizard-status-message");
+  const btnNext = document.getElementById("btn-next");
+  const btnBack = document.getElementById("btn-back");
+  const btnSaveDraft = document.getElementById("btn-save-draft");
 
-    function getHidden(field) {
-      let el = document.getElementById(field);
-      if (!el) {
-        el = document.createElement("input");
-        el.type = "hidden";
-        el.id = field;
-        el.name = field;
-        document.body.appendChild(el);
-      }
-      return el;
+  const stepLabelEl = document.getElementById("wizard-step-label");
+  const stepTitleEl = document.getElementById("wizard-step-title");
+  const stepSubtitleEl = document.getElementById("wizard-step-subtitle");
+  const progressPctEl = document.getElementById("progress-percent");
+  const progressBarEl = document.getElementById("progress-bar-inner");
+  const footerTextEl = document.getElementById("wizard-footer-text");
+  const summaryBoxEl = document.getElementById("summary-box");
+
+  const panels = Array.from(document.querySelectorAll(".step-panel[data-step]"));
+  const dots = Array.from(document.querySelectorAll(".step-dot[data-step-dot]"));
+
+  const STEP_META = {
+    1: {
+      label: "Step 1",
+      title: "Business basics",
+      subtitle: "Who are you, what do you do and how do you like to run things?"
+    },
+    2: {
+      label: "Step 2",
+      title: "Area & pricing",
+      subtitle: "Where you work and how you price things."
+    },
+    3: {
+      label: "Step 3",
+      title: "Messaging & reviews",
+      subtitle: "Tone of voice, channels and review preferences."
+    },
+    4: {
+      label: "Step 4",
+      title: "Demo & go-live",
+      subtitle: "How you want to run your demo and timing."
     }
+  };
 
-    function chipText(btn) {
-      return btn.textContent.trim();
-    }
+  // ---------- HELPERS ----------
+  function setStatus(msg, type) {
+    statusEl.textContent = msg || "";
+    statusEl.className = "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
+  }
 
-    document.addEventListener("click", (e) => {
-      const chip = e.target.closest(".chip-row[data-field] .chip");
-      if (!chip) return;
+  function chipText(btn) {
+    return (btn?.innerText || btn?.textContent || "").trim();
+  }
 
-      const group = chip.closest(".chip-row");
-      const field = group.dataset.field;
-      const mode = group.dataset.select;
-      const hidden = getHidden(field);
-      const value = chipText(chip);
+  function getFieldValue(nameOrId) {
+    const el = document.getElementById(nameOrId) || document.querySelector(`[name="${nameOrId}"]`);
+    return el ? (el.value ?? "").toString().trim() : "";
+  }
+
+  function setFieldValue(idOrName, value) {
+    const el = document.getElementById(idOrName) || document.querySelector(`[name="${idOrName}"]`);
+    if (!el) return false;
+    el.value = value ?? "";
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+    return true;
+  }
+
+  function collectWizardAnswers() {
+    // All chip groups
+    const answers = {};
+
+    document.querySelectorAll(".chip-row[data-field][data-select]").forEach(group => {
+      const field = group.getAttribute("data-field");
+      const mode = group.getAttribute("data-select"); // single | multi
+      if (!field) return;
 
       if (mode === "single") {
-        hidden.value = value;
-        group.querySelectorAll(".chip").forEach(c => c.classList.remove("is-active"));
-        chip.classList.add("is-active");
+        const active = group.querySelector("button.chip.is-active");
+        if (active) answers[field] = chipText(active);
       } else {
-        let arr = [];
-        try { arr = JSON.parse(hidden.value || "[]"); } catch {}
-        const idx = arr.indexOf(value);
-        if (idx >= 0) arr.splice(idx, 1);
-        else arr.push(value);
-        hidden.value = JSON.stringify(arr);
-        chip.classList.toggle("is-active");
+        const actives = Array.from(group.querySelectorAll("button.chip.is-active")).map(chipText).filter(Boolean);
+        if (actives.length) answers[field] = actives;
       }
     });
 
-    async function prefill() {
-      if (!customer_id) return;
-      const { data } = await sb
-        .from("customers")
-        .select("wizard_answers")
-        .eq("id", customer_id)
-        .single();
+    // Text inputs
+    const textFields = [
+      ["contact_name", "contact_name"],
+      ["business_name", "business_name"],
+      ["email", "contact_email"],     // visible input id is contact_email
+      ["phone", "contact_mobile"],    // visible input id is contact_mobile
+      ["base_postcode", "base_postcode"],
+      ["review_link", "review_link"],
+      ["ai_avoid", "ai_avoid"],
+      ["extra_notes", "extra_notes"]
+    ];
 
-      if (!data?.wizard_answers) return;
+    textFields.forEach(([key, sourceId]) => {
+      const v = getFieldValue(sourceId);
+      if (v) answers[key] = v;
+    });
 
-      Object.entries(data.wizard_answers).forEach(([field, val]) => {
-        const hidden = getHidden(field);
-        hidden.value = Array.isArray(val) ? JSON.stringify(val) : val;
+    return answers;
+  }
 
-        document.querySelectorAll(`.chip-row[data-field="${field}"] .chip`)
-          .forEach(chip => {
-            const txt = chipText(chip);
-            if (Array.isArray(val) ? val.includes(txt) : txt === val) {
-              chip.classList.add("is-active");
-            }
-          });
-      });
+  function applyWizardAnswersToUI(answers) {
+    if (!answers || typeof answers !== "object") return;
+
+    // Text fields
+    if (answers.contact_name) setFieldValue("contact_name", answers.contact_name);
+    if (answers.business_name) setFieldValue("business_name", answers.business_name);
+    if (answers.email) setFieldValue("contact_email", answers.email);
+    if (answers.phone) setFieldValue("contact_mobile", answers.phone);
+    if (answers.base_postcode) setFieldValue("base_postcode", answers.base_postcode);
+    if (answers.review_link) setFieldValue("review_link", answers.review_link);
+    if (answers.ai_avoid) setFieldValue("ai_avoid", answers.ai_avoid);
+    if (answers.extra_notes) setFieldValue("extra_notes", answers.extra_notes);
+
+    // Chips
+    document.querySelectorAll(".chip-row[data-field][data-select]").forEach(group => {
+      const field = group.getAttribute("data-field");
+      const mode = group.getAttribute("data-select");
+      if (!field || !(field in answers)) return;
+
+      // clear
+      group.querySelectorAll("button.chip").forEach(b => b.classList.remove("is-active"));
+
+      if (mode === "single") {
+        const wanted = (answers[field] ?? "").toString();
+        group.querySelectorAll("button.chip").forEach(b => {
+          if (chipText(b) === wanted) b.classList.add("is-active");
+        });
+      } else {
+        const wantedArr = Array.isArray(answers[field]) ? answers[field] : [];
+        group.querySelectorAll("button.chip").forEach(b => {
+          if (wantedArr.includes(chipText(b))) b.classList.add("is-active");
+        });
+      }
+    });
+  }
+
+  // ---------- STEP NAV ----------
+  let currentStep = 1;
+  const TOTAL = 4;
+
+  function renderStep() {
+    panels.forEach(p => p.classList.toggle("is-active", Number(p.getAttribute("data-step")) === currentStep));
+    dots.forEach(d => {
+      const n = Number(d.getAttribute("data-step-dot"));
+      d.classList.toggle("is-active", n === currentStep);
+      d.classList.toggle("is-complete", n < currentStep);
+    });
+
+    const meta = STEP_META[currentStep] || STEP_META[1];
+    stepLabelEl.textContent = meta.label;
+    stepTitleEl.textContent = meta.title;
+    stepSubtitleEl.textContent = meta.subtitle;
+
+    progressPctEl.textContent = `Step ${currentStep} of ${TOTAL}`;
+    progressBarEl.style.width = `${Math.round((currentStep - 1) / (TOTAL - 1) * 100)}%`;
+    footerTextEl.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${TOTAL}</strong>. You can tweak anything later.`;
+
+    btnBack.disabled = currentStep === 1;
+    btnNext.textContent = currentStep === TOTAL ? "Finish →" : "Next step →";
+
+    if (summaryBoxEl) summaryBoxEl.hidden = true;
+  }
+
+  // ---------- SAVE GUARDRAILS ----------
+  function guardrailsCanSave() {
+    // Hard guardrails to prevent junk saves
+    if (!customer_id) return { ok: false, msg: "Missing customer_id in URL." };
+
+    // Don’t allow empty profile saves
+    const cn = getFieldValue("contact_name");
+    const bn = getFieldValue("business_name");
+    if (!cn || !bn) return { ok: false, msg: "Please enter contact name and business name." };
+
+    return { ok: true };
+  }
+
+  let sb = null;
+
+  async function saveToSupabase(isFinal = false) {
+    const g = guardrailsCanSave();
+    if (!g.ok) {
+      setStatus(g.msg, "error");
+      return false;
     }
 
-    prefill();
+    const answers = collectWizardAnswers();
+
+    const patch = {
+      // keep key fields consistent in customers table
+      contact_name: answers.contact_name || getFieldValue("contact_name"),
+      business_name: answers.business_name || getFieldValue("business_name"),
+      email: answers.email || getFieldValue("contact_email"),
+      phone: answers.phone || getFieldValue("contact_mobile"),
+      whatsapp_number: getFieldValue("contact_mobile"),
+      base_postcode: answers.base_postcode || getFieldValue("base_postcode"),
+
+      wizard_answers: answers,
+      updated_at: new Date().toISOString()
+    };
+
+    if (isFinal) {
+      patch.wizard_completed = true;
+      patch.wizard_completed_at = new Date().toISOString();
+    }
+
+    try {
+      setStatus(isFinal ? "Finishing…" : "Saving…");
+      const { error } = await sb
+        .from("customers")
+        .update(patch)
+        .eq("id", customer_id);
+
+      if (error) throw error;
+
+      setStatus(isFinal ? "Wizard complete — saved." : "Saved.", "success");
+      return true;
+    } catch (err) {
+      console.error("[TBP] Save error:", err);
+      setStatus("Couldn’t save right now. Try again.", "error");
+      return false;
+    }
+  }
+
+  // Debounced autosave
+  let saveTimer = null;
+  function scheduleAutosave() {
+    if (!sb) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveToSupabase(false), 700);
+  }
+
+  // ---------- LOCAL DRAFT ----------
+  function localKey() {
+    return customer_id ? `tbp_wizard_draft_${customer_id}` : "tbp_wizard_draft_noid";
+  }
+
+  function saveDraftLocal() {
+    const payload = {
+      step: currentStep,
+      answers: collectWizardAnswers(),
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(localKey(), JSON.stringify(payload));
+    setStatus("Draft saved in this browser.", "success");
+  }
+
+  function loadDraftLocal() {
+    try {
+      const raw = localStorage.getItem(localKey());
+      if (!raw) return false;
+      const payload = JSON.parse(raw);
+      if (payload?.answers) applyWizardAnswersToUI(payload.answers);
+      if (payload?.step) currentStep = Math.max(1, Math.min(TOTAL, Number(payload.step)));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // ---------- CHIP CLICK HANDLER (your wrappers) ----------
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".chip-row[data-field][data-select] button.chip");
+    if (!btn) return;
+
+    // never submit anything
+    btn.type = "button";
+
+    const group = btn.closest(".chip-row[data-field][data-select]");
+    const mode = group.getAttribute("data-select");
+    const value = chipText(btn);
+
+    if (mode === "single") {
+      group.querySelectorAll("button.chip").forEach(b => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+    } else {
+      btn.classList.toggle("is-active");
+    }
+
+    scheduleAutosave();
+  }, true);
+
+  // text inputs autosave
+  ["contact_name","business_name","contact_email","contact_mobile","base_postcode","review_link","ai_avoid","extra_notes"]
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("input", scheduleAutosave);
+      el.addEventListener("change", scheduleAutosave);
+    });
+
+  // ---------- BUTTONS ----------
+  btnBack.addEventListener("click", () => {
+    if (currentStep > 1) {
+      currentStep -= 1;
+      renderStep();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  });
+
+  btnNext.addEventListener("click", async () => {
+    // normal step advance
+    if (currentStep < TOTAL) {
+      // save on step transition (but not hard-final)
+      await saveToSupabase(false);
+      currentStep += 1;
+      renderStep();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    // final step -> finish
+    const ok = await saveToSupabase(true);
+    if (ok && summaryBoxEl) {
+      summaryBoxEl.hidden = false;
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    }
+  });
+
+  btnSaveDraft.addEventListener("click", () => saveDraftLocal());
+
+  // ---------- BOOT ----------
+  function boot() {
+    if (!window.supabase) return setTimeout(boot, 50);
+
+    // make sure no chip buttons accidentally act as submit
+    document.querySelectorAll(".chip-row button.chip").forEach(b => b.type = "button");
+
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    renderStep();
+
+    // Load local draft first (doesn't override Supabase if no draft)
+    loadDraftLocal();
+
+    // Then load from Supabase (source of truth)
+    if (customer_id) {
+      (async () => {
+        try {
+          setStatus("Loading…");
+          const { data, error } = await sb
+            .from("customers")
+            .select("contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers, wizard_completed")
+            .eq("id", customer_id)
+            .single();
+
+          if (error) throw error;
+
+          // Prefill visible fields
+          if (data.contact_name) setFieldValue("contact_name", data.contact_name);
+          if (data.business_name) setFieldValue("business_name", data.business_name);
+          if (data.email) setFieldValue("contact_email", data.email);
+          setFieldValue("contact_mobile", data.whatsapp_number || data.phone || "");
+          if (data.base_postcode) setFieldValue("base_postcode", data.base_postcode);
+
+          // Apply chips/text from wizard_answers JSON
+          if (data.wizard_answers) applyWizardAnswersToUI(data.wizard_answers);
+
+          setStatus("", "");
+
+        } catch (err) {
+          console.error("[TBP] Load error:", err);
+          setStatus("Couldn’t load customer data.", "error");
+        }
+      })();
+    } else {
+      setStatus("Missing customer_id in the URL.", "error");
+    }
+
+    // expose debug
+    window.TBP = { customer_id, collectWizardAnswers, saveToSupabase };
   }
 
   boot();
