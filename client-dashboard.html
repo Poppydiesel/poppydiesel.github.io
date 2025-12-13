@@ -28,36 +28,21 @@
       border-bottom:1px solid rgba(15,23,42,0.06);
       background:rgba(248,250,252,0.96);
       backdrop-filter:blur(6px);
-      position:sticky;
-      top:0;
-      z-index:20;
+      position:sticky; top:0; z-index:20;
     }
     .header-inner{
-      max-width:1100px;
-      margin:0 auto;
-      padding:0.6rem 1.25rem;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:0.75rem;
-      flex-wrap:wrap;
+      max-width:1100px; margin:0 auto; padding:0.6rem 1.25rem;
+      display:flex; align-items:center; justify-content:space-between; gap:0.75rem; flex-wrap:wrap;
     }
     .logo-wrap{display:flex;align-items:center;gap:0.6rem}
-    .logo-icon{
-      width:30px;height:30px;border-radius:9px;background:var(--primary-blue);position:relative;
-    }
+    .logo-icon{width:30px;height:30px;border-radius:9px;background:var(--primary-blue);position:relative}
     .logo-icon::before,.logo-icon::after{content:"";position:absolute;background:var(--white);border-radius:4px}
     .logo-icon::before{width:11px;height:17px;left:7px;top:6px}
     .logo-icon::after{width:6px;height:11px;right:7px;top:9px}
     .logo-main{font-weight:700;font-size:1rem;color:var(--primary-blue)}
     .logo-tag{font-size:0.75rem;color:var(--muted-text)}
     .wrap{max-width:1100px;margin:0 auto;padding:1.25rem}
-    .grid{
-      display:grid;
-      grid-template-columns:minmax(0,1.2fr) minmax(0,0.8fr);
-      gap:1.25rem;
-      align-items:start;
-    }
+    .grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,0.8fr);gap:1.25rem;align-items:start}
     .card{
       background:rgba(255,255,255,0.92);
       border-radius:1.2rem;
@@ -66,268 +51,171 @@
     }
     .card h2{margin:0 0 0.4rem;color:var(--primary-blue);font-size:1.15rem}
     .sub{margin:0 0 0.9rem;color:var(--muted-text);font-size:0.9rem}
-    .kv{
-      display:grid;
-      grid-template-columns:160px 1fr;
-      gap:0.55rem 0.8rem;
-      font-size:0.92rem;
-    }
+    .kv{display:grid;grid-template-columns:160px 1fr;gap:0.55rem 0.8rem;font-size:0.92rem}
     .k{color:var(--muted-text)}
-    .v{font-weight:600}
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      padding:0.25rem 0.7rem;
-      border-radius:999px;
-      border:1px solid rgba(0,0,0,0.08);
-      background:#fff;
-      font-size:0.82rem;
-      font-weight:600;
-    }
+    .v{font-weight:700}
+    .pill{display:inline-flex;align-items:center;padding:0.25rem 0.7rem;border-radius:999px;border:1px solid rgba(0,0,0,0.08);background:#fff;font-size:0.82rem;font-weight:700}
     .pill.ok{border-color:rgba(15,123,70,0.35); background:#ecfdf5; color:#14532d}
     .pill.warn{border-color:rgba(179,38,30,0.25); background:#fff1f2; color:#7f1d1d}
     .btnrow{display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1rem}
     .btn{
-      border-radius:999px;
-      border:1px solid transparent;
-      padding:0.55rem 1.1rem;
-      font-size:0.9rem;
-      font-weight:600;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      gap:0.35rem;
-      background:transparent;
-      text-decoration:none;
+      border-radius:999px;border:1px solid transparent;padding:0.55rem 1.1rem;
+      font-size:0.9rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:0.35rem;
+      background:transparent;text-decoration:none;
     }
-    .btn-primary{
-      background:linear-gradient(135deg,var(--primary-blue),#163857);
-      color:var(--white);
-      box-shadow:0 12px 28px rgba(15,23,42,0.28);
-    }
-    .btn-secondary{
-      border-color:var(--border-subtle);
-      background:#f9fafb;
-      color:var(--dark-text);
-    }
-    .status{
-      margin-top:0.7rem;
-      font-size:0.9rem;
-      min-height:1.2em;
-    }
+    .btn-primary{background:linear-gradient(135deg,var(--primary-blue),#163857);color:var(--white);box-shadow:0 12px 28px rgba(15,23,42,0.28)}
+    .btn-secondary{border-color:var(--border-subtle);background:#f9fafb;color:var(--dark-text)}
+    .status{margin-top:0.75rem;font-size:0.9rem;min-height:1.2em}
     .status.error{color:var(--error-red)}
     .status.success{color:var(--success-green)}
-    pre{
-      margin:0.6rem 0 0;
-      background:#f5f7ff;
-      border:1px solid rgba(31,78,121,0.12);
-      border-radius:0.75rem;
-      padding:0.7rem;
-      overflow:auto;
-      font-size:0.85rem;
-    }
-    @media (max-width: 900px){
-      .grid{grid-template-columns:1fr}
-      .kv{grid-template-columns:140px 1fr}
-    }
+    @media (max-width: 900px){.grid{grid-template-columns:1fr}.kv{grid-template-columns:140px 1fr}}
   </style>
 </head>
 <body>
-  <header>
-    <div class="header-inner">
-      <div class="logo-wrap">
-        <div class="logo-icon" aria-hidden="true"></div>
-        <div>
-          <div class="logo-main">TradeBotPro</div>
-          <div class="logo-tag">Your dashboard</div>
-        </div>
+<header>
+  <div class="header-inner">
+    <div class="logo-wrap">
+      <div class="logo-icon" aria-hidden="true"></div>
+      <div>
+        <div class="logo-main">TradeBotPro</div>
+        <div class="logo-tag">Client dashboard</div>
       </div>
-      <div class="logo-tag" id="header-business"></div>
     </div>
-  </header>
-
-  <div class="wrap">
-    <div class="grid">
-      <section class="card">
-        <h2>Your account</h2>
-        <p class="sub">This is your TradeBotPro profile. If anything looks wrong, open the wizard and update it.</p>
-
-        <div class="kv" id="kv"></div>
-
-        <div class="btnrow">
-          <a class="btn btn-primary" id="btn-open-wizard" href="#">Open setup wizard</a>
-          <button class="btn btn-secondary" id="btn-help" type="button">Ask for help</button>
-        </div>
-
-        <div class="status" id="status"></div>
-      </section>
-
-      <aside class="card">
-        <h2>Setup status</h2>
-        <p class="sub">Quick view of what’s done so far.</p>
-
-        <div id="setup-badges"></div>
-
-        <div style="margin-top:0.9rem;">
-          <div class="k">Customer ID</div>
-          <div class="v" id="cid" style="word-break:break-all;"></div>
-        </div>
-
-        <pre id="debug" hidden></pre>
-      </aside>
-    </div>
+    <div class="logo-tag" id="header-business"></div>
   </div>
+</header>
 
-  <!-- Supabase (UMD via jsDelivr) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
+<div class="wrap">
+  <div class="grid">
+    <section class="card">
+      <h2>Your account</h2>
+      <p class="sub">Only you can see this data (secure login + database rules).</p>
 
-  <script>
-    (function boot(){
-      const statusEl = document.getElementById("status");
-      const kvEl = document.getElementById("kv");
-      const badgesEl = document.getElementById("setup-badges");
-      const headerBusiness = document.getElementById("header-business");
-      const cidEl = document.getElementById("cid");
-      const btnWizard = document.getElementById("btn-open-wizard");
-      const btnHelp = document.getElementById("btn-help");
+      <div class="kv" id="kv"></div>
 
-      function setStatus(msg, type){
-        statusEl.textContent = msg || "";
-        statusEl.className = "status" + (type ? (" " + type) : "");
-      }
+      <div class="btnrow">
+        <a class="btn btn-primary" id="btn-open-wizard" href="#">Open setup wizard</a>
+        <button class="btn btn-secondary" id="btn-logout" type="button">Log out</button>
+      </div>
 
-      if (typeof window.supabase === "undefined") {
-        setStatus("Supabase failed to load. Please refresh the page.", "error");
-        return;
-      }
+      <div class="status" id="status"></div>
+    </section>
 
-      // ✅ Keep your existing project + anon key
-      const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <aside class="card">
+      <h2>Setup status</h2>
+      <p class="sub">Quick view of what’s done so far.</p>
+      <div id="setup-badges"></div>
+    </aside>
+  </div>
+</div>
 
-      const params = new URLSearchParams(location.search);
-      const customer_id = params.get("customer_id") || "";
-      cidEl.textContent = customer_id || "(missing)";
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
+<script>
+(async function(){
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      if (!customer_id) {
-        setStatus("Missing customer_id. This page must be opened from your setup link.", "error");
-        btnWizard.href = "/app.html";
-        return;
-      }
+  const statusEl = document.getElementById("status");
+  const kvEl = document.getElementById("kv");
+  const badgesEl = document.getElementById("setup-badges");
+  const headerBusiness = document.getElementById("header-business");
+  const btnWizard = document.getElementById("btn-open-wizard");
+  const btnLogout = document.getElementById("btn-logout");
 
-      // Link to wizard (prefilled)
-      btnWizard.href = `/app.html?customer_id=${customer_id}`;
+  function setStatus(msg, type){
+    statusEl.textContent = msg || "";
+    statusEl.className = "status" + (type ? (" " + type) : "");
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+  function badge(label, ok){
+    return `<div style="margin-bottom:0.5rem;">
+      <span class="pill ${ok ? "ok" : "warn"}">${ok ? "✓" : "•"} ${escapeHtml(label)}</span>
+    </div>`;
+  }
 
-      // “Ask for help” (simple v1: writes a flag into customers.extra or lead_notes)
-      btnHelp.addEventListener("click", async () => {
-        try {
-          btnHelp.disabled = true;
-          setStatus("Sending request…");
+  // Require login
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    // If they came here without a session, send to login
+    const params = new URLSearchParams(location.search);
+    const token = (params.get("token") || "").trim();
+    window.location.href = `/login.html${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+    return;
+  }
 
-          // Keep it safe: just append a note. Adjust column if you prefer.
-          const note = `Client clicked Ask for help @ ${new Date().toISOString()}`;
-          const { error } = await sb
-            .from("customers")
-            .update({ lead_notes: note })
-            .eq("id", customer_id);
+  // If token is present, claim/link the customer row securely
+  const params = new URLSearchParams(location.search);
+  const token = (params.get("token") || "").trim();
 
-          if (error) throw error;
-          setStatus("Thanks — we’ve received your request and will contact you shortly.", "success");
-        } catch (e) {
-          console.error(e);
-          setStatus("Couldn’t send the request right now. Please try again.", "error");
-        } finally {
-          btnHelp.disabled = false;
-        }
-      });
+  if (token) {
+    try {
+      setStatus("Linking your account…");
+      const { data, error } = await sb.rpc("claim_customer", { p_invite_token: token });
+      if (error) throw error;
+      setStatus("Account linked ✅", "success");
+      // clean URL (remove token)
+      window.history.replaceState({}, "", "/client-dashboard.html");
+    } catch (e) {
+      console.error(e);
+      setStatus("Could not link account (token invalid or already used).", "error");
+    }
+  }
 
-      async function load(){
-        setStatus("Loading…");
-        const { data, error } = await sb
-          .from("customers")
-          .select([
-            "id",
-            "business_name",
-            "contact_name",
-            "email",
-            "phone",
-            "whatsapp_number",
-            "main_trade",
-            "trade_type",
-            "base_postcode",
-            "onboarding_status",
-            "wizard_completed",
-            "wizard_completed_at",
-            "wizard_locked",
-            "setup_complete",
-            "setup_completed_at",
-            "demo_booked",
-            "demo_scheduled_at",
-            "trial_active",
-            "trial_start",
-            "trial_end",
-            "is_live",
-            "go_live_date",
-            "booking_link"
-          ].join(","))
-          .eq("id", customer_id)
-          .single();
+  // Now load the customer row securely by user_id = auth.uid()
+  setStatus("Loading…");
+  const { data: customer, error } = await sb
+    .from("customers")
+    .select("business_name, contact_name, email, phone, whatsapp_number, main_trade, base_postcode, onboarding_status, wizard_completed, wizard_locked, setup_complete, demo_booked, trial_active, is_live")
+    .eq("user_id", session.user.id)
+    .single();
 
-        if (error) {
-          console.error(error);
-          setStatus("Couldn’t load your account details. Please try again.", "error");
-          return;
-        }
+  if (error || !customer) {
+    console.error(error);
+    setStatus("No customer record is linked to this login yet. Use your invite link or contact support.", "error");
+    btnWizard.href = "/app.html";
+  } else {
+    headerBusiness.textContent = customer.business_name ? `— ${customer.business_name}` : "";
 
-        headerBusiness.textContent = data.business_name ? `— ${data.business_name}` : "";
+    const rows = [
+      ["Business name", customer.business_name || "—"],
+      ["Contact name", customer.contact_name || "—"],
+      ["Email", customer.email || "—"],
+      ["Phone", customer.phone || "—"],
+      ["WhatsApp", customer.whatsapp_number || "—"],
+      ["Main trade", customer.main_trade || "—"],
+      ["Base postcode", customer.base_postcode || "—"],
+      ["Onboarding status", customer.onboarding_status || "—"],
+    ];
 
-        // Key-value list (keep it tidy)
-        const rows = [
-          ["Business name", data.business_name || "—"],
-          ["Contact name", data.contact_name || "—"],
-          ["Email", data.email || "—"],
-          ["Phone", data.phone || "—"],
-          ["WhatsApp", data.whatsapp_number || "—"],
-          ["Main trade", data.main_trade || data.trade_type || "—"],
-          ["Base postcode", data.base_postcode || "—"],
-          ["Onboarding status", data.onboarding_status || "—"],
-          ["Booking link", data.booking_link ? data.booking_link : "—"],
-        ];
+    kvEl.innerHTML = rows.map(([k,v]) => `
+      <div class="k">${escapeHtml(k)}</div>
+      <div class="v">${escapeHtml(v)}</div>
+    `).join("");
 
-        kvEl.innerHTML = rows.map(([k,v]) => `
-          <div class="k">${k}</div>
-          <div class="v">${escapeHtml(String(v))}</div>
-        `).join("");
+    badgesEl.innerHTML = [
+      badge("Wizard completed", !!customer.wizard_completed),
+      badge("Wizard locked", !!customer.wizard_locked),
+      badge("Setup complete", !!customer.setup_complete),
+      badge("Demo booked", !!customer.demo_booked),
+      badge("Trial active", !!customer.trial_active),
+      badge("Live", !!customer.is_live),
+    ].join("");
 
-        // Badges
-        const badges = [
-          badge("Wizard completed", !!data.wizard_completed),
-          badge("Wizard locked", !!data.wizard_locked),
-          badge("Setup complete", !!data.setup_complete),
-          badge("Demo booked", !!data.demo_booked),
-          badge("Trial active", !!data.trial_active),
-          badge("Live", !!data.is_live),
-        ];
-        badgesEl.innerHTML = badges.join("");
+    // Wizard link (no customer_id needed for security; login controls access)
+    btnWizard.href = "/app.html";
+    setStatus("");
+  }
 
-        setStatus("");
-      }
-
-      function badge(label, ok){
-        return `<div style="margin-bottom:0.5rem;">
-          <span class="pill ${ok ? "ok" : "warn"}">${ok ? "✓" : "•"} ${label}</span>
-        </div>`;
-      }
-
-      function escapeHtml(s){
-        return s.replace(/[&<>"']/g, c => ({
-          "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-        }[c]));
-      }
-
-      load();
-    })();
-  </script>
+  btnLogout.addEventListener("click", async () => {
+    await sb.auth.signOut();
+    window.location.href = "/login.html";
+  });
+})();
+</script>
 </body>
 </html>
