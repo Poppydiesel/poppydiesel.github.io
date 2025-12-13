@@ -20,8 +20,13 @@
       --success-green: #0f7b46;
     }
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       margin: 0;
@@ -31,7 +36,10 @@
       line-height: 1.6;
     }
 
-    a { color: inherit; text-decoration: none; }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
     .page {
       display: flex;
@@ -46,6 +54,7 @@
     }
 
     /* HEADER */
+
     header {
       position: sticky;
       top: 0;
@@ -64,7 +73,11 @@
       font-size: 0.9rem;
     }
 
-    .logo-wrap { display: flex; align-items: center; gap: 0.6rem; }
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
 
     .logo-icon {
       width: 32px;
@@ -82,11 +95,30 @@
       border-radius: 4px;
     }
 
-    .logo-icon::before { width: 12px; height: 18px; left: 7px; top: 7px; }
-    .logo-icon::after { width: 6px; height: 12px; right: 7px; top: 10px; }
+    .logo-icon::before {
+      width: 12px;
+      height: 18px;
+      left: 7px;
+      top: 7px;
+    }
 
-    .logo-main { font-weight: 700; font-size: 1.05rem; color: var(--primary-blue); }
-    .logo-tag { font-size: 0.7rem; opacity: 0.7; }
+    .logo-icon::after {
+      width: 6px;
+      height: 12px;
+      right: 7px;
+      top: 10px;
+    }
+
+    .logo-main {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--primary-blue);
+    }
+
+    .logo-tag {
+      font-size: 0.7rem;
+      opacity: 0.7;
+    }
 
     .nav-links {
       display: flex;
@@ -95,8 +127,14 @@
       align-items: center;
     }
 
-    .nav-links a { padding: 0.2rem 0.45rem; border-radius: 999px; }
-    .nav-links a:hover { background: rgba(0, 0, 0, 0.05); }
+    .nav-links a {
+      padding: 0.2rem 0.45rem;
+      border-radius: 999px;
+    }
+
+    .nav-links a:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
 
     .nav-cta {
       background: var(--primary-blue);
@@ -105,10 +143,16 @@
       border-radius: 999px;
       font-weight: 600;
     }
-    .nav-cta:hover { background: #163857; }
+
+    .nav-cta:hover {
+      background: #163857;
+    }
 
     /* HERO */
-    .hero { padding: 3rem 0 2.5rem; }
+
+    .hero {
+      padding: 3rem 0 2.5rem;
+    }
 
     .hero-grid {
       display: grid;
@@ -133,9 +177,15 @@
       color: var(--primary-blue);
     }
 
-    .hero-tagline { font-weight: 600; margin-bottom: 0.8rem; }
+    .hero-tagline {
+      font-weight: 600;
+      margin-bottom: 0.8rem;
+    }
 
-    .hero p { margin: 0 0 1.3rem; max-width: 34rem; }
+    .hero p {
+      margin: 0 0 1.3rem;
+      max-width: 34rem;
+    }
 
     .hero-actions {
       display: flex;
@@ -144,7 +194,8 @@
       margin-bottom: 1.1rem;
     }
 
-    .btn-primary, .btn-outline {
+    .btn-primary,
+    .btn-outline {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -161,16 +212,25 @@
       color: var(--white);
       font-weight: 600;
     }
-    .btn-primary:hover { background: #163857; }
+
+    .btn-primary:hover {
+      background: #163857;
+    }
 
     .btn-outline {
       background: var(--white);
       border: 1px solid rgba(0, 0, 0, 0.15);
       color: var(--primary-blue);
     }
-    .btn-outline .icon { font-size: 1.1rem; }
 
-    .hero-note { font-size: 0.8rem; opacity: 0.75; }
+    .btn-outline .icon {
+      font-size: 1.1rem;
+    }
+
+    .hero-note {
+      font-size: 0.8rem;
+      opacity: 0.75;
+    }
 
     .hero-card {
       background: var(--white);
@@ -186,10 +246,23 @@
       color: var(--primary-blue);
     }
 
-    .chat-bubbles { display: flex; flex-direction: column; gap: 0.6rem; }
+    .chat-bubbles {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
 
-    .bubble { max-width: 92%; padding: 0.55rem 0.7rem; border-radius: 0.8rem; }
-    .bubble-label { font-size: 0.68rem; opacity: 0.7; margin-bottom: 0.15rem; }
+    .bubble {
+      max-width: 92%;
+      padding: 0.55rem 0.7rem;
+      border-radius: 0.8rem;
+    }
+
+    .bubble-label {
+      font-size: 0.68rem;
+      opacity: 0.7;
+      margin-bottom: 0.15rem;
+    }
 
     .bubble.user {
       background: #e4eef8;
@@ -214,7 +287,10 @@
     }
 
     /* SECTIONS */
-    section { padding: 3rem 0; }
+
+    section {
+      padding: 3rem 0;
+    }
 
     section h2 {
       font-size: 1.9rem;
@@ -229,7 +305,12 @@
     }
 
     /* WHO */
-    .pill-row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
 
     .pill {
       padding: 0.35rem 0.9rem;
@@ -240,6 +321,7 @@
     }
 
     /* PROBLEM */
+
     .problem-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -274,6 +356,7 @@
     }
 
     /* HOW */
+
     .how-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -303,6 +386,7 @@
     }
 
     /* RESULTS */
+
     .results-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -336,6 +420,7 @@
     }
 
     /* PRICING */
+
     .pricing-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -367,10 +452,22 @@
       color: var(--primary-blue);
     }
 
-    .plan-price { font-size: 1.5rem; font-weight: 700; }
-    .plan-period { font-size: 0.8rem; opacity: 0.75; margin-bottom: 0.6rem; }
+    .plan-price {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
 
-    .plan ul { list-style: none; margin: 0 0 0.6rem; padding: 0; }
+    .plan-period {
+      font-size: 0.8rem;
+      opacity: 0.75;
+      margin-bottom: 0.6rem;
+    }
+
+    .plan ul {
+      list-style: none;
+      margin: 0 0 0.6rem;
+      padding: 0;
+    }
 
     .plan ul li {
       position: relative;
@@ -386,7 +483,9 @@
       color: var(--primary-blue);
     }
 
-    .plan-cta { margin-top: auto; }
+    .plan-cta {
+      margin-top: auto;
+    }
 
     .plan-cta a {
       display: inline-flex;
@@ -404,7 +503,10 @@
     }
 
     /* SIGNUP SECTION */
-    #signup { background: #e9f0f7; }
+
+    #signup {
+      background: #e9f0f7;
+    }
 
     .signup-layout {
       display: grid;
@@ -413,7 +515,9 @@
       align-items: flex-start;
     }
 
-    .signup-copy { font-size: 0.95rem; }
+    .signup-copy {
+      font-size: 0.95rem;
+    }
 
     .signup-copy ul {
       margin: 0.8rem 0 0;
@@ -435,7 +539,9 @@
       color: var(--primary-blue);
     }
 
-    .signup-field { margin-bottom: 0.85rem; }
+    .signup-field {
+      margin-bottom: 0.85rem;
+    }
 
     .signup-field label {
       display: block;
@@ -467,7 +573,9 @@
       margin: 0.6rem 0 0.7rem;
     }
 
-    .signup-agree input { margin-top: 0.15rem; }
+    .signup-agree input {
+      margin-top: 0.15rem;
+    }
 
     .signup-note {
       font-size: 0.78rem;
@@ -490,17 +598,25 @@
       cursor: pointer;
     }
 
-    .signup-submit:hover { background: #163857; }
+    .signup-submit:hover {
+      background: #163857;
+    }
 
     .signup-status {
       margin-top: 0.6rem;
       font-size: 0.82rem;
     }
 
-    .signup-status--error { color: var(--error-red); }
-    .signup-status--success { color: var(--success-green); }
+    .signup-status--error {
+      color: var(--error-red);
+    }
+
+    .signup-status--success {
+      color: var(--success-green);
+    }
 
     /* DEMO */
+
     .demo-card {
       background: var(--white);
       border-radius: 1rem;
@@ -517,6 +633,7 @@
       margin-bottom: 0.35rem;
     }
 
+    /* Live backend demo placeholder */
     #messages {
       margin-top: 0.6rem;
       font-size: 0.85rem;
@@ -527,9 +644,12 @@
       min-height: 1.4rem;
     }
 
-    .message-item { margin-bottom: 0.25rem; }
+    .message-item {
+      margin-bottom: 0.25rem;
+    }
 
     /* FAQ */
+
     .faq-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -552,6 +672,7 @@
     }
 
     /* FINAL CTA */
+
     .cta-final {
       text-align: center;
       padding: 3rem 0 3.2rem;
@@ -570,6 +691,7 @@
     }
 
     /* FOOTER */
+
     footer {
       background: var(--white);
       border-top: 1px solid rgba(0, 0, 0, 0.06);
@@ -591,23 +713,49 @@
       gap: 0.7rem;
     }
 
-    .footer-links a { opacity: 0.8; }
+    .footer-links a {
+      opacity: 0.8;
+    }
 
     /* RESPONSIVE */
+
     @media (max-width: 768px) {
-      .nav { flex-wrap: wrap; }
-      .nav-links { width: 100%; justify-content: flex-start; }
+      .nav {
+        flex-wrap: wrap;
+      }
 
-      .hero { padding-top: 2.3rem; }
-      .hero-grid { grid-template-columns: minmax(0, 1fr); }
-      .hero-card { margin-top: 0.7rem; }
+      .nav-links {
+        width: 100%;
+        justify-content: flex-start;
+      }
 
-      .signup-layout { grid-template-columns: minmax(0, 1fr); }
+      .hero {
+        padding-top: 2.3rem;
+      }
+
+      .hero-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .hero-card {
+        margin-top: 0.7rem;
+      }
+
+      .signup-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
 
     @media (max-width: 520px) {
-      .hero-actions { flex-direction: column; align-items: stretch; }
-      .btn-primary, .btn-outline { width: 100%; }
+      .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn-primary,
+      .btn-outline {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -649,7 +797,7 @@
             <p>
               TradeBotPro is your always-on office assistant for tradesmen and home
               service businesses. It replies instantly to enquiries, gathers job
-              details, sends quotes, books work and requests reviews — all automatically —
+              details, sends quotes, books work and requests reviews — all automatically — 
               so you can stay on the tools.
             </p>
             <div class="hero-actions">
@@ -773,7 +921,7 @@
             <div class="how-step">Step 1</div>
             <h3>Instant Replies</h3>
             <p>
-              As soon as a customer messages you, TradeBotPro replies in seconds —
+              As soon as a customer messages you, TradeBotPro replies in seconds — 
               even at night or when you’re on a job. It asks smart questions, checks
               postcode coverage and filters out time-wasters.
             </p>
@@ -849,8 +997,8 @@
       <div class="inner">
         <h2>Simple Monthly Pricing. No Contracts.</h2>
         <p class="section-lead">
-          We’ll walk you through the best plan for your business on the demo.
-          No payment is taken until after your demo + free trial.
+          Choose the plan that fits your business today. You can upgrade, downgrade or
+          cancel at any time as you grow.
         </p>
 
         <div class="pricing-grid">
@@ -867,7 +1015,7 @@
               <li>Simple monthly performance report</li>
             </ul>
             <div class="plan-cta">
-              <a href="#signup" class="btn-outline">Request a demo</a>
+              <a href="#signup" class="btn-outline">Start with Starter</a>
             </div>
           </div>
 
@@ -885,7 +1033,7 @@
               <li>Priority support</li>
             </ul>
             <div class="plan-cta">
-              <a href="#signup" class="btn-primary">Request a demo</a>
+              <a href="#signup" class="btn-primary">Choose Pro</a>
             </div>
           </div>
 
@@ -903,7 +1051,7 @@
               <li>Unlimited automations</li>
             </ul>
             <div class="plan-cta">
-              <a href="#signup" class="btn-outline">Request a demo</a>
+              <a href="#signup" class="btn-outline">Talk about Premium</a>
             </div>
           </div>
         </div>
@@ -915,19 +1063,20 @@
       <div class="inner">
         <h2>Join TradeBotPro</h2>
         <p class="section-lead">
-          Tell us a few basic details and you’ll have the option to continue into the setup wizard.
-          We’ll run a demo first, then you can choose a plan and start a free trial.
+          Tell us a few details about your business and the plan you’re interested in.
+          We’ll set everything up with you and confirm payment separately — no card needed today.
         </p>
 
         <div class="signup-layout">
           <div class="signup-copy">
             <p>
-              Perfect if you’d like to see a live setup for your trade and only switch on payments once you’re happy.
+              Perfect if you’d like to get on the list, see a live setup for your trade,
+              and only switch on payments once you’re happy.
             </p>
             <ul>
               <li>No long-term contract and no card details collected here.</li>
-              <li>We’ll contact you to confirm setup, demo time and go-live plan.</li>
-              <li>You can complete the wizard now, or do it later.</li>
+              <li>We’ll contact you to confirm setup, pricing and start date.</li>
+              <li>You can change plan or cancel before anything goes live.</li>
             </ul>
           </div>
 
@@ -951,12 +1100,12 @@
 
               <div class="signup-field">
                 <label for="email">Email</label>
-                <input id="email" name="email" type="email" autocomplete="email">
+                <input id="email" name="email" type="email" required autocomplete="email">
               </div>
 
               <div class="signup-field">
                 <label for="whatsapp_number">Mobile / WhatsApp number</label>
-                <input id="whatsapp_number" name="whatsapp_number" type="tel" autocomplete="tel">
+                <input id="whatsapp_number" name="whatsapp_number" type="tel" required autocomplete="tel">
               </div>
 
               <div class="signup-field">
@@ -977,8 +1126,20 @@
               </div>
 
               <div class="signup-field">
-                <label for="base_postcode">Main service area (town or postcode)</label>
-                <input id="base_postcode" name="base_postcode" type="text" required autocomplete="postal-code">
+                <label for="service_area">Main service area (town or postcode)</label>
+                <input id="service_area" name="service_area" type="text" required autocomplete="postal-code">
+              </div>
+
+              <div class="signup-field">
+                <label for="plan">Choose your plan</label>
+                <select id="plan" name="plan" required>
+                  <option value="">Select a plan…</option>
+                  <option value="starter-monthly">Starter – Monthly</option>
+                  <option value="starter-yearly">Starter – Yearly</option>
+                  <option value="pro-monthly">Pro – Monthly</option>
+                  <option value="pro-yearly">Pro – Yearly</option>
+                  <option value="premium-monthly">Premium – Monthly</option>
+                </select>
               </div>
 
               <div class="signup-field">
@@ -994,26 +1155,12 @@
               </div>
 
               <button type="submit" class="signup-submit" id="signup-submit-btn">
-                Save my details (no payment yet)
+                Join TradeBotPro (no payment yet)
               </button>
 
-              <!-- Post-submit actions (hidden until saved) -->
-              <div id="post-signup-actions" style="display:none; margin-top:12px;">
-                <button type="button" class="signup-submit" id="continue-to-wizard-btn">
-                  Continue into the setup wizard
-                </button>
-
-                <button type="button" class="signup-submit" id="finish-later-btn" style="margin-top:8px;">
-                  Finish later
-                </button>
-
-                <div class="signup-note" style="margin-top:10px;">
-                  You can complete as much as you like in the wizard before the demo. No payment is taken until after the demo + free trial.
-                </div>
-              </div>
-
-              <div class="signup-note" id="signup-note-default">
-                After you submit, you can optionally continue into the setup wizard to tailor your assistant before the demo.
+              <div class="signup-note">
+                After you submit this form, we’ll review your details and get in touch
+                to confirm setup and payment options.
               </div>
             </form>
           </div>
@@ -1040,6 +1187,7 @@
           <p><strong>TradeBotPro:</strong> “Based on similar jobs, a typical repair like this is usually between <strong>£90–£140</strong> depending on parts. We can be with you <strong>Thursday afternoon between 1–3pm</strong>. Would you like to book that slot?”</p>
         </div>
 
+        <!-- LIVE BACKEND DEMO PLACEHOLDER (no Render fetch now) -->
         <div class="demo-card" style="margin-top:1.1rem;">
           <div class="demo-label">Live • TradeBotPro backend</div>
           <p style="margin-top:0;">
@@ -1119,88 +1267,107 @@
   </footer>
 </div>
 
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+<!-- SUPABASE JS (via CDN) -->
+<script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
 
-  /* ======================
-     CONFIG – MUST BE RIGHT
-     ====================== */
-   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  // ✅ 1) SUPABASE CLIENT (UMD build uses supabase.createClient)
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  /* ======================
-     HARD TARGETS
-     ====================== */
-  const form = document.querySelector('form');
-  const emailInput = document.querySelector('input[name="email"], input[type="email"]');
+  // ✅ 2) ELEMENTS (safe because DOMContentLoaded)
+  const form = document.getElementById("tradebotpro-signup-form");
+  const statusEl = document.getElementById("signup-status");
+  const btn = document.getElementById("signup-submit-btn");
 
-  if (!form || !emailInput) {
-    alert("FORM OR EMAIL FIELD NOT FOUND");
-    throw new Error("Form or email field missing");
+  if (!form || !statusEl || !btn) {
+    console.error("Signup form elements not found. Check IDs in HTML.");
+    return;
   }
 
-  // STOP browser GET submit forever
-  form.method = "post";
-  form.action = "#";
+  let submitting = false;
+  const val = (v) => (v ?? "").toString().trim();
 
+  function setStatus(msg, type) {
+    statusEl.textContent = msg || "";
+    statusEl.className = "signup-status" + (type ? ` ${type}` : "");
+  }
+
+  // ✅ 3) SUBMIT HANDLER (ONLY INSERTS ON VALID SUBMIT)
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    e.stopImmediatePropagation();
-
-    alert("SUBMIT HANDLER FIRED"); // 🔥 PROOF JS IS RUNNING
+    if (submitting) return;
 
     const payload = {
-      email: emailInput.value.trim().toLowerCase(),
-      contact_name: document.querySelector('[name="contact_name"]')?.value || null,
-      business_name: document.querySelector('[name="business_name"]')?.value || null,
-      whatsapp_number: document.querySelector('[name="whatsapp_number"]')?.value || null,
-      trade_type: document.querySelector('[name="trade_type"]')?.value || null,
-      base_postcode: document.querySelector('[name="base_postcode"]')?.value || null,
+      contact_name: val(form.contact_name.value),
+      business_name: val(form.business_name.value),
+      email: val(form.email.value),
+      whatsapp_number: val(form.whatsapp_number.value),
+      trade_type: val(form.trade_type.value),
+      service_area: val(form.service_area.value),
+      plan: val(form.plan.value),
+      referrer: val(form.referrer.value),
+
+      // optional defaults (only keep if these columns exist in customers)
       wizard_complete: false,
-      is_admin: false
+      pending_setup: true,
+      account_status: "New"
     };
 
-    console.log("PAYLOAD:", payload);
-
-    if (!payload.email || !payload.email.includes("@")) {
-      alert("INVALID EMAIL");
+    // ✅ Guardrails
+    if (!payload.contact_name || !payload.business_name) {
+      setStatus("Please enter contact name and business name.", "error");
+      return;
+    }
+    if (!payload.email && !payload.whatsapp_number) {
+      setStatus("Please enter an email or a mobile/WhatsApp number.", "error");
+      return;
+    }
+    if (!payload.trade_type || !payload.service_area || !payload.plan) {
+      setStatus("Please choose a trade type, service area, and plan.", "error");
+      return;
+    }
+    if (!form.agree.checked) {
+      setStatus("Please tick the Terms & Conditions checkbox to continue.", "error");
       return;
     }
 
+    // ✅ prevent double inserts
+    submitting = true;
+    btn.disabled = true;
+    setStatus("Submitting…");
+
     try {
+      // ✅ Insert into CUSTOMERS table (this is the key change)
       const { data, error } = await sb
         .from("customers")
-        .insert(payload)
+        .insert([payload])
         .select("id")
         .single();
 
-      console.log("SUPABASE DATA:", data);
-      console.log("SUPABASE ERROR:", error);
+      if (error) throw error;
 
-      if (error) {
-        alert("SUPABASE ERROR:\n" + JSON.stringify(error, null, 2));
-        return;
-      }
+      setStatus("Thanks — we’ll be in touch shortly.", "success");
+      form.reset();
 
-      alert("SAVE OK. REDIRECTING.");
-
-      window.location.href = `app.html?signup_id=${data.id}`;
-
+      // Optional later:
+      // window.location.href = `/app.html?customer_id=${data.id}`;
     } catch (err) {
-      alert("JS ERROR:\n" + err.message);
-      console.error(err);
+      console.error("Signup insert failed:", err);
+      setStatus("Couldn’t submit right now. Please try again.", "error");
+    } finally {
+      submitting = false;
+      btn.disabled = false;
     }
-  }, true);
+  });
+});
 </script>
 
 </body>
 </html>
-
-
-
-
-
 
 
 
