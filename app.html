@@ -1068,7 +1068,7 @@
 <script type="module">
 /* =========================================================
    TradeBotPro Wizard — FINAL FIX
-   Unlock button restored + edit-mode navigation fixed
+   Next step navigation restored + unlock-safe
    ========================================================= */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1077,7 +1077,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 const TABLE = "customers";
-
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= STATE ================= */
@@ -1085,6 +1084,8 @@ let CUSTOMER_ID = null;
 let LOCKED = false;
 let UNLOCKED_EDIT_MODE = false;
 let ORIGINAL = null;
+let CURRENT_STEP = 1;
+const TOTAL_STEPS = 4;
 
 /* ================= HELPERS ================= */
 const $ = (s, r=document) => r.querySelector(s);
@@ -1099,6 +1100,38 @@ function status(msg, type="info"){
   if(el){
     el.textContent = msg;
     el.className = "wizard-status-message is-" + type;
+  }
+}
+
+/* ================= STEP NAVIGATION ================= */
+function showStep(step){
+  CURRENT_STEP = Math.max(1, Math.min(TOTAL_STEPS, step));
+
+  $$(".step-panel").forEach(p => p.classList.remove("is-active"));
+  $(`.step-panel[data-step="${CURRENT_STEP}"]`)?.classList.add("is-active");
+
+  $$(".step-dot").forEach(dot=>{
+    dot.classList.toggle("is-active", Number(dot.dataset.stepDot) === CURRENT_STEP);
+  });
+
+  $("#wizard-step-label").textContent = `Step ${CURRENT_STEP}`;
+  $("#wizard-footer-text").innerHTML =
+    `Step <strong>${CURRENT_STEP}</strong> of <strong>${TOTAL_STEPS}</strong>.`;
+
+  $("#btn-back").disabled = CURRENT_STEP === 1;
+  $("#btn-next").textContent =
+    CURRENT_STEP === TOTAL_STEPS ? "Finish →" : "Next step →";
+}
+
+function nextStep(){
+  if(CURRENT_STEP < TOTAL_STEPS){
+    showStep(CURRENT_STEP + 1);
+  }
+}
+
+function prevStep(){
+  if(CURRENT_STEP > 1){
+    showStep(CURRENT_STEP - 1);
   }
 }
 
@@ -1205,50 +1238,6 @@ function loadChips(data){
   });
 }
 
-/* ================= LOCK CONTROLS (RESTORED) ================= */
-function injectLockControls(){
-  if($("#btn-unlock")) return;
-
-  const bar = document.createElement("div");
-  bar.style.display = "flex";
-  bar.style.gap = "10px";
-  bar.style.marginTop = "12px";
-
-  bar.innerHTML = `
-    <button id="btn-unlock" class="btn btn-secondary">Unlock to edit</button>
-    <button id="btn-cancel" class="btn btn-ghost">Cancel edits</button>
-    <button id="btn-relock" class="btn btn-ghost">Re-lock</button>
-  `;
-
-  $(".wizard-footer")?.after(bar);
-
-  $("#btn-unlock").onclick = () => {
-    if(confirm("Unlock this setup to make changes?")){
-      UNLOCKED_EDIT_MODE = true;
-      lockWizard(false);
-      setSaveState("idle");
-      status("Editing unlocked.", "info");
-    }
-  };
-
-  $("#btn-cancel").onclick = () => {
-    if(!ORIGINAL) return;
-    Object.entries(ORIGINAL).forEach(([k,v])=>{
-      const el = $(`[name="${esc(k)}"],#${esc(k)}`, root());
-      if(el && el.type !== "hidden") el.value = v ?? "";
-    });
-    loadChips(ORIGINAL);
-    lockWizard(true);
-    status("Changes discarded.", "info");
-  };
-
-  $("#btn-relock").onclick = () => {
-    UNLOCKED_EDIT_MODE = false;
-    lockWizard(true);
-    status("Wizard locked.", "info");
-  };
-}
-
 /* ================= LOCK / UNLOCK ================= */
 function lockWizard(on){
   LOCKED = !!on;
@@ -1325,7 +1314,6 @@ async function init(){
 
   ensureChipInputs();
   wireChipClicks();
-  injectLockControls();
 
   const { data, error } = await sb.from(TABLE).select("*").eq("id", CUSTOMER_ID).maybeSingle();
   if(error || !data){
@@ -1349,8 +1337,15 @@ async function init(){
     status("Resumed — editable.", "info");
   }
 
+  showStep(1);
+
+  $("#btn-next").addEventListener("click", ()=>{
+    save();       // autosave
+    nextStep();   // ALWAYS navigate
+  });
+
+  $("#btn-back").addEventListener("click", prevStep);
   $("#btn-save-draft")?.addEventListener("click", e=>{ e.preventDefault(); save(); });
-  $("#btn-next")?.addEventListener("click", ()=>{ save(); });
 }
 
 document.addEventListener("DOMContentLoaded", init);
