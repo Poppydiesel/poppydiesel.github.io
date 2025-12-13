@@ -150,7 +150,7 @@
     table{
       width:100%;
       border-collapse:collapse;
-      min-width: 980px;
+      min-width: 1120px;
     }
     thead th{
       position:sticky;top:0;
@@ -182,6 +182,27 @@
     .dot.done{border-color:rgba(15,123,70,0.65);background:#dcfce7}
     .dot.need{border-color:rgba(179,38,30,0.45);background:#fff1f2}
     .dot-label{font-size:.75rem;color:var(--muted-text);margin-left:6px;white-space:nowrap}
+
+    /* ✅ Wizard complete pill in table */
+    .pill{
+      display:inline-flex;align-items:center;gap:.35rem;
+      padding:.28rem .6rem;border-radius:999px;
+      border:1px solid rgba(148,163,184,0.45);
+      background:#f8fafc;
+      font-weight:650;
+      font-size:.82rem;
+      color:#334155;
+    }
+    .pill.done{
+      border-color:rgba(15,123,70,0.35);
+      background:#ecfdf5;
+      color:#065f46;
+    }
+    .pill.not{
+      border-color:rgba(179,38,30,0.22);
+      background:#fff1f2;
+      color:#7f1d1d;
+    }
 
     .drawer-overlay{
       position:fixed; inset:0;
@@ -262,7 +283,7 @@
 
     @media (max-width: 900px){
       .drawer-row{grid-template-columns:1fr}
-      table{min-width:900px}
+      table{min-width:1020px}
       .drawer{right:-96vw;}
     }
   </style>
@@ -313,6 +334,7 @@
         <thead>
           <tr>
             <th>Onboarding status (sales)</th>
+            <th>Wizard complete</th>
             <th>Setup tasks (ops)</th>
             <th>Business</th>
             <th>Contact</th>
@@ -472,6 +494,17 @@
     return raw || "New Signup";
   }
 
+  function wizardIsComplete(row){
+    return !!row?.wizard_completed || !!row?.setup_complete;
+  }
+
+  function wizardPillHTML(row){
+    const done = wizardIsComplete(row);
+    return done
+      ? `<span class="pill done">🔒 Complete</span>`
+      : `<span class="pill not">⏳ Incomplete</span>`;
+  }
+
   function rowMatchesSearch(row,q){
     if(!q) return true;
     const hay = [
@@ -531,11 +564,9 @@
     statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
   }
 
-  // ✅ OPS tasks: Wizard is complete if wizard_completed OR setup_complete
   function setupTasks(row){
-    const wizardDone = !!row?.wizard_completed || !!row?.setup_complete;
     return [
-      { key:"wizard",   label:"Wizard complete",   done: wizardDone },
+      { key:"wizard",   label:"Wizard complete",   done: wizardIsComplete(row) },
       { key:"whatsapp", label:"WhatsApp connected", done: !!row?.whatsapp_connected },
       { key:"calendar", label:"Calendar connected", done: !!row?.calendar_connected },
       { key:"payments", label:"Payments connected", done: !!row?.payments_connected },
@@ -602,7 +633,6 @@
     return data;
   }
 
-  // ✅ Backfill: if setup_complete=true but wizard_completed=false, fix DB on first open
   async function backfillWizardCompleteIfNeeded(row){
     if(!row) return row;
     if(row.setup_complete && !row.wizard_completed){
@@ -626,8 +656,8 @@
       opsButtons.appendChild(b);
     };
 
-    mk((row.wizard_completed || row.setup_complete) ? "Wizard ✅ (toggle)" : "Wizard ❌ (toggle)", async ()=>{
-      const updated = await updateCustomer(row.id, { wizard_completed: !(row.wizard_completed || row.setup_complete) });
+    mk(wizardIsComplete(row) ? "Wizard ✅ (toggle)" : "Wizard ❌ (toggle)", async ()=>{
+      const updated = await updateCustomer(row.id, { wizard_completed: !wizardIsComplete(row) });
       if(updated){ render(); openDrawer(updated); }
     });
 
@@ -731,7 +761,7 @@
     tbody.innerHTML = "";
 
     if(!rows.length){
-      tbody.innerHTML = `<tr><td colspan="8">No matches.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9">No matches.</td></tr>`;
       statusBar.textContent = `0 shown • ${allRows.length} total`;
       return;
     }
@@ -740,6 +770,7 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${escapeHtml(salesStatus(r))}</td>
+        <td>${wizardPillHTML(r)}</td>
         <td>${tasksDotsHTML(r)}</td>
         <td>${escapeHtml(r.business_name || "—")}</td>
         <td>${escapeHtml(r.contact_name || "—")}</td>
@@ -760,14 +791,14 @@
   async function loadCustomersAndStatuses(){
     setBanner("");
     statusBar.textContent = "Loading…";
-    tbody.innerHTML = `<tr><td colspan="8">Loading…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
 
     const { data, error } = await sb.from("customers").select("*");
     if(error){
       console.error("LOAD ERROR:", error);
       setBanner("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
       allRows = [];
-      tbody.innerHTML = `<tr><td colspan="8">No data loaded.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9">No data loaded.</td></tr>`;
       statusBar.textContent = "Load failed.";
       return;
     }
@@ -808,7 +839,7 @@
     }
   });
 
-  // ✅ FIX: Open wizard uses customer_id
+  // ✅ Open wizard uses customer_id
   btnOpenWizard.addEventListener("click", (e)=>{
     e.stopPropagation();
     if(!activeRow) return;
@@ -841,7 +872,7 @@
     if(!row) return;
 
     const patch = {};
-    if(key === "wizard")   patch.wizard_completed   = !(row.wizard_completed || row.setup_complete);
+    if(key === "wizard")   patch.wizard_completed   = !wizardIsComplete(row);
     if(key === "whatsapp") patch.whatsapp_connected = !row.whatsapp_connected;
     if(key === "calendar") patch.calendar_connected = !row.calendar_connected;
     if(key === "payments") patch.payments_connected = !row.payments_connected;
@@ -861,7 +892,7 @@
 
     const key = item.dataset.task;
     const patch = {};
-    if(key === "wizard")   patch.wizard_completed   = !(activeRow.wizard_completed || activeRow.setup_complete);
+    if(key === "wizard")   patch.wizard_completed   = !wizardIsComplete(activeRow);
     if(key === "whatsapp") patch.whatsapp_connected = !activeRow.whatsapp_connected;
     if(key === "calendar") patch.calendar_connected = !activeRow.calendar_connected;
     if(key === "payments") patch.payments_connected = !activeRow.payments_connected;
