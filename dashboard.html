@@ -150,7 +150,7 @@
     table{
       width:100%;
       border-collapse:collapse;
-      min-width: 980px;
+      min-width: 1060px; /* a bit wider due to new column */
     }
     thead th{
       position:sticky;top:0;
@@ -172,7 +172,7 @@
     tbody tr{cursor:pointer}
     tbody tr:hover{background:#f7fbff}
 
-    /* Task dots (OPS only) */
+    /* Task dots */
     .pipe{display:inline-flex;align-items:center;gap:6px}
     .dot{
       width:10px;height:10px;border-radius:999px;
@@ -182,8 +182,32 @@
     }
     .dot.done{border-color:rgba(15,123,70,0.65);background:#dcfce7}
     .dot.need{border-color:rgba(179,38,30,0.45);background:#fff1f2}
+    .dot.readonly{cursor:default; opacity:.85}
     .dot-label{font-size:.75rem;color:var(--muted-text);margin-left:6px;white-space:nowrap}
 
+    /* ✅ Wizard badge column */
+    .badge{
+      display:inline-flex;align-items:center;gap:.35rem;
+      padding:.25rem .6rem;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.45);
+      background:#f8fafc;
+      font-size:.82rem;
+      font-weight:750;
+      color:#334155;
+    }
+    .badge.ok{
+      border-color:rgba(15,123,70,0.35);
+      background:#ecfdf5;
+      color:#065f46;
+    }
+    .badge.no{
+      border-color:rgba(179,38,30,0.25);
+      background:#fff1f2;
+      color:#7f1d1d;
+    }
+
+    /* Overlay + Drawer */
     .drawer-overlay{
       position:fixed; inset:0;
       background:rgba(0,0,0,.25);
@@ -261,51 +285,9 @@
     }
     .drawer-hint{font-size:.82rem;color:var(--muted-text)}
 
-    /* ✅ Recommended next step box */
-    .next-box{
-      border:1px solid rgba(31,78,121,0.18);
-      background:linear-gradient(180deg,#f3f7ff,#ffffff);
-      border-radius:1rem;
-      padding:.75rem .85rem;
-      margin:.25rem 0 .9rem;
-    }
-    .next-kicker{
-      font-size:.72rem;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      color:var(--accent-blue);
-      margin:0 0 .2rem;
-    }
-    .next-title{
-      margin:0 0 .2rem;
-      font-weight:800;
-      color:var(--primary-blue);
-      font-size:.95rem;
-    }
-    .next-sub{
-      margin:0 0 .6rem;
-      color:var(--muted-text);
-      font-size:.86rem;
-    }
-    .next-actions{display:flex;flex-wrap:wrap;gap:.5rem}
-    .mini-pill{
-      display:inline-flex;align-items:center;gap:.4rem;
-      padding:.25rem .6rem;border-radius:999px;
-      border:1px solid rgba(148,163,184,0.45);
-      background:#f8fafc;
-      font-size:.78rem;
-      font-weight:650;
-      color:#334155;
-    }
-    .mini-pill.ok{
-      border-color:rgba(15,123,70,0.35);
-      background:#ecfdf5;
-      color:#065f46;
-    }
-
     @media (max-width: 900px){
       .drawer-row{grid-template-columns:1fr}
-      table{min-width:900px}
+      table{min-width:980px}
       .drawer{right:-96vw;}
     }
   </style>
@@ -329,7 +311,7 @@
   <section class="panel">
     <div class="kicker">Sales stage</div>
     <h1 class="title">Customers by onboarding status (sales) + setup tasks (ops)</h1>
-    <p class="subtitle">Filter by sales stage. Setup task dots/toggles update setup flags only.</p>
+    <p class="subtitle">Wizard is controlled by the setup wizard (read-only here). Other setup tasks can be toggled by ops.</p>
 
     <div class="status-strip" id="status-strip"></div>
 
@@ -356,6 +338,7 @@
         <thead>
           <tr>
             <th>Onboarding status (sales)</th>
+            <th>Wizard</th>
             <th>Setup tasks (ops)</th>
             <th>Business</th>
             <th>Contact</th>
@@ -382,10 +365,6 @@
   </div>
 
   <div class="drawer-body">
-
-    <!-- ✅ NEW: Recommended next step -->
-    <div id="nextActionBox"></div>
-
     <div class="drawer-row">
       <div>
         <div class="drawer-section-title">Sales stage</div>
@@ -399,10 +378,6 @@
         </div>
       </div>
     </div>
-
-    <!-- ✅ NEW: Demo summary -->
-    <div class="drawer-section-title">Demo &amp; go-live</div>
-    <div class="checklist" id="demoSummary"></div>
 
     <div class="drawer-section-title">Setup tasks (ops)</div>
     <div class="checklist" id="tasksChecklist"></div>
@@ -482,8 +457,6 @@
   const tasksChecklist = document.getElementById("tasksChecklist");
   const opsButtons = document.getElementById("opsButtons");
   const salesChecklist = document.getElementById("salesChecklist");
-  const nextActionBox = document.getElementById("nextActionBox");
-  const demoSummary = document.getElementById("demoSummary");
 
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
   const btnOpenWizard = document.getElementById("btnOpenWizard");
@@ -527,6 +500,13 @@
 
   function wizardIsComplete(row){
     return !!row?.wizard_completed || !!row?.setup_complete;
+  }
+
+  function wizardBadgeHTML(row){
+    const ok = wizardIsComplete(row);
+    return ok
+      ? `<span class="badge ok">✅ Complete</span>`
+      : `<span class="badge no">⏳ Incomplete</span>`;
   }
 
   function rowMatchesSearch(row,q){
@@ -588,23 +568,24 @@
     statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
   }
 
-  // OPS tasks
+  // OPS tasks (Wizard is read-only here)
   function setupTasks(row){
     return [
-      { key:"wizard",   label:"Wizard complete",   done: wizardIsComplete(row) },
-      { key:"whatsapp", label:"WhatsApp connected", done: !!row?.whatsapp_connected },
-      { key:"calendar", label:"Calendar connected", done: !!row?.calendar_connected },
-      { key:"payments", label:"Payments connected", done: !!row?.payments_connected },
+      { key:"wizard",   label:"Wizard complete",   done: wizardIsComplete(row), readonly:true },
+      { key:"whatsapp", label:"WhatsApp connected", done: !!row?.whatsapp_connected, readonly:false },
+      { key:"calendar", label:"Calendar connected", done: !!row?.calendar_connected, readonly:false },
+      { key:"payments", label:"Payments connected", done: !!row?.payments_connected, readonly:false },
     ];
   }
 
   function tasksDotsHTML(row){
     const items = setupTasks(row);
-    const dots = items.map(i => `
-      <span class="dot ${i.done ? "done" : "need"}"
-            data-task="${i.key}" data-id="${row.id}"
-            title="${escapeHtml(i.label)} — click to toggle"></span>
-    `).join("");
+    const dots = items.map(i=>{
+      const cls = `dot ${i.done ? "done" : "need"} ${i.readonly ? "readonly" : ""}`;
+      const attrs = i.readonly ? "" : `data-task="${i.key}" data-id="${row.id}"`;
+      const hint = i.readonly ? "" : " — click to toggle";
+      return `<span class="${cls}" ${attrs} title="${escapeHtml(i.label)}${hint}"></span>`;
+    }).join("");
 
     const doneCount = items.filter(i => i.done).length;
     return `<span class="pipe">${dots}<span class="dot-label">${doneCount}/${items.length}</span></span>`;
@@ -615,9 +596,15 @@
     tasksChecklist.innerHTML = items.map(i=>{
       const badge = i.done ? "✓" : "";
       const badgeCls = i.done ? "check-badge done" : "check-badge";
-      const state = i.done ? "Completed" : "Click to toggle";
+      const state =
+        i.key === "wizard"
+          ? (i.done ? "Completed" : "Incomplete")
+          : (i.done ? "Completed" : "Click to toggle");
+
+      // Prevent click styling for wizard row
+      const cursor = i.key === "wizard" ? "cursor:default;" : "";
       return `
-        <div class="check-item" data-task="${i.key}">
+        <div class="check-item" data-task="${i.key}" style="${cursor}">
           <div class="check-left">
             <div class="${badgeCls}">${badge}</div>
             <div class="check-name">${escapeHtml(i.label)}</div>
@@ -642,99 +629,6 @@
           <div class="check-state">${state}</div>
         </div>`;
     }).join("");
-  }
-
-  function renderDemoSummary(row){
-    // These fields only show if they exist / have values
-    const style = row?.demo_style;
-    const slot = row?.demo_slot;
-    const golive = row?.golive_timing;
-
-    const items = [];
-    if(style) items.push({ label:"Demo style", value: style });
-    if(slot) items.push({ label:"Preferred slot", value: slot });
-    if(golive) items.push({ label:"Go-live timing", value: golive });
-
-    if(!items.length){
-      demoSummary.innerHTML = `<div style="color:var(--muted-text);font-size:.85rem;">No demo details saved yet.</div>`;
-      return;
-    }
-
-    demoSummary.innerHTML = items.map(x=>`
-      <div class="check-item" style="cursor:default;">
-        <div class="check-left">
-          <div class="check-badge done">✓</div>
-          <div class="check-name">${escapeHtml(x.label)}</div>
-        </div>
-        <div class="check-state">${escapeHtml(x.value)}</div>
-      </div>
-    `).join("");
-  }
-
-  function renderNextActions(row){
-    const complete = wizardIsComplete(row);
-    const whatsapp = !!row?.whatsapp_connected;
-    const cal = !!row?.calendar_connected;
-    const pay = !!row?.payments_connected;
-
-    const pills = [
-      complete ? `<span class="mini-pill ok">🔒 Wizard complete</span>` : `<span class="mini-pill">⏳ Wizard incomplete</span>`,
-      whatsapp ? `<span class="mini-pill ok">WhatsApp</span>` : `<span class="mini-pill">WhatsApp</span>`,
-      cal ? `<span class="mini-pill ok">Calendar</span>` : `<span class="mini-pill">Calendar</span>`,
-      pay ? `<span class="mini-pill ok">Payments</span>` : `<span class="mini-pill">Payments</span>`
-    ].join(" ");
-
-    let title = "All good ✅";
-    let sub = "This customer is ready for demo / go-live steps.";
-    let ctaLabel = "View wizard";
-    let ctaFn = ()=> window.open(`app.html?customer_id=${encodeURIComponent(row.id)}`, "_blank", "noopener");
-
-    if(!complete){
-      title = "Finish the wizard";
-      sub = "Get the core profile saved so the AI can respond properly.";
-      ctaLabel = "Finish wizard";
-      ctaFn = ()=> window.open(`app.html?customer_id=${encodeURIComponent(row.id)}`, "_blank", "noopener");
-    }else if(!whatsapp){
-      title = "Connect WhatsApp";
-      sub = "Next big win: live customer conversations into TradeBotPro.";
-      ctaLabel = "Connect WhatsApp";
-      ctaFn = ()=> window.open(`whatsapp-setup.html?customer_id=${encodeURIComponent(row.id)}`, "_blank", "noopener");
-    }else if(!cal){
-      title = "Connect Calendar";
-      sub = "So bookings can drop straight into their diary.";
-      ctaLabel = "Connect Calendar";
-      ctaFn = ()=> window.open(`calendar-setup.html?customer_id=${encodeURIComponent(row.id)}`, "_blank", "noopener");
-    }else if(!pay){
-      title = "Connect Payments";
-      sub = "So deposits/invoices can be automated during the demo flow.";
-      ctaLabel = "Connect Payments";
-      ctaFn = ()=> window.open(`payments-setup.html?customer_id=${encodeURIComponent(row.id)}`, "_blank", "noopener");
-    }
-
-    nextActionBox.innerHTML = `
-      <div class="next-box">
-        <div class="next-kicker">Recommended next step</div>
-        <div class="next-title">${escapeHtml(title)}</div>
-        <div class="next-sub">${escapeHtml(sub)}</div>
-        <div style="margin:0 0 .6rem;">${pills}</div>
-        <div class="next-actions">
-          <button type="button" class="btn btn-primary" id="btnNextAction">${escapeHtml(ctaLabel)}</button>
-          <button type="button" class="btn btn-secondary" id="btnViewCustomerRow">Open in Supabase</button>
-        </div>
-      </div>
-    `;
-
-    document.getElementById("btnNextAction")?.addEventListener("click", (e)=>{
-      e.stopPropagation();
-      ctaFn();
-    });
-
-    document.getElementById("btnViewCustomerRow")?.addEventListener("click", (e)=>{
-      e.stopPropagation();
-      // Opens Supabase table in a new tab (best effort; user must be logged into Supabase)
-      const url = `${SUPABASE_URL.replace(".supabase.co","")}.supabase.com/project/${SUPABASE_URL.split("https://")[1].split(".")[0]}/editor?table=customers`;
-      window.open(url, "_blank", "noopener");
-    });
   }
 
   async function updateCustomer(id, patch){
@@ -762,10 +656,7 @@
       opsButtons.appendChild(b);
     };
 
-    mk(wizardIsComplete(row) ? "Wizard ✅ (toggle)" : "Wizard ❌ (toggle)", async ()=>{
-      const updated = await updateCustomer(row.id, { wizard_completed: !wizardIsComplete(row) });
-      if(updated){ render(); openDrawer(updated); }
-    });
+    // ❌ No Wizard toggle here (wizard controls it)
 
     mk(row.whatsapp_connected ? "WhatsApp ✅ (toggle)" : "WhatsApp ❌ (toggle)", async ()=>{
       const updated = await updateCustomer(row.id, { whatsapp_connected: !row.whatsapp_connected });
@@ -799,10 +690,6 @@
     drawerPhone.value = row.phone || "";
     drawerNotes.value = row.notes || "";
     drawerLeadNotes.value = row.lead_notes || "";
-
-    // ✅ NEW
-    renderNextActions(row);
-    renderDemoSummary(row);
 
     renderSalesChecklist(row);
     renderTasksChecklist(row);
@@ -870,7 +757,7 @@
     tbody.innerHTML = "";
 
     if(!rows.length){
-      tbody.innerHTML = `<tr><td colspan="8">No matches.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9">No matches.</td></tr>`;
       statusBar.textContent = `0 shown • ${allRows.length} total`;
       return;
     }
@@ -879,6 +766,7 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${escapeHtml(salesStatus(r))}</td>
+        <td>${wizardBadgeHTML(r)}</td>
         <td>${tasksDotsHTML(r)}</td>
         <td>${escapeHtml(r.business_name || "—")}</td>
         <td>${escapeHtml(r.contact_name || "—")}</td>
@@ -899,14 +787,14 @@
   async function loadCustomersAndStatuses(){
     setBanner("");
     statusBar.textContent = "Loading…";
-    tbody.innerHTML = `<tr><td colspan="8">Loading…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
 
     const { data, error } = await sb.from("customers").select("*");
     if(error){
       console.error("LOAD ERROR:", error);
       setBanner("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
       allRows = [];
-      tbody.innerHTML = `<tr><td colspan="8">No data loaded.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9">No data loaded.</td></tr>`;
       statusBar.textContent = "Load failed.";
       return;
     }
@@ -953,7 +841,7 @@
     window.open(`app.html?customer_id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
   });
 
-  // Sales checklist
+  // Sales checklist to set stage
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-sales]");
     if(!item || !activeRow) return;
@@ -966,7 +854,7 @@
     if(updated){ render(); openDrawer(updated); }
   }, true);
 
-  // Task dots in table
+  // ✅ Click task dots in table to toggle (Wizard is ignored)
   document.addEventListener("click", async (e)=>{
     const dot = e.target.closest(".dot[data-task][data-id]");
     if(!dot) return;
@@ -979,10 +867,11 @@
     if(!row) return;
 
     const patch = {};
-    if(key === "wizard")   patch.wizard_completed   = !wizardIsComplete(row);
     if(key === "whatsapp") patch.whatsapp_connected = !row.whatsapp_connected;
     if(key === "calendar") patch.calendar_connected = !row.calendar_connected;
     if(key === "payments") patch.payments_connected = !row.payments_connected;
+
+    if(Object.keys(patch).length === 0) return;
 
     const updated = await updateCustomer(id, patch);
     if(updated){
@@ -991,15 +880,19 @@
     }
   }, true);
 
-  // Drawer checklist
+  // ✅ Click tasks checklist in drawer to toggle (Wizard is ignored)
   document.addEventListener("click", async (e)=>{
     const item = e.target.closest(".check-item[data-task]");
     if(!item || !activeRow) return;
-    e.stopPropagation();
 
     const key = item.dataset.task;
+
+    // Wizard is read-only here
+    if(key === "wizard") return;
+
+    e.stopPropagation();
+
     const patch = {};
-    if(key === "wizard")   patch.wizard_completed   = !wizardIsComplete(activeRow);
     if(key === "whatsapp") patch.whatsapp_connected = !activeRow.whatsapp_connected;
     if(key === "calendar") patch.calendar_connected = !activeRow.calendar_connected;
     if(key === "payments") patch.payments_connected = !activeRow.payments_connected;
