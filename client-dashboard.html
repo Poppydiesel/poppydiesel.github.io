@@ -40,15 +40,9 @@
       gap:1rem;
       flex-wrap:wrap;
     }
-    .brand{
-      display:flex; align-items:center; gap:.6rem;
-    }
-    .logo-icon{
-      width:30px;height:30px;border-radius:9px;background:var(--primary-blue);position:relative;
-    }
-    .logo-icon:before,.logo-icon:after{
-      content:"";position:absolute;background:var(--white);border-radius:4px;
-    }
+    .brand{display:flex; align-items:center; gap:.6rem;}
+    .logo-icon{width:30px;height:30px;border-radius:9px;background:var(--primary-blue);position:relative;}
+    .logo-icon:before,.logo-icon:after{content:"";position:absolute;background:var(--white);border-radius:4px;}
     .logo-icon:before{width:11px;height:17px;left:7px;top:6px}
     .logo-icon:after{width:6px;height:11px;right:7px;top:9px}
     .brand-title{font-weight:800;color:var(--primary-blue);line-height:1.1}
@@ -88,9 +82,7 @@
       gap:1rem;
       align-items:start;
     }
-    @media (max-width: 900px){
-      .grid{grid-template-columns:1fr}
-    }
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
     .card{
       background:rgba(255,255,255,.92);
       border:1px solid rgba(15,23,42,0.06);
@@ -104,18 +96,14 @@
       color:var(--primary-blue);
     }
     .muted{color:var(--muted-text)}
-    .row{
-      display:flex; gap:.7rem; flex-wrap:wrap; align-items:center; justify-content:space-between;
-    }
+    .row{display:flex; gap:.7rem; flex-wrap:wrap; align-items:center; justify-content:space-between;}
     .kvs{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap:.6rem;
       margin-top:.6rem;
     }
-    @media (max-width: 600px){
-      .kvs{grid-template-columns:1fr}
-    }
+    @media (max-width: 600px){ .kvs{grid-template-columns:1fr} }
     .kv{
       border:1px solid rgba(15,23,42,0.08);
       background:#f8fafc;
@@ -123,7 +111,7 @@
       padding:.65rem .75rem;
     }
     .kv .k{font-size:.72rem; text-transform:uppercase; letter-spacing:.12em; color:var(--muted-text)}
-    .kv .v{font-weight:700; margin-top:.15rem}
+    .kv .v{font-weight:800; margin-top:.15rem}
     .pill{
       display:inline-flex;
       align-items:center;
@@ -131,19 +119,14 @@
       border-radius:999px;
       border:1px solid rgba(15,23,42,0.12);
       font-size:.82rem;
-      font-weight:700;
+      font-weight:800;
       background:#fff;
     }
     .pill.success{border-color:rgba(15,123,70,.35); background:#ecfdf5; color:#0f7b46}
     .pill.warn{border-color:rgba(245,158,11,.35); background:#fffbeb; color:#92400e}
     .pill.neutral{border-color:rgba(148,163,184,.5); background:#f1f5f9; color:#334155}
 
-    .chip-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:.6rem;
-    }
+    .chip-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:.6rem;}
     .chip{
       border-radius:999px;
       border:1px solid rgba(0,0,0,0.12);
@@ -152,7 +135,7 @@
       font-size:.86rem;
       cursor:pointer;
       user-select:none;
-      font-weight:600;
+      font-weight:700;
     }
     .chip.is-selected{
       outline:2px solid rgba(31,78,121,0.45);
@@ -160,12 +143,7 @@
       border-color:#1f4e79;
       color:#1f4e79;
     }
-
-    .status{
-      margin-top:.8rem;
-      min-height:1.2em;
-      font-size:.85rem;
-    }
+    .status{margin-top:.8rem; min-height:1.2em; font-size:.85rem;}
     .status.ok{color:var(--success-green)}
     .status.err{color:var(--error-red)}
   </style>
@@ -183,6 +161,7 @@
       </div>
 
       <div class="header-actions">
+        <button class="btn btn-secondary" id="btn-verify-email" style="display:none">Verify email</button>
         <button class="btn btn-secondary" id="btn-edit-setup">Edit setup</button>
         <button class="btn btn-primary" id="btn-save">Save changes</button>
       </div>
@@ -200,6 +179,7 @@
           <div id="pill-wizard" class="pill neutral">Wizard: Unknown</div>
         </div>
 
+        <!-- Business summary -->
         <div class="kvs">
           <div class="kv"><div class="k">Base Postcode</div><div class="v" id="v-postcode">—</div></div>
           <div class="kv"><div class="k">Trade</div><div class="v" id="v-trade">—</div></div>
@@ -214,33 +194,64 @@
           <div class="kv"><div class="k">Demo slot</div><div class="v" id="v-demo-slot">—</div></div>
         </div>
 
+        <!-- Lifecycle summary (REAL COLUMNS) -->
+        <div class="kvs" style="margin-top:.8rem">
+          <div class="kv"><div class="k">Signup status</div><div class="v" id="v-signup-status">—</div></div>
+          <div class="kv"><div class="k">Demo</div><div class="v" id="v-demo-status">—</div></div>
+          <div class="kv"><div class="k">Free trial</div><div class="v" id="v-trial-status">—</div></div>
+          <div class="kv"><div class="k">Plan</div><div class="v" id="v-plan-status">—</div></div>
+        </div>
+
         <div class="status" id="status-msg"></div>
       </section>
 
       <aside class="card">
         <h2>Onboarding status</h2>
-        <div class="muted">Set where you are in the journey.</div>
+        <div class="muted">This saves to your customer record.</div>
 
-        <div class="chip-row" data-field="onboarding_status" data-select="single">
-          <button type="button" class="chip">Demo pending</button>
-          <button type="button" class="chip">Demo booked</button>
-          <button type="button" class="chip">Free trial</button>
+        <div class="chip-row" data-col="signup_status" data-select="single">
+          <button type="button" class="chip">New</button>
+          <button type="button" class="chip">Wizard complete</button>
+          <button type="button" class="chip">Demo</button>
+          <button type="button" class="chip">Free Trial</button>
           <button type="button" class="chip">Live</button>
         </div>
 
         <div style="height:.8rem"></div>
 
-        <h2>Subscription</h2>
-        <div class="muted">Pick your plan (can be changed later).</div>
+        <h2>Demo status</h2>
+        <div class="muted">Quick internal tracking.</div>
 
-        <div class="chip-row" data-field="subscription_plan" data-select="single">
+        <div class="chip-row" data-col="demo_status" data-select="single">
+          <button type="button" class="chip">Not booked</button>
+          <button type="button" class="chip">Booked</button>
+          <button type="button" class="chip">Completed</button>
+        </div>
+
+        <div style="height:.8rem"></div>
+
+        <h2>Trial status</h2>
+        <div class="muted">Optional trial after demo.</div>
+
+        <div class="chip-row" data-col="trial_status" data-select="single">
+          <button type="button" class="chip">Not started</button>
+          <button type="button" class="chip">Active</button>
+          <button type="button" class="chip">Ended</button>
+        </div>
+
+        <div style="height:.8rem"></div>
+
+        <h2>Subscription</h2>
+        <div class="muted">Pick your plan (can change later).</div>
+
+        <div class="chip-row" data-col="plan_status" data-select="single">
           <button type="button" class="chip">No plan chosen</button>
           <button type="button" class="chip">Starter</button>
           <button type="button" class="chip">Pro</button>
           <button type="button" class="chip">Elite</button>
         </div>
 
-        <div class="chip-row" data-field="subscription_term" data-select="single" style="margin-top:.5rem">
+        <div class="chip-row" data-col="plan_term" data-select="single" style="margin-top:.5rem">
           <button type="button" class="chip">Monthly</button>
           <button type="button" class="chip">Yearly</button>
         </div>
@@ -248,10 +259,10 @@
         <div style="height:.9rem"></div>
 
         <h2>Quick actions</h2>
-        <div class="muted">These just take you to the right pages.</div>
+        <div class="muted">Takes you to the right pages.</div>
 
         <div class="chip-row" style="margin-top:.6rem">
-          <button type="button" class="btn btn-secondary" id="btn-open-dashboard">Open secure dashboard</button>
+          <button type="button" class="btn btn-secondary" id="btn-open-secure">Open secure dashboard</button>
         </div>
       </aside>
     </div>
@@ -267,7 +278,7 @@
 
     function boot() {
       const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+      const SUPABASE_ANON_KEY = "YOUR_ANON_KEY_HERE"; // <-- keep your real key here
       const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const qs = new URLSearchParams(window.location.search);
@@ -279,7 +290,8 @@
       const statusMsg = document.getElementById("status-msg");
       const btnSave = document.getElementById("btn-save");
       const btnEditSetup = document.getElementById("btn-edit-setup");
-      const btnOpenSecure = document.getElementById("btn-open-dashboard");
+      const btnOpenSecure = document.getElementById("btn-open-secure");
+      const btnVerifyEmail = document.getElementById("btn-verify-email");
 
       const hBusiness = document.getElementById("h-business");
       const hContact = document.getElementById("h-contact");
@@ -295,8 +307,21 @@
       const vReviews = document.getElementById("v-reviews");
       const vDemoSlot = document.getElementById("v-demo-slot");
 
+      const vSignupStatus = document.getElementById("v-signup-status");
+      const vDemoStatus = document.getElementById("v-demo-status");
+      const vTrialStatus = document.getElementById("v-trial-status");
+      const vPlanStatus = document.getElementById("v-plan-status");
+
       let customerRow = null;
       let wizardAnswers = {};
+      let cols = {
+        signup_status: "New",
+        demo_status: "Not booked",
+        trial_status: "Not started",
+        plan_status: "No plan chosen",
+        plan_term: "Monthly",
+        email_verified: false
+      };
 
       function setStatus(msg, type) {
         statusMsg.textContent = msg || "";
@@ -307,22 +332,24 @@
         return (Array.isArray(arr) && arr.length) ? arr.join(", ") : "—";
       }
 
-      function pill(text, variant) {
+      function setPill(text, variant) {
         pillWizard.textContent = text;
         pillWizard.className = "pill " + variant;
       }
 
-      // Chips (single source of truth: wizardAnswers[field])
       function applyChipVisuals() {
-        document.querySelectorAll(".chip-row[data-field]").forEach(row => {
-          const field = row.getAttribute("data-field");
+        document.querySelectorAll(".chip-row[data-col]").forEach(row => {
+          const col = row.getAttribute("data-col");
           const mode = row.getAttribute("data-select") || "single";
           const chips = Array.from(row.querySelectorAll(".chip"));
+
           chips.forEach(ch => {
             const label = (ch.textContent || "").trim();
             let selected = false;
-            if (mode === "single") selected = wizardAnswers[field] === label;
-            else selected = (Array.isArray(wizardAnswers[field]) ? wizardAnswers[field] : []).includes(label);
+
+            if (mode === "single") selected = (cols[col] === label);
+            else selected = (Array.isArray(cols[col]) ? cols[col] : []).includes(label);
+
             ch.classList.toggle("is-selected", selected);
           });
         });
@@ -332,21 +359,21 @@
         const chip = e.target.closest(".chip-row .chip");
         if (!chip) return;
 
-        const row = chip.closest(".chip-row[data-field]");
+        const row = chip.closest(".chip-row[data-col]");
         if (!row) return;
 
         e.preventDefault();
-        const field = row.getAttribute("data-field");
+        const col = row.getAttribute("data-col");
         const mode = row.getAttribute("data-select") || "single";
         const label = (chip.textContent || "").trim();
 
         if (mode === "single") {
-          wizardAnswers[field] = label;
+          cols[col] = label;
         } else {
-          if (!Array.isArray(wizardAnswers[field])) wizardAnswers[field] = [];
-          const idx = wizardAnswers[field].indexOf(label);
-          if (idx >= 0) wizardAnswers[field].splice(idx, 1);
-          else wizardAnswers[field].push(label);
+          if (!Array.isArray(cols[col])) cols[col] = [];
+          const idx = cols[col].indexOf(label);
+          if (idx >= 0) cols[col].splice(idx, 1);
+          else cols[col].push(label);
         }
 
         applyChipVisuals();
@@ -371,16 +398,84 @@
         vReviews.textContent = safeJoin(wizardAnswers.review_platforms);
         vDemoSlot.textContent = wizardAnswers.demo_slot || "—";
 
+        vSignupStatus.textContent = cols.signup_status || "—";
+        vDemoStatus.textContent = cols.demo_status || "—";
+        vTrialStatus.textContent = cols.trial_status || "—";
+        vPlanStatus.textContent = `${cols.plan_status || "—"} • ${cols.plan_term || "—"}`;
+
         const wc = !!customerRow?.wizard_completed;
-        if (wc) pill("Wizard: Complete", "success");
-        else pill("Wizard: In progress", "warn");
+        if (wc) setPill("Wizard: Complete", "success");
+        else setPill("Wizard: In progress", "warn");
+
+        // Email verify button
+        const needsVerify = !!customerRow?.email && !cols.email_verified;
+        if (btnVerifyEmail) btnVerifyEmail.style.display = needsVerify ? "inline-flex" : "none";
 
         applyChipVisuals();
       }
 
+      async function markEmailVerifiedIfSessionMatches() {
+        // If user clicked magic link, Supabase will set a session in this browser.
+        const { data } = await sb.auth.getSession();
+        const sess = data?.session || null;
+        if (!sess?.user?.email || !customerRow?.email) return;
+
+        const sessEmail = (sess.user.email || "").toLowerCase().trim();
+        const custEmail = (customerRow.email || "").toLowerCase().trim();
+        if (sessEmail !== custEmail) return;
+
+        if (cols.email_verified) return;
+
+        const patch = {
+          email_verified: true,
+          email_verified_at: new Date().toISOString()
+        };
+
+        const { error } = await sb
+          .from("customers")
+          .update(patch)
+          .eq("id", customer_id)
+          .eq("setup_token", setup_token);
+
+        if (!error) {
+          cols.email_verified = true;
+          setStatus("Email verified ✅", "ok");
+          render();
+        }
+      }
+
+      async function sendVerificationEmail() {
+        if (!customerRow?.email) {
+          setStatus("No email found for this customer.", "err");
+          return;
+        }
+
+        btnVerifyEmail.disabled = true;
+        setStatus("Sending verification email…");
+
+        // Magic link (email OTP) verification
+        const { error } = await sb.auth.signInWithOtp({
+          email: customerRow.email,
+          options: {
+            // When they click the email link, send them back here (public token still in URL)
+            emailRedirectTo: `${window.location.origin}/client-dashboard.html?customer_id=${encodeURIComponent(customer_id)}&setup_token=${encodeURIComponent(setup_token)}`
+          }
+        });
+
+        btnVerifyEmail.disabled = false;
+
+        if (error) {
+          console.error("[TBP] verify email error:", error);
+          setStatus("Could not send verification email. Check Supabase Auth email settings.", "err");
+          return;
+        }
+
+        setStatus("Verification link sent. Please check your inbox ✅", "ok");
+      }
+
       async function loadCustomer() {
         if (!isPublic) {
-          setStatus("Missing customer link. Please open this dashboard from your setup email/link.", "err");
+          setStatus("Missing customer link. Please open this dashboard from your setup link.", "err");
           return false;
         }
 
@@ -388,27 +483,39 @@
 
         const { data, error } = await sb
           .from("customers")
-          .select("id, setup_token, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers, wizard_completed, wizard_completed_at")
+          .select([
+            "id","setup_token",
+            "contact_name","business_name","email","phone","whatsapp_number","base_postcode",
+            "wizard_answers","wizard_completed","wizard_completed_at",
+            "signup_status","demo_status","trial_status","plan_status","plan_term",
+            "email_verified","email_verified_at"
+          ].join(","))
           .eq("id", customer_id)
           .eq("setup_token", setup_token)
           .single();
 
         if (error || !data) {
           console.error("[TBP] loadCustomer error:", error);
-          setStatus("Could not load your dashboard. Please check your link or log in.", "err");
+          setStatus("Could not load your dashboard. Please check your link.", "err");
           return false;
         }
 
         customerRow = data;
         wizardAnswers = (data.wizard_answers && typeof data.wizard_answers === "object") ? data.wizard_answers : {};
 
-        // Ensure defaults exist for new dashboard controls
-        if (!wizardAnswers.onboarding_status) wizardAnswers.onboarding_status = "Demo pending";
-        if (!wizardAnswers.subscription_plan) wizardAnswers.subscription_plan = "No plan chosen";
-        if (!wizardAnswers.subscription_term) wizardAnswers.subscription_term = "Monthly";
+        cols.signup_status = data.signup_status || cols.signup_status;
+        cols.demo_status   = data.demo_status   || cols.demo_status;
+        cols.trial_status  = data.trial_status  || cols.trial_status;
+        cols.plan_status   = data.plan_status   || cols.plan_status;
+        cols.plan_term     = data.plan_term     || cols.plan_term;
+        cols.email_verified = !!data.email_verified;
 
         render();
         setStatus("");
+
+        // If they came back from magic link, mark verified
+        await markEmailVerifiedIfSessionMatches();
+
         return true;
       }
 
@@ -419,7 +526,11 @@
         setStatus("Saving…");
 
         const patch = {
-          wizard_answers: wizardAnswers
+          signup_status: cols.signup_status || null,
+          demo_status: cols.demo_status || null,
+          trial_status: cols.trial_status || null,
+          plan_status: cols.plan_status || null,
+          plan_term: cols.plan_term || null
         };
 
         const { error } = await sb
@@ -438,6 +549,7 @@
 
         setStatus("Saved ✅", "ok");
         setTimeout(() => setStatus(""), 1500);
+        await loadCustomer(); // refresh values
       }
 
       // Buttons
@@ -450,6 +562,8 @@
       btnOpenSecure?.addEventListener("click", () => {
         window.location.href = "/dashboard-secure.html";
       });
+
+      btnVerifyEmail?.addEventListener("click", sendVerificationEmail);
 
       (async function init(){
         await loadCustomer();
