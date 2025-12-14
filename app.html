@@ -1120,16 +1120,24 @@
         setStatus("Saving…");
 
         try {
-          const patch = {
-            contact_name: answers.contact_name || null,
-            business_name: answers.business_name || null,
-            email: answers.email || null,
-            phone: answers.phone || null,
-            base_postcode: answers.base_postcode || null,
-            wizard_answers: answers,
-            wizard_completed: true,
-            wizard_completed_at: new Date().toISOString()
-          };
+        const patch = {
+  contact_name: answers.contact_name || null,
+  business_name: answers.business_name || null,
+  email: answers.email || null,
+  phone: answers.phone || null,
+  base_postcode: answers.base_postcode || null,
+
+  wizard_answers: answers,
+  wizard_completed: true,
+  wizard_completed_at: new Date().toISOString(),
+
+  // ✅ onboarding + lifecycle status (NEW)
+  signup_status: "Wizard complete",
+  demo_status: "Not booked",
+  trial_status: "Not started",
+  plan_status: "No plan chosen"
+};
+
 
           let q = sb.from("customers").update(patch);
 
