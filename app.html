@@ -819,489 +819,138 @@
   </main>
 </div>
 
-<!-- Supabase UMD (single include) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 
 <script>
 (function () {
-  // ==== GLOBAL ERROR VISIBILITY ====
-  window.addEventListener("error", (e) => {
-    console.error("[TBP] JS Error:", e.message, "at", e.filename, "line", e.lineno);
-  });
-  window.addEventListener("unhandledrejection", (e) => {
-    console.error("[TBP] Unhandled Promise:", e.reason);
-  });
 
   function bootWhenSupabaseReady() {
-    if (typeof window.supabase === "undefined") {
-      console.error("[TBP] Supabase UMD not loaded yet. Retrying...");
-      return setTimeout(bootWhenSupabaseReady, 50);
-    }
+    if (!window.supabase) return setTimeout(bootWhenSupabaseReady, 50);
     boot();
   }
 
   function boot() {
-    // ==== CONFIG (YOUR KEYS) ====
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-    // Admin emails allowed to open any customer via ?customer_id=...
+    /* ===============================
+       CONFIG
+    =============================== */
+   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
     const ADMIN_EMAILS = ["hello@tradebotpro.co.uk"];
 
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const params = new URLSearchParams(location.search);
+    /* ===============================
+       URL PARAMS
+    =============================== */
+    const qs = new URLSearchParams(window.location.search);
+    const customer_id = (qs.get("customer_id") || "").trim();
+    const setup_token = (qs.get("setup_token") || "").trim();
 
-    // ✅ NEW: public setup link from homepage
-    const signup_id = (params.get("signup_id") || "").trim();
-    const setup_token = (params.get("setup_token") || "").trim();
+    const isPublic = !!(customer_id && setup_token);
 
-    // Existing admin override (secure via Auth session)
-    const customer_id_param = (params.get("customer_id") || "").trim(); // admin-only override
-    const invite_token = (params.get("token") || "").trim();            // optional claim link (kept)
-
-    // ==== ELEMENTS ====
-    const panels = Array.from(document.querySelectorAll(".step-panel"));
-    const stepDots = Array.from(document.querySelectorAll(".step-dot"));
-    const progressInner = document.getElementById("progress-bar-inner");
-    const progressText = document.getElementById("progress-percent");
-
-    const wizardStepLabel = document.getElementById("wizard-step-label");
-    const wizardStepTitle = document.getElementById("wizard-step-title");
-    const wizardStepSubtitle = document.getElementById("wizard-step-subtitle");
-    const footerText = document.getElementById("wizard-footer-text");
-    const statusEl = document.getElementById("wizard-status-message");
-
-    const btnBack = document.getElementById("btn-back");
-    const btnNext = document.getElementById("btn-next");
-    const btnSaveDraft = document.getElementById("btn-save-draft");
-    const btnDashboard = document.getElementById("btn-dashboard");
-    const summaryBoxEl = document.getElementById("summary-box");
-
-    // Ensure chip buttons can never submit anything (safe)
-    document.querySelectorAll(".chip-row .chip").forEach(b => {
-      if (b.tagName === "BUTTON") b.type = "button";
-      b.setAttribute("aria-pressed", "false");
-    });
-
-    let currentStep = 1;
-    const totalSteps = 4;
-
-    const answers = {
-      contact_name: "",
-      business_name: "",
-      email: "",
-      phone: "",
-      base_postcode: "",
-      review_link: "",
-      ai_avoid: "",
-      extra_notes: "",
-      main_trade: null,
-      business_stage: null,
-      coverage_radius: null,
-      callout_style: null,
-      callout_band: null,
-      preferred_jobs: [],
-      tone_of_voice: null,
-      channels: [],
-      review_platforms: [],
-      review_push_level: null,
-      demo_style: [],
-      demo_slot: null,
-      golive_timing: null
-    };
-
-    // Auth/session + effective customer targeting
     let session = null;
     let isAdmin = false;
+    let effectiveCustomerId = null;
 
-    // ✅ NEW: mode flags
-    const isPublicSetup = !!(signup_id && setup_token);
-    let effectiveCustomerId = null; // admin override OR public signup_id
-    let effectiveUserId = null;     // normal logged-in mode
+    /* ===============================
+       ACCESS CONTROL (FIRST)
+    =============================== */
+    async function checkAccess() {
 
-    function setStatus(msg, type) {
-      statusEl.textContent = msg || "";
-      statusEl.className = "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
-    }
-
-    function stepMeta(step) {
-      if (step === 1) return {
-        label: "Step 1",
-        title: "Business basics",
-        subtitle: "Who are you, what do you do and how do you like to run things?"
-      };
-      if (step === 2) return {
-        label: "Step 2",
-        title: "Area & pricing",
-        subtitle: "Where you cover and how you like to charge."
-      };
-      if (step === 3) return {
-        label: "Step 3",
-        title: "Messaging & reviews",
-        subtitle: "How the AI should talk and where reviews should go."
-      };
-      return {
-        label: "Step 4",
-        title: "Demo & go-live",
-        subtitle: "How you want to test it and when you’d like to go live."
-      };
-    }
-
-    function renderStep() {
-      panels.forEach(p => p.classList.remove("is-active"));
-      const active = document.querySelector(`.step-panel[data-step="${currentStep}"]`);
-      if (active) active.classList.add("is-active");
-
-      stepDots.forEach(d => {
-        const n = parseInt(d.getAttribute("data-step-dot"), 10);
-        d.classList.toggle("is-active", n === currentStep);
-        d.classList.toggle("is-complete", n < currentStep);
-      });
-
-      const pct = Math.round(((currentStep - 1) / (totalSteps - 1)) * 100);
-      progressInner.style.width = `${pct}%`;
-      progressText.textContent = `Step ${currentStep} of ${totalSteps}`;
-
-      const meta = stepMeta(currentStep);
-      wizardStepLabel.textContent = meta.label;
-      wizardStepTitle.textContent = meta.title;
-      wizardStepSubtitle.textContent = meta.subtitle;
-
-      footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${totalSteps}</strong>.`;
-
-      btnBack.disabled = currentStep === 1;
-      btnNext.textContent = (currentStep === totalSteps) ? "Finish →" : "Next step →";
-    }
-
-    function readInputsIntoAnswers() {
-      const v = (x) => (x ?? "").toString().trim();
-      answers.contact_name = v(document.getElementById("contact_name")?.value);
-      answers.business_name = v(document.getElementById("business_name")?.value);
-      answers.email = v(document.getElementById("contact_email")?.value);
-      answers.phone = v(document.getElementById("contact_mobile")?.value);
-      answers.base_postcode = v(document.getElementById("base_postcode")?.value);
-      answers.review_link = v(document.getElementById("review_link")?.value);
-      answers.ai_avoid = v(document.getElementById("ai_avoid")?.value);
-      answers.extra_notes = v(document.getElementById("extra_notes")?.value);
-    }
-
-    function applyChipVisualsFromAnswers() {
-      document.querySelectorAll(".chip-row").forEach(row => {
-        const field = row.getAttribute("data-field");
-        const mode = row.getAttribute("data-select");
-        if (!field || !mode) return;
-
-        const chips = Array.from(row.querySelectorAll(".chip"));
-        chips.forEach(ch => {
-          const label = (ch.textContent || "").trim();
-          let selected = false;
-          if (mode === "single") selected = answers[field] === label;
-          else selected = (Array.isArray(answers[field]) ? answers[field] : []).includes(label);
-
-          ch.classList.toggle("is-selected", selected);
-          ch.setAttribute("aria-pressed", selected ? "true" : "false");
-        });
-      });
-    }
-
-    document.addEventListener("click", (e) => {
-      const chip = e.target.closest(".chip-row .chip");
-      if (!chip) return;
-
-      const row = chip.closest(".chip-row");
-      if (!row) return;
-
-      const field = row.getAttribute("data-field");
-      const mode = row.getAttribute("data-select");
-      if (!field || !mode) return;
-
-      const label = (chip.textContent || "").trim();
-
-      if (mode === "single") {
-        answers[field] = label;
-      } else {
-        if (!Array.isArray(answers[field])) answers[field] = [];
-        const idx = answers[field].indexOf(label);
-        if (idx >= 0) answers[field].splice(idx, 1);
-        else answers[field].push(label);
-      }
-      applyChipVisualsFromAnswers();
-    }, true);
-
-    btnSaveDraft.addEventListener("click", () => {
-      readInputsIntoAnswers();
-      localStorage.setItem("tbp_wizard_draft", JSON.stringify({ answers, ts: Date.now() }));
-      setStatus("Draft saved in this browser.", "success");
-    });
-
-    btnBack.addEventListener("click", () => {
-      setStatus("");
-      if (currentStep > 1) {
-        currentStep -= 1;
-        renderStep();
-      }
-    });
-
-    // ✅ FIX: dashboard button used an undefined variable before
-    btnDashboard.addEventListener("click", async () => {
-      // Admin -> secure dashboard
-      try {
-       // --- Access mode: admin via Supabase auth OR client via setup_token ---
-const qs = new URLSearchParams(window.location.search);
-const customer_id = qs.get("customer_id");
-const setup_token = qs.get("setup_token");
-
-async function tryTokenAccess() {
-  if (!customer_id || !setup_token) return null;
-
-  // Validate token against customers table
-  const { data, error } = await sb
-    .from("customers")
-    .select("id, is_admin, wizard_completed, wizard_locked, setup_complete")
-    .eq("id", customer_id)
-    .eq("setup_token", setup_token)
-    .single();
-
-  if (error || !data?.id) return null;
-
-  // Treat token users as clients even if is_admin is missing
-  return {
-    mode: "token",
-    customer_id: data.id,
-    setup_token,
-    is_admin: data.is_admin === true, // usually false for clients
-    customer: data
-  };
-}
-
-async function tryAuthAccess() {
-  const { data: sessData } = await sb.auth.getSession();
-  const session = sessData?.session || null;
-  if (!session) return null;
-
-  // If you already look up the admin’s customer row elsewhere, keep your existing logic.
-  // Here we just mark authenticated access.
-  return {
-    mode: "auth",
-    session
-  };
-}
-
-// ✅ Call this once at startup BEFORE you initialise the wizard UI
-const ACCESS = (await tryAuthAccess()) || (await tryTokenAccess());
-
-if (!ACCESS) {
-  // No session AND no valid token -> send to login
-  window.location.assign("login.html");
-  throw new Error("No access: missing session and invalid/missing setup token.");
-}
-
-// If you have existing code expecting a customer id variable, set it safely:
-const ACTIVE_CUSTOMER_ID =
-  ACCESS.mode === "token"
-    ? ACCESS.customer_id
-    : (customer_id || null); // if admin opened app.html?customer_id=...
-
-// If token mode and you rely on setup_token later:
-const ACTIVE_SETUP_TOKEN =
-  ACCESS.mode === "token"
-    ? ACCESS.setup_token
-    : (setup_token || null);
-
-// OPTIONAL: if admin is logged in but opened a client link, keep it working:
-window.TBP_ACCESS = ACCESS;
-
-        }
-      } catch (_) {}
-
-      // Public setup -> client dashboard (carry id)
-      if (effectiveCustomerId) {
-        window.location.href = `/client-dashboard.html?customer_id=${encodeURIComponent(effectiveCustomerId)}`;
-      } else {
-        window.location.href = "/client-dashboard.html";
-      }
-    });
-
-    btnNext.addEventListener("click", async () => {
-      setStatus("");
-      readInputsIntoAnswers();
-
-      if (currentStep === 1) {
-        if (!answers.contact_name || !answers.business_name) {
-          setStatus("Please enter contact name and business name.", "error");
-          return;
-        }
-        if (!answers.email && !answers.phone) {
-          setStatus("Please enter an email or a mobile number.", "error");
-          return;
-        }
-      }
-
-      if (currentStep < totalSteps) {
-        currentStep += 1;
-        renderStep();
-        return;
-      }
-
-      // FINISH (Step 4)
-      btnNext.disabled = true;
-      setStatus("Saving…");
-
-      try {
-        const patch = {
-          contact_name: answers.contact_name || null,
-          business_name: answers.business_name || null,
-          email: answers.email || null,
-          phone: answers.phone || null,
-          base_postcode: answers.base_postcode || null,
-          wizard_answers: answers,
-          wizard_completed: true,
-          wizard_completed_at: new Date().toISOString()
-        };
-
-        // ✅ NEW: secure update rules by mode
-        let q = sb.from("customers").update(patch);
-
-        if (isPublicSetup) {
-          // public setup: must match id + setup_token
-          q = q.eq("id", signup_id).eq("setup_token", setup_token);
-        } else if (effectiveCustomerId) {
-          // admin override: by id (admin only)
-          q = q.eq("id", effectiveCustomerId);
-        } else {
-          // logged-in normal mode: by user_id
-          q = q.eq("user_id", effectiveUserId);
-        }
-
-        const { data, error } = await q.select("id").single();
-        if (error) throw error;
-
-        // ✅ Invalidate setup token once finished (public mode)
-        if (isPublicSetup) {
-          await sb
-            .from("customers")
-            .update({ setup_token: null })
-            .eq("id", signup_id)
-            .eq("setup_token", setup_token);
-        }
-
-        setStatus("Saved. Wizard complete ✅", "success");
-        if (summaryBoxEl) summaryBoxEl.hidden = false;
-
-        btnNext.style.display = "none";
-        btnDashboard.style.display = "inline-flex";
-
-        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-      } catch (err) {
-        console.error("[TBP] Finish save error:", err);
-        setStatus("Couldn’t save right now. Please try again.", "error");
-        btnNext.disabled = false;
-      }
-    });
-
-    async function ensureSessionOrRedirect() {
+      // 1) Admin session?
       const { data } = await sb.auth.getSession();
       session = data?.session || null;
 
-      if (!session) {
-        // No session = send them to login
-        const tokenBit = invite_token ? `?token=${encodeURIComponent(invite_token)}` : "";
-        window.location.href = "/login.html" + tokenBit;
-        return false;
-      }
-
-      const email = (session.user?.email || "").toLowerCase().trim();
-      isAdmin = ADMIN_EMAILS.map(x => (x || "").toLowerCase().trim()).includes(email);
-
-      effectiveUserId = session.user.id;
-      effectiveCustomerId = (isAdmin && customer_id_param) ? customer_id_param : null;
-
-      return true;
-    }
-
-    async function claimIfTokenPresent() {
-      if (!invite_token) return;
-      try {
-        setStatus("Linking your account…");
-        const { error } = await sb.rpc("claim_customer", { p_invite_token: invite_token });
-        if (error) throw error;
-        setStatus("Account linked ✅", "success");
-
-        const clean = new URL(window.location.href);
-        clean.searchParams.delete("token");
-        window.history.replaceState({}, "", clean.toString());
-      } catch (err) {
-        console.error("[TBP] claim_customer failed:", err);
-        setStatus("Could not link account (token invalid or already used).", "error");
-      }
-    }
-
-    async function prefillFromCustomer() {
-      try {
-        setStatus("");
-
-        let q = sb.from("customers").select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers");
-
-        if (isPublicSetup) {
-          q = q.eq("id", signup_id).eq("setup_token", setup_token).single();
-        } else if (effectiveCustomerId) {
-          q = q.eq("id", effectiveCustomerId).single();
-        } else {
-          q = q.eq("user_id", effectiveUserId).single();
-        }
-
-        const { data, error } = await q;
-        if (error) throw error;
-
-        if (data?.contact_name) document.getElementById("contact_name").value = data.contact_name;
-        if (data?.business_name) document.getElementById("business_name").value = data.business_name;
-        if (data?.email) document.getElementById("contact_email").value = data.email;
-
-        const phone = data?.phone || data?.whatsapp_number || "";
-        if (phone) document.getElementById("contact_mobile").value = phone;
-
-        if (data?.base_postcode) document.getElementById("base_postcode").value = data.base_postcode;
-
-        if (data?.wizard_answers && typeof data.wizard_answers === "object") {
-          Object.assign(answers, data.wizard_answers);
-        }
-
-        readInputsIntoAnswers();
-        applyChipVisualsFromAnswers();
-
-        window.TBP_LOADED_CUSTOMER_ID = data?.id || null;
-        effectiveCustomerId = data?.id || effectiveCustomerId;
-      } catch (err) {
-        console.error("[TBP] Prefill failed:", err);
-        setStatus("Couldn’t load your profile. Check your link is valid.", "error");
-      }
-    }
-
-    (async function init() {
-      renderStep();
-
-      if (isPublicSetup) {
-        // ✅ Public setup mode (no login)
-        effectiveCustomerId = signup_id;
-        await prefillFromCustomer();
+      if (session) {
+        const email = (session.user?.email || "").toLowerCase();
+        isAdmin = ADMIN_EMAILS.includes(email);
+        effectiveCustomerId = customer_id || null;
         return;
       }
 
-      // Logged-in mode (admin/secure)
-      const ok = await ensureSessionOrRedirect();
-      if (!ok) return;
+      // 2) Public token access?
+      if (isPublic) {
+        const { data: customer, error } = await sb
+          .from("customers")
+          .select("id")
+          .eq("id", customer_id)
+          .eq("setup_token", setup_token)
+          .single();
 
-      await claimIfTokenPresent();
-      await prefillFromCustomer();
+        if (!error && customer) {
+          effectiveCustomerId = customer.id;
+          return;
+        }
+      }
 
-      window.TBP = { sb, isAdmin, effectiveCustomerId, effectiveUserId, answers };
+      // 3) No access
+      window.location.href = "/login.html";
+      throw new Error("Access denied");
+    }
+
+    /* ===============================
+       WIZARD SAVE (FINISH)
+    =============================== */
+    async function finishWizard(answers) {
+
+      const patch = {
+        wizard_answers: answers,
+        wizard_completed: true,
+        wizard_completed_at: new Date().toISOString()
+      };
+
+      let q = sb.from("customers").update(patch);
+
+      if (isPublic) {
+        q = q.eq("id", customer_id).eq("setup_token", setup_token);
+      } else {
+        q = q.eq("id", effectiveCustomerId);
+      }
+
+      const { error } = await q;
+      if (error) throw error;
+
+      // 🚀 ROUTE AFTER FINISH
+      if (isPublic) {
+        window.location.href =
+          `/client-dashboard.html?customer_id=${encodeURIComponent(customer_id)}&setup_token=${encodeURIComponent(setup_token)}`;
+      } else {
+        window.location.href = "/dashboard-secure.html";
+      }
+    }
+
+    /* ===============================
+       INIT
+    =============================== */
+    (async function init() {
+
+      await checkAccess();
+
+      // 👉 Everything below here is SAFE UI logic
+      // (your existing wizard rendering / buttons / steps can stay)
+
+      // EXAMPLE finish button hookup:
+      const btnFinish = document.getElementById("btn-next");
+      if (btnFinish) {
+        btnFinish.addEventListener("click", async () => {
+          try {
+            const answers = {}; // ← replace with your real answers object
+            await finishWizard(answers);
+          } catch (err) {
+            alert("Could not save wizard. Please try again.");
+            console.error(err);
+          }
+        });
+      }
+
     })();
   }
 
   bootWhenSupabaseReady();
 })();
 </script>
+
 
 
 </body>
