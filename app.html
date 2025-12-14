@@ -835,182 +835,127 @@
 </div>
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // ---- URL params ----
   const qs = new URLSearchParams(location.search);
-  const customer_id = qs.get("customer_id");
-  const setup_token = qs.get("setup_token");
+  const customer_id = qs.get("customer_id") || qs.get("customerId");
+  const setup_token = qs.get("setup_token") || qs.get("setupToken");
 
-  // ---- Basic guard ----
-  if (!customer_id) {
-    alert("Missing customer_id in URL. Please start from the signup form again.");
-    throw new Error("Missing customer_id");
-  }
-
-  // ---- Helpers ----
   const $ = (id) => document.getElementById(id);
 
-  function dashboardUrl() {
-    const u = new URL("client-dashboard.html", location.origin);
-    u.searchParams.set("customer_id", customer_id);
-    if (setup_token) u.searchParams.set("setup_token", setup_token);
-    return u.toString();
-  }
-
   function setStatus(msg, ok = true) {
-    const el = $("saveStatus") || $("status-msg") || $("wizardStatus");
+    const el = $("status-msg") || $("saveStatus") || $("wizardStatus");
     if (!el) return;
     el.textContent = msg || "";
     el.style.color = ok ? "#0f7b46" : "#b3261e";
   }
 
-  function getFieldValue(name) {
-    // supports <input name="x"> or id="x"
+  function dashboardUrl() {
+    const u = new URL("client-dashboard.html", location.origin);
+    u.searchParams.set("customer_id", customer_id);
+    u.searchParams.set("setup_token", setup_token);
+    return u.toString();
+  }
+
+  function getField(name) {
     const byName = document.querySelector(`[name="${name}"]`);
     const el = byName || $(name);
-    if (!el) return null;
-
-    if (el.type === "checkbox") return !!el.checked;
-    if (el.type === "radio") {
-      const checked = document.querySelector(`[name="${name}"]:checked`);
-      return checked ? checked.value : null;
-    }
+    if (!el) return "";
+    if (el.type === "checkbox") return el.checked ? "true" : "false";
     return (el.value ?? "").toString().trim();
   }
 
-  // ---- Load customer (token-gated) ----
-  async function loadCustomer() {
+  if (!customer_id || !setup_token) {
+    alert("Missing customer_id or setup_token. Please restart from the signup form.");
+    location.assign("index.html#signup");
+    throw new Error("Missing params");
+  }
+
+  async function loadWizard() {
     try {
       setStatus("Loading…", true);
 
-      // IMPORTANT:
-      // Your table access must be implemented as:
-      // - SELECT allowed when setup_token matches
-      // If your RLS isn't set for this yet, loading will fail.
-      const { data, error } = await sb
-        .from("customers")
-        .select("*")
-        .eq("id", customer_id)
-        .eq("setup_token", setup_token || "")
-        .maybeSingle();
+      const { data, error } = await sb.rpc("tbp_customer_load", {
+        p_customer_id: customer_id,
+        p_setup_token: setup_token
+      });
 
       if (error) throw error;
-      if (!data) throw new Error("No matching customer found (token mismatch).");
 
-      // Example: populate a few common fields if they exist in your HTML
-      if ($("business_name")) $("business_name").value = data.business_name || "";
-      if ($("contact_name")) $("contact_name").value = data.contact_name || "";
-      if ($("trade_type")) $("trade_type").value = data.trade_type || "";
-      if ($("base_postcode")) $("base_postcode").value = data.base_postcode || "";
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row?.id) throw new Error("Load failed.");
 
-      // If you store wizard answers in columns like tone/callout_style etc:
-      if ($("tone")) $("tone").value = data.tone || "";
-      if ($("callout_style")) $("callout_style").value = data.callout_style || "";
+      if ($("business_name")) $("business_name").value = row.business_name || "";
+      if ($("contact_name")) $("contact_name").value = row.contact_name || "";
+      if ($("trade_type")) $("trade_type").value = row.trade_type || "";
+      if ($("base_postcode")) $("base_postcode").value = row.base_postcode || "";
+      if ($("tone")) $("tone").value = row.tone || "";
+      if ($("callout_style")) $("callout_style").value = row.callout_style || "";
 
       setStatus("", true);
     } catch (err) {
-      console.error("[TBP] loadCustomer error:", err);
-      setStatus(err?.message || "Failed to load wizard data.", false);
-      alert(err?.message || "Failed to load wizard data.");
+      console.error("[TBP] Wizard load error:", err);
+      alert("Wizard link invalid or expired. Please re-submit the signup form to generate a fresh setup link.");
+      setStatus("Wizard link invalid or expired. Please re-submit the signup form.", false);
     }
   }
 
-  // ---- Save wizard (token-gated update) ----
-  async function saveWizard({ markComplete = false, redirectAfter = false } = {}) {
+  async function saveWizard({ complete = false, goDashboard = false } = {}) {
     try {
       setStatus("Saving…", true);
 
-      // Build update payload from fields you actually have in your wizard.
-      // Add/remove keys to match your wizard inputs.
-      const payload = {
-        // Examples (safe if columns exist):
-        business_name: getFieldValue("business_name") ?? undefined,
-        contact_name: getFieldValue("contact_name") ?? undefined,
-        trade_type: getFieldValue("trade_type") ?? undefined,
-        base_postcode: getFieldValue("base_postcode") ?? undefined,
-
-        tone: getFieldValue("tone") ?? undefined,
-        callout_style: getFieldValue("callout_style") ?? undefined,
-
-        // Wizard state
-        wizard_completed: markComplete ? true : undefined,
-        wizard_locked: markComplete ? true : undefined,
-        setup_complete: markComplete ? true : undefined,
-      };
-
-      // remove undefined keys
-      Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
-
-      const { error } = await sb
-        .from("customers")
-        .update(payload)
-        .eq("id", customer_id)
-        .eq("setup_token", setup_token || "");
+      const { error } = await sb.rpc("tbp_customer_save_wizard", {
+        p_customer_id: customer_id,
+        p_setup_token: setup_token,
+        p_business_name: getField("business_name"),
+        p_contact_name: getField("contact_name"),
+        p_trade_type: getField("trade_type"),
+        p_base_postcode: getField("base_postcode"),
+        p_tone: getField("tone"),
+        p_callout_style: getField("callout_style"),
+        p_mark_complete: complete
+      });
 
       if (error) throw error;
 
-      setStatus(markComplete ? "Setup complete ✔ Redirecting…" : "Saved ✔", true);
+      setStatus(complete ? "Setup complete ✔ Redirecting…" : "Saved ✔", true);
 
-      if (redirectAfter) {
-        window.location.assign(dashboardUrl());
+      if (goDashboard) {
+        location.assign(dashboardUrl());
       }
     } catch (err) {
-      console.error("[TBP] saveWizard error:", err);
+      console.error("[TBP] Wizard save error:", err);
       setStatus(err?.message || "Save failed.", false);
       alert(err?.message || "Save failed.");
     }
   }
 
-  // ---- Wire buttons (support different ids) ----
-  function wireButtons() {
-    // If you have a save button
-    const btnSave =
-      $("btn-save") ||
-      $("saveBtn") ||
-      document.querySelector('[data-action="save"]');
+  // Wire buttons (supports different IDs)
+  const btnSave =
+    $("btn-save") || $("saveBtn") || document.querySelector('[data-action="save"]');
+  if (btnSave) btnSave.addEventListener("click", (e) => {
+    e.preventDefault();
+    saveWizard({ complete: false, goDashboard: false });
+  });
 
-    if (btnSave) {
-      btnSave.addEventListener("click", (e) => {
-        e.preventDefault();
-        saveWizard({ markComplete: false, redirectAfter: false });
-      });
-    }
+  const btnFinish =
+    $("btn-finish") || $("btn-complete") || $("completeBtn") || document.querySelector('[data-action="finish"]');
+  if (btnFinish) btnFinish.addEventListener("click", (e) => {
+    e.preventDefault();
+    saveWizard({ complete: true, goDashboard: true });
+  });
 
-    // If you have a finish/complete button
-    const btnFinish =
-      $("btn-finish") ||
-      $("btn-complete") ||
-      $("completeBtn") ||
-      document.querySelector('[data-action="finish"]');
+  const btnBack =
+    $("btn-back-dashboard") || $("btn-back") || $("btn-exit") || document.querySelector('[data-action="dashboard"]');
+  if (btnBack) btnBack.addEventListener("click", (e) => {
+    e.preventDefault();
+    location.assign(dashboardUrl());
+  });
 
-    if (btnFinish) {
-      btnFinish.addEventListener("click", (e) => {
-        e.preventDefault();
-        saveWizard({ markComplete: true, redirectAfter: true });
-      });
-    }
-
-    // If you have “Back to dashboard” button / link
-    const btnBack =
-      $("btn-back-dashboard") ||
-      $("btn-back") ||
-      $("btn-exit") ||
-      document.querySelector('[data-action="dashboard"]');
-
-    if (btnBack) {
-      btnBack.addEventListener("click", (e) => {
-        e.preventDefault();
-        window.location.assign(dashboardUrl());
-      });
-    }
-  }
-
-  // ---- Boot ----
-  wireButtons();
-  loadCustomer();
+  loadWizard();
 </script>
 
 </body>
