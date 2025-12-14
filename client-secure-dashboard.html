@@ -8,25 +8,29 @@
   <style>
     :root{
       --primary:#1f4e79;
+      --accent:#00a3ff;
       --bg:#f3f4f9;
       --text:#151820;
       --muted:#6b7280;
       --border:rgba(15,23,42,.12);
-      --err:#b3261e;
       --ok:#0f7b46;
+      --err:#b3261e;
       --white:#ffffff;
     }
 
+    *{box-sizing:border-box}
     body{
       margin:0;
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:var(--bg);
+      background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 45%,#ffffff 100%);
       color:var(--text);
     }
 
     header{
-      background:var(--white);
+      background:rgba(255,255,255,.96);
+      backdrop-filter:blur(8px);
       border-bottom:1px solid var(--border);
+      position:sticky; top:0; z-index:10;
     }
 
     .inner{
@@ -40,7 +44,7 @@
       flex-wrap:wrap;
     }
 
-    .brand{font-weight:900}
+    .brand{font-weight:900;color:var(--primary)}
     .muted{color:var(--muted)}
 
     .btn{
@@ -48,7 +52,7 @@
       padding:10px 14px;
       border:1px solid var(--border);
       background:#fff;
-      font-weight:800;
+      font-weight:700;
       cursor:pointer;
     }
 
@@ -64,61 +68,80 @@
       padding:18px;
     }
 
+    .grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:16px;
+    }
+
+    @media (max-width:900px){
+      .grid{grid-template-columns:1fr}
+    }
+
     .card{
       background:#fff;
       border:1px solid var(--border);
-      border-radius:16px;
+      border-radius:18px;
       padding:18px;
-      box-shadow:0 20px 50px rgba(15,23,42,.10);
+      box-shadow:0 20px 50px rgba(15,23,42,.1);
     }
 
-    .row{
-      display:flex;
+    h2{margin:0 0 6px;color:var(--primary)}
+    h3{margin:.6rem 0 .4rem}
+
+    .kvs{
+      display:grid;
+      grid-template-columns:1fr 1fr;
       gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:space-between;
+      margin-top:10px;
     }
 
-    .pill{
-      display:inline-flex;
-      padding:6px 10px;
-      border-radius:999px;
-      font-weight:900;
+    @media (max-width:600px){
+      .kvs{grid-template-columns:1fr}
+    }
+
+    .kv{
       border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px 12px;
       background:#f8fafc;
     }
 
-    #err{
-      margin-top:12px;
-      color:var(--err);
-      font-weight:900;
-      white-space:pre-wrap;
-    }
-
-    #ok{
-      margin-top:12px;
-      color:var(--ok);
-      font-weight:900;
-    }
-
-    #instructions{
-      margin-top:14px;
-      font-size:14px;
-      line-height:1.55;
+    .kv .k{
+      font-size:.7rem;
+      letter-spacing:.14em;
+      text-transform:uppercase;
       color:var(--muted);
     }
 
-    #instructions ol{
-      margin:8px 0 0 18px;
-      padding:0;
+    .kv .v{
+      font-weight:800;
+      margin-top:2px;
     }
 
-    #instructions a{
-      color:var(--primary);
-      font-weight:900;
-      text-decoration:none;
+    label{
+      font-size:.8rem;
+      font-weight:700;
+      display:block;
+      margin-bottom:4px;
     }
+
+    input, select{
+      width:100%;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      font:inherit;
+    }
+
+    input:focus, select:focus{
+      outline:2px solid rgba(31,78,121,.4);
+      border-color:transparent;
+    }
+
+    .status{margin-top:10px;font-weight:700}
+    .ok{color:var(--ok)}
+    .err{color:var(--err)}
   </style>
 </head>
 
@@ -130,43 +153,52 @@
       <div class="brand">TradeBotPro</div>
       <div class="muted">Secure Client Dashboard</div>
     </div>
-    <div class="row">
-      <button id="btnLogin" class="btn btnPrimary" type="button" style="display:none">
-        Go to customer login
-      </button>
-      <button id="btnLogout" class="btn" type="button">
-        Logout
-      </button>
-    </div>
+    <button id="btnLogout" class="btn">Logout</button>
   </div>
 </header>
 
 <main>
-  <div class="card">
+  <div class="grid">
 
-    <div class="row">
-      <div>
-        <h2 id="biz" style="margin:0 0 6px">Secure dashboard</h2>
-        <div id="who" class="muted"></div>
+    <!-- LEFT: BUSINESS OVERVIEW -->
+    <section class="card">
+      <h2 id="bizName">Loading…</h2>
+      <div class="muted" id="contactLine"></div>
+
+      <div class="kvs">
+        <div class="kv"><div class="k">Trade</div><div class="v" id="vTrade">—</div></div>
+        <div class="kv"><div class="k">Base postcode</div><div class="v" id="vPostcode">—</div></div>
+        <div class="kv"><div class="k">Plan</div><div class="v" id="vPlan">—</div></div>
+        <div class="kv"><div class="k">Status</div><div class="v" id="vSignup">—</div></div>
       </div>
-      <div id="status" class="pill">Status: —</div>
-    </div>
+    </section>
 
-    <div id="instructions">
-      <strong>Why do I need to verify my email?</strong><br>
-      This dashboard contains private business information.  
-      To protect your data, TradeBotPro only shows it after your email address is verified.
-      <ol>
-        <li>Go to <a href="customer-login.html">Customer Login</a></li>
-        <li>Enter the <strong>same email</strong> you used when signing up</li>
-        <li>Click <strong>Send secure link</strong></li>
-        <li>Open the email and click the link — this verifies your email and signs you in</li>
-      </ol>
-      If you don’t see the email, please check spam or junk and request a new link.
-    </div>
+    <!-- RIGHT: EDITABLE SETTINGS -->
+    <aside class="card">
+      <h3>Your settings</h3>
+      <div class="muted">These affect how TradeBotPro speaks to your customers.</div>
 
-    <div id="ok"></div>
-    <div id="err"></div>
+      <div style="margin-top:10px">
+        <label for="tone">Message tone</label>
+        <select id="tone">
+          <option value="">Not set</option>
+          <option>Friendly & casual</option>
+          <option>Professional</option>
+          <option>Short & direct</option>
+        </select>
+      </div>
+
+      <div style="margin-top:10px">
+        <label for="callout">Call-out style</label>
+        <input id="callout" placeholder="e.g. £90 call-out, first hour included"/>
+      </div>
+
+      <div style="margin-top:14px">
+        <button id="btnSave" class="btn btnPrimary">Save settings</button>
+      </div>
+
+      <div id="statusMsg" class="status"></div>
+    </aside>
 
   </div>
 </main>
@@ -178,96 +210,76 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const biz = document.getElementById("biz");
-  const who = document.getElementById("who");
-  const status = document.getElementById("status");
-  const errEl = document.getElementById("err");
-  const okEl = document.getElementById("ok");
-  const btnLogin = document.getElementById("btnLogin");
-  const btnLogout = document.getElementById("btnLogout");
+  const el = id => document.getElementById(id);
 
-  function setErr(t){ errEl.textContent = t || ""; }
-  function setOk(t){ okEl.textContent = t || ""; }
-
-  btnLogin.onclick = () => location.href = "customer-login.html";
-  btnLogout.onclick = async () => {
+  el("btnLogout").onclick = async () => {
     await sb.auth.signOut();
     location.href = "customer-login.html";
   };
 
-  async function exchangeCodeIfPresent(){
-    const url = new URL(location.href);
-    if (url.searchParams.get("code")) {
-      const { error } = await sb.auth.exchangeCodeForSession(location.href);
-      if (error) throw error;
-      url.searchParams.delete("code");
-      history.replaceState({}, "", url.toString());
+  async function load() {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) {
+      location.href = "customer-login.html";
+      return;
     }
-  }
 
-  async function linkAuthUser(user){
-    const email = (user?.email || "").toLowerCase();
-    if (!email) return;
-
-    const { data: cust } = await sb
+    const { data, error } = await sb
       .from("customers")
-      .select("id, auth_user_id")
-      .eq("email", email)
+      .select(`
+        business_name,
+        contact_name,
+        email,
+        trade_type,
+        base_postcode,
+        signup_status,
+        plan_name,
+        tone,
+        callout_style
+      `)
+      .eq("auth_user_id", user.id)
       .single();
 
-    if (cust && !cust.auth_user_id) {
-      await sb
-        .from("customers")
-        .update({ auth_user_id: user.id })
-        .eq("id", cust.id);
-    }
+    if (error) throw error;
+
+    el("bizName").textContent = data.business_name;
+    el("contactLine").textContent = `${data.contact_name} • ${data.email}`;
+    el("vTrade").textContent = data.trade_type || "—";
+    el("vPostcode").textContent = data.base_postcode || "—";
+    el("vSignup").textContent = data.signup_status || "—";
+    el("vPlan").textContent = data.plan_name || "—";
+
+    el("tone").value = data.tone || "";
+    el("callout").value = data.callout_style || "";
   }
 
-  async function boot(){
-    try{
-      await exchangeCodeIfPresent();
+  el("btnSave").onclick = async () => {
+    el("statusMsg").textContent = "Saving…";
+    el("statusMsg").className = "status";
 
-      const { data: { user } } = await sb.auth.getUser();
+    const { data: { user } } = await sb.auth.getUser();
 
-      if (!user) {
-        biz.textContent = "Secure dashboard";
-        who.textContent = "You are not logged in yet.";
-        btnLogin.style.display = "";
-        btnLogout.style.display = "none";
-        return;
-      }
+    const { error } = await sb
+      .from("customers")
+      .update({
+        tone: el("tone").value || null,
+        callout_style: el("callout").value || null
+      })
+      .eq("auth_user_id", user.id);
 
-      const confirmed = user.email_confirmed_at || user.confirmed_at;
-      if (!confirmed) {
-        biz.textContent = "Email verification required";
-        who.textContent = "Please verify your email to access your dashboard.";
-        btnLogin.style.display = "";
-        setOk("Request a secure login link to verify your email.");
-        return;
-      }
-
-      await linkAuthUser(user);
-
-      const { data, error } = await sb
-        .from("customers")
-        .select("business_name, contact_name, email, signup_status")
-        .eq("auth_user_id", user.id)
-        .single();
-
-      if (error) throw error;
-
-      biz.textContent = data.business_name || "Your business";
-      who.textContent = [data.contact_name, data.email].filter(Boolean).join(" • ");
-      status.textContent = "Status: " + (data.signup_status || "—");
-      setOk("Secure access confirmed ✔");
-
-    } catch (e){
-      console.error("[TBP] Secure dashboard error:", e);
-      setErr(e.message || "Failed to load secure dashboard.");
+    if (error) {
+      el("statusMsg").textContent = error.message;
+      el("statusMsg").classList.add("err");
+    } else {
+      el("statusMsg").textContent = "Saved ✔";
+      el("statusMsg").classList.add("ok");
     }
-  }
+  };
 
-  boot();
+  load().catch(e=>{
+    console.error(e);
+    alert("Failed to load dashboard");
+  });
 </script>
 
 </body>
