@@ -1292,19 +1292,25 @@
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
- const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const form = document.getElementById("signupForm");
   const submitBtn = document.getElementById("signup-submit-btn");
   const continueBtn = document.getElementById("continueWizardBtn");
+  const statusBox = document.getElementById("signup-status");
 
   if (!form) {
     console.error("TBP ERROR: Missing #signupForm");
     alert("TradeBotPro error: signup form not found (missing id='signupForm').");
     throw new Error("Missing #signupForm");
+  }
+
+  function setStatus(msg, ok=false){
+    if (!statusBox) return;
+    statusBox.textContent = msg || "";
+    statusBox.className = "signup-status " + (ok ? "signup-status--success" : "signup-status--error");
   }
 
   function val(fd, name) {
@@ -1313,8 +1319,8 @@
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    setStatus("");
 
-    // Disable button to prevent double submits
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.dataset.originalText = submitBtn.textContent;
@@ -1324,17 +1330,15 @@
     try {
       const fd = new FormData(form);
 
-      // Read your form fields (exact names you pasted)
       const contact_name    = val(fd, "contact_name");
       const business_name   = val(fd, "business_name");
-      const email           = val(fd, "email").toLowerCase();
+      const email           = val(fd, "email").trim().toLowerCase();
       const whatsapp_number = val(fd, "whatsapp_number");
       const trade_type      = val(fd, "trade_type");
       const service_area    = val(fd, "service_area").toUpperCase();
       const referrer        = val(fd, "referrer");
       const agree           = fd.get("agree") ? true : false;
 
-      // Hard validation so it never silently fails
       if (!contact_name) throw new Error("Please enter Contact name.");
       if (!business_name) throw new Error("Please enter Business name.");
       if (!email || !email.includes("@")) throw new Error("Please enter a valid Email.");
@@ -1343,7 +1347,6 @@
       if (!service_area) throw new Error("Please enter Main service area.");
       if (!agree) throw new Error("Please tick the Terms & Conditions checkbox.");
 
-      // Payload (customers-only) — NO PLAN HERE (as agreed)
       const payload = {
         lead_source: "TradeBotPro Website",
         lead_source_detail: window.location.hostname || "Website",
@@ -1364,17 +1367,14 @@
         referrer: referrer || null,
         agree,
 
-        // Wizard state
         wizard_completed: false,
         wizard_locked: false,
         setup_complete: false,
 
-        // Plan intentionally empty until Demo → Trial stage
         plan_status: null,
         plan_name: null
       };
 
-           // Save (PUBLIC signup must be INSERT only — no updates)
       const { data, error } = await sb
         .from("customers")
         .insert(payload)
@@ -1382,32 +1382,32 @@
         .single();
 
       if (error) {
-        // Duplicate email (unique constraint) -> send them to customer login instead
         const msg = (error.message || "").toLowerCase();
         if (error.code === "23505" || msg.includes("duplicate")) {
-          alert("That email is already registered. Please use Customer Login to access your secure dashboard.");
+          setStatus("That email is already registered. Please use Customer Login.", false);
           window.location.assign("customer-login.html");
           return;
         }
         throw error;
       }
 
+      if (!data?.id) throw new Error("Saved, but no customer id returned.");
 
-      // Build wizard URL
       const url = new URL("app.html", window.location.origin);
       url.searchParams.set("customer_id", data.id);
       if (data.setup_token) url.searchParams.set("setup_token", data.setup_token);
 
-      // Set fallback link (so your “Continue…” still works)
       if (continueBtn) {
         continueBtn.href = url.toString();
         continueBtn.classList.remove("tbp-hidden");
       }
 
-      // ✅ AUTO-START WIZARD (main requirement)
+      setStatus("Saved ✔ Redirecting to setup wizard…", true);
       window.location.assign(url.toString());
+
     } catch (err) {
       console.error("Homepage signup failed:", err);
+      setStatus(err?.message || "Signup failed — check console for details.", false);
       alert(err?.message || "Signup failed — check console for details.");
     } finally {
       if (submitBtn) {
@@ -1418,21 +1418,7 @@
   });
 </script>
 
+
   
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
