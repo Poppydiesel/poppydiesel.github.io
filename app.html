@@ -818,7 +818,6 @@
     </div>
   </main>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 <script>
 (function () {
@@ -837,7 +836,6 @@
 
     const customer_id = (qs.get("customer_id") || "").trim();
     const setup_token = (qs.get("setup_token") || "").trim();
-
     const isPublic = !!(customer_id && setup_token);
 
     // UI elements
@@ -891,8 +889,10 @@
     let effectiveCustomerId = null;
 
     function setStatus(msg, type) {
+      if (!statusEl) return;
       statusEl.textContent = msg || "";
-      statusEl.className = "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
+      statusEl.className =
+        "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
     }
 
     function stepMeta(step) {
@@ -928,7 +928,7 @@
       if (btnNext) btnNext.textContent = (currentStep === totalSteps) ? "Finish →" : "Next step →";
     }
 
-    // ✅ IMPORTANT: read the actual inputs into answers (this fixes business_name saving)
+    // ✅ IMPORTANT: read the actual inputs into answers
     function readInputsIntoAnswers() {
       const v = (id) => (document.getElementById(id)?.value ?? "").toString().trim();
       answers.contact_name  = v("contact_name");
@@ -937,8 +937,8 @@
       answers.phone         = v("contact_mobile");
       answers.base_postcode = v("base_postcode");
       answers.review_link   = v("review_link");
-      answers.ai_avoid       = v("ai_avoid");
-      answers.extra_notes    = v("extra_notes");
+      answers.ai_avoid      = v("ai_avoid");
+      answers.extra_notes   = v("extra_notes");
     }
 
     function applyChipVisualsFromAnswers() {
@@ -951,6 +951,7 @@
         chips.forEach(ch => {
           const label = (ch.textContent || "").trim();
           let selected = false;
+
           if (mode === "single") selected = answers[field] === label;
           else selected = (Array.isArray(answers[field]) ? answers[field] : []).includes(label);
 
@@ -960,7 +961,7 @@
       });
     }
 
-    // ✅ Chip click (fixes chips not selecting)
+    // ✅ Chip click
     document.addEventListener("click", (e) => {
       const chip = e.target.closest(".chip-row .chip");
       if (!chip) return;
@@ -1017,173 +1018,56 @@
     }
 
     async function checkAccess() {
-  const { data } = await sb.auth.getSession();
-  session = data?.session || null;
+      const { data } = await sb.auth.getSession();
+      session = data?.session || null;
 
-  // 1) Admin session access
-  if (session) {
-    const email = (session.user?.email || "").toLowerCase().trim();
-    isAdmin = ADMIN_EMAILS.map(x => x.toLowerCase().trim()).includes(email);
+      // 1) Admin session access
+      if (session) {
+        const email = (session.user?.email || "").toLowerCase().trim();
+        isAdmin = ADMIN_EMAILS.map(x => x.toLowerCase().trim()).includes(email);
 
-    // Only admins can use session access on this wizard
-    if (!isAdmin) {
-      // If they also have a valid public token, allow public mode below
-      if (!isPublic) {
-        window.location.href = "/login.html";
-        return false;
-      }
-    }
-
-    effectiveCustomerId = customer_id || null;
-
-    // If admin opened a specific customer via ?customer_id=..., prefill it too
-    if (isAdmin && effectiveCustomerId) {
-      const { data: customer, error } = await sb
-        .from("customers")
-        .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers")
-        .eq("id", effectiveCustomerId)
-        .single();
-
-      if (!error && customer) {
-        if (customer.contact_name) document.getElementById("contact_name").value = customer.contact_name;
-        if (customer.business_name) document.getElementById("business_name").value = customer.business_name;
-        if (customer.email) document.getElementById("contact_email").value = customer.email;
-
-        const ph = customer.phone || customer.whatsapp_number || "";
-        if (ph) document.getElementById("contact_mobile").value = ph;
-
-        if (customer.base_postcode) document.getElementById("base_postcode").value = customer.base_postcode;
-
-        if (customer.wizard_answers && typeof customer.wizard_answers === "object") {
-          Object.assign(answers, customer.wizard_answers);
+        // Only admins can use session access on this wizard
+        if (!isAdmin) {
+          // If they also have a valid public token, allow public mode below
+          if (!isPublic) {
+            window.location.href = "/login.html";
+            return false;
+          }
         }
 
-        readInputsIntoAnswers();
-        applyChipVisualsFromAnswers();
-      }
-    }
+        effectiveCustomerId = customer_id || null;
 
-    return true;
-  }
+        // Admin prefill if opened with ?customer_id=...
+        if (isAdmin && effectiveCustomerId) {
+          const { data: customer, error } = await sb
+            .from("customers")
+            .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers")
+            .eq("id", effectiveCustomerId)
+            .single();
 
-  // 2) Public token access
-  if (isPublic) {
-    const { data: customer, error } = await sb
-      .from("customers")
-      .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers")
-      .eq("id", customer_id)
-      .eq("setup_token", setup_token)
-      .single();
+          if (!error && customer) {
+            if (customer.contact_name) document.getElementById("contact_name").value = customer.contact_name;
+            if (customer.business_name) document.getElementById("business_name").value = customer.business_name;
+            if (customer.email) document.getElementById("contact_email").value = customer.email;
 
-    if (!error && customer) {
-      effectiveCustomerId = customer.id;
+            const ph = customer.phone || customer.whatsapp_number || "";
+            if (ph) document.getElementById("contact_mobile").value = ph;
 
-      if (customer.contact_name) document.getElementById("contact_name").value = customer.contact_name;
-      if (customer.business_name) document.getElementById("business_name").value = customer.business_name;
-      if (customer.email) document.getElementById("contact_email").value = customer.email;
+            if (customer.base_postcode) document.getElementById("base_postcode").value = customer.base_postcode;
 
-      const ph = customer.phone || customer.whatsapp_number || "";
-      if (ph) document.getElementById("contact_mobile").value = ph;
+            if (customer.wizard_answers && typeof customer.wizard_answers === "object") {
+              Object.assign(answers, customer.wizard_answers);
+            }
 
-      if (customer.base_postcode) document.getElementById("base_postcode").value = customer.base_postcode;
+            readInputsIntoAnswers();
+            applyChipVisualsFromAnswers();
+          }
+        }
 
-      if (customer.wizard_answers && typeof customer.wizard_answers === "object") {
-        Object.assign(answers, customer.wizard_answers);
-      }
-
-      readInputsIntoAnswers();
-      applyChipVisualsFromAnswers();
-
-      return true;
-    }
-  }
-
-  // 3) No access
-  window.location.href = "/login.html";
-  return false;
-}
-
-  }
-
-  effectiveCustomerId = customer_id || null;
-
-  // If admin opened a specific customer via ?customer_id=..., prefill it too
-  if (isAdmin && effectiveCustomerId) {
-    const { data: customer, error } = await sb
-      .from("customers")
-      .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers")
-      .eq("id", effectiveCustomerId)
-      .single();
-
-    if (!error && customer) {
-      if (customer.contact_name) document.getElementById("contact_name").value = customer.contact_name;
-      if (customer.business_name) document.getElementById("business_name").value = customer.business_name;
-      if (customer.email) document.getElementById("contact_email").value = customer.email;
-
-      const ph = customer.phone || customer.whatsapp_number || "";
-      if (ph) document.getElementById("contact_mobile").value = ph;
-
-      if (customer.base_postcode) document.getElementById("base_postcode").value = customer.base_postcode;
-
-      if (customer.wizard_answers && typeof customer.wizard_answers === "object") {
-        Object.assign(answers, customer.wizard_answers);
+        return true;
       }
 
-      readInputsIntoAnswers();
-      applyChipVisualsFromAnswers();
-    }
-  }
-
-  return true;
-}
-
-
-
-  if (!isAdmin) {
-    // logged in but not admin → do not allow admin access
-    // if no public token, bounce to login (or client dashboard)
-    if (!isPublic) {
-      window.location.href = "/login.html";
-      return false;
-    }
-  }
-
-  effectiveCustomerId = customer_id || null;
-  // ... keep the rest
-  const email = (session.user?.email || "").toLowerCase().trim();
-  isAdmin = ADMIN_EMAILS.map(x => x.toLowerCase().trim()).includes(email);
-  effectiveCustomerId = customer_id || null;
-
-  // If admin opened a specific customer via ?customer_id=..., prefill it too
-  if (effectiveCustomerId) {
-    const { data: customer, error } = await sb
-      .from("customers")
-      .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers")
-      .eq("id", effectiveCustomerId)
-      .single();
-
-    if (!error && customer) {
-      if (customer.contact_name) document.getElementById("contact_name").value = customer.contact_name;
-      if (customer.business_name) document.getElementById("business_name").value = customer.business_name;
-      if (customer.email) document.getElementById("contact_email").value = customer.email;
-
-      const ph = customer.phone || customer.whatsapp_number || "";
-      if (ph) document.getElementById("contact_mobile").value = ph;
-
-      if (customer.base_postcode) document.getElementById("base_postcode").value = customer.base_postcode;
-
-      if (customer.wizard_answers && typeof customer.wizard_answers === "object") {
-        Object.assign(answers, customer.wizard_answers);
-      }
-
-      readInputsIntoAnswers();
-      applyChipVisualsFromAnswers();
-    }
-  }
-
-  return true;
-}
-
+      // 2) Public token access
       if (isPublic) {
         const { data: customer, error } = await sb
           .from("customers")
@@ -1195,7 +1079,6 @@
         if (!error && customer) {
           effectiveCustomerId = customer.id;
 
-          // Prefill inputs
           if (customer.contact_name) document.getElementById("contact_name").value = customer.contact_name;
           if (customer.business_name) document.getElementById("business_name").value = customer.business_name;
           if (customer.email) document.getElementById("contact_email").value = customer.email;
@@ -1205,12 +1088,10 @@
 
           if (customer.base_postcode) document.getElementById("base_postcode").value = customer.base_postcode;
 
-          // Merge saved answers to chips
           if (customer.wizard_answers && typeof customer.wizard_answers === "object") {
             Object.assign(answers, customer.wizard_answers);
           }
 
-          // Keep answers in sync with current inputs + render chips
           readInputsIntoAnswers();
           applyChipVisualsFromAnswers();
 
@@ -1218,6 +1099,7 @@
         }
       }
 
+      // 3) No access
       window.location.href = "/login.html";
       return false;
     }
@@ -1288,6 +1170,7 @@
         }
       });
     }
+
     (async function init() {
       renderStep();
       const ok = await checkAccess();
@@ -1298,6 +1181,7 @@
   bootWhenSupabaseReady();
 })();
 </script>
+
 
 </body>
 </html>
