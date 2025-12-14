@@ -6,21 +6,23 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const emailEl = document.getElementById("email");
-  const msgEl = document.getElementById("msg");
   const btn = document.getElementById("btnSend");
+  const msg = document.getElementById("msg");
 
-  function setMsg(t, ok=false){
-    msgEl.textContent = t || "";
-    msgEl.className = "msg " + (ok ? "ok" : "err");
+  function setMsg(text, ok=false){
+    if (!msg) return;
+    msg.textContent = text || "";
+    msg.style.color = ok ? "#0f7b46" : "#b3261e";
+    msg.style.fontWeight = "800";
   }
 
   btn.addEventListener("click", async () => {
     try{
       const email = (emailEl.value || "").trim().toLowerCase();
-      if(!email || !email.includes("@")) throw new Error("Enter a valid email.");
+      if (!email || !email.includes("@")) throw new Error("Enter a valid email.");
 
       btn.disabled = true;
-      setMsg("Sending link…", true);
+      setMsg("Sending secure link…", true);
 
       const emailRedirectTo = new URL("client-secure-dashboard.html", location.origin).toString();
 
@@ -29,16 +31,19 @@
         options: { emailRedirectTo }
       });
 
-      if(error) throw error;
+      if (error) throw error;
 
       setMsg("Link sent. Check inbox/spam.", true);
-    } catch(e){
-      console.error(e);
-      setMsg(e.message || "Failed to send link.");
-    } finally{
+    } catch(err){
+      console.error("[TBP] customer-login error:", err);
+      setMsg(err?.message || "Failed to send link.");
+    } finally {
       btn.disabled = false;
     }
   });
 </script>
+</body>
+</html>
+
 </body>
 </html>
