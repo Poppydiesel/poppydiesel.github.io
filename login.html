@@ -1,66 +1,133 @@
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
-<script>
-(function () {
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { persistSession: true, detectSessionInUrl: true }
-  });
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>TradeBotPro — Admin Login</title>
 
-  // Expected elements in your login.html:
-  // <form id="loginForm">
-  //   <input id="email" type="email" />
-  //   <button id="btnSendLink" type="submit">Send verification link</button>
-  // </form>
-  // <div id="status"></div>
+  <style>
+    :root{
+      --primary:#1f4e79;
+      --bg:#f3f4f9;
+      --text:#151820;
+      --muted:#6b7280;
+      --border:rgba(15,23,42,.12);
+      --ok:#0f7b46;
+      --err:#b3261e;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 45%,#ffffff 100%);
+      color:var(--text);
+    }
+    .card{
+      width:100%;
+      max-width:420px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:24px;
+      box-shadow:0 20px 50px rgba(15,23,42,.12);
+    }
+    h1{margin:0 0 6px;color:var(--primary)}
+    p{margin:0 0 16px;color:var(--muted)}
+    label{
+      font-size:.85rem;
+      font-weight:700;
+      display:block;
+      margin-bottom:6px;
+    }
+    input{
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      font:inherit;
+    }
+    button{
+      margin-top:14px;
+      width:100%;
+      padding:12px;
+      border-radius:999px;
+      border:none;
+      background:var(--primary);
+      color:#fff;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .status{
+      margin-top:12px;
+      font-weight:800;
+      white-space:pre-wrap;
+    }
+    .ok{color:var(--ok)}
+    .err{color:var(--err)}
+  </style>
+</head>
 
-  const form = document.getElementById("loginForm");
+<body>
+  <div class="card">
+    <h1>Admin Login</h1>
+    <p>Enter your admin email to receive a secure login link.</p>
+
+    <label for="email">Email address</label>
+    <input id="email" type="email" placeholder="you@tradebotpro.co.uk"/>
+
+    <button id="btnSend">Send secure login link</button>
+
+    <div id="msg" class="status"></div>
+  </div>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   const emailEl = document.getElementById("email");
-  const statusEl = document.getElementById("status");
-  const btn = document.getElementById("btnSendLink");
+  const msg = document.getElementById("msg");
+  const btn = document.getElementById("btnSend");
 
-  function setStatus(msg, type) {
-    if (!statusEl) return;
-    statusEl.textContent = msg || "";
-    statusEl.style.color = type === "error" ? "#b3261e" : (type === "success" ? "#0f7b46" : "#6b7280");
+  function setMsg(text, ok=false){
+    msg.textContent = text || "";
+    msg.className = "status " + (ok ? "ok" : "err");
   }
 
-  // Respect ?next=/dashboard-secure.html etc
-  const qs = new URLSearchParams(window.location.search);
-  const next = qs.get("next") || "/dashboard-secure.html";
-
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setStatus("");
-
-    const email = (emailEl?.value || "").trim().toLowerCase();
-    if (!email) {
-      setStatus("Please enter your email.", "error");
+  btn.onclick = async () => {
+    const email = emailEl.value.trim().toLowerCase();
+    if(!email || !email.includes("@")){
+      setMsg("Please enter a valid email address.");
       return;
     }
 
-    btn && (btn.disabled = true);
-    setStatus("Sending verification link…");
+    setMsg("Sending secure login link…", true);
 
-    try {
-      const redirectTo = `${window.location.origin}/auth-callback.html?next=${encodeURIComponent(next)}`;
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.origin + "/dashboard-secure.html"
+      }
+    });
 
-      const { error } = await sb.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: redirectTo
-        }
-      });
-
-      if (error) throw error;
-
-      setStatus("Link sent. Check your inbox (and spam). Click it to verify and continue.", "success");
-    } catch (err) {
-      console.error("[TBP] OTP send error:", err);
-      setStatus("Couldn’t send the link. Please double-check the email and try again.", "error");
-    } finally {
-      btn && (btn.disabled = false);
+    if(error){
+      console.error(error);
+      setMsg("Error sending login link:\n" + error.message);
+      return;
     }
-  });
-})();
+
+    setMsg(
+      "Check your email for the secure login link.\n\n" +
+      "If you don’t see it, check spam/junk.",
+      true
+    );
+  };
 </script>
+</body>
+</html>
