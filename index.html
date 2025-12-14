@@ -1306,10 +1306,15 @@
     e.preventDefault();
 
     if (submitBtn) submitBtn.disabled = true;
-    if (continueBtn) {
-      continueBtn.classList.add("tbp-hidden");
-      continueBtn.removeAttribute("href");
-    }
+  // Set wizard link (fallback)
+if (continueBtn) {
+  continueBtn.href = url.toString();
+  continueBtn.classList.remove("tbp-hidden");
+}
+
+// 🚀 AUTO-START THE WIZARD
+window.location.href = url.toString();
+
 
     try {
       const fd = new FormData(form);
@@ -1399,6 +1404,7 @@
   
 </body>
 </html>
+
 
 
 
