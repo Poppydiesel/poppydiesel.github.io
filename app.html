@@ -1047,10 +1047,71 @@
     btnDashboard.addEventListener("click", async () => {
       // Admin -> secure dashboard
       try {
-        const { data } = await sb.auth.getSession();
-        if (data?.session) {
-          window.location.href = "/dashboard-secure.html";
-          return;
+       // --- Access mode: admin via Supabase auth OR client via setup_token ---
+const qs = new URLSearchParams(window.location.search);
+const customer_id = qs.get("customer_id");
+const setup_token = qs.get("setup_token");
+
+async function tryTokenAccess() {
+  if (!customer_id || !setup_token) return null;
+
+  // Validate token against customers table
+  const { data, error } = await sb
+    .from("customers")
+    .select("id, is_admin, wizard_completed, wizard_locked, setup_complete")
+    .eq("id", customer_id)
+    .eq("setup_token", setup_token)
+    .single();
+
+  if (error || !data?.id) return null;
+
+  // Treat token users as clients even if is_admin is missing
+  return {
+    mode: "token",
+    customer_id: data.id,
+    setup_token,
+    is_admin: data.is_admin === true, // usually false for clients
+    customer: data
+  };
+}
+
+async function tryAuthAccess() {
+  const { data: sessData } = await sb.auth.getSession();
+  const session = sessData?.session || null;
+  if (!session) return null;
+
+  // If you already look up the admin’s customer row elsewhere, keep your existing logic.
+  // Here we just mark authenticated access.
+  return {
+    mode: "auth",
+    session
+  };
+}
+
+// ✅ Call this once at startup BEFORE you initialise the wizard UI
+const ACCESS = (await tryAuthAccess()) || (await tryTokenAccess());
+
+if (!ACCESS) {
+  // No session AND no valid token -> send to login
+  window.location.assign("login.html");
+  throw new Error("No access: missing session and invalid/missing setup token.");
+}
+
+// If you have existing code expecting a customer id variable, set it safely:
+const ACTIVE_CUSTOMER_ID =
+  ACCESS.mode === "token"
+    ? ACCESS.customer_id
+    : (customer_id || null); // if admin opened app.html?customer_id=...
+
+// If token mode and you rely on setup_token later:
+const ACTIVE_SETUP_TOKEN =
+  ACCESS.mode === "token"
+    ? ACCESS.setup_token
+    : (setup_token || null);
+
+// OPTIONAL: if admin is logged in but opened a client link, keep it working:
+window.TBP_ACCESS = ACCESS;
+
         }
       } catch (_) {}
 
