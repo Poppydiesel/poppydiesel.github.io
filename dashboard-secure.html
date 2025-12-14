@@ -479,24 +479,23 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const qs = new URLSearchParams(location.search);
-  const customer_id = qs.get("customer_id") || qs.get("user_id") || qs.get("signup_id") || "";
-  const setup_token = qs.get("setup_token") || qs.get("token") || "";
+  const customer_id = qs.get("customer_id") || "";
+  const setup_token = qs.get("setup_token") || "";
 
-  const el = (id) => document.getElementById(id);
+  const statusEl =
+    document.getElementById("status-msg") ||
+    document.getElementById("status") ||
+    null;
 
-  // OPTIONAL if your admin page has these IDs; if not, we’ll still work with chips + status-msg
-  const statusMsg = el("status-msg") || el("status") || null;
+  const selections = {};
 
-  function setStatus(text, kind=""){
-    if (!statusMsg) {
-      console.log("[TBP] STATUS:", text);
-      return;
-    }
-    statusMsg.textContent = text || "";
-    statusMsg.className = "status" + (kind ? " " + kind : "");
+  function setStatus(t, kind=""){
+    if (!statusEl) { console.log("[TBP]", t); return; }
+    statusEl.textContent = t || "";
+    statusEl.className = "status" + (kind ? " " + kind : "");
   }
 
-  function logSupabaseError(context, error){
+  function logErr(context, error){
     console.error(`[TBP] ${context}`, {
       message: error?.message,
       details: error?.details,
@@ -507,9 +506,6 @@
     });
   }
 
-  // Chip selections we will save
-  const selections = {};
-
   function initChips(){
     document.querySelectorAll(".chip-row").forEach(row => {
       const col = row.getAttribute("data-col");
@@ -519,71 +515,61 @@
       chips.forEach(chip => {
         chip.addEventListener("click", () => {
           if (!col) return;
-
-          if (mode === "single"){
+          if (mode === "single") {
             chips.forEach(c => c.classList.remove("is-selected"));
             chip.classList.add("is-selected");
             selections[col] = chip.textContent.trim();
           }
-
           setStatus("");
         });
       });
     });
   }
 
-  function applyChipSelection(col, value){
+  function applyChip(col, value){
     if (!value) return;
     const row = document.querySelector(`.chip-row[data-col="${CSS.escape(col)}"]`);
     if (!row) return;
-    const chips = Array.from(row.querySelectorAll(".chip"));
-    chips.forEach(c => c.classList.toggle("is-selected", c.textContent.trim() === value));
+    row.querySelectorAll(".chip").forEach(chip => {
+      chip.classList.toggle("is-selected", chip.textContent.trim() === value);
+    });
     selections[col] = value;
   }
 
   async function loadCustomer(){
     try{
       if (!customer_id || !setup_token) throw new Error("Missing customer_id or setup_token in URL.");
-
       setStatus("Loading…");
 
       const { data, error } = await sb
         .from("customers")
-        .select("*")
+        .select("id, business_name, email, signup_status, demo_status, trial_status, plan_status, plan_term")
         .eq("id", customer_id)
         .eq("setup_token", setup_token)
         .single();
 
-      if (error) {
-        logSupabaseError("admin loadCustomer failed", error);
-        throw new Error(error.message || "Load failed");
-      }
+      if (error) { logErr("admin loadCustomer failed", error); throw error; }
 
-      console.log("[TBP] Admin loaded customer:", data);
-
-      // Paint current statuses into chips so admin sees current state
-      applyChipSelection("signup_status", data.signup_status || "");
-      applyChipSelection("demo_status", data.demo_status || "");
-      applyChipSelection("trial_status", data.trial_status || "");
-      applyChipSelection("plan_status", data.plan_status || "");
-      applyChipSelection("plan_term", data.plan_term || "");
+      applyChip("signup_status", data.signup_status || "");
+      applyChip("demo_status", data.demo_status || "");
+      applyChip("trial_status", data.trial_status || "");
+      applyChip("plan_status", data.plan_status || "");
+      applyChip("plan_term", data.plan_term || "");
 
       setStatus("");
       return data;
     } catch(err){
-      console.error("[TBP] admin loadCustomer error:", err);
+      console.error("[TBP] admin load error:", err);
       setStatus(err?.message || "Failed to load", "err");
       return null;
     }
   }
 
-  async function saveStatuses(){
+  async function save(){
     try{
-      if (!customer_id || !setup_token) throw new Error("Missing customer_id or setup_token.");
-
+      if (!customer_id || !setup_token) throw new Error("Missing customer_id or setup_token in URL.");
       setStatus("Saving…");
 
-      // Only save known admin-controlled columns
       const payload = {
         signup_status: selections.signup_status ?? null,
         demo_status: selections.demo_status ?? null,
@@ -599,40 +585,36 @@
         .eq("id", customer_id)
         .eq("setup_token", setup_token);
 
-      if (error) {
-        logSupabaseError("admin saveStatuses failed", error);
-        throw new Error(error.message || "Save failed");
-      }
+      if (error) { logErr("admin save failed", error); throw error; }
 
       setStatus("Saved ✔", "ok");
-      setTimeout(() => setStatus(""), 1200);
+      setTimeout(()=>setStatus(""), 1200);
     } catch(err){
       console.error("[TBP] admin save error:", err);
       setStatus(err?.message || "Save failed", "err");
     }
   }
 
-  // Wire your admin Save button if it exists, otherwise create one so it always works.
-  function ensureAdminSaveButton(){
+  function ensureSaveButton(){
     let btn = document.getElementById("btn-save");
     if (!btn) {
       btn = document.createElement("button");
       btn.id = "btn-save";
       btn.type = "button";
       btn.textContent = "Save statuses";
-      btn.style.cssText = "position:fixed;right:18px;bottom:18px;padding:12px 16px;border-radius:999px;border:0;background:#1f4e79;color:#fff;font-weight:800;cursor:pointer;box-shadow:0 18px 40px rgba(15,23,42,.25)";
+      btn.style.cssText =
+        "position:fixed;right:18px;bottom:18px;padding:12px 16px;border-radius:999px;border:0;background:#1f4e79;color:#fff;font-weight:900;cursor:pointer;box-shadow:0 18px 40px rgba(15,23,42,.25);z-index:9999";
       document.body.appendChild(btn);
     }
-    btn.addEventListener("click", saveStatuses);
+    btn.addEventListener("click", save);
   }
 
   initChips();
-  ensureAdminSaveButton();
+  ensureSaveButton();
   loadCustomer();
 </script>
 </body>
 </html>
-
 
 </body>
 </html>
