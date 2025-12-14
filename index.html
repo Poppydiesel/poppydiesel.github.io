@@ -1284,93 +1284,90 @@
 </div>
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const form = document.getElementById("signupForm");
-  if (!form) {
-    console.error("TBP ERROR: signupForm not found");
-    throw new Error("Missing signupForm");
-  }
-
   const submitBtn = document.getElementById("signup-submit-btn");
   const continueBtn = document.getElementById("continueWizardBtn");
 
-  function v(fd, name) {
+  if (!form) {
+    console.error("TBP ERROR: Missing #signupForm");
+    alert("TradeBotPro error: signup form not found (missing id='signupForm').");
+    throw new Error("Missing #signupForm");
+  }
+
+  function val(fd, name) {
     return (fd.get(name) ?? "").toString().trim();
   }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    if (submitBtn) submitBtn.disabled = true;
-  // Set wizard link (fallback)
-if (continueBtn) {
-  continueBtn.href = url.toString();
-  continueBtn.classList.remove("tbp-hidden");
-}
-
-// 🚀 AUTO-START THE WIZARD
-window.location.href = url.toString();
-
+    // Disable button to prevent double submits
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.dataset.originalText = submitBtn.textContent;
+      submitBtn.textContent = "Saving…";
+    }
 
     try {
       const fd = new FormData(form);
 
-      const contact_name    = v(fd, "contact_name");
-      const business_name   = v(fd, "business_name");
-      const email           = v(fd, "email").toLowerCase();
-      const whatsapp_number = v(fd, "whatsapp_number");
-      const trade_type      = v(fd, "trade_type");
-      const service_area    = v(fd, "service_area").toUpperCase();
-      const referrer        = v(fd, "referrer");
+      // Read your form fields (exact names you pasted)
+      const contact_name    = val(fd, "contact_name");
+      const business_name   = val(fd, "business_name");
+      const email           = val(fd, "email").toLowerCase();
+      const whatsapp_number = val(fd, "whatsapp_number");
+      const trade_type      = val(fd, "trade_type");
+      const service_area    = val(fd, "service_area").toUpperCase();
+      const referrer        = val(fd, "referrer");
       const agree           = fd.get("agree") ? true : false;
 
-      if (!contact_name) throw new Error("Contact name missing");
-      if (!business_name) throw new Error("Business name missing");
-      if (!email || !email.includes("@")) throw new Error("Invalid email");
-      if (!whatsapp_number) throw new Error("Mobile number missing");
-      if (!trade_type) throw new Error("Trade type missing");
-      if (!service_area) throw new Error("Service area missing");
-      if (!agree) throw new Error("Terms not accepted");
+      // Hard validation so it never silently fails
+      if (!contact_name) throw new Error("Please enter Contact name.");
+      if (!business_name) throw new Error("Please enter Business name.");
+      if (!email || !email.includes("@")) throw new Error("Please enter a valid Email.");
+      if (!whatsapp_number) throw new Error("Please enter Mobile / WhatsApp number.");
+      if (!trade_type) throw new Error("Please select a Trade type.");
+      if (!service_area) throw new Error("Please enter Main service area.");
+      if (!agree) throw new Error("Please tick the Terms & Conditions checkbox.");
 
+      // Payload (customers-only) — NO PLAN HERE (as agreed)
       const payload = {
-        // Source & lifecycle
         lead_source: "TradeBotPro Website",
         lead_source_detail: window.location.hostname || "Website",
         onboarding_status: "Demo pending",
         account_status: "Active",
 
-        // Identity
         contact_name,
         owner_name: contact_name,
         business_name,
         email,
 
-        // Contact
         phone: whatsapp_number,
         whatsapp_number,
 
-        // Business
         trade_type,
         base_postcode: service_area,
 
-        // 🚫 Plan deliberately NOT set here
-        plan_status: null,
-        plan_name: null,
-
-        // Meta
         referrer: referrer || null,
         agree,
 
-        // Wizard flags
+        // Wizard state
         wizard_completed: false,
         wizard_locked: false,
-        setup_complete: false
+        setup_complete: false,
+
+        // Plan intentionally empty until Demo → Trial stage
+        plan_status: null,
+        plan_name: null
       };
 
+      // Save / upsert
       const { data, error } = await sb
         .from("customers")
         .upsert(payload, { onConflict: "email" })
@@ -1378,32 +1375,37 @@ window.location.href = url.toString();
         .single();
 
       if (error) throw error;
-      if (!data?.id) throw new Error("No customer ID returned");
+      if (!data?.id) throw new Error("Saved, but no customer id returned.");
 
+      // Build wizard URL
       const url = new URL("app.html", window.location.origin);
       url.searchParams.set("customer_id", data.id);
-      if (data.setup_token) {
-        url.searchParams.set("setup_token", data.setup_token);
-      }
+      if (data.setup_token) url.searchParams.set("setup_token", data.setup_token);
 
+      // Set fallback link (so your “Continue…” still works)
       if (continueBtn) {
         continueBtn.href = url.toString();
         continueBtn.classList.remove("tbp-hidden");
       }
 
+      // ✅ AUTO-START WIZARD (main requirement)
+      window.location.assign(url.toString());
     } catch (err) {
-      console.error("Signup error:", err);
-      alert(err.message || "Signup failed");
+      console.error("Homepage signup failed:", err);
+      alert(err?.message || "Signup failed — check console for details.");
     } finally {
-      if (submitBtn) submitBtn.disabled = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = submitBtn.dataset.originalText || "Join TradeBotPro (no payment yet)";
+      }
     }
   });
 </script>
 
-
   
 </body>
 </html>
+
 
 
 
