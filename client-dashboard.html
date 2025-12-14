@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>TradeBotPro — Client Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     :root{
       --primary-blue:#1f4e79;
@@ -24,6 +25,24 @@
       color:var(--dark-text);
       line-height:1.5;
     }
+
+    /* Optional simple top nav */
+    .tbp-nav{
+      display:flex;
+      gap:14px;
+      padding:10px 16px;
+      font-size:14px;
+      max-width:1100px;
+      margin:0 auto;
+    }
+    .tbp-nav a{
+      text-decoration:none;
+      font-weight:700;
+      color:var(--dark-text);
+      opacity:.9;
+    }
+    .tbp-nav a:hover{ opacity:1; text-decoration:underline; }
+
     header{
       border-bottom:1px solid rgba(15,23,42,0.06);
       background:rgba(248,250,252,0.96);
@@ -53,7 +72,7 @@
       border:1px solid transparent;
       padding:.55rem 1rem;
       font-size:.88rem;
-      font-weight:600;
+      font-weight:700;
       cursor:pointer;
       background:transparent;
       display:inline-flex;
@@ -71,6 +90,7 @@
       color:var(--dark-text);
     }
     .btn:disabled{opacity:.6; cursor:default; box-shadow:none}
+
     main{
       max-width:1100px;
       margin:0 auto;
@@ -83,6 +103,7 @@
       align-items:start;
     }
     @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
+
     .card{
       background:rgba(255,255,255,.92);
       border:1px solid rgba(15,23,42,0.06);
@@ -97,6 +118,7 @@
     }
     .muted{color:var(--muted-text)}
     .row{display:flex; gap:.7rem; flex-wrap:wrap; align-items:center; justify-content:space-between;}
+
     .kvs{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -112,6 +134,7 @@
     }
     .kv .k{font-size:.72rem; text-transform:uppercase; letter-spacing:.12em; color:var(--muted-text)}
     .kv .v{font-weight:800; margin-top:.15rem}
+
     .pill{
       display:inline-flex;
       align-items:center;
@@ -119,7 +142,7 @@
       border-radius:999px;
       border:1px solid rgba(15,23,42,0.12);
       font-size:.82rem;
-      font-weight:800;
+      font-weight:900;
       background:#fff;
     }
     .pill.success{border-color:rgba(15,123,70,.35); background:#ecfdf5; color:#0f7b46}
@@ -135,7 +158,7 @@
       font-size:.86rem;
       cursor:pointer;
       user-select:none;
-      font-weight:700;
+      font-weight:800;
     }
     .chip.is-selected{
       outline:2px solid rgba(31,78,121,0.45);
@@ -143,7 +166,8 @@
       border-color:#1f4e79;
       color:#1f4e79;
     }
-    .status{margin-top:.8rem; min-height:1.2em; font-size:.85rem;}
+
+    .status{margin-top:.8rem; min-height:1.2em; font-size:.9rem; font-weight:700;}
     .status.ok{color:var(--success-green)}
     .status.err{color:var(--error-red)}
   </style>
@@ -151,23 +175,10 @@
 
 <body>
   <nav class="tbp-nav">
-  <a href="./index.html">Home</a>
-  <a href="./signup.html">Sign up</a>
-  <a href="./login.html">Admin login</a>
-</nav>
-
-<style>
-  .tbp-nav {
-    display: flex;
-    gap: 14px;
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-  .tbp-nav a {
-    text-decoration: none;
-    font-weight: 600;
-  }
-</style>
+    <a href="./index.html">Home</a>
+    <a href="./signup.html">Sign up</a>
+    <a href="./login.html">Admin login</a>
+  </nav>
 
   <header>
     <div class="header-inner">
@@ -181,8 +192,8 @@
 
       <div class="header-actions">
         <button class="btn btn-secondary" id="btn-verify-email" style="display:none">Verify email</button>
-        <button class="btn btn-secondary" id="btn-edit-setup">Edit setup</button>
-        <button class="btn btn-primary" id="btn-save">Save changes</button>
+        <button class="btn btn-secondary" id="btn-edit-setup" type="button">Edit setup</button>
+        <button class="btn btn-primary" id="btn-save" type="button">Save changes</button>
       </div>
     </div>
   </header>
@@ -198,7 +209,6 @@
           <div id="pill-wizard" class="pill neutral">Wizard: Unknown</div>
         </div>
 
-        <!-- Business summary -->
         <div class="kvs">
           <div class="kv"><div class="k">Base Postcode</div><div class="v" id="v-postcode">—</div></div>
           <div class="kv"><div class="k">Trade</div><div class="v" id="v-trade">—</div></div>
@@ -213,7 +223,6 @@
           <div class="kv"><div class="k">Demo slot</div><div class="v" id="v-demo-slot">—</div></div>
         </div>
 
-        <!-- Lifecycle summary (REAL COLUMNS) -->
         <div class="kvs" style="margin-top:.8rem">
           <div class="kv"><div class="k">Signup status</div><div class="v" id="v-signup-status">—</div></div>
           <div class="kv"><div class="k">Demo</div><div class="v" id="v-demo-status">—</div></div>
@@ -287,112 +296,208 @@
     </div>
   </main>
 
- 
-</body><script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // --- Supabase ---
+    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const qs = new URLSearchParams(location.search);
+    // --- URL params ---
+    const qs = new URLSearchParams(location.search);
+    const customer_id = qs.get("customer_id") || qs.get("user_id") || qs.get("signup_id") || "";
+    const setup_token = qs.get("setup_token") || qs.get("token") || "";
 
-  // Support both new + legacy param names
-  const customer_id =
-    qs.get("customer_id") || qs.get("user_id") || qs.get("signup_id") || "";
+    // --- Elements ---
+    const el = (id) => document.getElementById(id);
 
-  const setup_token =
-    qs.get("setup_token") || qs.get("token") || "";
+    const hBusiness = el("h-business");
+    const hContact = el("h-contact");
+    const pillWizard = el("pill-wizard");
+    const statusMsg = el("status-msg");
 
-  // IMPORTANT: make sure you have somewhere to render errors
-  const statusEl = document.getElementById("status") || null;
+    const vPostcode = el("v-postcode");
+    const vTrade = el("v-trade");
+    const vCoverage = el("v-coverage");
+    const vCallout = el("v-callout");
+    const vTone = el("v-tone");
+    const vChannels = el("v-channels");
+    const vReviews = el("v-reviews");
+    const vDemoSlot = el("v-demo-slot");
 
-  function setStatus(msg, isError=false){
-    if (!statusEl) return;
-    statusEl.textContent = msg;
-    statusEl.style.color = isError ? "#b3261e" : "";
-  }
+    const vSignupStatus = el("v-signup-status");
+    const vDemoStatus = el("v-demo-status");
+    const vTrialStatus = el("v-trial-status");
+    const vPlanStatus = el("v-plan-status");
 
-  function logSupabaseError(context, error){
-    // This will show the REAL reason in Console
-    console.error(`[TBP] ${context}`, {
-      message: error?.message,
-      details: error?.details,
-      hint: error?.hint,
-      code: error?.code,
-      status: error?.status,
-      raw: error
-    });
-  }
+    const btnEditSetup = el("btn-edit-setup");
+    const btnSave = el("btn-save");
+    const btnOpenSecure = el("btn-open-secure");
 
-  async function loadCustomerAndWizard(){
-    try {
-      if (!customer_id) throw new Error("Missing customer_id in the URL.");
-      if (!setup_token) throw new Error("Missing setup_token in the URL.");
+    // --- Local mention: chip selections to save ---
+    const selections = {}; // { colName: "Selected Value" }
 
-      setStatus("Loading your settings…");
+    function setStatus(text, kind=""){
+      statusMsg.textContent = text || "";
+      statusMsg.className = "status" + (kind ? " " + kind : "");
+    }
 
-      // 1) Load customer
-      const { data: customer, error: cErr } = await sb
-        .from("customers")
-        .select("id, email, business_name, contact_name, trade_type, base_postcode, wizard_completed, setup_complete, wizard_answers, setup_token")
-        .eq("id", customer_id)
-        .eq("setup_token", setup_token)
-        .single();
+    function setPill(text, type){
+      pillWizard.textContent = text;
+      pillWizard.classList.remove("success","warn","neutral");
+      pillWizard.classList.add(type);
+    }
 
-      if (cErr) {
-        logSupabaseError("loadCustomer query failed", cErr);
-        throw new Error(cErr.message || "Could not load customer (customers query failed).");
-      }
-      if (!customer) throw new Error("No customer returned.");
+    function buildUrl(page){
+      const u = new URL(page, location.origin);
+      u.searchParams.set("customer_id", customer_id);
+      u.searchParams.set("setup_token", setup_token);
+      return u.toString();
+    }
 
-      // 2) Wizard answers can be stored either:
-      // A) as customers.wizard_answers (json/jsonb)
-      // or B) in a separate wizard_answers table keyed by customer_id
-      let wizard = customer.wizard_answers || null;
+    function safeStr(x){ return (x ?? "").toString().trim(); }
 
-      if (!wizard) {
-        const { data: wa, error: wErr } = await sb
-          .from("wizard_answers")
-          .select("answers")
-          .eq("customer_id", customer_id)
+    // --- Chip UI ---
+    function initChips(){
+      document.querySelectorAll(".chip-row").forEach(row => {
+        const col = row.getAttribute("data-col");
+        const mode = row.getAttribute("data-select") || "single";
+        const chips = Array.from(row.querySelectorAll(".chip"));
+
+        chips.forEach(chip => {
+          chip.addEventListener("click", () => {
+            if (!col) return;
+
+            if (mode === "single"){
+              chips.forEach(c => c.classList.remove("is-selected"));
+              chip.classList.add("is-selected");
+              selections[col] = chip.textContent.trim();
+              setStatus("", "");
+            }
+          });
+        });
+      });
+    }
+
+    function applyChipSelection(col, value){
+      if (!value) return;
+      const row = document.querySelector(`.chip-row[data-col="${CSS.escape(col)}"]`);
+      if (!row) return;
+      const chips = Array.from(row.querySelectorAll(".chip"));
+      chips.forEach(c => c.classList.toggle("is-selected", c.textContent.trim() === value));
+      selections[col] = value;
+    }
+
+    // --- Load customer + wizard answers ---
+    async function load(){
+      try{
+        if (!customer_id || !setup_token){
+          throw new Error("Missing customer_id or setup_token in the URL.");
+        }
+
+        setStatus("Loading…", "");
+        hBusiness.textContent = "Loading…";
+        hContact.textContent = "";
+
+        const { data: customer, error } = await sb
+          .from("customers")
+          .select("*")
+          .eq("id", customer_id)
+          .eq("setup_token", setup_token)
           .single();
 
-        if (wErr && wErr.code !== "PGRST116") { // PGRST116 = no rows
-          logSupabaseError("load wizard_answers table failed", wErr);
-          // don’t hard-fail; dashboard can still show basic customer info
-        } else {
-          wizard = wa?.answers || null;
-        }
+        if (error) throw error;
+
+        // Basic header
+        hBusiness.textContent = customer.business_name || "Your business";
+        hContact.textContent = [customer.contact_name, customer.email].filter(Boolean).join(" • ");
+
+        // Wizard pill
+        const wc = !!customer.wizard_completed || !!customer.setup_complete;
+        setPill(wc ? "Wizard: Complete" : "Wizard: In progress", wc ? "success" : "warn");
+
+        // Main summary
+        vPostcode.textContent = customer.base_postcode || "—";
+        vTrade.textContent = customer.trade_type || "—";
+
+        // Wizard answers could be in customer.wizard_answers (json/jsonb)
+        const w = customer.wizard_answers || {};
+
+        // Best-effort mapping (won’t break if keys don’t exist)
+        vCoverage.textContent  = safeStr(w.coverage || w.service_areas || w.service_radius || "—");
+        vCallout.textContent   = safeStr(w.callout || w.callout_fee || w.callout_notes || "—");
+        vTone.textContent      = safeStr(w.tone || w.ai_style || w.ai_style_notes || "—");
+        vChannels.textContent  = safeStr(w.channels || w.channel_list || "—");
+        vReviews.textContent   = safeStr(w.reviews || w.review_link || "—");
+        vDemoSlot.textContent  = safeStr(w.demo_slot || w.demo_time || "—");
+
+        // Lifecycle columns (these MUST exist in customers, otherwise you’ll see blank)
+        vSignupStatus.textContent = customer.signup_status || customer.onboarding_status || "—";
+        vDemoStatus.textContent   = customer.demo_status || "—";
+        vTrialStatus.textContent  = customer.trial_status || "—";
+        vPlanStatus.textContent   = customer.plan_status || customer.plan_name || "—";
+
+        // Apply chips from saved values (if those columns exist)
+        applyChipSelection("signup_status", customer.signup_status || "");
+        applyChipSelection("demo_status", customer.demo_status || "");
+        applyChipSelection("trial_status", customer.trial_status || "");
+        applyChipSelection("plan_status", customer.plan_status || "");
+        applyChipSelection("plan_term", customer.plan_term || "");
+
+        setStatus("", "");
+      } catch(err){
+        console.error("[TBP] load error:", err);
+        setStatus(err?.message || "Failed to load.", "err");
+        hBusiness.textContent = "Failed to load";
+        hContact.textContent = "";
+        setPill("Wizard: Unknown", "neutral");
       }
-
-      // ✅ At this point you have:
-      // - customer (basic info)
-      // - wizard (object or null)
-
-      // Example: show something obvious so you know it loaded
-      console.log("[TBP] Loaded customer:", customer);
-      console.log("[TBP] Loaded wizard answers:", wizard);
-
-      setStatus("");
-
-      // TODO: wire into your UI:
-      // document.getElementById("bizName").textContent = customer.business_name || "—";
-      // document.getElementById("tradeType").textContent = customer.trade_type || "—";
-      // etc.
-      // For wizard values, use wizard?.fieldName
-
-      return { customer, wizard };
-
-    } catch (err) {
-      console.error("[TBP] loadCustomer error:", err);
-      setStatus(err.message || "Failed to load settings.", true);
-      return null;
     }
-  }
 
-  // run
-  loadCustomerAndWizard();
-</script>
+    // --- Button wiring ---
+    btnEditSetup.addEventListener("click", () => {
+      location.href = buildUrl("app.html");
+    });
 
+    btnOpenSecure.addEventListener("click", () => {
+      location.href = buildUrl("dashboard-secure.html");
+    });
+
+    btnSave.addEventListener("click", async () => {
+      try{
+        if (!customer_id || !setup_token) throw new Error("Missing customer_id or setup_token.");
+
+        btnSave.disabled = true;
+        setStatus("Saving…", "");
+
+        // Only save the chip columns we control
+        const payload = {
+          ...selections,
+          updated_at: new Date().toISOString()
+        };
+
+        const { error } = await sb
+          .from("customers")
+          .update(payload)
+          .eq("id", customer_id)
+          .eq("setup_token", setup_token);
+
+        if (error) throw error;
+
+        setStatus("Saved ✔", "ok");
+        setTimeout(() => setStatus("", ""), 1400);
+      } catch(err){
+        console.error("[TBP] save error:", err);
+        setStatus(err?.message || "Save failed.", "err");
+      } finally {
+        btnSave.disabled = false;
+      }
+    });
+
+    // --- Init ---
+    initChips();
+    load();
+  </script>
+</body>
 </html>
