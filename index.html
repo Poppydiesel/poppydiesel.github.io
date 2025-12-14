@@ -1291,8 +1291,7 @@
 </div>
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -1307,7 +1306,7 @@
     throw new Error("Missing #signupForm");
   }
 
-  function setStatus(msg, ok=false){
+  function setStatus(msg, ok = false) {
     if (!statusBox) return;
     statusBox.textContent = msg || "";
     statusBox.className = "signup-status " + (ok ? "signup-status--success" : "signup-status--error");
@@ -1317,15 +1316,22 @@
     return (fd.get(name) ?? "").toString().trim();
   }
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setStatus("");
-
-    if (submitBtn) {
+  function setSaving(isSaving) {
+    if (!submitBtn) return;
+    if (isSaving) {
       submitBtn.disabled = true;
       submitBtn.dataset.originalText = submitBtn.textContent;
       submitBtn.textContent = "Saving…";
+    } else {
+      submitBtn.disabled = false;
+      submitBtn.textContent = submitBtn.dataset.originalText || "Join TradeBotPro (no payment yet)";
     }
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setStatus("");
+    setSaving(true);
 
     try {
       const fd = new FormData(form);
@@ -1375,6 +1381,7 @@
         plan_name: null
       };
 
+      // ✅ Public page must INSERT only (no updates)
       const { data, error } = await sb
         .from("customers")
         .insert(payload)
@@ -1382,10 +1389,20 @@
         .single();
 
       if (error) {
+        // If email already exists, DO NOT auto-redirect away from wizard flow.
+        // Just show the user what happened + give them the secure login link.
         const msg = (error.message || "").toLowerCase();
         if (error.code === "23505" || msg.includes("duplicate")) {
-          setStatus("That email is already registered. Please use Customer Login.", false);
-          window.location.assign("customer-login.html");
+          setStatus(
+            "This email is already registered.\n\nIf you are returning, use Customer Login to access your secure dashboard.",
+            false
+          );
+          // Show a visible link (no forced redirect)
+          if (continueBtn) {
+            continueBtn.href = "customer-login.html";
+            continueBtn.textContent = "Go to Customer Login →";
+            continueBtn.classList.remove("tbp-hidden");
+          }
           return;
         }
         throw error;
@@ -1393,16 +1410,18 @@
 
       if (!data?.id) throw new Error("Saved, but no customer id returned.");
 
+      // Wizard URL (setup_token optional)
       const url = new URL("app.html", window.location.origin);
       url.searchParams.set("customer_id", data.id);
       if (data.setup_token) url.searchParams.set("setup_token", data.setup_token);
 
       if (continueBtn) {
         continueBtn.href = url.toString();
+        continueBtn.textContent = "Continue set up with the Wizard →";
         continueBtn.classList.remove("tbp-hidden");
       }
 
-      setStatus("Saved ✔ Redirecting to setup wizard…", true);
+      setStatus("Saved ✔ Redirecting to your setup wizard…", true);
       window.location.assign(url.toString());
 
     } catch (err) {
@@ -1410,10 +1429,7 @@
       setStatus(err?.message || "Signup failed — check console for details.", false);
       alert(err?.message || "Signup failed — check console for details.");
     } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = submitBtn.dataset.originalText || "Join TradeBotPro (no payment yet)";
-      }
+      setSaving(false);
     }
   });
 </script>
@@ -1422,4 +1438,5 @@
   
 </body>
 </html>
+
 
