@@ -837,13 +837,17 @@
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // ----------------- URL params -----------------
   const qs = new URLSearchParams(location.search);
-  const customer_id = qs.get("customer_id") || qs.get("customerId");
-  const setup_token = qs.get("setup_token") || qs.get("setupToken");
+  const customer_id = (qs.get("customer_id") || qs.get("customerId") || "").trim();
+  const setup_token = (qs.get("setup_token") || qs.get("setupToken") || "").trim();
 
+  // ----------------- DOM helpers -----------------
   const $ = (id) => document.getElementById(id);
 
   function setStatus(msg, ok = true) {
@@ -853,6 +857,11 @@
     el.style.color = ok ? "#0f7b46" : "#b3261e";
   }
 
+  function showFatal(msg) {
+    alert(msg);
+    setStatus(msg, false);
+  }
+
   function dashboardUrl() {
     const u = new URL("client-dashboard.html", location.origin);
     u.searchParams.set("customer_id", customer_id);
@@ -860,106 +869,200 @@
     return u.toString();
   }
 
-  function getField(name) {
-    const byName = document.querySelector(`[name="${name}"]`);
-    const el = byName || $(name);
+  function valFrom(nameOrId) {
+    const byName = document.querySelector(`[name="${nameOrId}"]`);
+    const el = byName || $(nameOrId);
     if (!el) return "";
     if (el.type === "checkbox") return el.checked ? "true" : "false";
     return (el.value ?? "").toString().trim();
   }
 
+  function setVal(nameOrId, v) {
+    const byName = document.querySelector(`[name="${nameOrId}"]`);
+    const el = byName || $(nameOrId);
+    if (!el) return;
+    if (el.type === "checkbox") el.checked = (v === true || v === "true");
+    else el.value = v ?? "";
+  }
+
+  function setDisabled(nameOrId, disabled) {
+    const byName = document.querySelector(`[name="${nameOrId}"]`);
+    const el = byName || $(nameOrId);
+    if (el) el.disabled = !!disabled;
+  }
+
+  // ----------------- Required params -----------------
   if (!customer_id || !setup_token) {
-    alert("Missing customer_id or setup_token. Please restart from the signup form.");
+    showFatal("Missing customer_id or setup_token. Please restart from the signup form.");
     location.assign("index.html#signup");
     throw new Error("Missing params");
   }
 
+  // ----------------- Field map -----------------
+  // These must match your actual input IDs or name="" attributes in app.html
+  const FIELDS = {
+    business_name: "business_name",
+    contact_name: "contact_name",
+    trade_type: "trade_type",
+    base_postcode: "base_postcode",
+    tone: "tone",
+    callout_style: "callout_style",
+  };
+
+  // ----------------- Button wiring (flexible IDs) -----------------
+  const btnSave =
+    $("btn-save") ||
+    $("saveBtn") ||
+    document.querySelector('[data-action="save"]');
+
+  const btnFinish =
+    $("btn-finish") ||
+    $("btn-complete") ||
+    $("completeBtn") ||
+    document.querySelector('[data-action="finish"]');
+
+  const btnBack =
+    $("btn-back-dashboard") ||
+    $("btn-back") ||
+    $("btn-exit") ||
+    document.querySelector('[data-action="dashboard"]');
+
+  function disableButtons(disabled) {
+    [btnSave, btnFinish, btnBack].forEach((b) => {
+      if (b) b.disabled = !!disabled;
+    });
+  }
+
+  // ----------------- Load wizard -----------------
   async function loadWizard() {
     try {
       setStatus("Loading…", true);
+      disableButtons(true);
 
       const { data, error } = await sb.rpc("tbp_customer_load", {
         p_customer_id: customer_id,
-        p_setup_token: setup_token
+        p_setup_token: setup_token,
       });
 
       if (error) throw error;
 
       const row = Array.isArray(data) ? data[0] : data;
-      if (!row?.id) throw new Error("Load failed.");
+      if (!row?.id) {
+        // this is the "token mismatch / no row" case
+        throw new Error("TOKEN_MISMATCH");
+      }
 
-      if ($("business_name")) $("business_name").value = row.business_name || "";
-      if ($("contact_name")) $("contact_name").value = row.contact_name || "";
-      if ($("trade_type")) $("trade_type").value = row.trade_type || "";
-      if ($("base_postcode")) $("base_postcode").value = row.base_postcode || "";
-      if ($("tone")) $("tone").value = row.tone || "";
-      if ($("callout_style")) $("callout_style").value = row.callout_style || "";
+      // Prefill fields
+      setVal(FIELDS.business_name, row.business_name || "");
+      setVal(FIELDS.contact_name, row.contact_name || "");
+      setVal(FIELDS.trade_type, row.trade_type || "");
+      setVal(FIELDS.base_postcode, row.base_postcode || "");
+      setVal(FIELDS.tone, row.tone || "");
+      setVal(FIELDS.callout_style, row.callout_style || "");
 
-      setStatus("", true);
+      // Optional: lock if wizard_locked or wizard_completed
+      const locked = !!row.wizard_locked || !!row.wizard_completed;
+      if (locked) {
+        Object.values(FIELDS).forEach((id) => setDisabled(id, true));
+        if (btnSave) btnSave.style.display = "none"; // hide save if locked
+        setStatus("Wizard is locked ✔ (contact support to unlock)", true);
+      } else {
+        setStatus("", true);
+      }
+
+      disableButtons(false);
     } catch (err) {
       console.error("[TBP] Wizard load error:", err);
-      alert("Wizard link invalid or expired. Please re-submit the signup form to generate a fresh setup link.");
-      setStatus("Wizard link invalid or expired. Please re-submit the signup form.", false);
+
+      const msg =
+        (err?.message || "").includes("TOKEN_MISMATCH")
+          ? "Wizard link invalid or expired. Please re-submit the signup form to generate a fresh setup link."
+          : (err?.message || "Failed to load wizard.");
+
+      showFatal(msg);
+      disableButtons(false);
     }
   }
 
+  // ----------------- Save wizard -----------------
   async function saveWizard({ complete = false, goDashboard = false } = {}) {
     try {
       setStatus("Saving…", true);
+      disableButtons(true);
 
-      const { error } = await sb.rpc("tbp_customer_save_wizard", {
+      const payload = {
         p_customer_id: customer_id,
         p_setup_token: setup_token,
-        p_business_name: getField("business_name"),
-        p_contact_name: getField("contact_name"),
-        p_trade_type: getField("trade_type"),
-        p_base_postcode: getField("base_postcode"),
-        p_tone: getField("tone"),
-        p_callout_style: getField("callout_style"),
-        p_mark_complete: complete
-      });
+        p_business_name: valFrom(FIELDS.business_name),
+        p_contact_name: valFrom(FIELDS.contact_name),
+        p_trade_type: valFrom(FIELDS.trade_type),
+        p_base_postcode: valFrom(FIELDS.base_postcode),
+        p_tone: valFrom(FIELDS.tone),
+        p_callout_style: valFrom(FIELDS.callout_style),
+        p_mark_complete: !!complete,
+      };
 
+      const { error } = await sb.rpc("tbp_customer_save_wizard", payload);
       if (error) throw error;
 
-      setStatus(complete ? "Setup complete ✔ Redirecting…" : "Saved ✔", true);
-
-      if (goDashboard) {
+      if (complete) {
+        setStatus("Setup complete ✔ Redirecting…", true);
         location.assign(dashboardUrl());
+        return;
       }
+
+      setStatus("Saved ✔", true);
+      disableButtons(false);
     } catch (err) {
       console.error("[TBP] Wizard save error:", err);
-      setStatus(err?.message || "Save failed.", false);
-      alert(err?.message || "Save failed.");
+
+      const msg =
+        (err?.message || "").includes("TOKEN_MISMATCH")
+          ? "Could not save. Your setup link is invalid or expired. Please re-submit the signup form to generate a fresh link."
+          : (err?.message || "Save failed.");
+
+      setStatus(msg, false);
+      alert(msg);
+      disableButtons(false);
     }
   }
 
-  // Wire buttons (supports different IDs)
-  const btnSave =
-    $("btn-save") || $("saveBtn") || document.querySelector('[data-action="save"]');
-  if (btnSave) btnSave.addEventListener("click", (e) => {
-    e.preventDefault();
-    saveWizard({ complete: false, goDashboard: false });
-  });
+  // ----------------- Events -----------------
+  if (btnSave) {
+    btnSave.addEventListener("click", (e) => {
+      e.preventDefault();
+      saveWizard({ complete: false, goDashboard: false });
+    });
+  }
 
-  const btnFinish =
-    $("btn-finish") || $("btn-complete") || $("completeBtn") || document.querySelector('[data-action="finish"]');
-  if (btnFinish) btnFinish.addEventListener("click", (e) => {
-    e.preventDefault();
-    saveWizard({ complete: true, goDashboard: true });
-  });
+  if (btnFinish) {
+    btnFinish.addEventListener("click", (e) => {
+      e.preventDefault();
+      saveWizard({ complete: true, goDashboard: true });
+    });
+  }
 
-  const btnBack =
-    $("btn-back-dashboard") || $("btn-back") || $("btn-exit") || document.querySelector('[data-action="dashboard"]');
-  if (btnBack) btnBack.addEventListener("click", (e) => {
-    e.preventDefault();
-    location.assign(dashboardUrl());
-  });
+  if (btnBack) {
+    btnBack.addEventListener("click", (e) => {
+      e.preventDefault();
+      location.assign(dashboardUrl());
+    });
+  }
 
+  // If your page has a <form>, stop it reloading the page and just save
+  const wizardForm = document.querySelector("form");
+  if (wizardForm) {
+    wizardForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      saveWizard({ complete: false, goDashboard: false });
+    });
+  }
+
+  // Go
   loadWizard();
 </script>
 
-</body>
-</html>
 
 </body>
 </html>
+
