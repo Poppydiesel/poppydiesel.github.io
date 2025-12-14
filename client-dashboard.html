@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TradeBotPro — Your Dashboard</title>
+  <title>TradeBotPro — Client Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -31,446 +31,433 @@
       position:sticky; top:0; z-index:20;
     }
     .header-inner{
-      max-width:1100px; margin:0 auto; padding:0.6rem 1.25rem;
-      display:flex; align-items:center; justify-content:space-between; gap:0.75rem; flex-wrap:wrap;
+      max-width:1100px;
+      margin:0 auto;
+      padding:0.7rem 1.25rem;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:1rem;
+      flex-wrap:wrap;
     }
-    .logo-wrap{display:flex;align-items:center;gap:0.6rem}
-    .logo-icon{width:30px;height:30px;border-radius:9px;background:var(--primary-blue);position:relative}
-    .logo-icon::before,.logo-icon::after{content:"";position:absolute;background:var(--white);border-radius:4px}
-    .logo-icon::before{width:11px;height:17px;left:7px;top:6px}
-    .logo-icon::after{width:6px;height:11px;right:7px;top:9px}
-    .logo-main{font-weight:700;font-size:1rem;color:var(--primary-blue)}
-    .logo-tag{font-size:0.75rem;color:var(--muted-text)}
-    .wrap{max-width:1100px;margin:0 auto;padding:1.25rem}
-    .grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,0.8fr);gap:1.25rem;align-items:start}
-    .card{
-      background:rgba(255,255,255,0.92);
-      border-radius:1.2rem;
-      padding:1.2rem 1.25rem;
-      box-shadow:0 24px 60px rgba(15,23,42,0.12),0 0 0 1px rgba(15,23,42,0.03);
+    .brand{
+      display:flex; align-items:center; gap:.6rem;
     }
-    .card h2{margin:0 0 0.4rem;color:var(--primary-blue);font-size:1.15rem}
-    .sub{margin:0 0 0.9rem;color:var(--muted-text);font-size:0.9rem}
-    .kv{display:grid;grid-template-columns:160px 1fr;gap:0.55rem 0.8rem;font-size:0.92rem}
-    .k{color:var(--muted-text)}
-    .v{font-weight:700}
-    .pill{display:inline-flex;align-items:center;padding:0.25rem 0.7rem;border-radius:999px;border:1px solid rgba(0,0,0,0.08);background:#fff;font-size:0.82rem;font-weight:700}
-    .pill.ok{border-color:rgba(15,123,70,0.35); background:#ecfdf5; color:#14532d}
-    .pill.warn{border-color:rgba(179,38,30,0.25); background:#fff1f2; color:#7f1d1d}
-    .btnrow{display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1rem}
+    .logo-icon{
+      width:30px;height:30px;border-radius:9px;background:var(--primary-blue);position:relative;
+    }
+    .logo-icon:before,.logo-icon:after{
+      content:"";position:absolute;background:var(--white);border-radius:4px;
+    }
+    .logo-icon:before{width:11px;height:17px;left:7px;top:6px}
+    .logo-icon:after{width:6px;height:11px;right:7px;top:9px}
+    .brand-title{font-weight:800;color:var(--primary-blue);line-height:1.1}
+    .brand-sub{font-size:.78rem;color:var(--muted-text)}
+    .header-actions{display:flex; gap:.6rem; flex-wrap:wrap}
     .btn{
-      border-radius:999px;border:1px solid transparent;padding:0.55rem 1.1rem;
-      font-size:0.9rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:0.35rem;
-      background:transparent;text-decoration:none;
+      border-radius:999px;
+      border:1px solid transparent;
+      padding:.55rem 1rem;
+      font-size:.88rem;
+      font-weight:600;
+      cursor:pointer;
+      background:transparent;
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
     }
-    .btn-primary{background:linear-gradient(135deg,var(--primary-blue),#163857);color:var(--white);box-shadow:0 12px 28px rgba(15,23,42,0.28)}
-    .btn-secondary{border-color:var(--border-subtle);background:#f9fafb;color:var(--dark-text)}
-    .status{margin-top:0.75rem;font-size:0.9rem;min-height:1.2em}
-    .status.error{color:var(--error-red)}
-    .status.success{color:var(--success-green)}
-    @media (max-width: 900px){.grid{grid-template-columns:1fr}.kv{grid-template-columns:140px 1fr}}
+    .btn-primary{
+      background:linear-gradient(135deg,var(--primary-blue),#163857);
+      color:var(--white);
+      box-shadow:0 12px 28px rgba(15,23,42,0.25);
+    }
+    .btn-secondary{
+      border-color:var(--border-subtle);
+      background:#f9fafb;
+      color:var(--dark-text);
+    }
+    .btn:disabled{opacity:.6; cursor:default; box-shadow:none}
+    main{
+      max-width:1100px;
+      margin:0 auto;
+      padding:1.2rem 1.25rem 2.5rem;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:1rem;
+      align-items:start;
+    }
+    @media (max-width: 900px){
+      .grid{grid-template-columns:1fr}
+    }
+    .card{
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(15,23,42,0.06);
+      border-radius:18px;
+      box-shadow:0 24px 60px rgba(15,23,42,0.10);
+      padding:1rem 1.05rem;
+    }
+    .card h2{
+      margin:0 0 .4rem;
+      font-size:1.05rem;
+      color:var(--primary-blue);
+    }
+    .muted{color:var(--muted-text)}
+    .row{
+      display:flex; gap:.7rem; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    }
+    .kvs{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:.6rem;
+      margin-top:.6rem;
+    }
+    @media (max-width: 600px){
+      .kvs{grid-template-columns:1fr}
+    }
+    .kv{
+      border:1px solid rgba(15,23,42,0.08);
+      background:#f8fafc;
+      border-radius:14px;
+      padding:.65rem .75rem;
+    }
+    .kv .k{font-size:.72rem; text-transform:uppercase; letter-spacing:.12em; color:var(--muted-text)}
+    .kv .v{font-weight:700; margin-top:.15rem}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      padding:.32rem .65rem;
+      border-radius:999px;
+      border:1px solid rgba(15,23,42,0.12);
+      font-size:.82rem;
+      font-weight:700;
+      background:#fff;
+    }
+    .pill.success{border-color:rgba(15,123,70,.35); background:#ecfdf5; color:#0f7b46}
+    .pill.warn{border-color:rgba(245,158,11,.35); background:#fffbeb; color:#92400e}
+    .pill.neutral{border-color:rgba(148,163,184,.5); background:#f1f5f9; color:#334155}
+
+    .chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:.6rem;
+    }
+    .chip{
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,0.12);
+      background:#fff;
+      padding:.4rem .85rem;
+      font-size:.86rem;
+      cursor:pointer;
+      user-select:none;
+      font-weight:600;
+    }
+    .chip.is-selected{
+      outline:2px solid rgba(31,78,121,0.45);
+      background:rgba(31,78,121,0.08);
+      border-color:#1f4e79;
+      color:#1f4e79;
+    }
+
+    .status{
+      margin-top:.8rem;
+      min-height:1.2em;
+      font-size:.85rem;
+    }
+    .status.ok{color:var(--success-green)}
+    .status.err{color:var(--error-red)}
   </style>
 </head>
+
 <body>
-  <nav class="tbp-nav">
-  <a href="./index.html">Home</a>
-  <a href="#" id="tbpEditSetup">Edit setup</a>
-</nav>
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="logo-icon" aria-hidden="true"></div>
+        <div>
+          <div class="brand-title">TradeBotPro</div>
+          <div class="brand-sub">Client Dashboard</div>
+        </div>
+      </div>
 
-<style>
-  .tbp-nav {
-    display: flex;
-    gap: 14px;
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-  .tbp-nav a {
-    text-decoration: none;
-    font-weight: 600;
-  }
-</style>
-
-<header>
-  <div class="header-inner">
-    <div class="logo-wrap">
-      <div class="logo-icon" aria-hidden="true"></div>
-      <div>
-        <div class="logo-main">TradeBotPro</div>
-        <div class="logo-tag">Client dashboard</div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="btn-edit-setup">Edit setup</button>
+        <button class="btn btn-primary" id="btn-save">Save changes</button>
       </div>
     </div>
-    <div class="logo-tag" id="header-business"></div>
-  </div>
-</header>
+  </header>
 
-<div class="wrap">
-  <div class="grid">
-    <section class="card">
-      <h2>Your account</h2>
-      <p class="sub">Only you can see this data (secure login + database rules).</p>
+  <main>
+    <div class="grid">
+      <section class="card">
+        <div class="row">
+          <div>
+            <h2 id="h-business">Loading…</h2>
+            <div class="muted" id="h-contact"></div>
+          </div>
+          <div id="pill-wizard" class="pill neutral">Wizard: Unknown</div>
+        </div>
 
-      <div class="kv" id="kv"></div>
+        <div class="kvs">
+          <div class="kv"><div class="k">Base Postcode</div><div class="v" id="v-postcode">—</div></div>
+          <div class="kv"><div class="k">Trade</div><div class="v" id="v-trade">—</div></div>
+          <div class="kv"><div class="k">Coverage</div><div class="v" id="v-coverage">—</div></div>
+          <div class="kv"><div class="k">Call-out Style</div><div class="v" id="v-callout">—</div></div>
+        </div>
 
-      <div class="btnrow">
-        <a class="btn btn-primary" id="btn-open-wizard" href="#">Open setup wizard</a>
-        <button class="btn btn-secondary" id="btn-logout" type="button">Log out</button>
-      </div>
+        <div class="kvs" style="margin-top:.8rem">
+          <div class="kv"><div class="k">Tone</div><div class="v" id="v-tone">—</div></div>
+          <div class="kv"><div class="k">Channels</div><div class="v" id="v-channels">—</div></div>
+          <div class="kv"><div class="k">Reviews</div><div class="v" id="v-reviews">—</div></div>
+          <div class="kv"><div class="k">Demo slot</div><div class="v" id="v-demo-slot">—</div></div>
+        </div>
 
-      <div class="status" id="status"></div>
-    </section>
+        <div class="status" id="status-msg"></div>
+      </section>
 
-    <aside class="card">
-      <h2>Setup status</h2>
-      <p class="sub">Quick view of what’s done so far.</p>
-      <div id="setup-badges"></div>
-    </aside>
-  </div>
-</div>
+      <aside class="card">
+        <h2>Onboarding status</h2>
+        <div class="muted">Set where you are in the journey.</div>
 
-<!-- Supabase UMD (single include) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
+        <div class="chip-row" data-field="onboarding_status" data-select="single">
+          <button type="button" class="chip">Demo pending</button>
+          <button type="button" class="chip">Demo booked</button>
+          <button type="button" class="chip">Free trial</button>
+          <button type="button" class="chip">Live</button>
+        </div>
 
-<script>
-(function () {
-  window.addEventListener("error", (e) => {
-    console.error("[TBP] JS Error:", e.message, "at", e.filename, "line", e.lineno);
-  });
-  window.addEventListener("unhandledrejection", (e) => {
-    console.error("[TBP] Unhandled Promise:", e.reason);
-  });
+        <div style="height:.8rem"></div>
 
-  function bootWhenSupabaseReady() {
-    if (typeof window.supabase === "undefined") {
-      console.error("[TBP] Supabase UMD not loaded yet. Retrying...");
-      return setTimeout(bootWhenSupabaseReady, 50);
+        <h2>Subscription</h2>
+        <div class="muted">Pick your plan (can be changed later).</div>
+
+        <div class="chip-row" data-field="subscription_plan" data-select="single">
+          <button type="button" class="chip">No plan chosen</button>
+          <button type="button" class="chip">Starter</button>
+          <button type="button" class="chip">Pro</button>
+          <button type="button" class="chip">Elite</button>
+        </div>
+
+        <div class="chip-row" data-field="subscription_term" data-select="single" style="margin-top:.5rem">
+          <button type="button" class="chip">Monthly</button>
+          <button type="button" class="chip">Yearly</button>
+        </div>
+
+        <div style="height:.9rem"></div>
+
+        <h2>Quick actions</h2>
+        <div class="muted">These just take you to the right pages.</div>
+
+        <div class="chip-row" style="margin-top:.6rem">
+          <button type="button" class="btn btn-secondary" id="btn-open-dashboard">Open secure dashboard</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
+  <script>
+  (function () {
+    function bootWhenSupabaseReady() {
+      if (!window.supabase) return setTimeout(bootWhenSupabaseReady, 50);
+      boot();
     }
-    boot();
-  }
 
-  function boot() {
-    // ==== CONFIG (YOUR KEYS) ====
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    function boot() {
+      const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ✅ ROLE-BASED REDIRECT (clients → client dashboard, admins → secure admin dashboard)
-    async function redirectAfterWizard() {
-      const { data: { session } } = await sb.auth.getSession();
+      const qs = new URLSearchParams(window.location.search);
+      const customer_id = (qs.get("customer_id") || "").trim();
+      const setup_token = (qs.get("setup_token") || "").trim();
+      const isPublic = !!(customer_id && setup_token);
 
-      if (!session) {
-        window.location.href = "/login.html";
-        return;
+      // UI refs
+      const statusMsg = document.getElementById("status-msg");
+      const btnSave = document.getElementById("btn-save");
+      const btnEditSetup = document.getElementById("btn-edit-setup");
+      const btnOpenSecure = document.getElementById("btn-open-dashboard");
+
+      const hBusiness = document.getElementById("h-business");
+      const hContact = document.getElementById("h-contact");
+      const pillWizard = document.getElementById("pill-wizard");
+
+      const vPostcode = document.getElementById("v-postcode");
+      const vTrade = document.getElementById("v-trade");
+      const vCoverage = document.getElementById("v-coverage");
+      const vCallout = document.getElementById("v-callout");
+
+      const vTone = document.getElementById("v-tone");
+      const vChannels = document.getElementById("v-channels");
+      const vReviews = document.getElementById("v-reviews");
+      const vDemoSlot = document.getElementById("v-demo-slot");
+
+      let customerRow = null;
+      let wizardAnswers = {};
+
+      function setStatus(msg, type) {
+        statusMsg.textContent = msg || "";
+        statusMsg.className = "status" + (type ? " " + type : "");
       }
 
-      const { data: admin, error } = await sb
-        .from("admin_users")
-        .select("user_id")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error("[TBP] Role check failed:", error);
-        window.location.href = "/login.html";
-        return;
+      function safeJoin(arr) {
+        return (Array.isArray(arr) && arr.length) ? arr.join(", ") : "—";
       }
 
-      window.location.href = admin ? "/dashboard-secure.html" : "/client-dashboard.html";
-    }
+      function pill(text, variant) {
+        pillWizard.textContent = text;
+        pillWizard.className = "pill " + variant;
+      }
 
-    const params = new URLSearchParams(location.search);
-    const customer_id = (params.get("customer_id") || "").trim();
-
-    // ==== ELEMENTS ====
-    const panels = Array.from(document.querySelectorAll(".step-panel"));
-    const stepDots = Array.from(document.querySelectorAll(".step-dot"));
-    const progressInner = document.getElementById("progress-bar-inner");
-    const progressText = document.getElementById("progress-percent");
-
-    const wizardStepLabel = document.getElementById("wizard-step-label");
-    const wizardStepTitle = document.getElementById("wizard-step-title");
-    const wizardStepSubtitle = document.getElementById("wizard-step-subtitle");
-    const footerText = document.getElementById("wizard-footer-text");
-    const statusEl = document.getElementById("wizard-status-message");
-
-    const btnBack = document.getElementById("btn-back");
-    const btnNext = document.getElementById("btn-next");
-    const btnSaveDraft = document.getElementById("btn-save-draft");
-    const btnDashboard = document.getElementById("btn-dashboard");
-
-    const summaryBoxEl = document.getElementById("summary-box");
-
-    // Ensure chip buttons can never submit anything (safe)
-    document.querySelectorAll(".chip-row .chip").forEach(b => {
-      if (b.tagName === "BUTTON") b.type = "button";
-      b.setAttribute("aria-pressed", "false");
-    });
-
-    let currentStep = 1;
-    const totalSteps = 4;
-
-    const answers = {
-      contact_name: "",
-      business_name: "",
-      email: "",
-      phone: "",
-      base_postcode: "",
-      review_link: "",
-      ai_avoid: "",
-      extra_notes: "",
-      main_trade: null,
-      business_stage: null,
-      coverage_radius: null,
-      callout_style: null,
-      callout_band: null,
-      preferred_jobs: [],
-      tone_of_voice: null,
-      channels: [],
-      review_platforms: [],
-      review_push_level: null,
-      demo_style: [],
-      demo_slot: null,
-      golive_timing: null
-    };
-
-    function setStatus(msg, type) {
-      statusEl.textContent = msg || "";
-      statusEl.className = "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
-    }
-
-    function stepMeta(step) {
-      if (step === 1) return {
-        label: "Step 1",
-        title: "Business basics",
-        subtitle: "Who are you, what do you do and how do you like to run things?"
-      };
-      if (step === 2) return {
-        label: "Step 2",
-        title: "Area & pricing",
-        subtitle: "Where you cover and how you like to charge."
-      };
-      if (step === 3) return {
-        label: "Step 3",
-        title: "Messaging & reviews",
-        subtitle: "How the AI should talk and where reviews should go."
-      };
-      return {
-        label: "Step 4",
-        title: "Demo & go-live",
-        subtitle: "How you want to test it and when you’d like to go live."
-      };
-    }
-
-    function renderStep() {
-      panels.forEach(p => p.classList.remove("is-active"));
-      const active = document.querySelector(`.step-panel[data-step="${currentStep}"]`);
-      if (active) active.classList.add("is-active");
-
-      stepDots.forEach(d => {
-        const n = parseInt(d.getAttribute("data-step-dot"), 10);
-        d.classList.toggle("is-active", n === currentStep);
-        d.classList.toggle("is-complete", n < currentStep);
-      });
-
-      const pct = Math.round(((currentStep - 1) / (totalSteps - 1)) * 100);
-      progressInner.style.width = `${pct}%`;
-      progressText.textContent = `Step ${currentStep} of ${totalSteps}`;
-
-      const meta = stepMeta(currentStep);
-      wizardStepLabel.textContent = meta.label;
-      wizardStepTitle.textContent = meta.title;
-      wizardStepSubtitle.textContent = meta.subtitle;
-
-      footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${totalSteps}</strong>. You can tweak anything later.`;
-
-      btnBack.disabled = currentStep === 1;
-
-      btnNext.textContent = (currentStep === totalSteps) ? "Finish →" : "Next step →";
-    }
-
-    function readInputsIntoAnswers() {
-      const v = (x) => (x ?? "").toString().trim();
-      answers.contact_name = v(document.getElementById("contact_name")?.value);
-      answers.business_name = v(document.getElementById("business_name")?.value);
-      answers.email = v(document.getElementById("contact_email")?.value);
-      answers.phone = v(document.getElementById("contact_mobile")?.value);
-      answers.base_postcode = v(document.getElementById("base_postcode")?.value);
-      answers.review_link = v(document.getElementById("review_link")?.value);
-      answers.ai_avoid = v(document.getElementById("ai_avoid")?.value);
-      answers.extra_notes = v(document.getElementById("extra_notes")?.value);
-    }
-
-    function applyChipVisualsFromAnswers() {
-      document.querySelectorAll(".chip-row").forEach(row => {
-        const field = row.getAttribute("data-field");
-        const mode = row.getAttribute("data-select");
-        if (!field || !mode) return;
-
-        const chips = Array.from(row.querySelectorAll(".chip"));
-        chips.forEach(ch => {
-          const label = (ch.textContent || "").trim();
-          let selected = false;
-
-          if (mode === "single") selected = answers[field] === label;
-          else selected = (Array.isArray(answers[field]) ? answers[field] : []).includes(label);
-
-          ch.classList.toggle("is-selected", selected);
-          ch.setAttribute("aria-pressed", selected ? "true" : "false");
+      // Chips (single source of truth: wizardAnswers[field])
+      function applyChipVisuals() {
+        document.querySelectorAll(".chip-row[data-field]").forEach(row => {
+          const field = row.getAttribute("data-field");
+          const mode = row.getAttribute("data-select") || "single";
+          const chips = Array.from(row.querySelectorAll(".chip"));
+          chips.forEach(ch => {
+            const label = (ch.textContent || "").trim();
+            let selected = false;
+            if (mode === "single") selected = wizardAnswers[field] === label;
+            else selected = (Array.isArray(wizardAnswers[field]) ? wizardAnswers[field] : []).includes(label);
+            ch.classList.toggle("is-selected", selected);
+          });
         });
+      }
+
+      document.addEventListener("click", (e) => {
+        const chip = e.target.closest(".chip-row .chip");
+        if (!chip) return;
+
+        const row = chip.closest(".chip-row[data-field]");
+        if (!row) return;
+
+        e.preventDefault();
+        const field = row.getAttribute("data-field");
+        const mode = row.getAttribute("data-select") || "single";
+        const label = (chip.textContent || "").trim();
+
+        if (mode === "single") {
+          wizardAnswers[field] = label;
+        } else {
+          if (!Array.isArray(wizardAnswers[field])) wizardAnswers[field] = [];
+          const idx = wizardAnswers[field].indexOf(label);
+          if (idx >= 0) wizardAnswers[field].splice(idx, 1);
+          else wizardAnswers[field].push(label);
+        }
+
+        applyChipVisuals();
       });
-    }
 
-    document.addEventListener("click", (e) => {
-      const chip = e.target.closest(".chip-row .chip");
-      if (!chip) return;
+      function render() {
+        const bn = customerRow?.business_name || "Your business";
+        const cn = customerRow?.contact_name || "";
+        const em = customerRow?.email || "";
+        const ph = customerRow?.phone || customerRow?.whatsapp_number || "";
 
-      const row = chip.closest(".chip-row");
-      if (!row) return;
+        hBusiness.textContent = bn;
+        hContact.textContent = [cn, em, ph].filter(Boolean).join(" • ");
 
-      const field = row.getAttribute("data-field");
-      const mode = row.getAttribute("data-select");
-      if (!field || !mode) return;
+        vPostcode.textContent = customerRow?.base_postcode || "—";
+        vTrade.textContent = wizardAnswers.main_trade || "—";
+        vCoverage.textContent = wizardAnswers.coverage_radius || "—";
+        vCallout.textContent = wizardAnswers.callout_style || "—";
 
-      const label = (chip.textContent || "").trim();
+        vTone.textContent = wizardAnswers.tone_of_voice || "—";
+        vChannels.textContent = safeJoin(wizardAnswers.channels);
+        vReviews.textContent = safeJoin(wizardAnswers.review_platforms);
+        vDemoSlot.textContent = wizardAnswers.demo_slot || "—";
 
-      if (mode === "single") {
-        answers[field] = label;
-      } else {
-        if (!Array.isArray(answers[field])) answers[field] = [];
-        const idx = answers[field].indexOf(label);
-        if (idx >= 0) answers[field].splice(idx, 1);
-        else answers[field].push(label);
+        const wc = !!customerRow?.wizard_completed;
+        if (wc) pill("Wizard: Complete", "success");
+        else pill("Wizard: In progress", "warn");
+
+        applyChipVisuals();
       }
 
-      applyChipVisualsFromAnswers();
-    }, true);
-
-    // Save draft to localStorage (browser only)
-    btnSaveDraft.addEventListener("click", () => {
-      readInputsIntoAnswers();
-      localStorage.setItem("tbp_wizard_draft", JSON.stringify({ answers, customer_id, ts: Date.now() }));
-      setStatus("Draft saved in this browser.", "success");
-    });
-
-    // Back / Next navigation
-    btnBack.addEventListener("click", () => {
-      setStatus("");
-      if (currentStep > 1) {
-        currentStep -= 1;
-        renderStep();
-      }
-    });
-
-    btnNext.addEventListener("click", async () => {
-      setStatus("");
-      readInputsIntoAnswers();
-
-      if (currentStep === 1) {
-        if (!answers.contact_name || !answers.business_name) {
-          setStatus("Please enter contact name and business name.", "error");
-          return;
+      async function loadCustomer() {
+        if (!isPublic) {
+          setStatus("Missing customer link. Please open this dashboard from your setup email/link.", "err");
+          return false;
         }
-        if (!answers.email && !answers.phone) {
-          setStatus("Please enter an email or a mobile number.", "error");
-          return;
+
+        setStatus("Loading your profile…");
+
+        const { data, error } = await sb
+          .from("customers")
+          .select("id, setup_token, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers, wizard_completed, wizard_completed_at")
+          .eq("id", customer_id)
+          .eq("setup_token", setup_token)
+          .single();
+
+        if (error || !data) {
+          console.error("[TBP] loadCustomer error:", error);
+          setStatus("Could not load your dashboard. Please check your link or log in.", "err");
+          return false;
         }
+
+        customerRow = data;
+        wizardAnswers = (data.wizard_answers && typeof data.wizard_answers === "object") ? data.wizard_answers : {};
+
+        // Ensure defaults exist for new dashboard controls
+        if (!wizardAnswers.onboarding_status) wizardAnswers.onboarding_status = "Demo pending";
+        if (!wizardAnswers.subscription_plan) wizardAnswers.subscription_plan = "No plan chosen";
+        if (!wizardAnswers.subscription_term) wizardAnswers.subscription_term = "Monthly";
+
+        render();
+        setStatus("");
+        return true;
       }
 
-      if (currentStep < totalSteps) {
-        currentStep += 1;
-        renderStep();
-        return;
-      }
+      async function saveDashboardChanges() {
+        if (!customerRow?.id) return;
 
-      if (!customer_id) {
-        setStatus("Missing customer_id in the URL. Please start from the signup form link.", "error");
-        return;
-      }
+        btnSave.disabled = true;
+        setStatus("Saving…");
 
-      btnNext.disabled = true;
-      setStatus("Saving…");
-
-      try {
         const patch = {
-          contact_name: answers.contact_name || null,
-          business_name: answers.business_name || null,
-          email: answers.email || null,
-          phone: answers.phone || null,
-          base_postcode: answers.base_postcode || null,
-
-          wizard_answers: answers,
-          wizard_completed: true,
-          wizard_completed_at: new Date().toISOString()
+          wizard_answers: wizardAnswers
         };
 
         const { error } = await sb
           .from("customers")
           .update(patch)
-          .eq("id", customer_id);
-
-        if (error) throw error;
-
-        setStatus("Saved. Wizard complete ✅", "success");
-        if (summaryBoxEl) summaryBoxEl.hidden = false;
-
-        btnNext.style.display = "none";
-        btnDashboard.style.display = "inline-flex";
-
-        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-      } catch (err) {
-        console.error("[TBP] Finish save error:", err);
-        setStatus("Couldn’t save right now. Please try again.", "error");
-        btnNext.disabled = false;
-      }
-    });
-
-    // ✅ REPLACED: Back to dashboard now sends admins to secure admin dashboard + clients to client dashboard
-    btnDashboard.addEventListener("click", (e) => {
-      e.preventDefault();
-      redirectAfterWizard();
-    });
-
-    // Prefill from customers row
-    async function prefillFromCustomer() {
-      if (!customer_id) return;
-
-      try {
-        const { data, error } = await sb
-          .from("customers")
-          .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers")
           .eq("id", customer_id)
-          .single();
+          .eq("setup_token", setup_token);
 
-        if (error) throw error;
+        btnSave.disabled = false;
 
-        if (data?.contact_name) document.getElementById("contact_name").value = data.contact_name;
-        if (data?.business_name) document.getElementById("business_name").value = data.business_name;
-        if (data?.email) document.getElementById("contact_email").value = data.email;
-
-        const phone = data?.phone || data?.whatsapp_number || "";
-        if (phone) document.getElementById("contact_mobile").value = phone;
-
-        if (data?.base_postcode) document.getElementById("base_postcode").value = data.base_postcode;
-
-        if (data?.wizard_answers && typeof data.wizard_answers === "object") {
-          Object.assign(answers, data.wizard_answers);
+        if (error) {
+          console.error("[TBP] saveDashboardChanges error:", error);
+          setStatus("Couldn’t save right now. Please try again.", "err");
+          return;
         }
 
-        readInputsIntoAnswers();
-        applyChipVisualsFromAnswers();
-      } catch (err) {
-        console.error("[TBP] Prefill failed:", err);
+        setStatus("Saved ✅", "ok");
+        setTimeout(() => setStatus(""), 1500);
       }
+
+      // Buttons
+      btnSave?.addEventListener("click", saveDashboardChanges);
+
+      btnEditSetup?.addEventListener("click", () => {
+        window.location.href = `/app.html?customer_id=${encodeURIComponent(customer_id)}&setup_token=${encodeURIComponent(setup_token)}`;
+      });
+
+      btnOpenSecure?.addEventListener("click", () => {
+        window.location.href = "/dashboard-secure.html";
+      });
+
+      (async function init(){
+        await loadCustomer();
+      })();
     }
 
-    renderStep();
-    prefillFromCustomer();
-
-    window.TBP = { sb, customer_id, answers, redirectAfterWizard };
-  }
-
-  bootWhenSupabaseReady();
-})();
-</script>
-
+    bootWhenSupabaseReady();
+  })();
+  </script>
 </body>
 </html>
