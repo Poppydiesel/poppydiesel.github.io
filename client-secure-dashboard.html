@@ -1,84 +1,186 @@
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  const biz = document.getElementById("biz");
-  const who = document.getElementById("who");
-  const status = document.getElementById("status");
-  const errEl = document.getElementById("err");
-
-  function setErr(t){
-    if (!errEl) return;
-    errEl.textContent = t || "";
-  }
-
-  document.getElementById("btnLogout").addEventListener("click", async () => {
-    await sb.auth.signOut();
-    location.href = "customer-login.html";
-  });
-
-  async function linkAuthUserToCustomerByEmail(user){
-    const email = (user?.email || "").trim().toLowerCase();
-    if (!email) return;
-
-    // Find customer by email
-    const { data: cust, error: findErr } = await sb
-      .from("customers")
-      .select("id, auth_user_id")
-      .eq("email", email)
-      .single();
-
-    if (findErr || !cust) return;
-
-    // If not linked, link it once
-    if (!cust.auth_user_id) {
-      const { error: upErr } = await sb
-        .from("customers")
-        .update({ auth_user_id: user.id })
-        .eq("id", cust.id);
-
-      if (upErr) console.warn("[TBP] link auth_user_id failed:", upErr);
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>TradeBotPro — Secure Client Dashboard</title>
+  <style>
+    :root{
+      --primary:#1f4e79;
+      --bg:#f3f4f9;
+      --text:#151820;
+      --muted:#6b7280;
+      --border:rgba(15,23,42,.12);
+      --err:#b3261e;
+      --ok:#0f7b46;
+      --white:#fff;
     }
-  }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    header{background:var(--white);border-bottom:1px solid var(--border)}
+    .inner{max-width:1100px;margin:0 auto;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .brand{font-weight:900}
+    .muted{color:var(--muted)}
+    .btn{border-radius:999px;padding:10px 14px;border:1px solid var(--border);background:#fff;font-weight:800;cursor:pointer}
+    .btnPrimary{background:var(--primary);color:#fff;border-color:transparent}
+    main{max-width:1100px;margin:0 auto;padding:18px}
+    .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 20px 50px rgba(15,23,42,.10)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .pill{display:inline-flex;padding:6px 10px;border-radius:999px;font-weight:900;border:1px solid var(--border);background:#f8fafc}
+    #err{margin-top:10px;color:var(--err);font-weight:900;white-space:pre-wrap}
+    #ok{margin-top:10px;color:var(--ok);font-weight:900}
+    code{background:#f1f5f9;padding:2px 6px;border-radius:8px}
+  </style>
+</head>
 
-  async function boot(){
-    // Ensure session exists
-    const { data: { user } } = await sb.auth.getUser();
-    if (!user) {
+<body>
+  <header>
+    <div class="inner">
+      <div>
+        <div class="brand">TradeBotPro</div>
+        <div class="muted">Secure Client Dashboard</div>
+      </div>
+      <div class="row">
+        <button id="btnLogin" class="btn btnPrimary" type="button" style="display:none">Go to login</button>
+        <button id="btnLogout" class="btn" type="button">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="row">
+        <div>
+          <h2 id="biz" style="margin:0 0 6px">Loading…</h2>
+          <div id="who" class="muted"></div>
+        </div>
+        <div id="status" class="pill">Status: —</div>
+      </div>
+
+      <div id="ok"></div>
+      <div id="err"></div>
+
+      <div class="muted" style="margin-top:14px;font-size:14px">
+        If you just clicked a magic link, the URL may include <code>?code=...</code> — this page will exchange it automatically.
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const biz = document.getElementById("biz");
+    const who = document.getElementById("who");
+    const status = document.getElementById("status");
+    const errEl = document.getElementById("err");
+    const okEl = document.getElementById("ok");
+    const btnLogout = document.getElementById("btnLogout");
+    const btnLogin = document.getElementById("btnLogin");
+
+    function setErr(msg){
+      errEl.textContent = msg || "";
+    }
+    function setOk(msg){
+      okEl.textContent = msg || "";
+    }
+
+    btnLogin.addEventListener("click", () => {
       location.href = "customer-login.html";
-      return;
+    });
+
+    btnLogout.addEventListener("click", async () => {
+      await sb.auth.signOut();
+      location.href = "customer-login.html";
+    });
+
+    async function exchangeIfNeeded(){
+      // If magic link returned us with ?code=..., exchange it for a session
+      const url = new URL(location.href);
+      if (url.searchParams.get("code")) {
+        const { error } = await sb.auth.exchangeCodeForSession(location.href);
+        if (error) throw error;
+
+        // Clean URL (remove code param) so refreshes are clean
+        url.searchParams.delete("code");
+        history.replaceState({}, "", url.toString());
+      }
     }
 
-    // First login: attempt linking by email
-    await linkAuthUserToCustomerByEmail(user);
+    async function linkAuthUserToCustomerByEmail(user){
+      const email = (user?.email || "").trim().toLowerCase();
+      if (!email) return;
 
-    // Load customer by auth_user_id
-    const { data, error } = await sb
-      .from("customers")
-      .select("business_name, contact_name, email, signup_status, demo_status, trial_status, plan_status")
-      .eq("auth_user_id", user.id)
-      .single();
+      // find customer by email (requires your RLS policies)
+      const { data: cust, error: findErr } = await sb
+        .from("customers")
+        .select("id, auth_user_id")
+        .eq("email", email)
+        .single();
 
-    if (error) {
-      console.error("[TBP] secure dashboard load error:", error);
-      setErr(error.message || "Failed to load customer record.");
-      if (biz) biz.textContent = "Could not load";
-      return;
+      if (findErr || !cust) return;
+
+      // link once if not linked
+      if (!cust.auth_user_id) {
+        const { error: upErr } = await sb
+          .from("customers")
+          .update({ auth_user_id: user.id })
+          .eq("id", cust.id);
+
+        if (upErr) console.warn("[TBP] link auth_user_id failed:", upErr);
+      }
     }
 
-    if (biz) biz.textContent = data.business_name || "Your business";
-    if (who) who.textContent = [data.contact_name, data.email].filter(Boolean).join(" • ");
-    if (status) status.textContent = "Status: " + (data.signup_status || "—");
-    setErr("");
-  }
+    async function boot(){
+      try{
+        setErr("");
+        setOk("");
 
-  boot();
-</script>
-</body>
-</html>
+        // 1) Exchange code if present
+        await exchangeIfNeeded();
 
+        // 2) Confirm logged-in user
+        const { data: { user } } = await sb.auth.getUser();
+        if (!user) {
+          biz.textContent = "Not logged in";
+          who.textContent = "Please use the secure login link.";
+          status.textContent = "Status: —";
+          btnLogin.style.display = "";
+          btnLogout.style.display = "none";
+          return;
+        }
+
+        // 3) Link auth_user_id to customers row (first login)
+        await linkAuthUserToCustomerByEmail(user);
+
+        // 4) Load customer record by auth_user_id
+        const { data, error } = await sb
+          .from("customers")
+          .select("business_name, contact_name, email, signup_status, demo_status, trial_status, plan_status")
+          .eq("auth_user_id", user.id)
+          .single();
+
+        if (error) throw error;
+
+        biz.textContent = data.business_name || "Your business";
+        who.textContent = [data.contact_name, data.email].filter(Boolean).join(" • ");
+        status.textContent = "Status: " + (data.signup_status || "—");
+        setOk("Secure access confirmed ✔");
+      } catch(e){
+        console.error("[TBP] client-secure-dashboard error:", e);
+        biz.textContent = "Could not load";
+        who.textContent = "";
+        status.textContent = "Status: —";
+        setErr(
+          (e?.message || "Unknown error") +
+          "\\n\\nOpen DevTools → Console for details."
+        );
+      }
+    }
+
+    boot();
+  </script>
 </body>
 </html>
