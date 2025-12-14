@@ -1320,7 +1320,7 @@
   function val(fd, name){ return (fd.get(name) ?? "").toString().trim(); }
 
   if(!form){
-    alert("Missing #signupForm");
+    alert("TradeBotPro error: signup form not found (missing id='signupForm').");
     throw new Error("Missing #signupForm");
   }
 
@@ -1334,7 +1334,7 @@
 
       const contact_name    = val(fd, "contact_name");
       const business_name   = val(fd, "business_name");
-      const email           = val(fd, "email").toLowerCase();
+      const email           = val(fd, "email").trim().toLowerCase();
       const whatsapp_number = val(fd, "whatsapp_number");
       const trade_type      = val(fd, "trade_type");
       const service_area    = val(fd, "service_area");
@@ -1347,6 +1347,7 @@
       if (!trade_type) throw new Error("Please select a Trade type.");
       if (!service_area) throw new Error("Please enter Main service area.");
 
+      // ✅ MUST match SQL arg names exactly:
       const { data, error } = await sb.rpc("tbp_public_signup", {
         p_contact_name: contact_name,
         p_business_name: business_name,
@@ -1380,6 +1381,7 @@
 
       setStatus("Saved ✔ Redirecting to your setup wizard…", true);
       window.location.assign(url.toString());
+
     }catch(err){
       console.error("[TBP] Homepage signup failed:", err);
       setStatus(err?.message || "Signup failed — check console for details.", false);
@@ -1392,6 +1394,11 @@
 
 </body>
 </html>
+
+
+</body>
+</html>
+
 
 
 
