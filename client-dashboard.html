@@ -296,7 +296,7 @@
     </div>
   </main>
 
-  <script type="module">
+<script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
@@ -304,39 +304,35 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const qs = new URLSearchParams(location.search);
-  const customer_id = qs.get("customer_id") || qs.get("user_id") || qs.get("signup_id") || "";
-  const setup_token = qs.get("setup_token") || qs.get("token") || "";
+  const customer_id = qs.get("customer_id") || "";
+  const setup_token = qs.get("setup_token") || "";
 
   const el = (id) => document.getElementById(id);
 
-  // Buttons (must exist in your HTML)
-  const btnEditSetup = el("btn-edit-setup");
-  const btnOpenSecure = el("btn-open-secure");
-  const btnSave = el("btn-save"); // will be disabled for client
-
-  // Display elements
   const hBusiness = el("h-business");
-  const hContact = el("h-contact");
+  const hContact  = el("h-contact");
   const pillWizard = el("pill-wizard");
   const statusMsg = el("status-msg");
 
-  const vPostcode = el("v-postcode");
-  const vTrade = el("v-trade");
-  const vCoverage = el("v-coverage");
-  const vCallout = el("v-callout");
-  const vTone = el("v-tone");
-  const vChannels = el("v-channels");
-  const vReviews = el("v-reviews");
-  const vDemoSlot = el("v-demo-slot");
+  const vPostcode  = el("v-postcode");
+  const vTrade     = el("v-trade");
+  const vCoverage  = el("v-coverage");
+  const vCallout   = el("v-callout");
+  const vTone      = el("v-tone");
+  const vChannels  = el("v-channels");
+  const vReviews   = el("v-reviews");
+  const vDemoSlot  = el("v-demo-slot");
 
   const vSignupStatus = el("v-signup-status");
-  const vDemoStatus = el("v-demo-status");
-  const vTrialStatus = el("v-trial-status");
-  const vPlanStatus = el("v-plan-status");
+  const vDemoStatus   = el("v-demo-status");
+  const vTrialStatus  = el("v-trial-status");
+  const vPlanStatus   = el("v-plan-status");
 
-  function setStatus(text, kind=""){
+  const btnOpenSecure = el("btn-open-secure");
+
+  function setStatus(t, kind=""){
     if (!statusMsg) return;
-    statusMsg.textContent = text || "";
+    statusMsg.textContent = t || "";
     statusMsg.className = "status" + (kind ? " " + kind : "");
   }
 
@@ -347,35 +343,23 @@
     pillWizard.classList.add(type);
   }
 
-  function buildUrl(page){
-    const u = new URL(page, location.origin);
-    u.searchParams.set("customer_id", customer_id);
-    u.searchParams.set("setup_token", setup_token);
-    return u.toString();
-  }
-
-  function safeStr(x){ return (x ?? "").toString().trim(); }
-
-  // --- Lock chips (client cannot click) ---
-  function lockChipRows(){
-    document.querySelectorAll(".chip-row").forEach(row => {
-      row.classList.add("is-locked"); // your CSS can use this
-      row.querySelectorAll(".chip").forEach(chip => {
-        chip.style.pointerEvents = "none";
-        chip.style.opacity = chip.classList.contains("is-selected") ? "1" : "0.55";
-        chip.title = "Managed by TradeBotPro";
-      });
-    });
-  }
-
-  function applyChipSelection(col, value){
+  function applyChip(col, value){
     if (!value) return;
     const row = document.querySelector(`.chip-row[data-col="${CSS.escape(col)}"]`);
     if (!row) return;
-    const chips = Array.from(row.querySelectorAll(".chip"));
-    chips.forEach(c => {
-      const on = c.textContent.trim() === value;
-      c.classList.toggle("is-selected", on);
+    row.querySelectorAll(".chip").forEach(chip => {
+      chip.classList.toggle("is-selected", chip.textContent.trim() === value);
+    });
+  }
+
+  function lockAllChips(){
+    document.querySelectorAll(".chip-row").forEach(row => {
+      row.classList.add("is-locked");
+      row.querySelectorAll(".chip").forEach(chip => {
+        chip.style.pointerEvents = "none";
+        chip.title = "Managed by TradeBotPro";
+        chip.style.opacity = chip.classList.contains("is-selected") ? "1" : "0.55";
+      });
     });
   }
 
@@ -384,10 +368,8 @@
       if (!customer_id || !setup_token) throw new Error("Missing customer_id or setup_token in URL.");
 
       setStatus("Loading…");
-      if (hBusiness) hBusiness.textContent = "Loading…";
-      if (hContact) hContact.textContent = "";
 
-      const { data: customer, error } = await sb
+      const { data: c, error } = await sb
         .from("customers")
         .select("*")
         .eq("id", customer_id)
@@ -396,66 +378,50 @@
 
       if (error) throw error;
 
-      // Header
-      if (hBusiness) hBusiness.textContent = customer.business_name || "Your business";
-      if (hContact) hContact.textContent = [customer.contact_name, customer.email].filter(Boolean).join(" • ");
+      if (hBusiness) hBusiness.textContent = c.business_name || "Your business";
+      if (hContact) hContact.textContent = [c.contact_name, c.email].filter(Boolean).join(" • ");
 
-      // Wizard pill
-      const wc = !!customer.wizard_completed || !!customer.setup_complete;
-      setPill(wc ? "Wizard: Complete" : "Wizard: In progress", wc ? "success" : "warn");
+      const done = !!c.wizard_completed || !!c.setup_complete;
+      setPill(done ? "Wizard: Complete" : "Wizard: In progress", done ? "success" : "warn");
 
-      // Business summary
-      if (vPostcode) vPostcode.textContent = customer.base_postcode || "—";
-      if (vTrade) vTrade.textContent = customer.trade_type || "—";
+      if (vPostcode) vPostcode.textContent = c.base_postcode || "—";
+      if (vTrade) vTrade.textContent = c.trade_type || "—";
 
-      // Wizard answers (json/jsonb)
-      const w = customer.wizard_answers || {};
-      if (vCoverage) vCoverage.textContent  = safeStr(w.coverage || w.service_areas || w.service_radius || "—");
-      if (vCallout) vCallout.textContent    = safeStr(w.callout || w.callout_fee || w.callout_notes || "—");
-      if (vTone) vTone.textContent          = safeStr(w.tone || w.ai_style || w.ai_style_notes || "—");
-      if (vChannels) vChannels.textContent  = safeStr(w.channels || w.channel_list || "—");
-      if (vReviews) vReviews.textContent    = safeStr(w.reviews || w.review_link || "—");
-      if (vDemoSlot) vDemoSlot.textContent  = safeStr(w.demo_slot || w.demo_time || "—");
+      const w = c.wizard_answers || {};
+      if (vCoverage) vCoverage.textContent = (w.coverage || w.service_areas || w.service_radius || "—").toString();
+      if (vCallout) vCallout.textContent = (w.callout || w.callout_fee || w.callout_notes || "—").toString();
+      if (vTone) vTone.textContent = (w.tone || w.ai_style || w.ai_style_notes || "—").toString();
+      if (vChannels) vChannels.textContent = (w.channels || w.channel_list || "—").toString();
+      if (vReviews) vReviews.textContent = (w.reviews || w.review_link || "—").toString();
+      if (vDemoSlot) vDemoSlot.textContent = (w.demo_slot || w.demo_time || "—").toString();
 
-      // Status columns (admin-controlled)
-      const signup_status = customer.signup_status || customer.onboarding_status || "—";
-      const demo_status = customer.demo_status || "—";
-      const trial_status = customer.trial_status || "—";
-      const plan_status = customer.plan_status || customer.plan_name || "—";
+      if (vSignupStatus) vSignupStatus.textContent = c.signup_status || c.onboarding_status || "—";
+      if (vDemoStatus) vDemoStatus.textContent = c.demo_status || "—";
+      if (vTrialStatus) vTrialStatus.textContent = c.trial_status || "—";
+      if (vPlanStatus) vPlanStatus.textContent = c.plan_status || c.plan_name || "—";
 
-      if (vSignupStatus) vSignupStatus.textContent = signup_status;
-      if (vDemoStatus) vDemoStatus.textContent = demo_status;
-      if (vTrialStatus) vTrialStatus.textContent = trial_status;
-      if (vPlanStatus) vPlanStatus.textContent = plan_status;
+      applyChip("signup_status", c.signup_status || "");
+      applyChip("demo_status", c.demo_status || "");
+      applyChip("trial_status", c.trial_status || "");
+      applyChip("plan_status", c.plan_status || "");
+      applyChip("plan_term", c.plan_term || "");
 
-      // Paint chip selections read-only
-      applyChipSelection("signup_status", customer.signup_status || "");
-      applyChipSelection("demo_status", customer.demo_status || "");
-      applyChipSelection("trial_status", customer.trial_status || "");
-      applyChipSelection("plan_status", customer.plan_status || "");
-      applyChipSelection("plan_term", customer.plan_term || "");
-
-      lockChipRows();
-
-      // Disable save on client dashboard
-      if (btnSave) {
-        btnSave.disabled = true;
-        btnSave.title = "Managed by TradeBotPro";
-      }
-
+      lockAllChips();
       setStatus("");
     } catch(err){
       console.error("[TBP] client-dashboard load error:", err);
-      setStatus(err?.message || "Failed to load", "err");
+      setStatus(err?.message || "Failed to load dashboard", "err");
       if (hBusiness) hBusiness.textContent = "Failed to load";
+      if (hContact) hContact.textContent = "";
       setPill("Wizard: Unknown", "neutral");
-      if (btnSave) btnSave.disabled = true;
     }
   }
 
-  // Buttons
-  if (btnEditSetup) btnEditSetup.addEventListener("click", () => location.href = buildUrl("app.html"));
-  if (btnOpenSecure) btnOpenSecure.addEventListener("click", () => location.href = buildUrl("dashboard-secure.html"));
+  if (btnOpenSecure) {
+    btnOpenSecure.addEventListener("click", () => {
+      location.href = "client-secure-dashboard.html";
+    });
+  }
 
   load();
 </script>
