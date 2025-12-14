@@ -1,0 +1,74 @@
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const biz = document.getElementById("biz");
+  const who = document.getElementById("who");
+  const status = document.getElementById("status");
+  const err = document.getElementById("err");
+
+  document.getElementById("btnLogout").onclick = async () => {
+    await sb.auth.signOut();
+    location.href = "customer-login.html";
+  };
+
+  async function linkAuthUserToCustomerByEmail(user){
+    // One-time attach: customer.email -> customers.auth_user_id
+    // This only works after you apply the SQL policies that allow authenticated user read.
+    const email = (user?.email || "").toLowerCase();
+    if(!email) return;
+
+    // Find customer by email
+    const { data: cust, error: cErr } = await sb
+      .from("customers")
+      .select("id, auth_user_id")
+      .eq("email", email)
+      .single();
+
+    if(cErr) return; // don’t block dashboard
+    if(!cust) return;
+
+    // If not linked yet, try to link
+    if(!cust.auth_user_id){
+      await sb
+        .from("customers")
+        .update({ auth_user_id: user.id })
+        .eq("id", cust.id);
+    }
+  }
+
+  async function boot(){
+    const { data: { user } } = await sb.auth.getUser();
+    if(!user){
+      location.href = "customer-login.html";
+      return;
+    }
+
+    // Attach this auth user to customer record (first login)
+    await linkAuthUserToCustomerByEmail(user);
+
+    // Load customer by auth_user_id
+    const { data, error } = await sb
+      .from("customers")
+      .select("business_name, contact_name, email, signup_status, demo_status, trial_status, plan_status")
+      .eq("auth_user_id", user.id)
+      .single();
+
+    if(error){
+      err.textContent = error.message || "Failed to load customer record.";
+      biz.textContent = "Could not load";
+      return;
+    }
+
+    biz.textContent = data.business_name || "Your business";
+    who.textContent = [data.contact_name, data.email].filter(Boolean).join(" • ");
+    status.textContent = "Status: " + (data.signup_status || "—");
+  }
+
+  boot();
+</script>
+</body>
+</html>
