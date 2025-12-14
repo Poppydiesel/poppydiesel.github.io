@@ -1291,20 +1291,16 @@
 </div>
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
- const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const form = document.getElementById("signupForm");
   const submitBtn = document.getElementById("signup-submit-btn");
   const continueBtn = document.getElementById("continueWizardBtn");
   const statusBox = document.getElementById("signup-status");
-
-  if (!form) {
-    console.error("TBP ERROR: Missing #signupForm");
-    alert("TradeBotPro error: signup form not found (missing id='signupForm').");
-    throw new Error("Missing #signupForm");
-  }
+  const yearEl = document.getElementById("year");
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   function setStatus(msg, ok = false) {
     if (!statusBox) return;
@@ -1328,115 +1324,110 @@
     }
   }
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setStatus("");
-    setSaving(true);
+  if (!form) {
+    console.error("[TBP] Missing #signupForm");
+  } else {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setStatus("");
+      setSaving(true);
 
-    try {
-      const fd = new FormData(form);
+      try {
+        const fd = new FormData(form);
 
-      const contact_name    = val(fd, "contact_name");
-      const business_name   = val(fd, "business_name");
-      const email           = val(fd, "email").trim().toLowerCase();
-      const whatsapp_number = val(fd, "whatsapp_number");
-      const trade_type      = val(fd, "trade_type");
-      const service_area    = val(fd, "service_area").toUpperCase();
-      const referrer        = val(fd, "referrer");
-      const agree           = fd.get("agree") ? true : false;
+        const contact_name    = val(fd, "contact_name");
+        const business_name   = val(fd, "business_name");
+        const email           = val(fd, "email").trim().toLowerCase();
+        const whatsapp_number = val(fd, "whatsapp_number");
+        const trade_type      = val(fd, "trade_type");
+        const service_area    = val(fd, "service_area").toUpperCase();
+        const referrer        = val(fd, "referrer");
+        const agree           = !!fd.get("agree");
 
-      if (!contact_name) throw new Error("Please enter Contact name.");
-      if (!business_name) throw new Error("Please enter Business name.");
-      if (!email || !email.includes("@")) throw new Error("Please enter a valid Email.");
-      if (!whatsapp_number) throw new Error("Please enter Mobile / WhatsApp number.");
-      if (!trade_type) throw new Error("Please select a Trade type.");
-      if (!service_area) throw new Error("Please enter Main service area.");
-      if (!agree) throw new Error("Please tick the Terms & Conditions checkbox.");
+        if (!contact_name) throw new Error("Please enter Contact name.");
+        if (!business_name) throw new Error("Please enter Business name.");
+        if (!email || !email.includes("@")) throw new Error("Please enter a valid Email.");
+        if (!whatsapp_number) throw new Error("Please enter Mobile / WhatsApp number.");
+        if (!trade_type) throw new Error("Please select a Trade type.");
+        if (!service_area) throw new Error("Please enter Main service area.");
+        if (!agree) throw new Error("Please tick the Terms & Conditions checkbox.");
 
-      const payload = {
-        lead_source: "TradeBotPro Website",
-        lead_source_detail: window.location.hostname || "Website",
-        onboarding_status: "Demo pending",
-        account_status: "Active",
+        const payload = {
+          lead_source: "TradeBotPro Website",
+          lead_source_detail: window.location.hostname || "Website",
+          onboarding_status: "Demo pending",
+          account_status: "Active",
 
-        contact_name,
-        owner_name: contact_name,
-        business_name,
-        email,
+          contact_name,
+          owner_name: contact_name,
+          business_name,
+          email,
 
-        phone: whatsapp_number,
-        whatsapp_number,
+          phone: whatsapp_number,
+          whatsapp_number,
 
-        trade_type,
-        base_postcode: service_area,
+          trade_type,
+          base_postcode: service_area,
 
-        referrer: referrer || null,
-        agree,
+          referrer: referrer || null,
+          agree,
 
-        wizard_completed: false,
-        wizard_locked: false,
-        setup_complete: false,
+          wizard_completed: false,
+          wizard_locked: false,
+          setup_complete: false,
 
-        plan_status: null,
-        plan_name: null
-      };
+          plan_status: null,
+          plan_name: null
+        };
 
-      // ✅ Public page must INSERT only (no updates)
-      const { data, error } = await sb
-        .from("customers")
-        .insert(payload)
-        .select("id, setup_token")
-        .single();
+        const { data, error } = await sb
+          .from("customers")
+          .insert(payload)
+          .select("id, setup_token")
+          .single();
 
-      if (error) {
-        // If email already exists, DO NOT auto-redirect away from wizard flow.
-        // Just show the user what happened + give them the secure login link.
-        const msg = (error.message || "").toLowerCase();
-        if (error.code === "23505" || msg.includes("duplicate")) {
-          setStatus(
-            "This email is already registered.\n\nIf you are returning, use Customer Login to access your secure dashboard.",
-            false
-          );
-          // Show a visible link (no forced redirect)
-          if (continueBtn) {
-            continueBtn.href = "customer-login.html";
-            continueBtn.textContent = "Go to Customer Login →";
-            continueBtn.classList.remove("tbp-hidden");
+        if (error) {
+          const msg = (error.message || "").toLowerCase();
+          if (error.code === "23505" || msg.includes("duplicate")) {
+            setStatus("This email is already registered.\nUse Customer Login to access your secure dashboard.", false);
+            if (continueBtn) {
+              continueBtn.href = "customer-login.html";
+              continueBtn.textContent = "Go to Customer Login →";
+              continueBtn.classList.remove("tbp-hidden");
+            }
+            return;
           }
-          return;
+          throw error;
         }
-        throw error;
+
+        if (!data?.id) throw new Error("Saved, but no customer id returned.");
+
+        const url = new URL("app.html", window.location.origin);
+        url.searchParams.set("customer_id", data.id);
+        if (data.setup_token) url.searchParams.set("setup_token", data.setup_token);
+
+        if (continueBtn) {
+          continueBtn.href = url.toString();
+          continueBtn.textContent = "Continue set up with the Wizard →";
+          continueBtn.classList.remove("tbp-hidden");
+        }
+
+        setStatus("Saved ✔ Redirecting to your setup wizard…", true);
+        window.location.assign(url.toString());
+      } catch (err) {
+        console.error("[TBP] Homepage signup failed:", err);
+        setStatus(err?.message || "Signup failed — check console for details.", false);
+        alert(err?.message || "Signup failed — check console for details.");
+      } finally {
+        setSaving(false);
       }
-
-      if (!data?.id) throw new Error("Saved, but no customer id returned.");
-
-      // Wizard URL (setup_token optional)
-      const url = new URL("app.html", window.location.origin);
-      url.searchParams.set("customer_id", data.id);
-      if (data.setup_token) url.searchParams.set("setup_token", data.setup_token);
-
-      if (continueBtn) {
-        continueBtn.href = url.toString();
-        continueBtn.textContent = "Continue set up with the Wizard →";
-        continueBtn.classList.remove("tbp-hidden");
-      }
-
-      setStatus("Saved ✔ Redirecting to your setup wizard…", true);
-      window.location.assign(url.toString());
-
-    } catch (err) {
-      console.error("Homepage signup failed:", err);
-      setStatus(err?.message || "Signup failed — check console for details.", false);
-      alert(err?.message || "Signup failed — check console for details.");
-    } finally {
-      setSaving(false);
-    }
-  });
+    });
+  }
 </script>
-
-
-  
 </body>
 </html>
+</body>
+</html>
+
 
 
