@@ -1021,8 +1021,9 @@
       session = data?.session || null;
 
 if (session) {
-  const email = (session.user?.email || "").toLowerCase().trim();
-  isAdmin = ADMIN_EMAILS.map(x => x.toLowerCase().trim()).includes(email);
+  ...
+}
+
 
   if (!isAdmin) {
     // logged in but not admin → do not allow admin access
