@@ -287,310 +287,112 @@
     </div>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
-  <script>
-  (function () {
-    function bootWhenSupabaseReady() {
-      if (!window.supabase) return setTimeout(bootWhenSupabaseReady, 50);
-      boot();
-    }
+ 
+</body><script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    function boot() {
-      const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      const qs = new URLSearchParams(window.location.search);
-      const customer_id = (qs.get("customer_id") || "").trim();
-      const setup_token = (qs.get("setup_token") || "").trim();
-      const isPublic = !!(customer_id && setup_token);
+  const qs = new URLSearchParams(location.search);
 
-      // UI refs
-      const statusMsg = document.getElementById("status-msg");
-      const btnSave = document.getElementById("btn-save");
-      const btnEditSetup = document.getElementById("btn-edit-setup");
-      const btnOpenSecure = document.getElementById("btn-open-secure");
-      const btnVerifyEmail = document.getElementById("btn-verify-email");
+  // Support both new + legacy param names
+  const customer_id =
+    qs.get("customer_id") || qs.get("user_id") || qs.get("signup_id") || "";
 
-      const hBusiness = document.getElementById("h-business");
-      const hContact = document.getElementById("h-contact");
-      const pillWizard = document.getElementById("pill-wizard");
+  const setup_token =
+    qs.get("setup_token") || qs.get("token") || "";
 
-      const vPostcode = document.getElementById("v-postcode");
-      const vTrade = document.getElementById("v-trade");
-      const vCoverage = document.getElementById("v-coverage");
-      const vCallout = document.getElementById("v-callout");
+  // IMPORTANT: make sure you have somewhere to render errors
+  const statusEl = document.getElementById("status") || null;
 
-      const vTone = document.getElementById("v-tone");
-      const vChannels = document.getElementById("v-channels");
-      const vReviews = document.getElementById("v-reviews");
-      const vDemoSlot = document.getElementById("v-demo-slot");
+  function setStatus(msg, isError=false){
+    if (!statusEl) return;
+    statusEl.textContent = msg;
+    statusEl.style.color = isError ? "#b3261e" : "";
+  }
 
-      const vSignupStatus = document.getElementById("v-signup-status");
-      const vDemoStatus = document.getElementById("v-demo-status");
-      const vTrialStatus = document.getElementById("v-trial-status");
-      const vPlanStatus = document.getElementById("v-plan-status");
+  function logSupabaseError(context, error){
+    // This will show the REAL reason in Console
+    console.error(`[TBP] ${context}`, {
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      code: error?.code,
+      status: error?.status,
+      raw: error
+    });
+  }
 
-      let customerRow = null;
-      let wizardAnswers = {};
-      let cols = {
-        signup_status: "New",
-        demo_status: "Not booked",
-        trial_status: "Not started",
-        plan_status: "No plan chosen",
-        plan_term: "Monthly",
-        email_verified: false
-      };
+  async function loadCustomerAndWizard(){
+    try {
+      if (!customer_id) throw new Error("Missing customer_id in the URL.");
+      if (!setup_token) throw new Error("Missing setup_token in the URL.");
 
-      function setStatus(msg, type) {
-        statusMsg.textContent = msg || "";
-        statusMsg.className = "status" + (type ? " " + type : "");
+      setStatus("Loading your settings…");
+
+      // 1) Load customer
+      const { data: customer, error: cErr } = await sb
+        .from("customers")
+        .select("id, email, business_name, contact_name, trade_type, base_postcode, wizard_completed, setup_complete, wizard_answers, setup_token")
+        .eq("id", customer_id)
+        .eq("setup_token", setup_token)
+        .single();
+
+      if (cErr) {
+        logSupabaseError("loadCustomer query failed", cErr);
+        throw new Error(cErr.message || "Could not load customer (customers query failed).");
       }
+      if (!customer) throw new Error("No customer returned.");
 
-      function safeJoin(arr) {
-        return (Array.isArray(arr) && arr.length) ? arr.join(", ") : "—";
-      }
+      // 2) Wizard answers can be stored either:
+      // A) as customers.wizard_answers (json/jsonb)
+      // or B) in a separate wizard_answers table keyed by customer_id
+      let wizard = customer.wizard_answers || null;
 
-      function setPill(text, variant) {
-        pillWizard.textContent = text;
-        pillWizard.className = "pill " + variant;
-      }
-
-      function applyChipVisuals() {
-        document.querySelectorAll(".chip-row[data-col]").forEach(row => {
-          const col = row.getAttribute("data-col");
-          const mode = row.getAttribute("data-select") || "single";
-          const chips = Array.from(row.querySelectorAll(".chip"));
-
-          chips.forEach(ch => {
-            const label = (ch.textContent || "").trim();
-            let selected = false;
-
-            if (mode === "single") selected = (cols[col] === label);
-            else selected = (Array.isArray(cols[col]) ? cols[col] : []).includes(label);
-
-            ch.classList.toggle("is-selected", selected);
-          });
-        });
-      }
-
-      document.addEventListener("click", (e) => {
-        const chip = e.target.closest(".chip-row .chip");
-        if (!chip) return;
-
-        const row = chip.closest(".chip-row[data-col]");
-        if (!row) return;
-
-        e.preventDefault();
-        const col = row.getAttribute("data-col");
-        const mode = row.getAttribute("data-select") || "single";
-        const label = (chip.textContent || "").trim();
-
-        if (mode === "single") {
-          cols[col] = label;
-        } else {
-          if (!Array.isArray(cols[col])) cols[col] = [];
-          const idx = cols[col].indexOf(label);
-          if (idx >= 0) cols[col].splice(idx, 1);
-          else cols[col].push(label);
-        }
-
-        applyChipVisuals();
-      });
-
-      function render() {
-        const bn = customerRow?.business_name || "Your business";
-        const cn = customerRow?.contact_name || "";
-        const em = customerRow?.email || "";
-        const ph = customerRow?.phone || customerRow?.whatsapp_number || "";
-
-        hBusiness.textContent = bn;
-        hContact.textContent = [cn, em, ph].filter(Boolean).join(" • ");
-
-        vPostcode.textContent = customerRow?.base_postcode || "—";
-        vTrade.textContent = wizardAnswers.main_trade || "—";
-        vCoverage.textContent = wizardAnswers.coverage_radius || "—";
-        vCallout.textContent = wizardAnswers.callout_style || "—";
-
-        vTone.textContent = wizardAnswers.tone_of_voice || "—";
-        vChannels.textContent = safeJoin(wizardAnswers.channels);
-        vReviews.textContent = safeJoin(wizardAnswers.review_platforms);
-        vDemoSlot.textContent = wizardAnswers.demo_slot || "—";
-
-        vSignupStatus.textContent = cols.signup_status || "—";
-        vDemoStatus.textContent = cols.demo_status || "—";
-        vTrialStatus.textContent = cols.trial_status || "—";
-        vPlanStatus.textContent = `${cols.plan_status || "—"} • ${cols.plan_term || "—"}`;
-
-        const wc = !!customerRow?.wizard_completed;
-        if (wc) setPill("Wizard: Complete", "success");
-        else setPill("Wizard: In progress", "warn");
-
-        // Email verify button
-        const needsVerify = !!customerRow?.email && !cols.email_verified;
-        if (btnVerifyEmail) btnVerifyEmail.style.display = needsVerify ? "inline-flex" : "none";
-
-        applyChipVisuals();
-      }
-
-      async function markEmailVerifiedIfSessionMatches() {
-        // If user clicked magic link, Supabase will set a session in this browser.
-        const { data } = await sb.auth.getSession();
-        const sess = data?.session || null;
-        if (!sess?.user?.email || !customerRow?.email) return;
-
-        const sessEmail = (sess.user.email || "").toLowerCase().trim();
-        const custEmail = (customerRow.email || "").toLowerCase().trim();
-        if (sessEmail !== custEmail) return;
-
-        if (cols.email_verified) return;
-
-        const patch = {
-          email_verified: true,
-          email_verified_at: new Date().toISOString()
-        };
-
-        const { error } = await sb
-          .from("customers")
-          .update(patch)
-          .eq("id", customer_id)
-          .eq("setup_token", setup_token);
-
-        if (!error) {
-          cols.email_verified = true;
-          setStatus("Email verified ✅", "ok");
-          render();
-        }
-      }
-
-      async function sendVerificationEmail() {
-        if (!customerRow?.email) {
-          setStatus("No email found for this customer.", "err");
-          return;
-        }
-
-        btnVerifyEmail.disabled = true;
-        setStatus("Sending verification email…");
-
-        // Magic link (email OTP) verification
-        const { error } = await sb.auth.signInWithOtp({
-          email: customerRow.email,
-          options: {
-            // When they click the email link, send them back here (public token still in URL)
-            emailRedirectTo: `${window.location.origin}/client-dashboard.html?customer_id=${encodeURIComponent(customer_id)}&setup_token=${encodeURIComponent(setup_token)}`
-          }
-        });
-
-        btnVerifyEmail.disabled = false;
-
-        if (error) {
-          console.error("[TBP] verify email error:", error);
-          setStatus("Could not send verification email. Check Supabase Auth email settings.", "err");
-          return;
-        }
-
-        setStatus("Verification link sent. Please check your inbox ✅", "ok");
-      }
-
-      async function loadCustomer() {
-        if (!isPublic) {
-          setStatus("Missing customer link. Please open this dashboard from your setup link.", "err");
-          return false;
-        }
-
-        setStatus("Loading your profile…");
-
-        const { data, error } = await sb
-          .from("customers")
-          .select([
-            "id","setup_token",
-            "contact_name","business_name","email","phone","whatsapp_number","base_postcode",
-            "wizard_answers","wizard_completed","wizard_completed_at",
-            "signup_status","demo_status","trial_status","plan_status","plan_term",
-            "email_verified","email_verified_at"
-          ].join(","))
-          .eq("id", customer_id)
-          .eq("setup_token", setup_token)
+      if (!wizard) {
+        const { data: wa, error: wErr } = await sb
+          .from("wizard_answers")
+          .select("answers")
+          .eq("customer_id", customer_id)
           .single();
 
-        if (error || !data) {
-          console.error("[TBP] loadCustomer error:", error);
-          setStatus("Could not load your dashboard. Please check your link.", "err");
-          return false;
+        if (wErr && wErr.code !== "PGRST116") { // PGRST116 = no rows
+          logSupabaseError("load wizard_answers table failed", wErr);
+          // don’t hard-fail; dashboard can still show basic customer info
+        } else {
+          wizard = wa?.answers || null;
         }
-
-        customerRow = data;
-        wizardAnswers = (data.wizard_answers && typeof data.wizard_answers === "object") ? data.wizard_answers : {};
-
-        cols.signup_status = data.signup_status || cols.signup_status;
-        cols.demo_status   = data.demo_status   || cols.demo_status;
-        cols.trial_status  = data.trial_status  || cols.trial_status;
-        cols.plan_status   = data.plan_status   || cols.plan_status;
-        cols.plan_term     = data.plan_term     || cols.plan_term;
-        cols.email_verified = !!data.email_verified;
-
-        render();
-        setStatus("");
-
-        // If they came back from magic link, mark verified
-        await markEmailVerifiedIfSessionMatches();
-
-        return true;
       }
 
-      async function saveDashboardChanges() {
-        if (!customerRow?.id) return;
+      // ✅ At this point you have:
+      // - customer (basic info)
+      // - wizard (object or null)
 
-        btnSave.disabled = true;
-        setStatus("Saving…");
+      // Example: show something obvious so you know it loaded
+      console.log("[TBP] Loaded customer:", customer);
+      console.log("[TBP] Loaded wizard answers:", wizard);
 
-        const patch = {
-          signup_status: cols.signup_status || null,
-          demo_status: cols.demo_status || null,
-          trial_status: cols.trial_status || null,
-          plan_status: cols.plan_status || null,
-          plan_term: cols.plan_term || null
-        };
+      setStatus("");
 
-        const { error } = await sb
-          .from("customers")
-          .update(patch)
-          .eq("id", customer_id)
-          .eq("setup_token", setup_token);
+      // TODO: wire into your UI:
+      // document.getElementById("bizName").textContent = customer.business_name || "—";
+      // document.getElementById("tradeType").textContent = customer.trade_type || "—";
+      // etc.
+      // For wizard values, use wizard?.fieldName
 
-        btnSave.disabled = false;
+      return { customer, wizard };
 
-        if (error) {
-          console.error("[TBP] saveDashboardChanges error:", error);
-          setStatus("Couldn’t save right now. Please try again.", "err");
-          return;
-        }
-
-        setStatus("Saved ✅", "ok");
-        setTimeout(() => setStatus(""), 1500);
-        await loadCustomer(); // refresh values
-      }
-
-      // Buttons
-      btnSave?.addEventListener("click", saveDashboardChanges);
-
-      btnEditSetup?.addEventListener("click", () => {
-        window.location.href = `/app.html?customer_id=${encodeURIComponent(customer_id)}&setup_token=${encodeURIComponent(setup_token)}`;
-      });
-
-      btnOpenSecure?.addEventListener("click", () => {
-        window.location.href = "/dashboard-secure.html";
-      });
-
-      btnVerifyEmail?.addEventListener("click", sendVerificationEmail);
-
-      (async function init(){
-        await loadCustomer();
-      })();
+    } catch (err) {
+      console.error("[TBP] loadCustomer error:", err);
+      setStatus(err.message || "Failed to load settings.", true);
+      return null;
     }
+  }
 
-    bootWhenSupabaseReady();
-  })();
-  </script>
-</body>
+  // run
+  loadCustomerAndWizard();
+</script>
+
 </html>
