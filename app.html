@@ -844,10 +844,12 @@
        URL PARAMS
     =============================== */
     const qs = new URLSearchParams(window.location.search);
-    const customer_id = (qs.get("customer_id") || "").trim();
-    const setup_token = (qs.get("setup_token") || "").trim();
+   // Public setup link from homepage uses customer_id + setup_token
+const signup_id = (params.get("customer_id") || params.get("signup_id") || "").trim();
+const setup_token = (params.get("setup_token") || "").trim();
 
-    const isPublic = !!(customer_id && setup_token);
+   const isPublicSetup = !!(signup_id && setup_token);
+
 
     let session = null;
     let isAdmin = false;
