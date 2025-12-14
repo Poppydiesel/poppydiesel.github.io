@@ -1186,6 +1186,11 @@
                 After you submit this form, we’ll review your details and get in touch
                 to confirm setup and payment options.
               </div>
+
+            <a id="continueWizardBtn" class="tbp-hidden">
+  Continue set up with the Wizard →
+</a>
+
             </form>
           </div>
         </div>
@@ -1292,169 +1297,121 @@
 </div>
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // hard-hide plan step (in case CSS not loaded / cached)
-  const planStep = document.getElementById("planStep");
-  if (planStep) planStep.style.display = "none";
-
- function findSignupForm() {
-  const forms = Array.from(document.querySelectorAll("form"));
-  const has = (f, sel) => !!f.querySelector(sel);
-  for (const f of forms) {
-    const ok =
-      has(f, '[name="contact_name"]') &&
-      has(f, '[name="business_name"]') &&
-      (has(f, '[name="email"]') || has(f, 'input[type="email"]'));
-    if (ok) return f;
-  }
-  // fallback: first form with email
-  return forms.find(f => f.querySelector('[name="email"], input[type="email"]')) || null;
-}
-
-const form = findSignupForm();
-if (!form) {
-  alert("TBP ERROR: could not locate signup form. Ensure it contains name=email.");
-  throw new Error("Signup form not found");
-}
-
-
-  // Stop URL querystring submits forever
-  form.method = "post";
-  form.action = "#";
-
-  const statusEl =
-    document.querySelector("#status") ||
-    document.querySelector(".form-status") ||
-    document.querySelector("[data-status]");
-
-  const setStatus = (msg, ok=false) => {
-    if (!statusEl) return;
-    statusEl.textContent = msg;
-    statusEl.style.color = ok ? "#0f7b46" : "#b3261e";
-    statusEl.style.fontWeight = "700";
-  };
-
-  const safe = (v) => String(v ?? "").trim();
-  const safeEmail = (v) => safe(v).toLowerCase();
-
-  // Clean any previous GET-submit querystring
-  if (location.search && location.search.length > 1) {
-    history.replaceState({}, document.title, location.pathname);
+  const form = document.getElementById("signupForm");
+  if (!form) {
+    console.error("TBP ERROR: signupForm not found");
+    throw new Error("Missing signupForm");
   }
 
-  // token for public setup link
-  const makeToken = () => {
-    const bytes = new Uint8Array(16);
-    crypto.getRandomValues(bytes);
-    return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
-  };
+  const submitBtn = document.getElementById("signup-submit-btn");
+  const continueBtn = document.getElementById("continueWizardBtn");
 
-  const val = (name) => safe(form.querySelector(`[name="${name}"]`)?.value);
-
-  const submitBtn =
-    form.querySelector('button[type="submit"]') ||
-    form.querySelector('input[type="submit"]') ||
-    form.querySelector("button");
+  function v(fd, name) {
+    return (fd.get(name) ?? "").toString().trim();
+  }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    e.stopImmediatePropagation();
 
-    // ✅ proof the handler is actually running
-    console.log("[TBP] submit handler fired");
-
-    const originalBtnText = submitBtn?.textContent;
+    if (submitBtn) submitBtn.disabled = true;
+    if (continueBtn) {
+      continueBtn.classList.add("tbp-hidden");
+      continueBtn.removeAttribute("href");
+    }
 
     try {
-      if (submitBtn) submitBtn.disabled = true;
-      if (submitBtn?.textContent) submitBtn.textContent = "Saving…";
-      if (statusEl) { statusEl.textContent = ""; statusEl.style.color = ""; }
+      const fd = new FormData(form);
 
-      const setup_token = makeToken();
+      const contact_name    = v(fd, "contact_name");
+      const business_name   = v(fd, "business_name");
+      const email           = v(fd, "email").toLowerCase();
+      const whatsapp_number = v(fd, "whatsapp_number");
+      const trade_type      = v(fd, "trade_type");
+      const service_area    = v(fd, "service_area").toUpperCase();
+      const referrer        = v(fd, "referrer");
+      const agree           = fd.get("agree") ? true : false;
 
-      // IMPORTANT: your homepage form field names must match these
-      // If your form uses name="phone" not whatsapp_number, this handles both.
-      const email = safeEmail(val("email") || form.querySelector('input[type="email"]')?.value);
+      if (!contact_name) throw new Error("Contact name missing");
+      if (!business_name) throw new Error("Business name missing");
+      if (!email || !email.includes("@")) throw new Error("Invalid email");
+      if (!whatsapp_number) throw new Error("Mobile number missing");
+      if (!trade_type) throw new Error("Trade type missing");
+      if (!service_area) throw new Error("Service area missing");
+      if (!agree) throw new Error("Terms not accepted");
 
       const payload = {
-        contact_name: val("contact_name") || null,
-        business_name: val("business_name") || null,
-        email: email || null,
+        // Source & lifecycle
+        lead_source: "TradeBotPro Website",
+        lead_source_detail: window.location.hostname || "Website",
+        onboarding_status: "Demo pending",
+        account_status: "Active",
 
-        // accept either naming convention
-        whatsapp_number: val("whatsapp_number") || val("phone") || null,
-        phone: val("phone") || val("whatsapp_number") || null,
+        // Identity
+        contact_name,
+        owner_name: contact_name,
+        business_name,
+        email,
 
-        trade_type: val("trade_type") || null,
-        base_postcode: val("base_postcode") || null,
+        // Contact
+        phone: whatsapp_number,
+        whatsapp_number,
 
-        // requires customers.setup_token column (you said you’ll do SQL)
-        setup_token
+        // Business
+        trade_type,
+        base_postcode: service_area,
+
+        // 🚫 Plan deliberately NOT set here
+        plan_status: null,
+        plan_name: null,
+
+        // Meta
+        referrer: referrer || null,
+        agree,
+
+        // Wizard flags
+        wizard_completed: false,
+        wizard_locked: false,
+        setup_complete: false
       };
-
-      if (!payload.email || !payload.email.includes("@")) {
-        setStatus("Please enter a valid email.", false);
-        return;
-      }
 
       const { data, error } = await sb
         .from("customers")
         .upsert(payload, { onConflict: "email" })
-        .select("id,email")
+        .select("id, setup_token")
         .single();
 
-      if (error) {
-        console.log("[TBP] Supabase error:", error);
-        alert("SUPABASE ERROR:\n" + JSON.stringify(error, null, 2));
-        setStatus(error.message || "Save failed", false);
-        return;
+      if (error) throw error;
+      if (!data?.id) throw new Error("No customer ID returned");
+
+      const url = new URL("app.html", window.location.origin);
+      url.searchParams.set("customer_id", data.id);
+      if (data.setup_token) {
+        url.searchParams.set("setup_token", data.setup_token);
       }
 
-      if (!data?.id) {
-        alert("Saved but no id returned.");
-        return;
+      if (continueBtn) {
+        continueBtn.href = url.toString();
+        continueBtn.classList.remove("tbp-hidden");
       }
-
-      localStorage.setItem("tbp_last_signup_id", data.id);
-      localStorage.setItem("tbp_last_email", data.email);
-      localStorage.setItem("tbp_last_setup_token", data.setup_token || setup_token);
-
-      setStatus("Saved. Opening wizard…", true);
-
-      const u = new URL("app.html", location.origin);
-      u.searchParams.set("signup_id", data.id);
-      u.searchParams.set("setup_token", data.setup_token || setup_token);
-      location.assign(u.toString());
 
     } catch (err) {
-      console.error("[TBP] submit catch:", err);
-      alert("JS ERROR:\n" + (err?.message || err));
-      setStatus(err?.message || "Save failed", false);
+      console.error("Signup error:", err);
+      alert(err.message || "Signup failed");
     } finally {
       if (submitBtn) submitBtn.disabled = false;
-      if (submitBtn?.textContent && originalBtnText) submitBtn.textContent = originalBtnText;
     }
-  }, true);
+  });
 </script>
 
+
+  
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
