@@ -1,226 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>TradeBotPro — Admin Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root{
-      --primary-blue:#1f4e79;
-      --accent-blue:#00a3ff;
-      --dark-text:#151820;
-      --muted-text:#6b7280;
-      --light-bg:#f3f4f9;
-      --white:#ffffff;
-      --border-subtle:rgba(15,23,42,0.12);
-      --success-green:#0f7b46;
-      --error-red:#b3261e;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-      background: radial-gradient(circle at top left, #e0ebff 0, #f3f4f9 40%, #fdfdfd 100%);
-      color:var(--dark-text);
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:1.5rem;
-    }
-    .card{
-      width:100%;
-      max-width:460px;
-      background:rgba(255,255,255,0.95);
-      border-radius:1.2rem;
-      padding:1.4rem 1.5rem;
-      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.03);
-    }
-    .brand{
-      display:flex; align-items:center; gap:.65rem; margin-bottom:1rem;
-    }
-    .logo-icon{
-      width:34px;height:34px;border-radius:10px;background:var(--primary-blue);position:relative;flex:0 0 auto;
-    }
-    .logo-icon::before,.logo-icon::after{content:"";position:absolute;background:var(--white);border-radius:4px}
-    .logo-icon::before{width:12px;height:18px;left:8px;top:8px}
-    .logo-icon::after{width:6px;height:12px;right:8px;top:11px}
-    .logo-main{font-weight:800;color:var(--primary-blue);line-height:1}
-    .logo-tag{font-size:.78rem;color:var(--muted-text);margin-top:.15rem}
-    h1{margin:.6rem 0 .3rem;font-size:1.25rem;color:var(--primary-blue)}
-    p{margin:0 0 1rem;color:var(--muted-text);font-size:.92rem}
-    .field{margin:.8rem 0}
-    label{display:block;font-size:.82rem;font-weight:600;margin-bottom:.25rem}
-    input{
-      width:100%;
-      padding:.62rem .7rem;
-      border-radius:.6rem;
-      border:1px solid var(--border-subtle);
-      font:inherit;
-      background:var(--white);
-    }
-    input:focus{outline:0;border-color:rgba(37,99,235,.7);box-shadow:0 0 0 1px rgba(37,99,235,.4)}
-    .row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:1rem}
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;
-      gap:.35rem;
-      border-radius:999px;
-      padding:.62rem 1.05rem;
-      border:1px solid transparent;
-      cursor:pointer;
-      font-weight:700;
-      font-size:.92rem;
-    }
-    .btn-primary{
-      background:linear-gradient(135deg,var(--primary-blue),#163857);
-      color:var(--white);
-      box-shadow:0 12px 28px rgba(15,23,42,.25);
-    }
-    .btn-primary:hover{filter:brightness(1.03)}
-    .btn-secondary{
-      background:#f9fafb;
-      border-color:var(--border-subtle);
-      color:var(--dark-text);
-    }
-    .btn-secondary:hover{background:#e5e7eb}
-    .status{margin-top:.75rem;font-size:.86rem;min-height:1.2em}
-    .ok{color:var(--success-green)}
-    .err{color:var(--error-red)}
-    .tiny{font-size:.78rem;color:var(--muted-text);margin-top:.85rem}
-    .tiny a{color:var(--primary-blue);text-decoration:underline}
-  </style>
-</head>
-<body>
-  <nav class="tbp-nav">
-  <a href="./index.html">Home</a>
-  <a href="./signup.html">Sign up</a>
-</nav>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, detectSessionInUrl: true }
+  });
 
-<style>
-  .tbp-nav {
-    display: flex;
-    gap: 14px;
-    padding: 10px 16px;
-    font-size: 14px;
+  // Expected elements in your login.html:
+  // <form id="loginForm">
+  //   <input id="email" type="email" />
+  //   <button id="btnSendLink" type="submit">Send verification link</button>
+  // </form>
+  // <div id="status"></div>
+
+  const form = document.getElementById("loginForm");
+  const emailEl = document.getElementById("email");
+  const statusEl = document.getElementById("status");
+  const btn = document.getElementById("btnSendLink");
+
+  function setStatus(msg, type) {
+    if (!statusEl) return;
+    statusEl.textContent = msg || "";
+    statusEl.style.color = type === "error" ? "#b3261e" : (type === "success" ? "#0f7b46" : "#6b7280");
   }
-  .tbp-nav a {
-    text-decoration: none;
-    font-weight: 600;
-  }
-</style>
 
+  // Respect ?next=/dashboard-secure.html etc
+  const qs = new URLSearchParams(window.location.search);
+  const next = qs.get("next") || "/dashboard-secure.html";
 
-  <div class="card">
-    <div class="brand">
-      <div class="logo-icon" aria-hidden="true"></div>
-      <div>
-        <div class="logo-main">TradeBotPro</div>
-        <div class="logo-tag">Admin login</div>
-      </div>
-    </div>
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setStatus("");
 
-    <h1>Sign in</h1>
-    <p>Use your admin email & password.</p>
-
-    <div id="status" class="status" aria-live="polite"></div>
-
-    <form id="loginForm" novalidate>
-      <div class="field">
-        <label for="email">Email</label>
-        <input id="email" type="email" autocomplete="email" required />
-      </div>
-
-      <div class="field">
-        <label for="password">Password</label>
-        <input id="password" type="password" autocomplete="current-password" required />
-      </div>
-
-      <div class="row">
-        <button class="btn btn-primary" type="submit" id="btnLogin">Sign in →</button>
-        <button class="btn btn-secondary" type="button" id="btnReset">Forgot password</button>
-      </div>
-
-      <div class="tiny">
-        After login you’ll be redirected automatically.
-      </div>
-    </form>
-  </div>
-
-  <!-- Supabase UMD -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
-
-  <script>
-  (function(){
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const qs = new URLSearchParams(location.search);
-    const next = qs.get("next") || "/dashboard-secure.html";
-
-    const status = document.getElementById("status");
-    const form = document.getElementById("loginForm");
-    const btnLogin = document.getElementById("btnLogin");
-    const btnReset = document.getElementById("btnReset");
-
-    function setStatus(msg, kind){
-      status.textContent = msg || "";
-      status.className = "status " + (kind || "");
+    const email = (emailEl?.value || "").trim().toLowerCase();
+    if (!email) {
+      setStatus("Please enter your email.", "error");
+      return;
     }
 
-    // If already signed in, go straight to dashboard
-    sb.auth.getSession().then(({ data }) => {
-      if (data?.session) location.href = next;
-    });
+    btn && (btn.disabled = true);
+    setStatus("Sending verification link…");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      setStatus("");
+    try {
+      const redirectTo = `${window.location.origin}/auth-callback.html?next=${encodeURIComponent(next)}`;
 
-      const email = (document.getElementById("email").value || "").trim();
-      const password = (document.getElementById("password").value || "").trim();
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: redirectTo
+        }
+      });
 
-      if (!email || !password) return setStatus("Enter email and password.", "err");
+      if (error) throw error;
 
-      btnLogin.disabled = true;
-      setStatus("Signing in…");
-
-      try{
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        setStatus("Signed in ✅ Redirecting…", "ok");
-        location.href = next;
-      }catch(err){
-        console.error(err);
-        setStatus("Login failed. Check email/password.", "err");
-      }finally{
-        btnLogin.disabled = false;
-      }
-    });
-
-    btnReset.addEventListener("click", async () => {
-      setStatus("");
-      const email = (document.getElementById("email").value || "").trim();
-      if (!email) return setStatus("Enter your email first, then click Forgot password.", "err");
-
-      btnReset.disabled = true;
-      setStatus("Sending reset email…");
-
-      try{
-        // This sends a reset email from Supabase Auth
-        const { error } = await sb.auth.resetPasswordForEmail(email, {
-          redirectTo: location.origin + "/login.html"
-        });
-        if (error) throw error;
-        setStatus("Password reset email sent ✅", "ok");
-      }catch(err){
-        console.error(err);
-        setStatus("Could not send reset email.", "err");
-      }finally{
-        btnReset.disabled = false;
-      }
-    });
-  })();
-  </script>
-</body>
-</html>
+      setStatus("Link sent. Check your inbox (and spam). Click it to verify and continue.", "success");
+    } catch (err) {
+      console.error("[TBP] OTP send error:", err);
+      setStatus("Couldn’t send the link. Please double-check the email and try again.", "error");
+    } finally {
+      btn && (btn.disabled = false);
+    }
+  });
+})();
+</script>
