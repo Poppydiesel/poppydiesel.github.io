@@ -1017,20 +1017,92 @@
     }
 
     async function checkAccess() {
-      const { data } = await sb.auth.getSession();
-      session = data?.session || null;
+  const { data } = await sb.auth.getSession();
+  session = data?.session || null;
 
-if (session) {
-  const email = (session.user?.email || "").toLowerCase().trim();
-  isAdmin = ADMIN_EMAILS.map(x => x.toLowerCase().trim()).includes(email);
+  // 1) Admin session access
+  if (session) {
+    const email = (session.user?.email || "").toLowerCase().trim();
+    isAdmin = ADMIN_EMAILS.map(x => x.toLowerCase().trim()).includes(email);
 
-  // Only admins can use session access on this wizard
-  if (!isAdmin) {
-    // If they also have a valid public token, let them continue via public mode below
-    if (!isPublic) {
-      window.location.href = "/login.html";
-      return false;
+    // Only admins can use session access on this wizard
+    if (!isAdmin) {
+      // If they also have a valid public token, allow public mode below
+      if (!isPublic) {
+        window.location.href = "/login.html";
+        return false;
+      }
     }
+
+    effectiveCustomerId = customer_id || null;
+
+    // If admin opened a specific customer via ?customer_id=..., prefill it too
+    if (isAdmin && effectiveCustomerId) {
+      const { data: customer, error } = await sb
+        .from("customers")
+        .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers")
+        .eq("id", effectiveCustomerId)
+        .single();
+
+      if (!error && customer) {
+        if (customer.contact_name) document.getElementById("contact_name").value = customer.contact_name;
+        if (customer.business_name) document.getElementById("business_name").value = customer.business_name;
+        if (customer.email) document.getElementById("contact_email").value = customer.email;
+
+        const ph = customer.phone || customer.whatsapp_number || "";
+        if (ph) document.getElementById("contact_mobile").value = ph;
+
+        if (customer.base_postcode) document.getElementById("base_postcode").value = customer.base_postcode;
+
+        if (customer.wizard_answers && typeof customer.wizard_answers === "object") {
+          Object.assign(answers, customer.wizard_answers);
+        }
+
+        readInputsIntoAnswers();
+        applyChipVisualsFromAnswers();
+      }
+    }
+
+    return true;
+  }
+
+  // 2) Public token access
+  if (isPublic) {
+    const { data: customer, error } = await sb
+      .from("customers")
+      .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers")
+      .eq("id", customer_id)
+      .eq("setup_token", setup_token)
+      .single();
+
+    if (!error && customer) {
+      effectiveCustomerId = customer.id;
+
+      if (customer.contact_name) document.getElementById("contact_name").value = customer.contact_name;
+      if (customer.business_name) document.getElementById("business_name").value = customer.business_name;
+      if (customer.email) document.getElementById("contact_email").value = customer.email;
+
+      const ph = customer.phone || customer.whatsapp_number || "";
+      if (ph) document.getElementById("contact_mobile").value = ph;
+
+      if (customer.base_postcode) document.getElementById("base_postcode").value = customer.base_postcode;
+
+      if (customer.wizard_answers && typeof customer.wizard_answers === "object") {
+        Object.assign(answers, customer.wizard_answers);
+      }
+
+      readInputsIntoAnswers();
+      applyChipVisualsFromAnswers();
+
+      return true;
+    }
+  }
+
+  // 3) No access
+  window.location.href = "/login.html";
+  return false;
+}
+
   }
 
   effectiveCustomerId = customer_id || null;
