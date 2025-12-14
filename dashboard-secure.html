@@ -471,672 +471,168 @@
     </div>
   </div>
 </div>
-
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-  });
+  const qs = new URLSearchParams(location.search);
+  const customer_id = qs.get("customer_id") || qs.get("user_id") || qs.get("signup_id") || "";
+  const setup_token = qs.get("setup_token") || qs.get("token") || "";
 
-  // ✅ Demo calendar link (change to your real booking page)
-  const DEMO_CALENDAR_URL = "https://calendly.com/tradebotpro/demo";
+  const el = (id) => document.getElementById(id);
 
-  // DOM
-  const statusStrip = document.getElementById("status-strip");
-  const tbody = document.getElementById("tbody");
-  const banner = document.getElementById("banner");
-  const search = document.getElementById("search");
-  const statusBar = document.getElementById("status-bar");
-  const btnRefresh = document.getElementById("btn-refresh");
-  const btnNew = document.getElementById("btn-new");
-  const btnClear = document.getElementById("btn-clear-filter");
-  const btnLogout = document.getElementById("btnLogout");
+  // OPTIONAL if your admin page has these IDs; if not, we’ll still work with chips + status-msg
+  const statusMsg = el("status-msg") || el("status") || null;
 
-  // Drawer + overlay
-  const drawer = document.getElementById("drawer");
-  const drawerOverlay = document.getElementById("drawerOverlay");
-  const drawerTitle = document.getElementById("drawerTitle");
-  const drawerSub = document.getElementById("drawerSub");
-  const drawerBusiness = document.getElementById("drawer_business");
-  const drawerContact = document.getElementById("drawer_contact");
-  const drawerEmail = document.getElementById("drawer_email");
-  const drawerPhone = document.getElementById("drawer_phone");
-  const drawerNotes = document.getElementById("drawer_notes");
-  const drawerLeadNotes = document.getElementById("drawer_lead_notes");
-  const drawerHint = document.getElementById("drawerHint");
-  const tasksChecklist = document.getElementById("tasksChecklist");
-  const opsButtons = document.getElementById("opsButtons");
-  const salesChecklist = document.getElementById("salesChecklist");
-  const onboardingChecklist = document.getElementById("onboardingChecklist");
-  const onboardingButtons = document.getElementById("onboardingButtons");
-
-  const btnCloseDrawer = document.getElementById("btnCloseDrawer");
-  const btnOpenWizard = document.getElementById("btnOpenWizard");
-
-  // State
-  let allRows = [];
-  let activeStatus = null;
-  let statusOrder = [];
-  let activeRow = null;
-  let noteTimer = null;
-
-  const SALES_STAGES = ["New Signup","In Setup","Demo","Free Trial","Needs Convincing","Live"];
-
-  function setBanner(msg){
-    if(!msg){ banner.textContent=""; banner.classList.remove("show"); return; }
-    banner.textContent = msg;
-    banner.classList.add("show");
-  }
-
-  function escapeHtml(s){
-    return String(s ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  function fmtDate(iso){
-    if(!iso) return "—";
-    try{
-      const d = new Date(iso);
-      return d.toLocaleString(undefined,{year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"});
-    }catch{ return "—"; }
-  }
-
-  function salesStatus(row){
-    const raw = (row?.onboarding_status ?? "").toString().trim();
-    return raw || "New Signup";
-  }
-
-  function wizardIsComplete(row){
-    return !!row?.wizard_completed || !!row?.setup_complete;
-  }
-
-  function wizardBadgeHTML(row){
-    const ok = wizardIsComplete(row);
-    return ok
-      ? `<span class="badge ok">✅ Complete</span>`
-      : `<span class="badge no">⏳ Incomplete</span>`;
-  }
-
-  function rowMatchesSearch(row,q){
-    if(!q) return true;
-    const hay = [
-      row.business_name,row.contact_name,row.email,row.phone,row.base_postcode,salesStatus(row)
-    ].join(" ").toLowerCase();
-    return hay.includes(q.toLowerCase());
-  }
-
-  async function loadDistinctStatuses(){
-    const { data, error } = await sb.from("customers").select("onboarding_status");
-    if(error) return null;
-    const set = new Set();
-    for(const r of (data||[])){
-      const s = (r.onboarding_status ?? "").toString().trim();
-      if(s) set.add(s);
+  function setStatus(text, kind=""){
+    if (!statusMsg) {
+      console.log("[TBP] STATUS:", text);
+      return;
     }
-    return Array.from(set);
+    statusMsg.textContent = text || "";
+    statusMsg.className = "status" + (kind ? " " + kind : "");
   }
 
-  function computeStatusOrder(distinctFromDb){
-    const set = new Set(SALES_STAGES);
-    (distinctFromDb||[]).forEach(s=>set.add(s));
-    const all = Array.from(set);
-    all.sort((a,b)=>{
-      const ia = SALES_STAGES.indexOf(a);
-      const ib = SALES_STAGES.indexOf(b);
-      if(ia!==-1 && ib!==-1) return ia-ib;
-      if(ia!==-1) return -1;
-      if(ib!==-1) return 1;
-      return a.localeCompare(b);
+  function logSupabaseError(context, error){
+    console.error(`[TBP] ${context}`, {
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      code: error?.code,
+      status: error?.status,
+      raw: error
     });
-    return all;
   }
 
-  function computeCounts(){
-    const counts = {};
-    for(const r of allRows){
-      const s = salesStatus(r);
-      counts[s] = (counts[s] || 0) + 1;
-    }
-    return counts;
+  // Chip selections we will save
+  const selections = {};
+
+  function initChips(){
+    document.querySelectorAll(".chip-row").forEach(row => {
+      const col = row.getAttribute("data-col");
+      const mode = row.getAttribute("data-select") || "single";
+      const chips = Array.from(row.querySelectorAll(".chip"));
+
+      chips.forEach(chip => {
+        chip.addEventListener("click", () => {
+          if (!col) return;
+
+          if (mode === "single"){
+            chips.forEach(c => c.classList.remove("is-selected"));
+            chip.classList.add("is-selected");
+            selections[col] = chip.textContent.trim();
+          }
+
+          setStatus("");
+        });
+      });
+    });
   }
 
-  function buildStatusStrip(){
-    const counts = computeCounts();
-    statusStrip.innerHTML = "";
-
-    const addChip = (label, count, value) => {
-      const el = document.createElement("div");
-      el.className = "status-chip" + ((activeStatus===value) ? " is-active" : "");
-      el.innerHTML = `<span class="status-chip-name">${escapeHtml(label)}</span><span class="status-chip-count">${count}</span>`;
-      el.addEventListener("click", ()=>{ activeStatus=value; render(); });
-      statusStrip.appendChild(el);
-    };
-
-    addChip("All", allRows.length, null);
-    statusOrder.forEach(s => addChip(s, counts[s] || 0, s));
+  function applyChipSelection(col, value){
+    if (!value) return;
+    const row = document.querySelector(`.chip-row[data-col="${CSS.escape(col)}"]`);
+    if (!row) return;
+    const chips = Array.from(row.querySelectorAll(".chip"));
+    chips.forEach(c => c.classList.toggle("is-selected", c.textContent.trim() === value));
+    selections[col] = value;
   }
 
-  // OPS tasks (Wizard read-only)
-  function setupTasks(row){
-    return [
-      { key:"wizard",   label:"Wizard complete",    done: wizardIsComplete(row), readonly:true },
-      { key:"whatsapp", label:"WhatsApp connected", done: !!row?.whatsapp_connected, readonly:false },
-      { key:"calendar", label:"Calendar connected", done: !!row?.calendar_connected, readonly:false },
-      { key:"payments", label:"Payments connected", done: !!row?.payments_connected, readonly:false },
-    ];
-  }
+  async function loadCustomer(){
+    try{
+      if (!customer_id || !setup_token) throw new Error("Missing customer_id or setup_token in URL.");
 
-  function tasksDotsHTML(row){
-    const items = setupTasks(row);
-    const dots = items.map(i=>{
-      const cls = `dot ${i.done ? "done" : "need"} ${i.readonly ? "readonly" : ""}`;
-      const attrs = i.readonly ? "" : `data-task="${i.key}" data-id="${row.id}"`;
-      const hint = i.readonly ? "" : " — click to toggle";
-      return `<span class="${cls}" ${attrs} title="${escapeHtml(i.label)}${hint}"></span>`;
-    }).join("");
+      setStatus("Loading…");
 
-    const doneCount = items.filter(i => i.done).length;
-    return `<span class="pipe">${dots}<span class="dot-label">${doneCount}/${items.length}</span></span>`;
-  }
+      const { data, error } = await sb
+        .from("customers")
+        .select("*")
+        .eq("id", customer_id)
+        .eq("setup_token", setup_token)
+        .single();
 
-  function renderTasksChecklist(row){
-    const items = setupTasks(row);
-    tasksChecklist.innerHTML = items.map(i=>{
-      const badge = i.done ? "✓" : "";
-      const badgeCls = i.done ? "check-badge done" : "check-badge";
-      const state =
-        i.key === "wizard"
-          ? (i.done ? "Completed" : "Incomplete")
-          : (i.done ? "Completed" : "Click to toggle");
-      const cursor = i.key === "wizard" ? "cursor:default;" : "";
-      return `
-        <div class="check-item" data-task="${i.key}" style="${cursor}">
-          <div class="check-left">
-            <div class="${badgeCls}">${badge}</div>
-            <div class="check-name">${escapeHtml(i.label)}</div>
-          </div>
-          <div class="check-state">${escapeHtml(state)}</div>
-        </div>`;
-    }).join("");
-  }
-
-  function renderSalesChecklist(row){
-    const current = salesStatus(row);
-    salesChecklist.innerHTML = SALES_STAGES.map(stage=>{
-      const done = current === stage;
-      const badgeCls = done ? "check-badge done" : "check-badge";
-      const state = done ? "Current" : "Click to set";
-      return `
-        <div class="check-item" data-sales="${escapeHtml(stage)}">
-          <div class="check-left">
-            <div class="${badgeCls}">${done ? "✓" : ""}</div>
-            <div class="check-name">${escapeHtml(stage)}</div>
-          </div>
-          <div class="check-state">${state}</div>
-        </div>`;
-    }).join("");
-  }
-
-  function onboardingItems(row){
-    return [
-      { key:"demo_booked",    label:"Demo booked",       done: !!row?.demo_booked,    value: row?.demo_datetime ? fmtDate(row.demo_datetime) : "Click to set (opens calendar)" },
-      { key:"demo_completed", label:"Demo completed",    done: !!row?.demo_completed, value: row?.demo_completed ? "Completed" : "Click to mark" },
-      { key:"trial_active",   label:"Free trial active", done: !!row?.trial_active,   value: row?.trial_active ? (row?.trial_end ? ("Ends: " + fmtDate(row.trial_end)) : "Active") : "Click to start" },
-      { key:"is_live",        label:"Live",             done: !!row?.is_live,        value: row?.is_live ? (row?.go_live_date ? fmtDate(row.go_live_date) : "Live") : "Click to go live" },
-    ];
-  }
-
-  function renderOnboardingChecklist(row){
-    const items = onboardingItems(row);
-    onboardingChecklist.innerHTML = items.map(i=>{
-      const badge = i.done ? "✓" : "";
-      const badgeCls = i.done ? "check-badge done" : "check-badge";
-      return `
-        <div class="check-item" data-onb="${i.key}">
-          <div class="check-left">
-            <div class="${badgeCls}">${badge}</div>
-            <div class="check-name">${escapeHtml(i.label)}</div>
-          </div>
-          <div class="check-state">${escapeHtml(i.value)}</div>
-        </div>`;
-    }).join("");
-  }
-
-  async function updateCustomer(id, patch){
-    setBanner("");
-    const { data, error } = await sb.from("customers").update(patch).eq("id", id).select("*").single();
-    if(error){
-      console.error("UPDATE ERROR:", error);
-      setBanner("Save failed:\n\n" + (error.message || JSON.stringify(error)));
-      return null;
-    }
-    const idx = allRows.findIndex(r=>r.id===id);
-    if(idx !== -1) allRows[idx] = data;
-    if(activeRow && activeRow.id===id) activeRow = data;
-    return data;
-  }
-
-  async function doOnboardingAction(key){
-    if(!activeRow) return;
-
-    if(key === "demo_booked"){
-      try{ window.open(DEMO_CALENDAR_URL, "_blank", "noopener"); }catch{}
-      const ok = window.confirm("Calendar opened.\n\nOnce you’ve booked the demo, click OK to mark it as booked.\nClick Cancel if you haven’t booked yet.");
-      if(!ok) return;
-
-      const current = activeRow.demo_datetime
-        ? new Date(activeRow.demo_datetime).toISOString().slice(0,16)
-        : "";
-
-      const input = window.prompt(
-        "Optional: enter the demo date/time to store on the customer.\n\nFormat: 2025-12-20T19:30\nLeave blank if you don’t want to store a time.",
-        current
-      );
-      if(input === null) return;
-
-      let demoIso = null;
-      const trimmed = String(input).trim();
-      if(trimmed){
-        const parsed = new Date(trimmed);
-        if(Number.isNaN(parsed.getTime())){
-          setBanner("Invalid date/time.\nTry: 2025-12-20T19:30");
-          return;
-        }
-        demoIso = parsed.toISOString();
+      if (error) {
+        logSupabaseError("admin loadCustomer failed", error);
+        throw new Error(error.message || "Load failed");
       }
 
-      const patch = { demo_booked:true, demo_datetime:demoIso, onboarding_status:"Demo" };
-      const updated = await updateCustomer(activeRow.id, patch);
-      if(updated){ render(); openDrawer(updated); }
-      return;
-    }
+      console.log("[TBP] Admin loaded customer:", data);
 
-    if(key === "demo_completed"){
-      if(!window.confirm("Mark demo as completed?")) return;
-      const updated = await updateCustomer(activeRow.id, { demo_completed:true });
-      if(updated){ render(); openDrawer(updated); }
-      return;
-    }
+      // Paint current statuses into chips so admin sees current state
+      applyChipSelection("signup_status", data.signup_status || "");
+      applyChipSelection("demo_status", data.demo_status || "");
+      applyChipSelection("trial_status", data.trial_status || "");
+      applyChipSelection("plan_status", data.plan_status || "");
+      applyChipSelection("plan_term", data.plan_term || "");
 
-    if(key === "trial_active"){
-      const daysRaw = window.prompt("Free trial length in days? (default 7)", "7");
-      if(daysRaw === null) return;
-
-      const days = Math.max(1, Math.min(60, parseInt(daysRaw, 10) || 7));
-      const start = new Date();
-      const end = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
-
-      const patch = { trial_active:true, trial_start:start.toISOString(), trial_end:end.toISOString(), onboarding_status:"Free Trial" };
-      const updated = await updateCustomer(activeRow.id, patch);
-      if(updated){ render(); openDrawer(updated); }
-      return;
-    }
-
-    if(key === "is_live"){
-      if(!window.confirm("Go live now?\n\nThis marks the customer as Live.")) return;
-      const now = new Date();
-      const patch = { is_live:true, go_live_date:now.toISOString(), trial_active:false, onboarding_status:"Live" };
-      const updated = await updateCustomer(activeRow.id, patch);
-      if(updated){ render(); openDrawer(updated); }
-      return;
+      setStatus("");
+      return data;
+    } catch(err){
+      console.error("[TBP] admin loadCustomer error:", err);
+      setStatus(err?.message || "Failed to load", "err");
+      return null;
     }
   }
 
-  function renderOnboardingButtons(row){
-    onboardingButtons.innerHTML = "";
+  async function saveStatuses(){
+    try{
+      if (!customer_id || !setup_token) throw new Error("Missing customer_id or setup_token.");
 
-    const mk = (label, cls, onClick) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = `btn ${cls || "btn-secondary"}`;
-      b.textContent = label;
-      b.addEventListener("click", (e)=>{ e.stopPropagation(); onClick(); });
-      onboardingButtons.appendChild(b);
-    };
+      setStatus("Saving…");
 
-    mk("📅 Open demo calendar", "btn-primary", ()=>window.open(DEMO_CALENDAR_URL, "_blank", "noopener"));
-    mk(row.demo_booked ? "Update demo booked" : "Book demo (after calendar)", "btn-secondary", ()=>doOnboardingAction("demo_booked"));
-    mk(row.demo_completed ? "Demo completed ✅" : "Mark demo completed", row.demo_completed ? "btn-secondary" : "btn-primary", ()=>doOnboardingAction("demo_completed"));
-    mk(row.trial_active ? "Trial active ✅" : "Start free trial", row.trial_active ? "btn-secondary" : "btn-primary", ()=>doOnboardingAction("trial_active"));
-    mk(row.is_live ? "Live ✅" : "Go live", row.is_live ? "btn-secondary" : "btn-primary", ()=>doOnboardingAction("is_live"));
-
-    mk("Reset onboarding (careful)", "btn-danger", async ()=>{
-      if(!activeRow) return;
-      if(!window.confirm("Reset onboarding flags for this customer?\n\nThis will NOT delete the customer, but will clear demo/trial/live.")) return;
-
-      const patch = {
-        demo_booked:false, demo_datetime:null, demo_completed:false,
-        trial_active:false, trial_start:null, trial_end:null,
-        is_live:false, go_live_date:null,
-        onboarding_status:"In Setup"
+      // Only save known admin-controlled columns
+      const payload = {
+        signup_status: selections.signup_status ?? null,
+        demo_status: selections.demo_status ?? null,
+        trial_status: selections.trial_status ?? null,
+        plan_status: selections.plan_status ?? null,
+        plan_term: selections.plan_term ?? null,
+        updated_at: new Date().toISOString()
       };
 
-      const updated = await updateCustomer(activeRow.id, patch);
-      if(updated){ render(); openDrawer(updated); }
-    });
+      const { error } = await sb
+        .from("customers")
+        .update(payload)
+        .eq("id", customer_id)
+        .eq("setup_token", setup_token);
+
+      if (error) {
+        logSupabaseError("admin saveStatuses failed", error);
+        throw new Error(error.message || "Save failed");
+      }
+
+      setStatus("Saved ✔", "ok");
+      setTimeout(() => setStatus(""), 1200);
+    } catch(err){
+      console.error("[TBP] admin save error:", err);
+      setStatus(err?.message || "Save failed", "err");
+    }
   }
 
-  function renderOpsButtons(row){
-    opsButtons.innerHTML = "";
-    const mk = (label, onClick) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "btn btn-secondary";
-      b.textContent = label;
-      b.addEventListener("click", (e)=>{ e.stopPropagation(); onClick(); });
-      opsButtons.appendChild(b);
-    };
-
-    mk(row.whatsapp_connected ? "WhatsApp ✅ (toggle)" : "WhatsApp ❌ (toggle)", async ()=>{
-      const updated = await updateCustomer(row.id, { whatsapp_connected: !row.whatsapp_connected });
-      if(updated){ render(); openDrawer(updated); }
-    });
-
-    mk(row.calendar_connected ? "Calendar ✅ (toggle)" : "Calendar ❌ (toggle)", async ()=>{
-      const updated = await updateCustomer(row.id, { calendar_connected: !row.calendar_connected });
-      if(updated){ render(); openDrawer(updated); }
-    });
-
-    mk(row.payments_connected ? "Payments ✅ (toggle)" : "Payments ❌ (toggle)", async ()=>{
-      const updated = await updateCustomer(row.id, { payments_connected: !row.payments_connected });
-      if(updated){ render(); openDrawer(updated); }
-    });
+  // Wire your admin Save button if it exists, otherwise create one so it always works.
+  function ensureAdminSaveButton(){
+    let btn = document.getElementById("btn-save");
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = "btn-save";
+      btn.type = "button";
+      btn.textContent = "Save statuses";
+      btn.style.cssText = "position:fixed;right:18px;bottom:18px;padding:12px 16px;border-radius:999px;border:0;background:#1f4e79;color:#fff;font-weight:800;cursor:pointer;box-shadow:0 18px 40px rgba(15,23,42,.25)";
+      document.body.appendChild(btn);
+    }
+    btn.addEventListener("click", saveStatuses);
   }
 
-  function openDrawer(row){
-    activeRow = row;
-
-    drawerTitle.textContent = row.business_name || "Customer";
-    drawerSub.textContent = [
-      row.contact_name ? `Contact: ${row.contact_name}` : "",
-      row.base_postcode ? `Postcode: ${row.base_postcode}` : "",
-      row.id ? `ID: ${row.id}` : ""
-    ].filter(Boolean).join(" • ");
-
-    drawerBusiness.value = row.business_name || "";
-    drawerContact.value = row.contact_name || "";
-    drawerEmail.value = row.email || "";
-    drawerPhone.value = row.phone || "";
-    drawerNotes.value = row.notes || "";
-    drawerLeadNotes.value = row.lead_notes || "";
-
-    renderSalesChecklist(row);
-    renderOnboardingChecklist(row);
-    renderOnboardingButtons(row);
-    renderTasksChecklist(row);
-    renderOpsButtons(row);
-
-    drawerHint.textContent = "Autosaves";
-
-    drawer.classList.add("open");
-    drawer.setAttribute("aria-hidden","false");
-
-    drawerOverlay.classList.add("open");
-    drawerOverlay.setAttribute("aria-hidden","false");
-  }
-
-  function closeDrawer(){
-    drawer.classList.remove("open");
-    drawer.setAttribute("aria-hidden","true");
-    drawerOverlay.classList.remove("open");
-    drawerOverlay.setAttribute("aria-hidden","true");
-    activeRow = null;
-  }
-
-  async function saveNotesNow(){
-    if(!activeRow) return;
-    drawerHint.textContent = "Saving…";
-    const id = activeRow.id;
-    const patch = { notes: drawerNotes.value, lead_notes: drawerLeadNotes.value };
-    const { error } = await sb.from("customers").update(patch).eq("id", id);
-    if(error){
-      console.error("NOTES SAVE ERROR:", error);
-      setBanner("Failed to save notes:\n\n" + (error.message || JSON.stringify(error)));
-      drawerHint.textContent = "Save failed";
-      return;
-    }
-    drawerHint.textContent = "Saved";
-    const idx = allRows.findIndex(r=>r.id===id);
-    if(idx !== -1){
-      allRows[idx].notes = patch.notes;
-      allRows[idx].lead_notes = patch.lead_notes;
-    }
-    activeRow.notes = patch.notes;
-    activeRow.lead_notes = patch.lead_notes;
-  }
-
-  function queueNotesSave(){
-    clearTimeout(noteTimer);
-    noteTimer = setTimeout(saveNotesNow, 450);
-  }
-
-  function render(){
-    buildStatusStrip();
-
-    const q = (search.value || "").trim();
-    const rows = allRows
-      .filter(r => (activeStatus ? salesStatus(r)===activeStatus : true))
-      .filter(r => rowMatchesSearch(r,q))
-      .sort((a,b)=>{
-        const ta = new Date(a.updated_at || a.created_at || 0).getTime();
-        const tb = new Date(b.updated_at || b.created_at || 0).getTime();
-        return tb - ta;
-      });
-
-    tbody.innerHTML = "";
-
-    if(!rows.length){
-      tbody.innerHTML = `<tr><td colspan="9">No matches.</td></tr>`;
-      statusBar.textContent = `0 shown • ${allRows.length} total`;
-      return;
-    }
-
-    for(const r of rows){
-      const tr = document.createElement("tr");
-      tr.dataset.id = r.id; // ✅ IMPORTANT: used by delegated click handler
-      tr.innerHTML = `
-        <td>${escapeHtml(salesStatus(r))}</td>
-        <td>${wizardBadgeHTML(r)}</td>
-        <td>${tasksDotsHTML(r)}</td>
-        <td>${escapeHtml(r.business_name || "—")}</td>
-        <td>${escapeHtml(r.contact_name || "—")}</td>
-        <td>${escapeHtml(r.email || "—")}</td>
-        <td>${escapeHtml(r.phone || "—")}</td>
-        <td>${escapeHtml(r.base_postcode || "—")}</td>
-        <td>${escapeHtml(fmtDate(r.updated_at || r.created_at))}</td>
-      `;
-      tbody.appendChild(tr);
-    }
-
-    statusBar.textContent =
-      `${rows.length} shown • ${allRows.length} total` +
-      (activeStatus ? ` • Stage: ${activeStatus}` : "");
-  }
-
-  async function loadCustomersAndStatuses(){
-    setBanner("");
-    statusBar.textContent = "Loading…";
-    tbody.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
-
-    const { data, error } = await sb.from("customers").select("*");
-    if(error){
-      console.error("LOAD ERROR:", error);
-      setBanner("Failed to load customers:\n\n" + (error.message || JSON.stringify(error)));
-      allRows = [];
-      tbody.innerHTML = `<tr><td colspan="9">No data loaded.</td></tr>`;
-      statusBar.textContent = "Load failed.";
-      return;
-    }
-
-    allRows = Array.isArray(data) ? data : [];
-
-    const distinct = await loadDistinctStatuses();
-    statusOrder = computeStatusOrder(distinct);
-
-    render();
-  }
-
-  // ✅ AUTH + ADMIN CHECK
-  async function requireAdmin(){
-    const { data: sess } = await sb.auth.getSession();
-    const session = sess?.session;
-    if(!session){
-      window.location.href = "/login.html?next=" + encodeURIComponent("/dashboard-secure.html");
-      return false;
-    }
-
-    const uid = session.user.id;
-    const { data, error } = await sb.from("admin_users").select("user_id").eq("user_id", uid).maybeSingle();
-
-    if(error){
-      console.error("admin_users check failed:", error);
-      setBanner("Admin check failed:\n\n" + (error.message || JSON.stringify(error)));
-      return false;
-    }
-
-    if(!data){
-      setBanner("Access denied.\n\nYour login is valid, but you are not on the admin_users allow-list.");
-      return false;
-    }
-    return true;
-  }
-
-  // Controls
-  btnRefresh.addEventListener("click", loadCustomersAndStatuses);
-  btnNew.addEventListener("click", (e)=>{ e.preventDefault(); window.open("app.html", "_blank", "noopener"); });
-  btnClear.addEventListener("click", ()=>{ activeStatus=null; search.value=""; render(); });
-  search.addEventListener("input", render);
-
-  // ✅ Delegated row click (fixes “rows don’t click / drawer doesn’t open”)
-  tbody.addEventListener("click", (e) => {
-    const tr = e.target.closest("tr");
-    if(!tr) return;
-    if(e.target.closest("button,a,input,select,textarea,label")) return;
-
-    const id = tr.dataset.id;
-    if(!id) return;
-
-    const row = allRows.find(r => r.id === id);
-    if(!row) return;
-
-    openDrawer(row);
-  });
-
-  // Drawer autosave notes
-  drawerNotes.addEventListener("input", queueNotesSave);
-  drawerLeadNotes.addEventListener("input", queueNotesSave);
-
-  // Close drawer always works
-  btnCloseDrawer.addEventListener("click", (e)=>{
-    e.preventDefault();
-    e.stopPropagation();
-    closeDrawer();
-  }, true);
-
-  drawerOverlay.addEventListener("click", (e)=>{
-    e.preventDefault();
-    closeDrawer();
-  });
-
-  document.addEventListener("keydown", (e)=>{
-    if(e.key === "Escape" && drawer.classList.contains("open")){
-      closeDrawer();
-    }
-  });
-
-  // Open wizard (customer_id) — only when button clicked
-  btnOpenWizard.addEventListener("click", (e)=>{
-    e.stopPropagation();
-    if(!activeRow) return;
-    window.open(`app.html?customer_id=${encodeURIComponent(activeRow.id)}`, "_blank", "noopener");
-  });
-
-  // Sales checklist to set stage
-  document.addEventListener("click", async (e)=>{
-    const item = e.target.closest(".check-item[data-sales]");
-    if(!item || !activeRow) return;
-    e.stopPropagation();
-
-    const stage = item.dataset.sales;
-    if(salesStatus(activeRow) === stage) return;
-
-    const updated = await updateCustomer(activeRow.id, { onboarding_status: stage });
-    if(updated){ render(); openDrawer(updated); }
-  }, true);
-
-  // Onboarding checklist rows click = action
-  document.addEventListener("click", async (e)=>{
-    const item = e.target.closest(".check-item[data-onb]");
-    if(!item || !activeRow) return;
-    e.stopPropagation();
-    await doOnboardingAction(item.dataset.onb);
-  }, true);
-
-  // Toggle ops dots in table (Wizard ignored)
-  document.addEventListener("click", async (e)=>{
-    const dot = e.target.closest(".dot[data-task][data-id]");
-    if(!dot) return;
-
-    e.stopPropagation();
-
-    const id = dot.dataset.id;
-    const key = dot.dataset.task;
-    const row = allRows.find(r => r.id === id);
-    if(!row) return;
-
-    const patch = {};
-    if(key === "whatsapp") patch.whatsapp_connected = !row.whatsapp_connected;
-    if(key === "calendar") patch.calendar_connected = !row.calendar_connected;
-    if(key === "payments") patch.payments_connected = !row.payments_connected;
-
-    if(Object.keys(patch).length === 0) return;
-
-    const updated = await updateCustomer(id, patch);
-    if(updated){
-      render();
-      if(activeRow && activeRow.id === id) openDrawer(updated);
-    }
-  }, true);
-
-  // Toggle ops checklist in drawer (Wizard ignored)
-  document.addEventListener("click", async (e)=>{
-    const item = e.target.closest(".check-item[data-task]");
-    if(!item || !activeRow) return;
-
-    const key = item.dataset.task;
-    if(key === "wizard") return;
-
-    e.stopPropagation();
-
-    const patch = {};
-    if(key === "whatsapp") patch.whatsapp_connected = !activeRow.whatsapp_connected;
-    if(key === "calendar") patch.calendar_connected = !activeRow.calendar_connected;
-    if(key === "payments") patch.payments_connected = !activeRow.payments_connected;
-
-    const updated = await updateCustomer(activeRow.id, patch);
-    if(updated){ render(); openDrawer(updated); }
-  }, true);
-
-  // Logout
-  btnLogout.addEventListener("click", async ()=>{
-    try{ await sb.auth.signOut(); }catch{}
-    window.location.href = "/login.html?next=" + encodeURIComponent("/dashboard-secure.html");
-  });
-
-  // Init
-  (async ()=>{
-    const ok = await requireAdmin();
-    if(!ok) return;
-    await loadCustomersAndStatuses();
-  })();
+  initChips();
+  ensureAdminSaveButton();
+  loadCustomer();
 </script>
+</body>
+</html>
+
+
 </body>
 </html>
