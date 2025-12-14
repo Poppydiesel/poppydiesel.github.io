@@ -1374,15 +1374,24 @@
         plan_name: null
       };
 
-      // Save / upsert
+           // Save (PUBLIC signup must be INSERT only — no updates)
       const { data, error } = await sb
         .from("customers")
-        .upsert(payload, { onConflict: "email" })
+        .insert(payload)
         .select("id, setup_token")
         .single();
 
-      if (error) throw error;
-      if (!data?.id) throw new Error("Saved, but no customer id returned.");
+      if (error) {
+        // Duplicate email (unique constraint) -> send them to customer login instead
+        const msg = (error.message || "").toLowerCase();
+        if (error.code === "23505" || msg.includes("duplicate")) {
+          alert("That email is already registered. Please use Customer Login to access your secure dashboard.");
+          window.location.assign("customer-login.html");
+          return;
+        }
+        throw error;
+      }
+
 
       // Build wizard URL
       const url = new URL("app.html", window.location.origin);
@@ -1412,6 +1421,7 @@
   
 </body>
 </html>
+
 
 
 
