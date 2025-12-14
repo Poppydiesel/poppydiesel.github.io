@@ -8,6 +8,7 @@
   <style>
     :root{
       --primary:#1f4e79;
+      --accent:#00a3ff;
       --bg:#f3f4f9;
       --text:#151820;
       --muted:#6b7280;
@@ -30,7 +31,7 @@
       position:sticky; top:0; z-index:10;
     }
     .inner{
-      max-width:1100px;
+      max-width:1200px;
       margin:0 auto;
       padding:14px 18px;
       display:flex;
@@ -46,41 +47,48 @@
       padding:10px 14px;
       border:1px solid var(--border);
       background:#fff;
-      font-weight:700;
+      font-weight:800;
       cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
     }
     .btnPrimary{
       background:var(--primary);
       color:#fff;
       border-color:transparent;
     }
+    .btnGhost{
+      background:transparent;
+    }
     main{
-      max-width:1100px;
+      max-width:1200px;
       margin:0 auto;
       padding:18px;
     }
     .grid{
       display:grid;
-      grid-template-columns:1.2fr .8fr;
+      grid-template-columns: 1.1fr .9fr;
       gap:16px;
+      align-items:start;
     }
-    @media (max-width:900px){ .grid{grid-template-columns:1fr} }
+    @media (max-width:1000px){ .grid{grid-template-columns:1fr} }
     .card{
       background:#fff;
       border:1px solid var(--border);
       border-radius:18px;
       padding:18px;
-      box-shadow:0 20px 50px rgba(15,23,42,.1);
+      box-shadow:0 20px 50px rgba(15,23,42,.10);
     }
     h2{margin:0 0 6px;color:var(--primary)}
-    h3{margin:.6rem 0 .4rem}
+    h3{margin:0 0 10px;color:var(--primary);font-size:1.05rem}
     .kvs{
       display:grid;
       grid-template-columns:1fr 1fr;
       gap:10px;
       margin-top:10px;
     }
-    @media (max-width:600px){ .kvs{grid-template-columns:1fr} }
+    @media (max-width:650px){ .kvs{grid-template-columns:1fr} }
     .kv{
       border:1px solid var(--border);
       border-radius:14px;
@@ -94,25 +102,84 @@
       color:var(--muted);
     }
     .kv .v{
-      font-weight:800;
+      font-weight:900;
       margin-top:2px;
+      word-break:break-word;
     }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      font-weight:900;
+      font-size:.85rem;
+      background:#fff;
+      gap:8px;
+      white-space:nowrap;
+    }
+    .pill.ok{border-color:rgba(15,123,70,.35); background:#ecfdf5; color:var(--ok)}
+    .pill.warn{border-color:rgba(245,158,11,.35); background:#fffbeb; color:#92400e}
+    .pill.neutral{border-color:rgba(148,163,184,.5); background:#f1f5f9; color:#334155}
+
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
     label{
-      font-size:.8rem;
-      font-weight:700;
       display:block;
+      font-size:.8rem;
+      font-weight:900;
       margin-bottom:4px;
+      color:#111827;
     }
-    input, select{
+    input, select, textarea{
       width:100%;
-      padding:8px 10px;
-      border-radius:10px;
+      padding:9px 10px;
+      border-radius:12px;
       border:1px solid var(--border);
       font:inherit;
+      background:#fff;
     }
-    .status{margin-top:10px;font-weight:800;white-space:pre-wrap}
-    .ok{color:var(--ok)}
-    .err{color:var(--err)}
+    textarea{min-height:90px; resize:vertical}
+    input:focus, select:focus, textarea:focus{
+      outline:2px solid rgba(31,78,121,.35);
+      border-color:transparent;
+    }
+    .field{margin-top:10px}
+    .two{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width:650px){ .two{grid-template-columns:1fr} }
+
+    .status{
+      margin-top:10px;
+      font-weight:900;
+      white-space:pre-wrap;
+    }
+    .status.ok{color:var(--ok)}
+    .status.err{color:var(--err)}
+
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:.85rem;
+      background:#0b1220;
+      color:#e5e7eb;
+      border-radius:14px;
+      padding:12px;
+      overflow:auto;
+      border:1px solid rgba(255,255,255,.08);
+      max-height:340px;
+    }
+
+    a.link{color:var(--primary); font-weight:900; text-decoration:none}
+    a.link:hover{text-decoration:underline}
   </style>
 </head>
 
@@ -123,8 +190,10 @@
       <div class="brand">TradeBotPro</div>
       <div class="muted">Secure Client Dashboard</div>
     </div>
+
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button id="btnLogin" class="btn btnPrimary" type="button" style="display:none">Customer Login</button>
+      <button id="btnWizard" class="btn btnGhost" type="button" style="display:none">Edit setup wizard</button>
+      <button id="btnSave" class="btn btnPrimary" type="button">Save changes</button>
       <button id="btnLogout" class="btn" type="button">Logout</button>
     </div>
   </div>
@@ -132,27 +201,103 @@
 
 <main>
   <div class="grid">
+
+    <!-- LEFT: OVERVIEW + READONLY -->
     <section class="card">
-      <h2 id="bizName">Loading…</h2>
-      <div class="muted" id="contactLine"></div>
+      <div class="row">
+        <div>
+          <h2 id="bizName">Loading…</h2>
+          <div class="muted" id="contactLine"></div>
+        </div>
+        <div id="statusPill" class="pill neutral">Status: —</div>
+      </div>
 
       <div class="kvs">
         <div class="kv"><div class="k">Trade</div><div class="v" id="vTrade">—</div></div>
         <div class="kv"><div class="k">Base postcode</div><div class="v" id="vPostcode">—</div></div>
+        <div class="kv"><div class="k">Coverage / radius</div><div class="v" id="vCoverage">—</div></div>
         <div class="kv"><div class="k">Plan</div><div class="v" id="vPlan">—</div></div>
-        <div class="kv"><div class="k">Status</div><div class="v" id="vSignup">—</div></div>
+        <div class="kv"><div class="k">Wizard</div><div class="v" id="vWizard">—</div></div>
+        <div class="kv"><div class="k">Setup</div><div class="v" id="vSetup">—</div></div>
       </div>
 
-      <div id="statusMsg" class="status"></div>
+      <div id="loadMsg" class="status"></div>
+
+      <div style="margin-top:16px">
+        <h3>Wizard answers (if available)</h3>
+        <div class="muted">If your wizard stores answers in <span class="mono" style="display:inline-block;padding:2px 8px;border-radius:999px;max-height:none">wizard_answers</span>, they’ll appear here.</div>
+        <div id="wizardJson" class="mono" style="margin-top:10px">—</div>
+      </div>
     </section>
 
+    <!-- RIGHT: EDITABLE CLIENT SETTINGS -->
     <aside class="card">
       <h3>Your settings</h3>
-      <div class="muted">These affect how TradeBotPro speaks to customers.</div>
+      <div class="muted">You can edit your business details and AI preferences here. Onboarding status is controlled by TradeBotPro.</div>
 
-      <div style="margin-top:10px">
-        <label for="tone">Message tone</label>
-        <select id="tone">
+      <div class="two">
+        <div class="field">
+          <label for="f_business_name">Business name</label>
+          <input id="f_business_name" placeholder="Your business name"/>
+        </div>
+        <div class="field">
+          <label for="f_contact_name">Contact name</label>
+          <input id="f_contact_name" placeholder="Your name"/>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label for="f_phone">Phone</label>
+          <input id="f_phone" placeholder="Mobile number"/>
+        </div>
+        <div class="field">
+          <label for="f_whatsapp">WhatsApp</label>
+          <input id="f_whatsapp" placeholder="WhatsApp number"/>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label for="f_trade_type">Trade type</label>
+          <input id="f_trade_type" placeholder="e.g. Plumber"/>
+        </div>
+        <div class="field">
+          <label for="f_base_postcode">Base postcode</label>
+          <input id="f_base_postcode" placeholder="e.g. SW11"/>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label for="f_service_radius">Service radius / area</label>
+          <input id="f_service_radius" placeholder="e.g. 10 miles / London SW"/>
+        </div>
+        <div class="field">
+          <label for="f_website_url">Website</label>
+          <input id="f_website_url" placeholder="https://..."/>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label for="f_callout_fee">Call-out fee</label>
+          <input id="f_callout_fee" placeholder="e.g. 90"/>
+        </div>
+        <div class="field">
+          <label for="f_hourly_rate">Hourly rate</label>
+          <input id="f_hourly_rate" placeholder="e.g. 85"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f_callout_style">Call-out style (how to explain pricing)</label>
+        <input id="f_callout_style" placeholder="e.g. £90 call-out includes first hour, then £85/hr"/>
+      </div>
+
+      <div class="field">
+        <label for="f_tone">Message tone</label>
+        <select id="f_tone">
           <option value="">Not set</option>
           <option>Friendly & casual</option>
           <option>Professional</option>
@@ -160,17 +305,35 @@
         </select>
       </div>
 
-      <div style="margin-top:10px">
-        <label for="callout">Call-out style</label>
-        <input id="callout" placeholder="e.g. £90 call-out, first hour included"/>
+      <div class="field">
+        <label for="f_services_summary">Services summary (what you do)</label>
+        <textarea id="f_services_summary" placeholder="e.g. Boiler repairs, leaks, installs, servicing..."></textarea>
       </div>
 
-      <div style="margin-top:14px">
-        <button id="btnSave" class="btn btnPrimary" type="button">Save settings</button>
+      <div class="field">
+        <label for="f_ai_style_notes">AI style notes (how TradeBotPro should speak)</label>
+        <textarea id="f_ai_style_notes" placeholder="e.g. Ask for photos, confirm postcode coverage, never quote fixed prices without approval..."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="f_pricing_notes">Pricing notes (internal)</label>
+        <textarea id="f_pricing_notes" placeholder="e.g. Minimum job £120, emergency surcharge after 6pm..."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="f_notes">Notes (internal)</label>
+        <textarea id="f_notes" placeholder="Any extra notes for our setup team..."></textarea>
       </div>
 
       <div id="saveMsg" class="status"></div>
+
+      <div style="margin-top:14px" class="muted">
+        Need to change your onboarding status or plan? Email us at
+        <a class="link" href="mailto:hello@tradebotpro.co.uk">hello@tradebotpro.co.uk</a>
+        and we’ll update it.
+      </div>
     </aside>
+
   </div>
 </main>
 
@@ -181,24 +344,32 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const el = (id) => document.getElementById(id);
+  const $ = (id) => document.getElementById(id);
 
-  function setStatus(msg, ok=false){
-    el("statusMsg").textContent = msg || "";
-    el("statusMsg").className = "status " + (ok ? "ok" : (msg ? "err" : ""));
+  function pill(text, kind="neutral"){
+    const el = $("statusPill");
+    el.textContent = text;
+    el.className = "pill " + kind;
+  }
+  function setLoad(msg, ok=false){
+    $("loadMsg").textContent = msg || "";
+    $("loadMsg").className = "status " + (ok ? "ok" : (msg ? "err" : ""));
   }
   function setSave(msg, ok=false){
-    el("saveMsg").textContent = msg || "";
-    el("saveMsg").className = "status " + (ok ? "ok" : (msg ? "err" : ""));
+    $("saveMsg").textContent = msg || "";
+    $("saveMsg").className = "status " + (ok ? "ok" : (msg ? "err" : ""));
   }
 
-  el("btnLogin").onclick = () => location.href = "customer-login.html";
-  el("btnLogout").onclick = async () => {
+  $("btnLogout").onclick = async () => {
     await sb.auth.signOut();
     location.href = "customer-login.html";
   };
 
-  async function establishSessionFromUrlIfNeeded(){
+  function safe(v){ return (v === null || v === undefined || v === "") ? "—" : String(v); }
+
+  let currentCustomer = null;
+
+  async function ensureSessionFromUrl(){
     const u = new URL(location.href);
     const hasCode = u.searchParams.get("code");
     const hasHashTokens = location.hash && location.hash.includes("access_token=");
@@ -210,7 +381,6 @@
       history.replaceState({}, "", u.toString());
       return;
     }
-
     if (hasHashTokens) {
       const { error } = await sb.auth.getSessionFromUrl({ storeSession: true });
       if (error) throw error;
@@ -220,30 +390,30 @@
   }
 
   async function loadCustomerForUser(user){
-    // 1) Try by auth_user_id (normal case)
+    // Always select("*") so schema changes don't break the page with 400 errors.
     let res = await sb
       .from("customers")
-      .select("id,business_name,contact_name,email,trade_type,base_postcode,signup_status,plan_name,tone,callout_style,auth_user_id")
+      .select("*")
       .eq("auth_user_id", user.id)
       .maybeSingle();
 
     if (res.error) throw res.error;
     if (res.data) return res.data;
 
-    // 2) First login: try by email (requires your “read by email for linking” policy)
+    // First login fallback (by email)
     const email = (user.email || "").toLowerCase();
-    if (!email) throw new Error("No email on auth user.");
+    if (!email) throw new Error("No email found on this login session.");
 
     const byEmail = await sb
       .from("customers")
-      .select("id,business_name,contact_name,email,trade_type,base_postcode,signup_status,plan_name,tone,callout_style,auth_user_id")
+      .select("*")
       .eq("email", email)
       .maybeSingle();
 
     if (byEmail.error) throw byEmail.error;
     if (!byEmail.data) throw new Error("No customer record found for this email.");
 
-    // 3) Link auth_user_id once (requires your “link auth user” update policy)
+    // Link auth_user_id once (policy must allow)
     if (!byEmail.data.auth_user_id) {
       const link = await sb
         .from("customers")
@@ -253,10 +423,10 @@
       if (link.error) throw link.error;
     }
 
-    // 4) Re-fetch by auth_user_id (now linked)
+    // Re-fetch by auth_user_id
     res = await sb
       .from("customers")
-      .select("id,business_name,contact_name,email,trade_type,base_postcode,signup_status,plan_name,tone,callout_style,auth_user_id")
+      .select("*")
       .eq("auth_user_id", user.id)
       .single();
 
@@ -264,70 +434,140 @@
     return res.data;
   }
 
-  async function boot(){
-    try{
-      setStatus("Checking secure session…", true);
-      setSave("");
+  function renderCustomer(c){
+    currentCustomer = c;
 
-      await establishSessionFromUrlIfNeeded();
+    $("bizName").textContent = c.business_name || "Your business";
+    $("contactLine").textContent = [c.contact_name, c.email].filter(Boolean).join(" • ");
 
-      const { data:{ user } } = await sb.auth.getUser();
-      if (!user) {
-        setStatus("Not logged in. Please use Customer Login.", false);
-        el("btnLogin").style.display = "";
-        el("btnLogout").style.display = "none";
-        return;
-      }
+    $("vTrade").textContent = safe(c.trade_type);
+    $("vPostcode").textContent = safe(c.base_postcode);
+    $("vCoverage").textContent = safe(c.service_radius || c.coverage || c.callout_from);
+    $("vPlan").textContent = safe(c.plan_name || c.plan_status);
 
-      const confirmed = user.email_confirmed_at || user.confirmed_at;
-      if (!confirmed) {
-        setStatus("Email verification required. Use Customer Login to request a secure link.", false);
-        el("btnLogin").style.display = "";
-        return;
-      }
+    const wiz = (c.wizard_completed === true) ? "Complete" : (c.wizard_completed === false ? "Not complete" : "—");
+    $("vWizard").textContent = wiz;
 
-      setStatus("Loading your customer record…", true);
-      const c = await loadCustomerForUser(user);
+    const setup = (c.setup_complete === true) ? "Complete" : (c.setup_complete === false ? "In progress" : "—");
+    $("vSetup").textContent = setup;
 
-      el("bizName").textContent = c.business_name || "Your business";
-      el("contactLine").textContent = [c.contact_name, c.email].filter(Boolean).join(" • ");
-      el("vTrade").textContent = c.trade_type || "—";
-      el("vPostcode").textContent = c.base_postcode || "—";
-      el("vSignup").textContent = c.signup_status || "—";
-      el("vPlan").textContent = c.plan_name || "—";
+    const status = c.signup_status || c.onboarding_status || "—";
+    const kind = (String(status).toLowerCase().includes("live")) ? "ok"
+      : (String(status).toLowerCase().includes("trial") || String(status).toLowerCase().includes("demo")) ? "warn"
+      : "neutral";
+    pill("Status: " + status, kind);
 
-      el("tone").value = c.tone || "";
-      el("callout").value = c.callout_style || "";
+    // Wizard JSON viewer (if present)
+    const wizObj = c.wizard_answers || c.wizard_data || null;
+    $("wizardJson").textContent = wizObj ? JSON.stringify(wizObj, null, 2) : "—";
 
-      setStatus("Loaded ✔", true);
-    } catch (e){
-      console.error("[TBP] Secure dashboard error:", e);
-      setStatus("ERROR:\n" + (e?.message || "Failed to load dashboard"), false);
-      el("btnLogin").style.display = "";
+    // Wizard edit button
+    if (c.id) {
+      const u = new URL("app.html", location.origin);
+      u.searchParams.set("customer_id", c.id);
+      if (c.setup_token) u.searchParams.set("setup_token", c.setup_token);
+      $("btnWizard").style.display = "";
+      $("btnWizard").onclick = () => window.open(u.toString(), "_blank");
     }
+
+    // Populate editable fields (only if column exists — safe defaults)
+    $("f_business_name").value = c.business_name || "";
+    $("f_contact_name").value = c.contact_name || "";
+    $("f_phone").value = c.phone || "";
+    $("f_whatsapp").value = c.whatsapp_number || "";
+    $("f_trade_type").value = c.trade_type || "";
+    $("f_base_postcode").value = c.base_postcode || "";
+    $("f_service_radius").value = c.service_radius || "";
+    $("f_website_url").value = c.website_url || "";
+    $("f_callout_fee").value = c.callout_fee ?? "";
+    $("f_hourly_rate").value = c.hourly_rate ?? "";
+    $("f_callout_style").value = c.callout_style || "";
+    $("f_tone").value = c.tone || "";
+    $("f_services_summary").value = c.services_summary || "";
+    $("f_ai_style_notes").value = c.ai_style_notes || "";
+    $("f_pricing_notes").value = c.pricing_notes || "";
+    $("f_notes").value = c.notes || "";
   }
 
-  el("btnSave").onclick = async () => {
+  $("btnSave").onclick = async () => {
     try{
       setSave("Saving…", true);
       const { data:{ user } } = await sb.auth.getUser();
       if (!user) throw new Error("Not logged in.");
 
+      if (!currentCustomer?.id) throw new Error("No customer record loaded.");
+
+      // Only update client-editable fields
+      const patch = {
+        business_name: $("f_business_name").value.trim() || null,
+        contact_name: $("f_contact_name").value.trim() || null,
+        phone: $("f_phone").value.trim() || null,
+        whatsapp_number: $("f_whatsapp").value.trim() || null,
+        trade_type: $("f_trade_type").value.trim() || null,
+        base_postcode: $("f_base_postcode").value.trim().toUpperCase() || null,
+        service_radius: $("f_service_radius").value.trim() || null,
+        website_url: $("f_website_url").value.trim() || null,
+
+        callout_fee: $("f_callout_fee").value.trim() || null,
+        hourly_rate: $("f_hourly_rate").value.trim() || null,
+        callout_style: $("f_callout_style").value.trim() || null,
+        tone: $("f_tone").value || null,
+
+        services_summary: $("f_services_summary").value.trim() || null,
+        ai_style_notes: $("f_ai_style_notes").value.trim() || null,
+        pricing_notes: $("f_pricing_notes").value.trim() || null,
+        notes: $("f_notes").value.trim() || null
+      };
+
+      // Save by auth_user_id (preferred)
       const { error } = await sb
         .from("customers")
-        .update({
-          tone: el("tone").value || null,
-          callout_style: el("callout").value || null
-        })
+        .update(patch)
         .eq("auth_user_id", user.id);
 
       if (error) throw error;
+
       setSave("Saved ✔", true);
+
+      // Reload to reflect anything server-side
+      const c2 = await loadCustomerForUser(user);
+      renderCustomer(c2);
+
     } catch(e){
-      console.error("[TBP] Save settings error:", e);
+      console.error("[TBP] Save error:", e);
       setSave("ERROR:\n" + (e?.message || "Save failed"), false);
     }
   };
+
+  async function boot(){
+    try{
+      setLoad("Checking secure session…", true);
+      await ensureSessionFromUrl();
+
+      const { data:{ user } } = await sb.auth.getUser();
+      if (!user){
+        location.href = "customer-login.html";
+        return;
+      }
+
+      // Require verified email
+      const confirmed = user.email_confirmed_at || user.confirmed_at;
+      if (!confirmed){
+        location.href = "customer-login.html";
+        return;
+      }
+
+      setLoad("Loading your dashboard…", true);
+      const c = await loadCustomerForUser(user);
+      renderCustomer(c);
+      setLoad("", true);
+
+    } catch(e){
+      console.error("[TBP] Secure dashboard error:", e);
+      setLoad("ERROR:\n" + (e?.message || "Failed to load"), false);
+      alert("Failed to load dashboard");
+    }
+  }
 
   boot();
 </script>
