@@ -8,7 +8,6 @@
   <style>
     :root{
       --primary:#1f4e79;
-      --accent:#00a3ff;
       --bg:#f3f4f9;
       --text:#151820;
       --muted:#6b7280;
@@ -17,7 +16,6 @@
       --err:#b3261e;
       --white:#ffffff;
     }
-
     *{box-sizing:border-box}
     body{
       margin:0;
@@ -25,14 +23,12 @@
       background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 45%,#ffffff 100%);
       color:var(--text);
     }
-
     header{
       background:rgba(255,255,255,.96);
       backdrop-filter:blur(8px);
       border-bottom:1px solid var(--border);
       position:sticky; top:0; z-index:10;
     }
-
     .inner{
       max-width:1100px;
       margin:0 auto;
@@ -43,10 +39,8 @@
       gap:12px;
       flex-wrap:wrap;
     }
-
     .brand{font-weight:900;color:var(--primary)}
     .muted{color:var(--muted)}
-
     .btn{
       border-radius:999px;
       padding:10px 14px;
@@ -55,29 +49,22 @@
       font-weight:700;
       cursor:pointer;
     }
-
     .btnPrimary{
       background:var(--primary);
       color:#fff;
       border-color:transparent;
     }
-
     main{
       max-width:1100px;
       margin:0 auto;
       padding:18px;
     }
-
     .grid{
       display:grid;
       grid-template-columns:1.2fr .8fr;
       gap:16px;
     }
-
-    @media (max-width:900px){
-      .grid{grid-template-columns:1fr}
-    }
-
+    @media (max-width:900px){ .grid{grid-template-columns:1fr} }
     .card{
       background:#fff;
       border:1px solid var(--border);
@@ -85,47 +72,37 @@
       padding:18px;
       box-shadow:0 20px 50px rgba(15,23,42,.1);
     }
-
     h2{margin:0 0 6px;color:var(--primary)}
     h3{margin:.6rem 0 .4rem}
-
     .kvs{
       display:grid;
       grid-template-columns:1fr 1fr;
       gap:10px;
       margin-top:10px;
     }
-
-    @media (max-width:600px){
-      .kvs{grid-template-columns:1fr}
-    }
-
+    @media (max-width:600px){ .kvs{grid-template-columns:1fr} }
     .kv{
       border:1px solid var(--border);
       border-radius:14px;
       padding:10px 12px;
       background:#f8fafc;
     }
-
     .kv .k{
       font-size:.7rem;
       letter-spacing:.14em;
       text-transform:uppercase;
       color:var(--muted);
     }
-
     .kv .v{
       font-weight:800;
       margin-top:2px;
     }
-
     label{
       font-size:.8rem;
       font-weight:700;
       display:block;
       margin-bottom:4px;
     }
-
     input, select{
       width:100%;
       padding:8px 10px;
@@ -133,34 +110,28 @@
       border:1px solid var(--border);
       font:inherit;
     }
-
-    input:focus, select:focus{
-      outline:2px solid rgba(31,78,121,.4);
-      border-color:transparent;
-    }
-
-    .status{margin-top:10px;font-weight:700}
+    .status{margin-top:10px;font-weight:800;white-space:pre-wrap}
     .ok{color:var(--ok)}
     .err{color:var(--err)}
   </style>
 </head>
 
 <body>
-
 <header>
   <div class="inner">
     <div>
       <div class="brand">TradeBotPro</div>
       <div class="muted">Secure Client Dashboard</div>
     </div>
-    <button id="btnLogout" class="btn">Logout</button>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button id="btnLogin" class="btn btnPrimary" type="button" style="display:none">Customer Login</button>
+      <button id="btnLogout" class="btn" type="button">Logout</button>
+    </div>
   </div>
 </header>
 
 <main>
   <div class="grid">
-
-    <!-- LEFT: BUSINESS OVERVIEW -->
     <section class="card">
       <h2 id="bizName">Loading…</h2>
       <div class="muted" id="contactLine"></div>
@@ -171,12 +142,13 @@
         <div class="kv"><div class="k">Plan</div><div class="v" id="vPlan">—</div></div>
         <div class="kv"><div class="k">Status</div><div class="v" id="vSignup">—</div></div>
       </div>
+
+      <div id="statusMsg" class="status"></div>
     </section>
 
-    <!-- RIGHT: EDITABLE SETTINGS -->
     <aside class="card">
       <h3>Your settings</h3>
-      <div class="muted">These affect how TradeBotPro speaks to your customers.</div>
+      <div class="muted">These affect how TradeBotPro speaks to customers.</div>
 
       <div style="margin-top:10px">
         <label for="tone">Message tone</label>
@@ -194,12 +166,11 @@
       </div>
 
       <div style="margin-top:14px">
-        <button id="btnSave" class="btn btnPrimary">Save settings</button>
+        <button id="btnSave" class="btn btnPrimary" type="button">Save settings</button>
       </div>
 
-      <div id="statusMsg" class="status"></div>
+      <div id="saveMsg" class="status"></div>
     </aside>
-
   </div>
 </main>
 
@@ -207,79 +178,158 @@
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const el = id => document.getElementById(id);
+  const el = (id) => document.getElementById(id);
 
+  function setStatus(msg, ok=false){
+    el("statusMsg").textContent = msg || "";
+    el("statusMsg").className = "status " + (ok ? "ok" : (msg ? "err" : ""));
+  }
+  function setSave(msg, ok=false){
+    el("saveMsg").textContent = msg || "";
+    el("saveMsg").className = "status " + (ok ? "ok" : (msg ? "err" : ""));
+  }
+
+  el("btnLogin").onclick = () => location.href = "customer-login.html";
   el("btnLogout").onclick = async () => {
     await sb.auth.signOut();
     location.href = "customer-login.html";
   };
 
-  async function load() {
-    const { data: { user } } = await sb.auth.getUser();
-    if (!user) {
-      location.href = "customer-login.html";
+  async function establishSessionFromUrlIfNeeded(){
+    const u = new URL(location.href);
+    const hasCode = u.searchParams.get("code");
+    const hasHashTokens = location.hash && location.hash.includes("access_token=");
+
+    if (hasCode) {
+      const { error } = await sb.auth.exchangeCodeForSession(location.href);
+      if (error) throw error;
+      u.searchParams.delete("code");
+      history.replaceState({}, "", u.toString());
       return;
     }
 
-    const { data, error } = await sb
+    if (hasHashTokens) {
+      const { error } = await sb.auth.getSessionFromUrl({ storeSession: true });
+      if (error) throw error;
+      history.replaceState({}, "", location.pathname + location.search);
+      return;
+    }
+  }
+
+  async function loadCustomerForUser(user){
+    // 1) Try by auth_user_id (normal case)
+    let res = await sb
       .from("customers")
-      .select(`
-        business_name,
-        contact_name,
-        email,
-        trade_type,
-        base_postcode,
-        signup_status,
-        plan_name,
-        tone,
-        callout_style
-      `)
+      .select("id,business_name,contact_name,email,trade_type,base_postcode,signup_status,plan_name,tone,callout_style,auth_user_id")
+      .eq("auth_user_id", user.id)
+      .maybeSingle();
+
+    if (res.error) throw res.error;
+    if (res.data) return res.data;
+
+    // 2) First login: try by email (requires your “read by email for linking” policy)
+    const email = (user.email || "").toLowerCase();
+    if (!email) throw new Error("No email on auth user.");
+
+    const byEmail = await sb
+      .from("customers")
+      .select("id,business_name,contact_name,email,trade_type,base_postcode,signup_status,plan_name,tone,callout_style,auth_user_id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (byEmail.error) throw byEmail.error;
+    if (!byEmail.data) throw new Error("No customer record found for this email.");
+
+    // 3) Link auth_user_id once (requires your “link auth user” update policy)
+    if (!byEmail.data.auth_user_id) {
+      const link = await sb
+        .from("customers")
+        .update({ auth_user_id: user.id })
+        .eq("id", byEmail.data.id);
+
+      if (link.error) throw link.error;
+    }
+
+    // 4) Re-fetch by auth_user_id (now linked)
+    res = await sb
+      .from("customers")
+      .select("id,business_name,contact_name,email,trade_type,base_postcode,signup_status,plan_name,tone,callout_style,auth_user_id")
       .eq("auth_user_id", user.id)
       .single();
 
-    if (error) throw error;
+    if (res.error) throw res.error;
+    return res.data;
+  }
 
-    el("bizName").textContent = data.business_name;
-    el("contactLine").textContent = `${data.contact_name} • ${data.email}`;
-    el("vTrade").textContent = data.trade_type || "—";
-    el("vPostcode").textContent = data.base_postcode || "—";
-    el("vSignup").textContent = data.signup_status || "—";
-    el("vPlan").textContent = data.plan_name || "—";
+  async function boot(){
+    try{
+      setStatus("Checking secure session…", true);
+      setSave("");
 
-    el("tone").value = data.tone || "";
-    el("callout").value = data.callout_style || "";
+      await establishSessionFromUrlIfNeeded();
+
+      const { data:{ user } } = await sb.auth.getUser();
+      if (!user) {
+        setStatus("Not logged in. Please use Customer Login.", false);
+        el("btnLogin").style.display = "";
+        el("btnLogout").style.display = "none";
+        return;
+      }
+
+      const confirmed = user.email_confirmed_at || user.confirmed_at;
+      if (!confirmed) {
+        setStatus("Email verification required. Use Customer Login to request a secure link.", false);
+        el("btnLogin").style.display = "";
+        return;
+      }
+
+      setStatus("Loading your customer record…", true);
+      const c = await loadCustomerForUser(user);
+
+      el("bizName").textContent = c.business_name || "Your business";
+      el("contactLine").textContent = [c.contact_name, c.email].filter(Boolean).join(" • ");
+      el("vTrade").textContent = c.trade_type || "—";
+      el("vPostcode").textContent = c.base_postcode || "—";
+      el("vSignup").textContent = c.signup_status || "—";
+      el("vPlan").textContent = c.plan_name || "—";
+
+      el("tone").value = c.tone || "";
+      el("callout").value = c.callout_style || "";
+
+      setStatus("Loaded ✔", true);
+    } catch (e){
+      console.error("[TBP] Secure dashboard error:", e);
+      setStatus("ERROR:\n" + (e?.message || "Failed to load dashboard"), false);
+      el("btnLogin").style.display = "";
+    }
   }
 
   el("btnSave").onclick = async () => {
-    el("statusMsg").textContent = "Saving…";
-    el("statusMsg").className = "status";
+    try{
+      setSave("Saving…", true);
+      const { data:{ user } } = await sb.auth.getUser();
+      if (!user) throw new Error("Not logged in.");
 
-    const { data: { user } } = await sb.auth.getUser();
+      const { error } = await sb
+        .from("customers")
+        .update({
+          tone: el("tone").value || null,
+          callout_style: el("callout").value || null
+        })
+        .eq("auth_user_id", user.id);
 
-    const { error } = await sb
-      .from("customers")
-      .update({
-        tone: el("tone").value || null,
-        callout_style: el("callout").value || null
-      })
-      .eq("auth_user_id", user.id);
-
-    if (error) {
-      el("statusMsg").textContent = error.message;
-      el("statusMsg").classList.add("err");
-    } else {
-      el("statusMsg").textContent = "Saved ✔";
-      el("statusMsg").classList.add("ok");
+      if (error) throw error;
+      setSave("Saved ✔", true);
+    } catch(e){
+      console.error("[TBP] Save settings error:", e);
+      setSave("ERROR:\n" + (e?.message || "Save failed"), false);
     }
   };
 
-  load().catch(e=>{
-    console.error(e);
-    alert("Failed to load dashboard");
-  });
+  boot();
 </script>
 
 </body>
