@@ -1296,140 +1296,104 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // -------- helpers ----------
-  const qs = new URLSearchParams(location.search);
-  const customerId = (qs.get("customer_id") || "").trim();
-  const setupToken = (qs.get("setup_token") || "").trim();
+  const form = document.getElementById("signupForm");
+  const submitBtn = document.getElementById("signup-submit-btn");
+  const continueBtn = document.getElementById("continueWizardBtn");
+  const statusBox = document.getElementById("signup-status");
 
-  function byId(id){ return document.getElementById(id); }
-  function setText(id, t){ const el = byId(id); if(el) el.textContent = (t ?? ""); }
-  function setVal(id, v){ const el = byId(id); if(el) el.value = (v ?? ""); }
-
-  function showFatal(msg){
-    alert(msg);
-    // optional: you can render into your UI if you have a banner element
+  function setStatus(msg, ok=false){
+    if(!statusBox) return;
+    statusBox.textContent = msg || "";
+    statusBox.className = "signup-status " + (ok ? "signup-status--success" : "signup-status--error");
   }
 
-  if(!customerId || !setupToken){
-    showFatal("Wizard link invalid or missing. Please use the link from your signup email or resubmit the signup form.");
-    throw new Error("Missing customer_id or setup_token");
+  function setSaving(isSaving){
+    if(!submitBtn) return;
+    if(isSaving){
+      submitBtn.disabled = true;
+      submitBtn.dataset.originalText = submitBtn.textContent;
+      submitBtn.textContent = "Saving…";
+    } else {
+      submitBtn.disabled = false;
+      submitBtn.textContent = submitBtn.dataset.originalText || "Join TradeBotPro (no payment yet)";
+    }
   }
 
-  // ---- Map your wizard input IDs here ----
-  // IMPORTANT: change these IDs to match your actual wizard form fields in app.html
-  const FIELDS = {
-    business_name:  "business_name",
-    contact_name:   "contact_name",
-    trade_type:     "trade_type",
-    base_postcode:  "base_postcode",
-    tone:           "tone",
-    callout_style:  "callout_style"
-  };
+  function val(fd, name){
+    return (fd.get(name) ?? "").toString().trim();
+  }
 
-  // If your "Finish" button has a different id, change it here:
-  const btnFinish = byId("btn-finish") || byId("btn-complete") || byId("btn-save") || null;
+  if(!form){
+    console.error("[TBP] Missing #signupForm");
+  } else {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setStatus("");
+      setSaving(true);
 
-  async function loadWizard(){
-    try{
-      const { data, error } = await sb.rpc("tbp_customer_load", {
-        p_customer_id: customerId,
-        p_setup_token: setupToken
-      });
+      try{
+        const fd = new FormData(form);
 
-      if(error) throw error;
+        const p_contact_name    = val(fd, "contact_name");
+        const p_business_name   = val(fd, "business_name");
+        const p_email           = val(fd, "email").toLowerCase();
+        const p_whatsapp_number = val(fd, "whatsapp_number");
+        const p_trade_type      = val(fd, "trade_type");
+        const p_service_area    = val(fd, "service_area").toUpperCase();
+        const p_referrer        = val(fd, "referrer") || null;
+        const agree             = !!fd.get("agree");
 
-      const row = Array.isArray(data) ? data[0] : data;
-      if(!row?.id) throw new Error("No matching customer found (token mismatch).");
+        if(!p_contact_name) throw new Error("Please enter Contact name.");
+        if(!p_business_name) throw new Error("Please enter Business name.");
+        if(!p_email || !p_email.includes("@")) throw new Error("Please enter a valid Email.");
+        if(!p_whatsapp_number) throw new Error("Please enter Mobile / WhatsApp number.");
+        if(!p_trade_type) throw new Error("Please select a Trade type.");
+        if(!p_service_area) throw new Error("Please enter Main service area.");
+        if(!agree) throw new Error("Please tick the Terms & Conditions checkbox.");
 
-      // Prefill
-      if (byId(FIELDS.business_name)) setVal(FIELDS.business_name, row.business_name || "");
-      if (byId(FIELDS.contact_name))  setVal(FIELDS.contact_name,  row.contact_name  || "");
-      if (byId(FIELDS.trade_type))    setVal(FIELDS.trade_type,    row.trade_type    || "");
-      if (byId(FIELDS.base_postcode)) setVal(FIELDS.base_postcode, row.base_postcode || "");
-      if (byId(FIELDS.tone))          setVal(FIELDS.tone,          row.tone          || "");
-      if (byId(FIELDS.callout_style)) setVal(FIELDS.callout_style, row.callout_style || "");
-
-      // Optional: lock if wizard_locked
-      if(row.wizard_locked){
-        Object.values(FIELDS).forEach(id=>{
-          const el = byId(id);
-          if(el) el.disabled = true;
+        // ✅ ALWAYS use RPC so RLS can block direct inserts safely
+        const { data, error } = await sb.rpc("tbp_public_signup", {
+          p_contact_name,
+          p_business_name,
+          p_email,
+          p_whatsapp_number,
+          p_trade_type,
+          p_service_area,
+          p_referrer
         });
+
+        if(error) throw error;
+
+        const row = Array.isArray(data) ? data[0] : data;
+        if(!row?.id || !row?.setup_token){
+          throw new Error("Signup saved but missing id/setup_token.");
+        }
+
+        // ✅ ALWAYS go to wizard first
+        const wiz = new URL("app.html", window.location.origin);
+        wiz.searchParams.set("customer_id", row.id);
+        wiz.searchParams.set("setup_token", row.setup_token);
+
+        if(continueBtn){
+          continueBtn.href = wiz.toString();
+          continueBtn.textContent = "Continue set up with the Wizard →";
+          continueBtn.classList.remove("tbp-hidden");
+        }
+
+        setStatus("Saved ✔ Redirecting to your setup wizard…", true);
+        window.location.assign(wiz.toString());
+
+      }catch(err){
+        console.error("[TBP] Homepage signup failed:", err);
+        const msg = err?.message || "Signup failed — check console.";
+        setStatus(msg, false);
+        alert(msg);
+      }finally{
+        setSaving(false);
       }
-
-    }catch(err){
-      console.error("[TBP] Wizard load error:", err);
-      const msg = (err?.message || "").includes("TOKEN_MISMATCH")
-        ? "Wizard link invalid or expired. Please re-submit the signup form to generate a fresh setup link."
-        : (err?.message || "Failed to load wizard.");
-      showFatal(msg);
-    }
-  }
-
-  async function saveWizard(markComplete=false){
-    try{
-      const payload = {
-        p_customer_id: customerId,
-        p_setup_token: setupToken,
-        p_business_name:  byId(FIELDS.business_name)?.value ?? "",
-        p_contact_name:   byId(FIELDS.contact_name)?.value ?? "",
-        p_trade_type:     byId(FIELDS.trade_type)?.value ?? "",
-        p_base_postcode:  byId(FIELDS.base_postcode)?.value ?? "",
-        p_tone:           byId(FIELDS.tone)?.value ?? "",
-        p_callout_style:  byId(FIELDS.callout_style)?.value ?? "",
-        p_mark_complete:  !!markComplete
-      };
-
-      const { error } = await sb.rpc("tbp_customer_save_wizard", payload);
-      if(error) throw error;
-
-      if(markComplete){
-        const dash = new URL("client-dashboard.html", location.origin);
-        dash.searchParams.set("customer_id", customerId);
-        dash.searchParams.set("setup_token", setupToken);
-        location.assign(dash.toString());
-      }else{
-        alert("Saved.");
-      }
-    }catch(err){
-      console.error("[TBP] Wizard save error:", err);
-      const msg = (err?.message || "").includes("TOKEN_MISMATCH")
-        ? "Could not save. Your setup link is invalid or expired."
-        : (err?.message || "Save failed.");
-      alert(msg);
-    }
-  }
-
-  // Hook finish/complete button (if present)
-  if(btnFinish){
-    btnFinish.addEventListener("click", (e)=>{
-      e.preventDefault();
-      saveWizard(true);
     });
   }
-
-  // If you also have a normal form submit:
-  const wizardForm = document.querySelector("form");
-  if(wizardForm){
-    wizardForm.addEventListener("submit", (e)=>{
-      e.preventDefault();
-      saveWizard(false);
-    });
-  }
-
-  loadWizard();
 </script>
 
 </body>
 </html>
-
-
-</body>
-</html>
-
-
-
-
-
-
-
