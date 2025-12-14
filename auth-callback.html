@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Signing you in…</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body style="font-family:system-ui; padding:24px;">
+  <div id="msg">Signing you in…</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
+  <script>
+  (function () {
+    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, detectSessionInUrl: true }
+    });
+
+    const msg = document.getElementById("msg");
+    const qs = new URLSearchParams(window.location.search);
+    const next = qs.get("next") || "/dashboard-secure.html";
+
+    (async () => {
+      // With detectSessionInUrl:true, Supabase will pick up tokens/code from the URL automatically.
+      const { data } = await sb.auth.getSession();
+      const session = data?.session;
+
+      if (!session) {
+        msg.textContent = "Could not complete sign-in. Please try again from the login page.";
+        return;
+      }
+
+      msg.textContent = "Signed in. Redirecting…";
+      window.location.href = next;
+    })();
+  })();
+  </script>
+</body>
+</html>
