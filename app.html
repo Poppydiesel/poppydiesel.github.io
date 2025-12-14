@@ -833,361 +833,189 @@
     </div>
   </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
-<script>
-(function () {
-  function bootWhenSupabaseReady() {
-    if (!window.supabase) return setTimeout(bootWhenSupabaseReady, 50);
-    boot();
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ---- URL params ----
+  const qs = new URLSearchParams(location.search);
+  const customer_id = qs.get("customer_id");
+  const setup_token = qs.get("setup_token");
+
+  // ---- Basic guard ----
+  if (!customer_id) {
+    alert("Missing customer_id in URL. Please start from the signup form again.");
+    throw new Error("Missing customer_id");
   }
 
-  function boot() {
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-    const ADMIN_EMAILS = ["hello@tradebotpro.co.uk"];
+  // ---- Helpers ----
+  const $ = (id) => document.getElementById(id);
 
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const qs = new URLSearchParams(window.location.search);
+  function dashboardUrl() {
+    const u = new URL("client-dashboard.html", location.origin);
+    u.searchParams.set("customer_id", customer_id);
+    if (setup_token) u.searchParams.set("setup_token", setup_token);
+    return u.toString();
+  }
 
-    const customer_id = (qs.get("customer_id") || "").trim();
-    const setup_token = (qs.get("setup_token") || "").trim();
-    const isPublic = !!(customer_id && setup_token);
+  function setStatus(msg, ok = true) {
+    const el = $("saveStatus") || $("status-msg") || $("wizardStatus");
+    if (!el) return;
+    el.textContent = msg || "";
+    el.style.color = ok ? "#0f7b46" : "#b3261e";
+  }
 
-    // UI elements
-    const panels = Array.from(document.querySelectorAll(".step-panel"));
-    const stepDots = Array.from(document.querySelectorAll(".step-dot"));
-    const progressInner = document.getElementById("progress-bar-inner");
-    const progressText = document.getElementById("progress-percent");
+  function getFieldValue(name) {
+    // supports <input name="x"> or id="x"
+    const byName = document.querySelector(`[name="${name}"]`);
+    const el = byName || $(name);
+    if (!el) return null;
 
-    const wizardStepLabel = document.getElementById("wizard-step-label");
-    const wizardStepTitle = document.getElementById("wizard-step-title");
-    const wizardStepSubtitle = document.getElementById("wizard-step-subtitle");
-    const footerText = document.getElementById("wizard-footer-text");
-    const statusEl = document.getElementById("wizard-status-message");
-
-    const btnBack = document.getElementById("btn-back");
-    const btnNext = document.getElementById("btn-next");
-    const btnSaveDraft = document.getElementById("btn-save-draft");
-    const btnDashboard = document.getElementById("btn-dashboard");
-    const summaryBoxEl = document.getElementById("summary-box");
-
-    let currentStep = 1;
-    const totalSteps = 4;
-
-    const answers = {
-      contact_name: "",
-      business_name: "",
-      email: "",
-      phone: "",
-      base_postcode: "",
-      review_link: "",
-      ai_avoid: "",
-      extra_notes: "",
-      main_trade: null,
-      business_stage: null,
-      coverage_radius: null,
-      callout_style: null,
-      callout_band: null,
-      preferred_jobs: [],
-      tone_of_voice: null,
-      channels: [],
-      review_platforms: [],
-      review_push_level: null,
-      demo_style: [],
-      demo_slot: null,
-      golive_timing: null
-    };
-
-    let session = null;
-    let isAdmin = false;
-    let effectiveCustomerId = null;
-
-    function setStatus(msg, type) {
-      if (!statusEl) return;
-      statusEl.textContent = msg || "";
-      statusEl.className = "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
+    if (el.type === "checkbox") return !!el.checked;
+    if (el.type === "radio") {
+      const checked = document.querySelector(`[name="${name}"]:checked`);
+      return checked ? checked.value : null;
     }
+    return (el.value ?? "").toString().trim();
+  }
 
-    function stepMeta(step) {
-      if (step === 1) return { label: "Step 1", title: "Business basics", subtitle: "Who are you, what do you do and how do you like to run things?" };
-      if (step === 2) return { label: "Step 2", title: "Area & pricing", subtitle: "Where you cover and how you like to charge." };
-      if (step === 3) return { label: "Step 3", title: "Messaging & reviews", subtitle: "How the AI should talk and where reviews should go." };
-      return { label: "Step 4", title: "Demo & go-live", subtitle: "How you want to test it and when you’d like to go live." };
+  // ---- Load customer (token-gated) ----
+  async function loadCustomer() {
+    try {
+      setStatus("Loading…", true);
+
+      // IMPORTANT:
+      // Your table access must be implemented as:
+      // - SELECT allowed when setup_token matches
+      // If your RLS isn't set for this yet, loading will fail.
+      const { data, error } = await sb
+        .from("customers")
+        .select("*")
+        .eq("id", customer_id)
+        .eq("setup_token", setup_token || "")
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error("No matching customer found (token mismatch).");
+
+      // Example: populate a few common fields if they exist in your HTML
+      if ($("business_name")) $("business_name").value = data.business_name || "";
+      if ($("contact_name")) $("contact_name").value = data.contact_name || "";
+      if ($("trade_type")) $("trade_type").value = data.trade_type || "";
+      if ($("base_postcode")) $("base_postcode").value = data.base_postcode || "";
+
+      // If you store wizard answers in columns like tone/callout_style etc:
+      if ($("tone")) $("tone").value = data.tone || "";
+      if ($("callout_style")) $("callout_style").value = data.callout_style || "";
+
+      setStatus("", true);
+    } catch (err) {
+      console.error("[TBP] loadCustomer error:", err);
+      setStatus(err?.message || "Failed to load wizard data.", false);
+      alert(err?.message || "Failed to load wizard data.");
     }
+  }
 
-    function renderStep() {
-      panels.forEach(p => p.classList.remove("is-active"));
-      const active = document.querySelector(`.step-panel[data-step="${currentStep}"]`);
-      if (active) active.classList.add("is-active");
+  // ---- Save wizard (token-gated update) ----
+  async function saveWizard({ markComplete = false, redirectAfter = false } = {}) {
+    try {
+      setStatus("Saving…", true);
 
-      stepDots.forEach(d => {
-        const n = parseInt(d.getAttribute("data-step-dot"), 10);
-        d.classList.toggle("is-active", n === currentStep);
-        d.classList.toggle("is-complete", n < currentStep);
-      });
+      // Build update payload from fields you actually have in your wizard.
+      // Add/remove keys to match your wizard inputs.
+      const payload = {
+        // Examples (safe if columns exist):
+        business_name: getFieldValue("business_name") ?? undefined,
+        contact_name: getFieldValue("contact_name") ?? undefined,
+        trade_type: getFieldValue("trade_type") ?? undefined,
+        base_postcode: getFieldValue("base_postcode") ?? undefined,
 
-      const pct = Math.round(((currentStep - 1) / (totalSteps - 1)) * 100);
-      if (progressInner) progressInner.style.width = `${pct}%`;
-      if (progressText) progressText.textContent = `Step ${currentStep} of ${totalSteps}`;
+        tone: getFieldValue("tone") ?? undefined,
+        callout_style: getFieldValue("callout_style") ?? undefined,
 
-      const meta = stepMeta(currentStep);
-      if (wizardStepLabel) wizardStepLabel.textContent = meta.label;
-      if (wizardStepTitle) wizardStepTitle.textContent = meta.title;
-      if (wizardStepSubtitle) wizardStepSubtitle.textContent = meta.subtitle;
+        // Wizard state
+        wizard_completed: markComplete ? true : undefined,
+        wizard_locked: markComplete ? true : undefined,
+        setup_complete: markComplete ? true : undefined,
+      };
 
-      if (footerText) footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${totalSteps}</strong>.`;
+      // remove undefined keys
+      Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
 
-      if (btnBack) btnBack.disabled = currentStep === 1;
-      if (btnNext) btnNext.textContent = (currentStep === totalSteps) ? "Finish →" : "Next step →";
-    }
+      const { error } = await sb
+        .from("customers")
+        .update(payload)
+        .eq("id", customer_id)
+        .eq("setup_token", setup_token || "");
 
-    function readInputsIntoAnswers() {
-      const v = (id) => (document.getElementById(id)?.value ?? "").toString().trim();
-      answers.contact_name  = v("contact_name");
-      answers.business_name = v("business_name");
-      answers.email         = v("contact_email");
-      answers.phone         = v("contact_mobile");
-      answers.base_postcode = v("base_postcode");
-      answers.review_link   = v("review_link");
-      answers.ai_avoid      = v("ai_avoid");
-      answers.extra_notes   = v("extra_notes");
-    }
+      if (error) throw error;
 
-    function applyChipVisualsFromAnswers() {
-      document.querySelectorAll(".chip-row").forEach(row => {
-        const field = row.getAttribute("data-field");
-        const mode = row.getAttribute("data-select");
-        if (!field || !mode) return;
+      setStatus(markComplete ? "Setup complete ✔ Redirecting…" : "Saved ✔", true);
 
-        const chips = Array.from(row.querySelectorAll(".chip"));
-        chips.forEach(ch => {
-          const label = (ch.textContent || "").trim();
-          let selected = false;
-
-          if (mode === "single") selected = answers[field] === label;
-          else selected = (Array.isArray(answers[field]) ? answers[field] : []).includes(label);
-
-          ch.classList.toggle("is-selected", selected);
-          ch.setAttribute("aria-pressed", selected ? "true" : "false");
-        });
-      });
-    }
-
-    document.addEventListener("click", (e) => {
-      const chip = e.target.closest(".chip-row .chip");
-      if (!chip) return;
-      e.preventDefault();
-
-      const row = chip.closest(".chip-row");
-      if (!row) return;
-
-      const field = row.getAttribute("data-field");
-      const mode = row.getAttribute("data-select");
-      if (!field || !mode) return;
-
-      const label = (chip.textContent || "").trim();
-
-      if (mode === "single") {
-        answers[field] = label;
-      } else {
-        if (!Array.isArray(answers[field])) answers[field] = [];
-        const idx = answers[field].indexOf(label);
-        if (idx >= 0) answers[field].splice(idx, 1);
-        else answers[field].push(label);
+      if (redirectAfter) {
+        window.location.assign(dashboardUrl());
       }
+    } catch (err) {
+      console.error("[TBP] saveWizard error:", err);
+      setStatus(err?.message || "Save failed.", false);
+      alert(err?.message || "Save failed.");
+    }
+  }
 
-      applyChipVisualsFromAnswers();
-    });
+  // ---- Wire buttons (support different ids) ----
+  function wireButtons() {
+    // If you have a save button
+    const btnSave =
+      $("btn-save") ||
+      $("saveBtn") ||
+      document.querySelector('[data-action="save"]');
 
-    if (btnSaveDraft) {
-      btnSaveDraft.addEventListener("click", () => {
-        readInputsIntoAnswers();
-        localStorage.setItem("tbp_wizard_draft", JSON.stringify({ answers, ts: Date.now() }));
-        setStatus("Draft saved in this browser.", "success");
+    if (btnSave) {
+      btnSave.addEventListener("click", (e) => {
+        e.preventDefault();
+        saveWizard({ markComplete: false, redirectAfter: false });
       });
     }
+
+    // If you have a finish/complete button
+    const btnFinish =
+      $("btn-finish") ||
+      $("btn-complete") ||
+      $("completeBtn") ||
+      document.querySelector('[data-action="finish"]');
+
+    if (btnFinish) {
+      btnFinish.addEventListener("click", (e) => {
+        e.preventDefault();
+        saveWizard({ markComplete: true, redirectAfter: true });
+      });
+    }
+
+    // If you have “Back to dashboard” button / link
+    const btnBack =
+      $("btn-back-dashboard") ||
+      $("btn-back") ||
+      $("btn-exit") ||
+      document.querySelector('[data-action="dashboard"]');
 
     if (btnBack) {
-      btnBack.addEventListener("click", () => {
-        setStatus("");
-        if (currentStep > 1) {
-          currentStep -= 1;
-          renderStep();
-        }
+      btnBack.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.assign(dashboardUrl());
       });
     }
-
-    if (btnDashboard) {
-      btnDashboard.addEventListener("click", () => {
-        if (isPublic) {
-          window.location.href =
-            `/client-dashboard.html?customer_id=${encodeURIComponent(customer_id)}&setup_token=${encodeURIComponent(setup_token)}`;
-        } else {
-          window.location.href = "/dashboard-secure.html";
-        }
-      });
-    }
-
-    async function checkAccess() {
-      const { data } = await sb.auth.getSession();
-      session = data?.session || null;
-
-      // Admin session access
-      if (session) {
-        const email = (session.user?.email || "").toLowerCase().trim();
-        isAdmin = ADMIN_EMAILS.map(x => x.toLowerCase().trim()).includes(email);
-
-        // Non-admins must use public token mode
-        if (!isAdmin && !isPublic) {
-          window.location.href = "/login.html";
-          return false;
-        }
-
-        effectiveCustomerId = customer_id || null;
-
-        // Admin prefill if opened with ?customer_id=...
-        if (isAdmin && effectiveCustomerId) {
-          const { data: customer, error } = await sb
-            .from("customers")
-            .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers")
-            .eq("id", effectiveCustomerId)
-            .single();
-
-          if (!error && customer) {
-            if (customer.contact_name) document.getElementById("contact_name").value = customer.contact_name;
-            if (customer.business_name) document.getElementById("business_name").value = customer.business_name;
-            if (customer.email) document.getElementById("contact_email").value = customer.email;
-
-            const ph = customer.phone || customer.whatsapp_number || "";
-            if (ph) document.getElementById("contact_mobile").value = ph;
-
-            if (customer.base_postcode) document.getElementById("base_postcode").value = customer.base_postcode;
-
-            if (customer.wizard_answers && typeof customer.wizard_answers === "object") {
-              Object.assign(answers, customer.wizard_answers);
-            }
-
-            readInputsIntoAnswers();
-            applyChipVisualsFromAnswers();
-          }
-        }
-
-        return true;
-      }
-
-      // Public token access
-      if (isPublic) {
-        const { data: customer, error } = await sb
-          .from("customers")
-          .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers")
-          .eq("id", customer_id)
-          .eq("setup_token", setup_token)
-          .single();
-
-        if (!error && customer) {
-          effectiveCustomerId = customer.id;
-
-          if (customer.contact_name) document.getElementById("contact_name").value = customer.contact_name;
-          if (customer.business_name) document.getElementById("business_name").value = customer.business_name;
-          if (customer.email) document.getElementById("contact_email").value = customer.email;
-
-          const ph = customer.phone || customer.whatsapp_number || "";
-          if (ph) document.getElementById("contact_mobile").value = ph;
-
-          if (customer.base_postcode) document.getElementById("base_postcode").value = customer.base_postcode;
-
-          if (customer.wizard_answers && typeof customer.wizard_answers === "object") {
-            Object.assign(answers, customer.wizard_answers);
-          }
-
-          readInputsIntoAnswers();
-          applyChipVisualsFromAnswers();
-          return true;
-        }
-      }
-
-      window.location.href = "/login.html";
-      return false;
-    }
-
-    if (btnNext) {
-      btnNext.addEventListener("click", async () => {
-        setStatus("");
-        readInputsIntoAnswers();
-
-        if (currentStep === 1) {
-          if (!answers.contact_name || !answers.business_name) {
-            setStatus("Please enter contact name and business name.", "error");
-            return;
-          }
-          if (!answers.email && !answers.phone) {
-            setStatus("Please enter an email or a mobile number.", "error");
-            return;
-          }
-        }
-
-        if (currentStep < totalSteps) {
-          currentStep += 1;
-          renderStep();
-          return;
-        }
-
-        btnNext.disabled = true;
-        setStatus("Saving…");
-
-        try {
-        const patch = {
-  contact_name: answers.contact_name || null,
-  business_name: answers.business_name || null,
-  email: answers.email || null,
-  phone: answers.phone || null,
-  base_postcode: answers.base_postcode || null,
-
-  wizard_answers: answers,
-  wizard_completed: true,
-  wizard_completed_at: new Date().toISOString(),
-
-  // ✅ onboarding + lifecycle status (NEW)
-  signup_status: "Wizard complete",
-  demo_status: "Not booked",
-  trial_status: "Not started",
-  plan_status: "No plan chosen"
-};
-
-
-          let q = sb.from("customers").update(patch);
-
-          if (isPublic) q = q.eq("id", customer_id).eq("setup_token", setup_token);
-          else if (effectiveCustomerId) q = q.eq("id", effectiveCustomerId);
-          else throw new Error("No effective customer id");
-
-          const { error } = await q;
-          if (error) throw error;
-
-          setStatus("Saved. Wizard complete ✅", "success");
-          if (summaryBoxEl) summaryBoxEl.hidden = false;
-
-          btnNext.style.display = "none";
-          if (btnDashboard) btnDashboard.style.display = "inline-flex";
-
-          window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-        } catch (err) {
-          console.error("[TBP] Finish save error:", err);
-          setStatus("Couldn’t save right now. Please try again.", "error");
-          btnNext.disabled = false;
-        }
-      });
-    }
-
-    (async function init() {
-      renderStep();
-      const ok = await checkAccess();
-      if (!ok) return;
-    })();
   }
 
-  bootWhenSupabaseReady();
-})();
+  // ---- Boot ----
+  wireButtons();
+  loadCustomer();
 </script>
+
+</body>
+</html>
+
 </body>
 </html>
