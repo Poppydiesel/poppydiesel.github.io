@@ -8,46 +8,51 @@
   const biz = document.getElementById("biz");
   const who = document.getElementById("who");
   const status = document.getElementById("status");
-  const err = document.getElementById("err");
+  const errEl = document.getElementById("err");
 
-  document.getElementById("btnLogout").onclick = async () => {
+  function setErr(t){
+    if (!errEl) return;
+    errEl.textContent = t || "";
+  }
+
+  document.getElementById("btnLogout").addEventListener("click", async () => {
     await sb.auth.signOut();
     location.href = "customer-login.html";
-  };
+  });
 
   async function linkAuthUserToCustomerByEmail(user){
-    // One-time attach: customer.email -> customers.auth_user_id
-    // This only works after you apply the SQL policies that allow authenticated user read.
-    const email = (user?.email || "").toLowerCase();
-    if(!email) return;
+    const email = (user?.email || "").trim().toLowerCase();
+    if (!email) return;
 
     // Find customer by email
-    const { data: cust, error: cErr } = await sb
+    const { data: cust, error: findErr } = await sb
       .from("customers")
       .select("id, auth_user_id")
       .eq("email", email)
       .single();
 
-    if(cErr) return; // don’t block dashboard
-    if(!cust) return;
+    if (findErr || !cust) return;
 
-    // If not linked yet, try to link
-    if(!cust.auth_user_id){
-      await sb
+    // If not linked, link it once
+    if (!cust.auth_user_id) {
+      const { error: upErr } = await sb
         .from("customers")
         .update({ auth_user_id: user.id })
         .eq("id", cust.id);
+
+      if (upErr) console.warn("[TBP] link auth_user_id failed:", upErr);
     }
   }
 
   async function boot(){
+    // Ensure session exists
     const { data: { user } } = await sb.auth.getUser();
-    if(!user){
+    if (!user) {
       location.href = "customer-login.html";
       return;
     }
 
-    // Attach this auth user to customer record (first login)
+    // First login: attempt linking by email
     await linkAuthUserToCustomerByEmail(user);
 
     // Load customer by auth_user_id
@@ -57,18 +62,23 @@
       .eq("auth_user_id", user.id)
       .single();
 
-    if(error){
-      err.textContent = error.message || "Failed to load customer record.";
-      biz.textContent = "Could not load";
+    if (error) {
+      console.error("[TBP] secure dashboard load error:", error);
+      setErr(error.message || "Failed to load customer record.");
+      if (biz) biz.textContent = "Could not load";
       return;
     }
 
-    biz.textContent = data.business_name || "Your business";
-    who.textContent = [data.contact_name, data.email].filter(Boolean).join(" • ");
-    status.textContent = "Status: " + (data.signup_status || "—");
+    if (biz) biz.textContent = data.business_name || "Your business";
+    if (who) who.textContent = [data.contact_name, data.email].filter(Boolean).join(" • ");
+    if (status) status.textContent = "Status: " + (data.signup_status || "—");
+    setErr("");
   }
 
   boot();
 </script>
+</body>
+</html>
+
 </body>
 </html>
