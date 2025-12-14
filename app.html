@@ -883,7 +883,6 @@
       golive_timing: null
     };
 
-    // Access state
     let session = null;
     let isAdmin = false;
     let effectiveCustomerId = null;
@@ -891,8 +890,7 @@
     function setStatus(msg, type) {
       if (!statusEl) return;
       statusEl.textContent = msg || "";
-      statusEl.className =
-        "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
+      statusEl.className = "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
     }
 
     function stepMeta(step) {
@@ -928,7 +926,6 @@
       if (btnNext) btnNext.textContent = (currentStep === totalSteps) ? "Finish →" : "Next step →";
     }
 
-    // ✅ IMPORTANT: read the actual inputs into answers
     function readInputsIntoAnswers() {
       const v = (id) => (document.getElementById(id)?.value ?? "").toString().trim();
       answers.contact_name  = v("contact_name");
@@ -961,7 +958,6 @@
       });
     }
 
-    // ✅ Chip click
     document.addEventListener("click", (e) => {
       const chip = e.target.closest(".chip-row .chip");
       if (!chip) return;
@@ -1021,18 +1017,15 @@
       const { data } = await sb.auth.getSession();
       session = data?.session || null;
 
-      // 1) Admin session access
+      // Admin session access
       if (session) {
         const email = (session.user?.email || "").toLowerCase().trim();
         isAdmin = ADMIN_EMAILS.map(x => x.toLowerCase().trim()).includes(email);
 
-        // Only admins can use session access on this wizard
-        if (!isAdmin) {
-          // If they also have a valid public token, allow public mode below
-          if (!isPublic) {
-            window.location.href = "/login.html";
-            return false;
-          }
+        // Non-admins must use public token mode
+        if (!isAdmin && !isPublic) {
+          window.location.href = "/login.html";
+          return false;
         }
 
         effectiveCustomerId = customer_id || null;
@@ -1067,7 +1060,7 @@
         return true;
       }
 
-      // 2) Public token access
+      // Public token access
       if (isPublic) {
         const { data: customer, error } = await sb
           .from("customers")
@@ -1094,12 +1087,10 @@
 
           readInputsIntoAnswers();
           applyChipVisualsFromAnswers();
-
           return true;
         }
       }
 
-      // 3) No access
       window.location.href = "/login.html";
       return false;
     }
@@ -1109,7 +1100,6 @@
         setStatus("");
         readInputsIntoAnswers();
 
-        // Basic validation on step 1
         if (currentStep === 1) {
           if (!answers.contact_name || !answers.business_name) {
             setStatus("Please enter contact name and business name.", "error");
@@ -1127,7 +1117,6 @@
           return;
         }
 
-        // FINISH
         btnNext.disabled = true;
         setStatus("Saving…");
 
@@ -1145,13 +1134,9 @@
 
           let q = sb.from("customers").update(patch);
 
-          if (isPublic) {
-            q = q.eq("id", customer_id).eq("setup_token", setup_token);
-          } else if (effectiveCustomerId) {
-            q = q.eq("id", effectiveCustomerId);
-          } else {
-            throw new Error("No effective customer id");
-          }
+          if (isPublic) q = q.eq("id", customer_id).eq("setup_token", setup_token);
+          else if (effectiveCustomerId) q = q.eq("id", effectiveCustomerId);
+          else throw new Error("No effective customer id");
 
           const { error } = await q;
           if (error) throw error;
@@ -1181,7 +1166,5 @@
   bootWhenSupabaseReady();
 })();
 </script>
-
-
 </body>
 </html>
