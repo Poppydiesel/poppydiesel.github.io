@@ -1071,6 +1071,50 @@
     wireChips();
     loadWizard();
   });
+  <script>
+/* =========================
+   WIZARD STEP NAVIGATION
+   ========================= */
+
+function wireWizardSteps() {
+  const steps = Array.from(document.querySelectorAll(".wizard-step"));
+  if (!steps.length) return;
+
+  function showStep(index) {
+    steps.forEach((step, i) => {
+      step.classList.toggle("is-active", i === index);
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  steps.forEach((step, index) => {
+    const nextBtn = step.querySelector(".btn-next");
+    if (!nextBtn) return;
+
+    nextBtn.addEventListener("click", () => {
+      // Optional: basic validation (extend later)
+      const requiredInputs = step.querySelectorAll("[required]");
+      for (const input of requiredInputs) {
+        if (!input.value.trim()) {
+          input.focus();
+          alert("Please complete this step before continuing.");
+          return;
+        }
+      }
+
+      if (index < steps.length - 1) {
+        showStep(index + 1);
+      }
+    });
+  });
+}
+
+/* =========================
+   INIT (SAFE)
+   ========================= */
+document.addEventListener("DOMContentLoaded", () => {
+  wireWizardSteps();
+});
 </script>
 
 
