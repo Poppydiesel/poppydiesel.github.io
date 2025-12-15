@@ -1301,6 +1301,18 @@ callout_style
       </div>
     </div>
   </div>
+          // ----------------- Back to dashboard button -----------------
+const btnDashboard = document.getElementById("btn-dashboard");
+
+if (btnDashboard) {
+  btnDashboard.addEventListener("click", () => {
+    const url = new URL("client-dashboard.html", window.location.origin);
+    url.searchParams.set("customer_id", customer_id);
+    url.searchParams.set("setup_token", setup_token);
+    window.location.assign(url.toString());
+  });
+}
+
 
 <style>
   /* Phase 1: keep steps clean + footer aligned */
