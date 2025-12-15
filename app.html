@@ -1531,86 +1531,64 @@ document.addEventListener("DOMContentLoaded", () => {
 
   });
 <script>
-(function () {
-  function normalise(s) {
-    return (s || "").replace(/\s+/g, " ").trim();
-  }
+(() => {
+  const norm = (s) => (s || "").replace(/\s+/g, " ").trim();
 
-  function splitMulti(v) {
-    return normalise(v)
-      .split(",")
-      .map(x => normalise(x))
-      .filter(Boolean);
-  }
-
-  function setSelected(row, input, mode) {
-    const current = input ? input.value : "";
-    const currentList = splitMulti(current);
-
+  function setSelected(row, input, mode){
+    const v = norm(input.value);
+    const list = mode === "multi" ? v.split(",").map(norm).filter(Boolean) : [];
     row.querySelectorAll(".chip").forEach(chip => {
-      const val = normalise(chip.innerText);
-      const on = (mode === "multi")
-        ? currentList.includes(val)
-        : (normalise(current) === val);
+      const label = norm(chip.innerText);
+      const on = (mode === "multi") ? list.includes(label) : (label === v);
       chip.classList.toggle("is-selected", on);
       chip.setAttribute("aria-pressed", on ? "true" : "false");
     });
   }
 
-  // Delegated click: works even if chips exist before/after this runs
-  document.addEventListener("click", function (e) {
-    const chip = e.target.closest(".chip");
-    if (!chip) return;
+  // ONE delegated handler for the whole page
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest("button.chip");
+    if(!chip) return;
 
-    const row = chip.closest(".chip-row");
-    if (!row) return;
+    const row = chip.closest(".chip-row[data-field]");
+    if(!row) return;
 
-    // Stop weird double-handlers / form submit side effects
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); // prevent any accidental form behaviour
 
     const field = row.dataset.field;
-    const mode = (row.dataset.select || "single").toLowerCase();
-    if (!field) return;
+    const mode  = (row.dataset.select || "single").toLowerCase();
 
     const input = document.getElementById(field);
-    if (!input) {
-      console.warn("[TBP] Missing hidden input for chip-row field:", field);
+    if(!input){
+      console.warn(`[TBP] Missing hidden input id="${field}" for chip-row`);
       return;
     }
 
-    const value = normalise(chip.innerText);
+    const label = norm(chip.innerText);
 
-    if (mode === "multi") {
-      const list = splitMulti(input.value);
-      const exists = list.includes(value);
-      const next = exists ? list.filter(v => v !== value) : [...list, value];
+    if(mode === "multi"){
+      const list = norm(input.value).split(",").map(norm).filter(Boolean);
+      const next = list.includes(label) ? list.filter(x => x !== label) : [...list, label];
       input.value = next.join(", ");
-    } else {
-      input.value = value;
+    }else{
+      input.value = label;
     }
 
     setSelected(row, input, mode);
-  }, true); // capture=true helps if other scripts stopPropagation
+  });
 
-  // Initial restore on load (so prefills highlight)
-  window.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".chip-row").forEach(row => {
+  // Restore highlights on load
+  window.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".chip-row[data-field]").forEach(row => {
       const field = row.dataset.field;
-      const mode = (row.dataset.select || "single").toLowerCase();
-      if (!field) return;
-
       const input = document.getElementById(field);
-      if (!input) {
-        console.warn("[TBP] Missing hidden input for chip-row field:", field);
-        return;
-      }
+      if(!input) return;
+      const mode = (row.dataset.select || "single").toLowerCase();
       setSelected(row, input, mode);
     });
   });
 })();
 </script>
-
 
 </body>
 </html>
