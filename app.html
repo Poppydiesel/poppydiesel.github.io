@@ -994,30 +994,34 @@
       });
     }
 
-    // Chip click handler (does not touch Next/Back)
-    document.addEventListener("click", (e) => {
-      const chip = e.target.closest(".chip-row .chip");
-      if (!chip) return;
 
-      const row = chip.closest(".chip-row");
-      if (!row) return;
+// Chip click handler (does not touch Next/Back)
+document.addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip-row .chip");
+  if (!chip) return;
 
-      const field = row.getAttribute("data-field");
-      const mode = row.getAttribute("data-select");
-      if (!field || !mode) return;
+  const row = chip.closest(".chip-row");
+  if (!row) return;
 
-      const label = (chip.textContent || "").trim();
+  const field = row.getAttribute("data-field");
+  const mode = row.getAttribute("data-select"); // single|multi
+  if (!field || !mode) return;
 
-      if (mode === "single") {
-        answers[field] = label;
-      } else {
-        if (!Array.isArray(answers[field])) answers[field] = [];
-        const idx = answers[field].indexOf(label);
-        if (idx >= 0) answers[field].splice(idx, 1);
-        else answers[field].push(label);
-      }
+  const label = (chip.textContent || "").trim();
 
-      applyChipVisualsFromAnswers();
+  if (mode === "single") {
+    answers[field] = label;
+  } else {
+    if (!Array.isArray(answers[field])) answers[field] = [];
+    const idx = answers[field].indexOf(label);
+    if (idx >= 0) answers[field].splice(idx, 1);
+    else answers[field].push(label);
+  }
+
+  applyChipVisualsFromAnswers();
+}, true);
+``
+
     }, true);
 
     // Save draft to localStorage (browser only)
