@@ -1318,223 +1318,12 @@ if (btnDashboard) {
   }
 </style>
 
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
- const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  const qs = new URLSearchParams(location.search);
-  const customer_id = (qs.get("customer_id") || qs.get("customerId") || "").trim();
-  const setup_token = (qs.get("setup_token") || qs.get("setupToken") || "").trim();
-
-  const $ = (id) => document.getElementById(id);
-
-  function setStatus(msg, ok=true){
-    const el = $("status-msg") || $("saveStatus") || $("wizardStatus");
-    if(!el) return;
-    el.textContent = msg || "";
-    el.style.color = ok ? "#0f7b46" : "#b3261e";
-  }
-
-  function showFatal(msg){
-    alert(msg);
-    setStatus(msg, false);
-  }
-
-  // ---------- Step navigation (Phase 1) ----------
-  function wireWizardNav(){
-    const btnNext = $("btn-next");
-    const btnBack = $("btn-back");
-    const btnSaveDraft = $("btn-save-draft"); // Phase 1: doesn’t save, just avoids breaking
-    const btnDashboard = $("btn-dashboard");  // Phase 1: hidden, no redirect
-
-    const steps = Array.from(document.querySelectorAll(".step-panel[data-step]"))
-      .sort((a,b)=> (parseInt(a.dataset.step,10)||0) - (parseInt(b.dataset.step,10)||0));
-
-    if(!steps.length){
-      console.warn("[TBP] No .step-panel[data-step] found");
-      return;
-    }
-
-    const maxStep = parseInt(steps[steps.length-1].dataset.step, 10) || steps.length;
-
-    function getActiveStep(){
-      const active = steps.find(s => s.classList.contains("is-active"));
-      if(active) return parseInt(active.dataset.step,10) || 1;
-      return 1;
-    }
-
-    function showStep(n){
-      steps.forEach(s=>{
-        const sn = parseInt(s.dataset.step,10) || 0;
-        const on = sn === n;
-        s.classList.toggle("is-active", on);
-      });
-
-      if(btnBack) btnBack.disabled = (n <= 1);
-
-      // Phase 1: Next works through all steps, no Finish behaviour
-      if(btnNext) btnNext.style.display = (n < maxStep) ? "" : "none";
-      if(btnDashboard) btnDashboard.style.display = (n === maxStep) ? "" : "none"; // optional “end” button
-
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    // init
-    showStep(getActiveStep());
-
-    if(btnNext){
-      btnNext.addEventListener("click", ()=>{
-        const cur = getActiveStep();
-        if(cur < maxStep) showStep(cur + 1);
-      });
-    }
-
-    if(btnBack){
-      btnBack.addEventListener("click", ()=>{
-        const cur = getActiveStep();
-        if(cur > 1) showStep(cur - 1);
-      });
-    }
-
-    if(btnSaveDraft){
-      btnSaveDraft.addEventListener("click", ()=>{
-        // Phase 1: no saving yet — keep button harmless
-        setStatus("Draft saving is disabled in Phase 1 (navigation + load only).", false);
-      });
-    }
-
-    if(btnDashboard){
-      btnDashboard.addEventListener("click", ()=>{
-        // Phase 1: no dashboard yet
-        setStatus("Dashboard redirect is disabled in Phase 1.", false);
-      });
-    }
-  }
-
-  // ---------- Load wizard (Phase 1) ----------
-  async function loadWizard(){
-    try{
-      setStatus("Loading…", true);
-
-      if(!customer_id || !setup_token){
-        showFatal("Missing customer_id or setup_token. Please restart from the signup form.");
-        location.assign("index.html#signup");
-        return;
-      }
-
-      const { data, error } = await sb.rpc("tbp_customer_load", {
-        p_customer_id: customer_id,
-        p_setup_token: setup_token
-      });
-
-      if(error) throw error;
-
-      const row = Array.isArray(data) ? data[0] : data;
-      if(!row?.id){
-        showFatal("Wizard link invalid or expired. Please re-submit the signup form to generate a fresh setup link.");
-        return;
-      }
-
-      // Prefill only the basics for Phase 1
-      if ($("business_name")) $("business_name").value = row.business_name || "";
-      if ($("contact_name")) $("contact_name").value = row.contact_name || "";
-      if ($("contact_email")) $("contact_email").value = row.email || "";
-      if ($("contact_mobile")) $("contact_mobile").value = row.phone || "";
-
-      setStatus("", true);
-    }catch(err){
-      console.error("[TBP] loadWizard error:", err);
-      showFatal(err?.message || "Failed to load wizard.");
-    }
-  }
-
-  // ---------- Init (ONE place only) ----------
-  window.addEventListener("DOMContentLoaded", async () => {
-    wireWizardNav();
-    await loadWizard();
-  });
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".chip-row").forEach(row => {
-    const field = row.dataset.field;
-    const mode  = row.dataset.select || "single";
-    const input = document.getElementById(field);
-    if(!field || !input) return;
-
-    row.addEventListener("click", (e) => {
-      const chip = e.target.closest("button.chip");
-      if(!chip) return;
-
-      if(mode === "multi"){
-        chip.classList.toggle("is-selected");
-        input.value = Array.from(row.querySelectorAll(".chip.is-selected"))
-          .map(c => c.innerText.trim()).join(", ");
-      } else {
-        row.querySelectorAll(".chip").forEach(c => c.classList.remove("is-selected"));
-        chip.classList.add("is-selected");
-        input.value = chip.innerText.trim();
-      }
-    });
-  });
-});
-
- <style>
-  /* Safety: ensure chips can be clicked even if an overlay/panel has weird pointer rules */
-  .chip-row, .chip-row * { pointer-events: auto; }
-  .chip { cursor: pointer; }
-</style>
-
-  window.addEventListener("DOMContentLoaded", () => {
-
-    // Warn if you still have duplicate hidden inputs (this breaks chip selection)
-    document.querySelectorAll(".chip-row[data-field]").forEach(row => {
-      const field = row.dataset.field;
-      const matches = document.querySelectorAll(`#${CSS.escape(field)}`);
-      if (matches.length !== 1) {
-        console.warn(`[TBP] Chip field "${field}" must have EXACTLY ONE hidden input id="${field}". Found:`, matches.length);
-      }
-    });
-
-    // One chip handler for the whole page (works across all steps)
-    document.addEventListener("click", (e) => {
-      const chip = e.target.closest(".chip");
-      if (!chip) return;
-
-      const row = chip.closest(".chip-row[data-field]");
-      if (!row) return;
-
-      const field = row.dataset.field;
-      const mode = (row.dataset.select || "single").toLowerCase();
-
-      const input = document.getElementById(field);
-      if (!input) {
-        console.warn(`[TBP] Missing hidden input for chip field: ${field}`);
-        return;
-      }
-
-      const value = chip.innerText.trim();
-
-      if (mode === "single") {
-        row.querySelectorAll(".chip").forEach(c => c.classList.remove("is-selected"));
-        chip.classList.add("is-selected");
-        input.value = value;
-      } else {
-        chip.classList.toggle("is-selected");
-        const values = Array.from(row.querySelectorAll(".chip.is-selected")).map(c => c.innerText.trim());
-        input.value = values.join(", ");
-      }
-    });
-
-  });
 <script>
 (() => {
   const norm = (s) => (s || "").replace(/\s+/g, " ").trim();
 
-  function setSelected(row, input, mode){
+  function setSelected(row, input, mode) {
     const v = norm(input.value);
     const list = mode === "multi" ? v.split(",").map(norm).filter(Boolean) : [];
     row.querySelectorAll(".chip").forEach(chip => {
@@ -1545,32 +1334,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ONE delegated handler for the whole page
+  // ONE delegated handler for all chips
   document.addEventListener("click", (e) => {
     const chip = e.target.closest("button.chip");
-    if(!chip) return;
+    if (!chip) return;
 
     const row = chip.closest(".chip-row[data-field]");
-    if(!row) return;
+    if (!row) return;
 
-    e.preventDefault(); // prevent any accidental form behaviour
+    e.preventDefault();
 
     const field = row.dataset.field;
-    const mode  = (row.dataset.select || "single").toLowerCase();
-
+    const mode = (row.dataset.select || "single").toLowerCase();
     const input = document.getElementById(field);
-    if(!input){
-      console.warn(`[TBP] Missing hidden input id="${field}" for chip-row`);
+    if (!input) {
+      console.warn(`[TBP] Missing hidden input id="${field}"`);
       return;
     }
 
     const label = norm(chip.innerText);
-
-    if(mode === "multi"){
+    if (mode === "multi") {
       const list = norm(input.value).split(",").map(norm).filter(Boolean);
       const next = list.includes(label) ? list.filter(x => x !== label) : [...list, label];
       input.value = next.join(", ");
-    }else{
+    } else {
       input.value = label;
     }
 
@@ -1582,7 +1369,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".chip-row[data-field]").forEach(row => {
       const field = row.dataset.field;
       const input = document.getElementById(field);
-      if(!input) return;
+      if (!input) return;
       const mode = (row.dataset.select || "single").toLowerCase();
       setSelected(row, input, mode);
     });
@@ -1590,6 +1377,10 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
-</body>
-</html>
+<style>
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { cursor: pointer; }
+.chip.is-selected { background: #0f7b46; color: #fff; }
+</style>
+
 
