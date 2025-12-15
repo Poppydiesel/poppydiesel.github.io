@@ -805,6 +805,7 @@
 <!-- Supabase UMD (single include) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 
+
 <script>
 (function () {
   // ==== GLOBAL ERROR VISIBILITY ====
@@ -828,15 +829,11 @@
     const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-    // Admin emails allowed to open any customer via ?customer_id=...
-    // IMPORTANT: set this to the email(s) you use to log into Supabase Auth.
-    const ADMIN_EMAILS = ["hello@tradebotpro.co.uk"];
-
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const params = new URLSearchParams(location.search);
-    const customer_id_param = (params.get("customer_id") || "").trim();  // admin-only override
-    const invite_token = (params.get("token") || "").trim();             // optional: claim link
+    const customer_id_param = (params.get("customer_id") || "").trim();
+    const invite_token = (params.get("token") || "").trim();
 
     // ==== ELEMENTS ====
     const panels = Array.from(document.querySelectorAll(".step-panel"));
@@ -856,7 +853,7 @@
     const btnDashboard = document.getElementById("btn-dashboard");
     const summaryBoxEl = document.getElementById("summary-box");
 
-    // Ensure chip buttons can never submit anything (safe)
+    // Ensure chip buttons never submit forms
     document.querySelectorAll(".chip-row .chip").forEach(b => {
       if (b.tagName === "BUTTON") b.type = "button";
       b.setAttribute("aria-pressed", "false");
@@ -866,7 +863,6 @@
     const totalSteps = 4;
 
     const answers = {
-      // text inputs
       contact_name: "",
       business_name: "",
       email: "",
@@ -875,7 +871,6 @@
       review_link: "",
       ai_avoid: "",
       extra_notes: "",
-      // chips
       main_trade: null,
       business_stage: null,
       coverage_radius: null,
@@ -891,38 +886,16 @@
       golive_timing: null
     };
 
-    // Auth/session + effective customer targeting
-    let session = null;
-    let isAdmin = false;
-    let effectiveCustomerId = null; // if admin override is allowed
-    let effectiveUserId = null;     // normal mode
-
     function setStatus(msg, type) {
       statusEl.textContent = msg || "";
       statusEl.className = "wizard-status-message" + (type ? ` wizard-status-message--${type}` : "");
     }
 
     function stepMeta(step) {
-      if (step === 1) return {
-        label: "Step 1",
-        title: "Business basics",
-        subtitle: "Who are you, what do you do and how do you like to run things?"
-      };
-      if (step === 2) return {
-        label: "Step 2",
-        title: "Area & pricing",
-        subtitle: "Where you cover and how you like to charge."
-      };
-      if (step === 3) return {
-        label: "Step 3",
-        title: "Messaging & reviews",
-        subtitle: "How the AI should talk and where reviews should go."
-      };
-      return {
-        label: "Step 4",
-        title: "Demo & go-live",
-        subtitle: "How you want to test it and when you’d like to go live."
-      };
+      if (step === 1) return { label: "Step 1", title: "Business basics", subtitle: "Who are you, what do you do and how do you like to run things?" };
+      if (step === 2) return { label: "Step 2", title: "Area & pricing", subtitle: "Where you cover and how you like to charge." };
+      if (step === 3) return { label: "Step 3", title: "Messaging & reviews", subtitle: "How the AI should talk and where reviews should go." };
+      return { label: "Step 4", title: "Demo & go-live", subtitle: "How you want to test it and when you’d like to go live." };
     }
 
     function renderStep() {
@@ -945,21 +918,13 @@
       wizardStepTitle.textContent = meta.title;
       wizardStepSubtitle.textContent = meta.subtitle;
 
-      // (You didn’t like the “you can tweak later” line, so keep it clean)
       footerText.innerHTML = `Step <strong>${currentStep}</strong> of <strong>${totalSteps}</strong>.`;
-
       btnBack.disabled = currentStep === 1;
-
-      if (currentStep === totalSteps) {
-        btnNext.textContent = "Finish →";
-      } else {
-        btnNext.textContent = "Next step →";
-      }
+      btnNext.textContent = currentStep === totalSteps ? "Finish →" : "Next step →";
     }
 
     function readInputsIntoAnswers() {
       const v = (x) => (x ?? "").toString().trim();
-
       answers.contact_name = v(document.getElementById("contact_name")?.value);
       answers.business_name = v(document.getElementById("business_name")?.value);
       answers.email = v(document.getElementById("contact_email")?.value);
@@ -970,68 +935,60 @@
       answers.extra_notes = v(document.getElementById("extra_notes")?.value);
     }
 
+    // ✅ Chip visuals
     function applyChipVisualsFromAnswers() {
       document.querySelectorAll(".chip-row").forEach(row => {
         const field = row.getAttribute("data-field");
-        const mode = row.getAttribute("data-select"); // single|multi
+        const mode = row.getAttribute("data-select");
         if (!field || !mode) return;
 
         const chips = Array.from(row.querySelectorAll(".chip"));
-        chips.forEach(ch => {
-          const label = (ch.textContent || "").trim();
+        chips.forEach(chip => {
+          const label = (chip.textContent || "").trim();
           let selected = false;
-
           if (mode === "single") {
             selected = answers[field] === label;
           } else {
             const arr = Array.isArray(answers[field]) ? answers[field] : [];
             selected = arr.includes(label);
           }
-
-          ch.classList.toggle("is-selected", selected);
-          ch.setAttribute("aria-pressed", selected ? "true" : "false");
+          chip.classList.toggle("is-selected", selected);
+          chip.setAttribute("aria-pressed", selected ? "true" : "false");
         });
       });
     }
 
+    // ✅ Chip click handler
+    document.addEventListener("click", (e) => {
+      const chip = e.target.closest(".chip");
+      if (!chip) return;
+      const row = chip.closest(".chip-row");
+      if (!row) return;
 
-// Chip click handler (does not touch Next/Back)
-document.addEventListener("click", (e) => {
-  const chip = e.target.closest(".chip-row .chip");
-  if (!chip) return;
+      const field = row.getAttribute("data-field");
+      const mode = row.getAttribute("data-select");
+      if (!field || !mode) return;
 
-  const row = chip.closest(".chip-row");
-  if (!row) return;
-
-  const field = row.getAttribute("data-field");
-  const mode = row.getAttribute("data-select"); // single|multi
-  if (!field || !mode) return;
-
-  const label = (chip.textContent || "").trim();
-
-  if (mode === "single") {
-    answers[field] = label;
-  } else {
-    if (!Array.isArray(answers[field])) answers[field] = [];
-    const idx = answers[field].indexOf(label);
-    if (idx >= 0) answers[field].splice(idx, 1);
-    else answers[field].push(label);
-  }
-
-  applyChipVisualsFromAnswers();
-}, true);
-``
-
+      const label = (chip.textContent || "").trim();
+      if (mode === "single") {
+        answers[field] = label;
+      } else {
+        if (!Array.isArray(answers[field])) answers[field] = [];
+        const idx = answers[field].indexOf(label);
+        if (idx >= 0) answers[field].splice(idx, 1);
+        else answers[field].push(label);
+      }
+      applyChipVisualsFromAnswers();
     }, true);
 
-    // Save draft to localStorage (browser only)
+    // ✅ Save draft
     btnSaveDraft.addEventListener("click", () => {
       readInputsIntoAnswers();
       localStorage.setItem("tbp_wizard_draft", JSON.stringify({ answers, ts: Date.now() }));
       setStatus("Draft saved in this browser.", "success");
     });
 
-    // Back / Next navigation
+    // ✅ Navigation
     btnBack.addEventListener("click", () => {
       setStatus("");
       if (currentStep > 1) {
@@ -1044,7 +1001,6 @@ document.addEventListener("click", (e) => {
       setStatus("");
       readInputsIntoAnswers();
 
-      // Minimal guardrails for step 1
       if (currentStep === 1) {
         if (!answers.contact_name || !answers.business_name) {
           setStatus("Please enter contact name and business name.", "error");
@@ -1056,19 +1012,13 @@ document.addEventListener("click", (e) => {
         }
       }
 
-      // Not last step -> move forward
       if (currentStep < totalSteps) {
         currentStep += 1;
         renderStep();
         return;
       }
 
-      // FINISH (Step 4)
-      if (!session) {
-        setStatus("Please log in again, then try finish.", "error");
-        return;
-      }
-
+      // Finish
       btnNext.disabled = true;
       setStatus("Saving…");
 
@@ -1079,31 +1029,21 @@ document.addEventListener("click", (e) => {
           email: answers.email || null,
           phone: answers.phone || null,
           base_postcode: answers.base_postcode || null,
-
           wizard_answers: answers,
           wizard_completed: true,
           wizard_completed_at: new Date().toISOString()
         };
 
-        // Secure update:
-        // - normal users: update by user_id (auth.uid)
-        // - admin override: update by id (only if allowed)
         let q = sb.from("customers").update(patch);
-
-        if (effectiveCustomerId) q = q.eq("id", effectiveCustomerId);
-        else q = q.eq("user_id", effectiveUserId);
-
+        if (customer_id_param) q = q.eq("id", customer_id_param);
         const { error } = await q;
         if (error) throw error;
 
         setStatus("Saved. Wizard complete ✅", "success");
-        if (summaryBoxEl) summaryBoxEl.hidden = false;
-
+        summaryBoxEl.hidden = false;
         btnNext.style.display = "none";
         btnDashboard.style.display = "inline-flex";
-
         window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-
       } catch (err) {
         console.error("[TBP] Finish save error:", err);
         setStatus("Couldn’t save right now. Please try again.", "error");
@@ -1111,138 +1051,51 @@ document.addEventListener("click", (e) => {
       }
     });
 
-    // Back to dashboard (only visible after Finish)
- // Back to dashboard (only visible after Finish)
-btnDashboard.addEventListener("click", async () => {
-  // If logged in (admin), go to secure dashboard
-  try {
-    const { data } = await sb.auth.getSession();
-    if (data?.session) {
-      window.location.href = "/dashboard-secure.html";
-      return;
-    }
-  } catch (_) {}
+    btnDashboard.addEventListener("click", () => {
+      window.location.href = "/client-dashboard.html";
+    });
 
-  // Otherwise (client), go to client dashboard
-  if (customer_id) {
-    window.location.href = `/client-dashboard.html?customer_id=${encodeURIComponent(customer_id)}`;
-  } else {
-    window.location.href = "/client-dashboard.html";
-  }
-});
-
-
+    // ✅ No login redirect – allow wizard without auth
     async function ensureSessionOrRedirect() {
-      const { data } = await sb.auth.getSession();
-      session = data?.session || null;
-
-      if (!session) {
-        // No session = send them to login (keep token if present)
-        const tokenBit = invite_token ? `?token=${encodeURIComponent(invite_token)}` : "";
-        window.location.href = "/login.html" + tokenBit;
-        return false;
-      }
-
-      const email = (session.user?.email || "").toLowerCase().trim();
-      isAdmin = ADMIN_EMAILS.map(x => (x || "").toLowerCase().trim()).includes(email);
-
-      effectiveUserId = session.user.id;
-      effectiveCustomerId = (isAdmin && customer_id_param) ? customer_id_param : null;
-
       return true;
     }
 
-    async function claimIfTokenPresent() {
-      if (!invite_token) return;
-
-      try {
-        setStatus("Linking your account…");
-        const { error } = await sb.rpc("claim_customer", { p_invite_token: invite_token });
-        if (error) throw error;
-
-        setStatus("Account linked ✅", "success");
-
-        // Remove token from URL to avoid re-claim attempts on refresh
-        const clean = new URL(window.location.href);
-        clean.searchParams.delete("token");
-        window.history.replaceState({}, "", clean.toString());
-
-      } catch (err) {
-        console.error("[TBP] claim_customer failed:", err);
-        setStatus("Could not link account (token invalid or already used).", "error");
-      }
-    }
-
-    // Prefill from customers row (secure)
     async function prefillFromCustomer() {
       try {
         setStatus("");
-
-        let q = sb
-          .from("customers")
-          .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_answers");
-
-        // admin override: by id, otherwise by user_id
-        if (effectiveCustomerId) q = q.eq("id", effectiveCustomerId).single();
-        else q = q.eq("user_id", effectiveUserId).single();
-
+        if (!customer_id_param) return;
+        let q = sb.from("customers").select("id, contact_name, business_name, email, phone, base_postcode, wizard_answers").eq("id", customer_id_param).single();
         const { data, error } = await q;
         if (error) throw error;
 
-        // basic fields
         if (data?.contact_name) document.getElementById("contact_name").value = data.contact_name;
         if (data?.business_name) document.getElementById("business_name").value = data.business_name;
         if (data?.email) document.getElementById("contact_email").value = data.email;
-
-        const phone = data?.phone || data?.whatsapp_number || "";
-        if (phone) document.getElementById("contact_mobile").value = phone;
-
+        if (data?.phone) document.getElementById("contact_mobile").value = data.phone;
         if (data?.base_postcode) document.getElementById("base_postcode").value = data.base_postcode;
 
-        // restore wizard answers if present
         if (data?.wizard_answers && typeof data.wizard_answers === "object") {
           Object.assign(answers, data.wizard_answers);
         }
-
-        // ensure latest typed input values flow into answers (so chips reflect correctly)
         readInputsIntoAnswers();
         applyChipVisualsFromAnswers();
-
-        // expose the loaded row id for debug/admin awareness
-        window.TBP_LOADED_CUSTOMER_ID = data?.id || null;
-
       } catch (err) {
         console.error("[TBP] Prefill failed:", err);
-        setStatus("Couldn’t load your profile. If this is a new account, use your invite link first.", "error");
       }
     }
 
-    // Initial render
     (async function init() {
       renderStep();
-
-      const ok = await ensureSessionOrRedirect();
-      if (!ok) return;
-
-      // if they arrived with a token, link the customer row to this login
-      await claimIfTokenPresent();
-
+      await ensureSessionOrRedirect();
       await prefillFromCustomer();
-
-      // Expose tiny debug helper
-      window.TBP = {
-        sb,
-        isAdmin,
-        effectiveCustomerId,
-        effectiveUserId,
-        answers
-      };
+      applyChipVisualsFromAnswers();
     })();
   }
 
   bootWhenSupabaseReady();
 })();
 </script>
+``
 
 </body>
 </html>
