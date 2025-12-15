@@ -428,11 +428,6 @@
 </head>
 
 <body>
-<nav class="tbp-nav">
-  <a href="./index.html">Home</a>
-  <a href="./signup.html">Sign up</a>
-  <a href="./login.html">Admin login</a>
-</nav>
 
 <style>
   .tbp-nav {
@@ -634,32 +629,23 @@
     <input id="business_name" name="business_name" type="text" />
   </div>
 
-  <!-- Main trade -->
-<div class="field-group">
-  <div class="field-label-row">
-    <label>What trade are you?</label>
-    <span class="field-hint">Pick the closest match – we’ll fine-tune later.</span>
-  </div>
-
-  <input type="hidden" id="main_trade" name="main_trade">
-
-  <div class="chip-row" data-field="main_trade" data-select="single">
-    <button type="button" class="chip"><span>Plumbing &amp; heating</span></button>
-    <button type="button" class="chip"><span>Heating only</span></button>
-    <button type="button" class="chip"><span>Gas engineer</span></button>
-    <button type="button" class="chip"><span>Electrician</span></button>
-    <button type="button" class="chip"><span>Roofing &amp; guttering</span></button>
-    <button type="button" class="chip"><span>Landscaping / gardening</span></button>
-    <button type="button" class="chip"><span>Window cleaning</span></button>
-    <button type="button" class="chip"><span>Cleaning / carpet cleaning</span></button>
-    <button type="button" class="chip"><span>Builder</span></button>
-    <button type="button" class="chip"><span>Handyman</span></button>
-    <button type="button" class="chip"><span>Pest control</span></button>
-    <button type="button" class="chip"><span>Home repairs &amp; maintenance</span></button>
-    <button type="button" class="chip"><span>Other</span></button>
-  </div>
+ <!-- Main trade (chip selector) -->
+<input type="hidden" id="main_trade" name="main_trade" />
+<div class="chip-row" data-field="main_trade" data-select="single">
+  <button type="button" class="chip"><span>Plumbing &amp; heating</span></button>
+  <button type="button" class="chip"><span>Heating only</span></button>
+  <button type="button" class="chip"><span>Gas engineer</span></button>
+  <button type="button" class="chip"><span>Electrician</span></button>
+  <button type="button" class="chip"><span>Roofing &amp; guttering</span></button>
+  <button type="button" class="chip"><span>Landscaping / gardening</span></button>
+  <button type="button" class="chip"><span>Window cleaning</span></button>
+  <button type="button" class="chip"><span>Cleaning / carpet cleaning</span></button>
+  <button type="button" class="chip"><span>Builder</span></button>
+  <button type="button" class="chip"><span>Handyman</span></button>
+  <button type="button" class="chip"><span>Pest control</span></button>
+  <button type="button" class="chip"><span>Home repairs &amp; maintenance</span></button>
+  <button type="button" class="chip"><span>Other</span></button>
 </div>
-
 
 <!-- Business stage -->
 <div class="field-group">
@@ -668,15 +654,14 @@
     <span class="field-hint">This just helps us set expectations on go-live.</span>
   </div>
 
-  <input type="hidden" id="business_stage" name="business_stage">
-
+  <!-- IMPORTANT: exactly ONE hidden input for business_stage -->
+  <input type="hidden" id="business_stage" name="business_stage" />
   <div class="chip-row" data-field="business_stage" data-select="single">
     <button type="button" class="chip"><span>Already trading</span></button>
     <button type="button" class="chip"><span>Launching in next 3 months</span></button>
     <button type="button" class="chip"><span>Just exploring options</span></button>
   </div>
 </div>
-
 
   <div class="field-group">
     <div class="field-label-row">
@@ -1498,32 +1483,54 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-  <script>
+ <style>
+  /* Safety: ensure chips can be clicked even if an overlay/panel has weird pointer rules */
+  .chip-row, .chip-row * { pointer-events: auto; }
+  .chip { cursor: pointer; }
+</style>
+
   window.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("btn-dashboard");
-    if (!btn) {
-      console.warn("[TBP] #btn-dashboard not found");
-      return;
-    }
 
-    btn.addEventListener("click", () => {
-      const qs = new URLSearchParams(window.location.search);
-      const customer_id = (qs.get("customer_id") || qs.get("customerId") || "").trim();
-      const setup_token = (qs.get("setup_token") || qs.get("setupToken") || "").trim();
+    // Warn if you still have duplicate hidden inputs (this breaks chip selection)
+    document.querySelectorAll(".chip-row[data-field]").forEach(row => {
+      const field = row.dataset.field;
+      const matches = document.querySelectorAll(`#${CSS.escape(field)}`);
+      if (matches.length !== 1) {
+        console.warn(`[TBP] Chip field "${field}" must have EXACTLY ONE hidden input id="${field}". Found:`, matches.length);
+      }
+    });
 
-      if (!customer_id || !setup_token) {
-        alert("Missing customer_id or setup_token in the URL.");
+    // One chip handler for the whole page (works across all steps)
+    document.addEventListener("click", (e) => {
+      const chip = e.target.closest(".chip");
+      if (!chip) return;
+
+      const row = chip.closest(".chip-row[data-field]");
+      if (!row) return;
+
+      const field = row.dataset.field;
+      const mode = (row.dataset.select || "single").toLowerCase();
+
+      const input = document.getElementById(field);
+      if (!input) {
+        console.warn(`[TBP] Missing hidden input for chip field: ${field}`);
         return;
       }
 
-      const url = new URL("client-dashboard.html", window.location.origin);
-      url.searchParams.set("customer_id", customer_id);
-      url.searchParams.set("setup_token", setup_token);
-      window.location.assign(url.toString());
-    });
-  });
-</script>
+      const value = chip.innerText.trim();
 
+      if (mode === "single") {
+        row.querySelectorAll(".chip").forEach(c => c.classList.remove("is-selected"));
+        chip.classList.add("is-selected");
+        input.value = value;
+      } else {
+        chip.classList.toggle("is-selected");
+        const values = Array.from(row.querySelectorAll(".chip.is-selected")).map(c => c.innerText.trim());
+        input.value = values.join(", ");
+      }
+    });
+
+  });
 </script>
 
 
