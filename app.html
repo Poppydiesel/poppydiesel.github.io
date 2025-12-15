@@ -8,7 +8,7 @@
 
   <style>
     :root {
-      --primary-blue: #1f4e79;
+      --primary-blue: #1f4e79;f
       --accent-blue: #00a3ff;
       --dark-text: #151820;
       --muted-text: #6b7280;
@@ -635,28 +635,31 @@
   </div>
 
   <!-- Main trade -->
-  <input type="hidden" id="main_trade" name="main_trade" />
-  <div class="field-group">
-    <div class="field-label-row">
-      <label>What trade are you?</label>
-      <span class="field-hint">Pick the closest match – we’ll fine-tune later.</span>
-    </div>
-    <div class="chip-row" data-field="main_trade" data-select="single">
-      <button type="button" class="chip"><span>Plumbing &amp; heating</span></button>
-      <button type="button" class="chip"><span>Heating only</span></button>
-      <button type="button" class="chip"><span>Gas engineer</span></button>
-      <button type="button" class="chip"><span>Electrician</span></button>
-      <button type="button" class="chip"><span>Roofing &amp; guttering</span></button>
-      <button type="button" class="chip"><span>Landscaping / gardening</span></button>
-      <button type="button" class="chip"><span>Window cleaning</span></button>
-      <button type="button" class="chip"><span>Cleaning / carpet cleaning</span></button>
-      <button type="button" class="chip"><span>Builder</span></button>
-      <button type="button" class="chip"><span>Handyman</span></button>
-      <button type="button" class="chip"><span>Pest control</span></button>
-      <button type="button" class="chip"><span>Home repairs &amp; maintenance</span></button>
-      <button type="button" class="chip"><span>Other</span></button>
-    </div>
+<div class="field-group">
+  <div class="field-label-row">
+    <label>What trade are you?</label>
+    <span class="field-hint">Pick the closest match – we’ll fine-tune later.</span>
   </div>
+
+  <input type="hidden" id="main_trade" name="main_trade">
+
+  <div class="chip-row" data-field="main_trade" data-select="single">
+    <button type="button" class="chip"><span>Plumbing &amp; heating</span></button>
+    <button type="button" class="chip"><span>Heating only</span></button>
+    <button type="button" class="chip"><span>Gas engineer</span></button>
+    <button type="button" class="chip"><span>Electrician</span></button>
+    <button type="button" class="chip"><span>Roofing &amp; guttering</span></button>
+    <button type="button" class="chip"><span>Landscaping / gardening</span></button>
+    <button type="button" class="chip"><span>Window cleaning</span></button>
+    <button type="button" class="chip"><span>Cleaning / carpet cleaning</span></button>
+    <button type="button" class="chip"><span>Builder</span></button>
+    <button type="button" class="chip"><span>Handyman</span></button>
+    <button type="button" class="chip"><span>Pest control</span></button>
+    <button type="button" class="chip"><span>Home repairs &amp; maintenance</span></button>
+    <button type="button" class="chip"><span>Other</span></button>
+  </div>
+</div>
+
 
 <!-- Business stage -->
 <div class="field-group">
@@ -665,8 +668,7 @@
     <span class="field-hint">This just helps us set expectations on go-live.</span>
   </div>
 
-  <!-- ONE hidden value target for the chips -->
-  <input type="hidden" id="business_stage" name="business_stage" />
+  <input type="hidden" id="business_stage" name="business_stage">
 
   <div class="chip-row" data-field="business_stage" data-select="single">
     <button type="button" class="chip"><span>Already trading</span></button>
@@ -701,28 +703,18 @@
     <input id="base_postcode" name="base_postcode" type="text" />
   </div>
 
-  <input type="hidden" id="coverage_radius" name="coverage_radius" />
-  <div class="field-group">
-    <label>Where do you want TradeBotPro to quote?</label>
-    <div class="chip-row" data-field="coverage_radius" data-select="single">
-      <button type="button" class="chip"><span>Just my town / city</span></button>
-      <button type="button" class="chip"><span>Up to ~10 miles from base</span></button>
-      <button type="button" class="chip"><span>Up to ~20 miles from base</span></button>
-      <button type="button" class="chip"><span>City-wide / multiple postcodes</span></button>
-      <button type="button" class="chip"><span>Custom list (we’ll import later)</span></button>
-    </div>
-  </div>
+ <input type="hidden" id="coverage_radius" name="coverage_radius">
 
-  <input type="hidden" id="callout_style" name="callout_style" />
-  <div class="field-group">
-    <label>How do you usually charge call-outs?</label>
-    <div class="chip-row" data-field="callout_style" data-select="single">
-      <button type="button" class="chip"><span>Free estimates</span></button>
-      <button type="button" class="chip"><span>Paid call-out, deducted</span></button>
-      <button type="button" class="chip"><span>Fixed call-out fee</span></button>
-      <button type="button" class="chip"><span>No emergency call-outs</span></button>
-    </div>
-  </div>
+<div class="chip-row" data-field="coverage_radius" data-select="single">
+  <button type="button" class="chip"><span>Just my town / city</span></button>
+  <button type="button" class="chip"><span>Up to ~10 miles from base</span></button>
+  <button type="button" class="chip"><span>Up to ~20 miles from base</span></button>
+  <button type="button" class="chip"><span>City-wide / multiple postcodes</span></button>
+  <button type="button" class="chip"><span>Custom list (we’ll import later)</span></button>
+</div>
+
+
+callout_style
 
   <input type="hidden" id="preferred_jobs" name="preferred_jobs" />
   <div class="field-group">
@@ -754,34 +746,30 @@
     </div>
   </div>
 
-  <input type="hidden" id="channels" name="channels" />
-  <div class="field-group">
-    <label>Which channels?</label>
-    <div class="chip-row" data-field="channels" data-select="multi">
-      <button type="button" class="chip"><span>WhatsApp</span></button>
-      <button type="button" class="chip"><span>SMS</span></button>
-      <button type="button" class="chip"><span>Facebook</span></button>
-      <button type="button" class="chip"><span>Website chat</span></button>
-      <button type="button" class="chip"><span>Instagram</span></button>
-    </div>
-  </div>
+<input type="hidden" id="channels" name="channels">
+
+<div class="chip-row" data-field="channels" data-select="multi">
+  <button type="button" class="chip"><span>WhatsApp</span></button>
+  <button type="button" class="chip"><span>SMS / text messages</span></button>
+  <button type="button" class="chip"><span>Facebook Messenger</span></button>
+  <button type="button" class="chip"><span>Website chat widget</span></button>
+  <button type="button" class="chip"><span>Instagram DMs</span></button>
 </div>
+
 
 <!-- ===================== -->
 <!-- STEP 4 -->
 <!-- ===================== -->
 <div class="step-panel wizard-step" data-step="4">
 
-  <input type="hidden" id="demo_style" name="demo_style" />
-  <div class="field-group">
-    <label>How would you like to run your demo?</label>
-    <div class="chip-row" data-field="demo_style" data-select="multi">
-      <button type="button" class="chip"><span>Test from our phones</span></button>
-      <button type="button" class="chip"><span>Real customers</span></button>
-      <button type="button" class="chip"><span>Calendar bookings</span></button>
-      <button type="button" class="chip"><span>Review flow</span></button>
-    </div>
-  </div>
+ <input type="hidden" id="demo_style" name="demo_style">
+
+<div class="chip-row" data-field="demo_style" data-select="multi">
+  <button type="button" class="chip"><span>Test from our own phones first</span></button>
+  <button type="button" class="chip"><span>Test with a few real customers</span></button>
+  <button type="button" class="chip"><span>Test calendar bookings</span></button>
+  <button type="button" class="chip"><span>Test review follow-up flow</span></button>
+</div>
 
   <textarea id="extra_notes" name="extra_notes" placeholder="Anything else we should know?"></textarea>
 </div>
@@ -1021,16 +1009,15 @@
         <input type="hidden" id="review_platforms" name="review_platforms" />
         <input type="hidden" id="review_push_level" name="review_push_level" />
         <input type="hidden" id="demo_style" name="demo_style" />
-        <input type="hidden" id="demo_slot" name="demo_slot" />
-        <input type="hidden" id="golive_timing" name="golive_timing" />
+      <input type="hidden" id="demo_slot" name="demo_slot">
 
-        <!-- Step 1 -->
-        <div class="step-panel is-active" data-step="1">
-          <div class="field-group">
-            <div class="field-label-row">
-              <label for="contact_name">Main contact name</label>
-              <span class="field-hint">Who TradeBotPro should refer to by name.</span>
-            </div>
+<div class="chip-row" data-field="demo_slot" data-select="single">
+  <button type="button" class="chip"><span>Weekday – 6–8pm</span></button>
+  <button type="button" class="chip"><span>Weekday – 8–10pm</span></button>
+  <button type="button" class="chip"><span>Weekend evening</span></button>
+  <button type="button" class="chip"><span>Daytime (I’m flexible)</span></button>
+</div>
+
             <input id="contact_name" name="contact_name" type="text" autocomplete="name" />
           </div>
 
@@ -1136,29 +1123,32 @@
               <label>Typical call-out fee band</label>
               <span class="field-hint">We can refine by job type later.</span>
             </div>
-            <div class="chip-row" data-field="callout_band" data-select="single">
-              <button type="button" class="chip"><span>Up to £79</span></button>
-              <button type="button" class="chip"><span>£80–£119</span></button>
-              <button type="button" class="chip"><span>£120–£179</span></button>
-              <button type="button" class="chip"><span>£180+</span></button>
-              <button type="button" class="chip"><span>Varies – discuss with us</span></button>
-            </div>
-          </div>
+            <input type="hidden" id="callout_band" name="callout_band">
+
+<div class="chip-row" data-field="callout_band" data-select="single">
+  <button type="button" class="chip"><span>Up to £79</span></button>
+  <button type="button" class="chip"><span>£80–£119</span></button>
+  <button type="button" class="chip"><span>£120–£179</span></button>
+  <button type="button" class="chip"><span>£180+</span></button>
+  <button type="button" class="chip"><span>Varies – discuss with us</span></button>
+</div>
+
 
           <div class="field-group">
             <div class="field-label-row">
               <label>Which jobs do you want more of?</label>
               <span class="field-hint">TradeBotPro can prioritise the work you enjoy.</span>
             </div>
-            <div class="chip-row" data-field="preferred_jobs" data-select="multi">
-              <button type="button" class="chip"><span>Emergency / urgent jobs</span></button>
-              <button type="button" class="chip"><span>Small jobs / quick wins</span></button>
-              <button type="button" class="chip"><span>Bigger projects / installs</span></button>
-              <button type="button" class="chip"><span>Maintenance / servicing</span></button>
-              <button type="button" class="chip"><span>Landlords / repeat clients</span></button>
-            </div>
-          </div>
-        </div>
+           <input type="hidden" id="preferred_jobs" name="preferred_jobs">
+
+<div class="chip-row" data-field="preferred_jobs" data-select="multi">
+  <button type="button" class="chip"><span>Emergency / urgent jobs</span></button>
+  <button type="button" class="chip"><span>Small jobs / quick wins</span></button>
+  <button type="button" class="chip"><span>Bigger projects / installs</span></button>
+  <button type="button" class="chip"><span>Maintenance / servicing</span></button>
+  <button type="button" class="chip"><span>Landlords / repeat clients</span></button>
+</div>
+
 
         <!-- Step 3 -->
         <div class="step-panel" data-step="3">
@@ -1167,14 +1157,16 @@
               <label>How should TradeBotPro sound?</label>
               <span class="field-hint">We’ll match your tone of voice.</span>
             </div>
-            <div class="chip-row" data-field="tone_of_voice" data-select="single">
-              <button type="button" class="chip"><span>Friendly &amp; informal</span></button>
-              <button type="button" class="chip"><span>Professional &amp; straight to the point</span></button>
-              <button type="button" class="chip"><span>Premium / high-end feel</span></button>
-              <button type="button" class="chip"><span>Very short &amp; efficient</span></button>
-              <button type="button" class="chip"><span>We’ll decide together</span></button>
-            </div>
-          </div>
+            <input type="hidden" id="tone_of_voice" name="tone_of_voice">
+
+<div class="chip-row" data-field="tone_of_voice" data-select="single">
+  <button type="button" class="chip"><span>Friendly &amp; informal</span></button>
+  <button type="button" class="chip"><span>Professional &amp; straight to the point</span></button>
+  <button type="button" class="chip"><span>Premium / high-end feel</span></button>
+  <button type="button" class="chip"><span>Very short &amp; efficient</span></button>
+  <button type="button" class="chip"><span>We’ll decide together</span></button>
+</div>
+
 
           <div class="field-group">
             <div class="field-label-row">
@@ -1195,14 +1187,16 @@
               <label>Which review platform do you use or want to use?</label>
               <span class="field-hint">We’ll send customers there automatically after jobs.</span>
             </div>
-            <div class="chip-row" data-field="review_platforms" data-select="multi">
-              <button type="button" class="chip"><span>Google Reviews</span></button>
-              <button type="button" class="chip"><span>Trustpilot</span></button>
-              <button type="button" class="chip"><span>Facebook page reviews</span></button>
-              <button type="button" class="chip"><span>Yell / similar directories</span></button>
-              <button type="button" class="chip"><span>Checkatrade / trade portals</span></button>
-            </div>
-          </div>
+           <input type="hidden" id="review_platforms" name="review_platforms">
+
+<div class="chip-row" data-field="review_platforms" data-select="multi">
+  <button type="button" class="chip"><span>Google Reviews</span></button>
+  <button type="button" class="chip"><span>Trustpilot</span></button>
+  <button type="button" class="chip"><span>Facebook page reviews</span></button>
+  <button type="button" class="chip"><span>Yell / similar directories</span></button>
+  <button type="button" class="chip"><span>Checkatrade / trade portals</span></button>
+</div>
+
 
           <div class="field-group">
             <div class="field-label-row">
@@ -1274,14 +1268,21 @@
           </div>
 
           <div class="field-group">
-            <div class="field-label-row">
-              <label for="extra_notes">Anything else we should know before we build your setup?</label>
-              <span class="field-hint">Special rules, pricing quirks, calendars you use, etc.</span>
-            </div>
-            <textarea id="extra_notes" name="extra_notes"></textarea>
-          </div>
-        </div>
-      </div>
+  <div class="field-label-row">
+    <label>Roughly when do you want to go fully live?</label>
+    <span class="field-hint">Purely for planning – nothing switches on without your say-so.</span>
+  </div>
+
+  <!-- ONE hidden input only -->
+  <input type="hidden" id="golive_timing" name="golive_timing">
+
+  <div class="chip-row" data-field="golive_timing" data-select="single">
+    <button type="button" class="chip"><span>Within 1 week of the demo</span></button>
+    <button type="button" class="chip"><span>Within 1 month</span></button>
+    <button type="button" class="chip"><span>Later – just getting ready</span></button>
+  </div>
+</div>
+
 
       <div class="wizard-footer">
         <div class="wizard-footer-left">
