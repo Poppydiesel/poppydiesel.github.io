@@ -840,35 +840,23 @@
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  /* =========================
-     SUPABASE
-  ========================= */
-const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  /* =========================
-     URL PARAMS
-  ========================= */
+  // ----------------- URL params -----------------
   const qs = new URLSearchParams(location.search);
-  const customer_id = (qs.get("customer_id") || "").trim();
-  const setup_token = (qs.get("setup_token") || "").trim();
+  const customer_id = (qs.get("customer_id") || qs.get("customerId") || "").trim();
+  const setup_token = (qs.get("setup_token") || qs.get("setupToken") || "").trim();
 
-  if (!customer_id || !setup_token) {
-    alert("Wizard link invalid or missing. Please restart signup.");
-    location.assign("index.html#signup");
-    throw new Error("Missing customer_id or setup_token");
-  }
-
-  /* =========================
-     HELPERS
-  ========================= */
   const $ = (id) => document.getElementById(id);
 
-  function setStatus(msg = "", ok = true) {
-    const el = $("wizardStatus") || $("saveStatus") || $("status-msg");
+  function setStatus(msg, ok = true) {
+    const el = $("status-msg") || $("saveStatus") || $("wizardStatus");
     if (!el) return;
-    el.textContent = msg;
+    el.textContent = msg || "";
     el.style.color = ok ? "#0f7b46" : "#b3261e";
   }
 
@@ -879,76 +867,100 @@ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     return u.toString();
   }
 
-  function getVal(name) {
-    const el = document.querySelector(`[name="${name}"]`) || $(name);
-    return el ? el.value.trim() : "";
+  function getVal(nameOrId) {
+    const byName = document.querySelector(`[name="${nameOrId}"]`);
+    const el = byName || $(nameOrId);
+    if (!el) return "";
+    if (el.type === "checkbox") return el.checked ? "true" : "false";
+    return (el.value ?? "").toString().trim();
   }
 
-  function setVal(name, v) {
-    const el = document.querySelector(`[name="${name}"]`) || $(name);
-    if (el) el.value = v ?? "";
+  function setVal(nameOrId, v) {
+    const byName = document.querySelector(`[name="${nameOrId}"]`);
+    const el = byName || $(nameOrId);
+    if (!el) return;
+    if (el.type === "checkbox") el.checked = (v === true || v === "true");
+    else el.value = v ?? "";
   }
 
-  /* =========================
-     BUTTONS
-  ========================= */
-  const btnSave =
-    $("btn-save") ||
-    $("saveBtn") ||
-    document.querySelector('[data-action="save"]');
-
-  const btnFinish =
-    $("btn-finish") ||
-    $("btn-complete") ||
-    $("completeBtn") ||
-    document.querySelector('[data-action="finish"]');
-
-  const btnBack =
-    $("btn-back-dashboard") ||
-    $("btn-back") ||
-    $("btn-exit") ||
-    document.querySelector('[data-action="dashboard"]');
-
-  function disableButtons(disabled) {
-    [btnSave, btnFinish, btnBack].forEach(b => {
-      if (b) b.disabled = disabled;
-    });
+  function setDisabled(nameOrId, disabled) {
+    const byName = document.querySelector(`[name="${nameOrId}"]`);
+    const el = byName || $(nameOrId);
+    if (el) el.disabled = !!disabled;
   }
 
-  /* =========================
-     CHIP HANDLER (CRITICAL)
-     Each .chip-row MUST have:
-     data-target="field_name"
-  ========================= */
+  // ----------------- Required params -----------------
+  if (!customer_id || !setup_token) {
+    alert("Missing customer_id or setup_token. Please restart from the signup form.");
+    location.assign("index.html#signup");
+    throw new Error("Missing params");
+  }
+
+  // ----------------- CHIP SELECTOR WIRING -----------------
   function wireChips() {
-    document.querySelectorAll(".chip-row").forEach(row => {
-      const target = row.dataset.target;
-      const input = document.querySelector(`[name="${target}"]`) || $(target);
-      if (!input) return;
+    document.querySelectorAll(".chip-row").forEach((row) => {
+      const field = row.dataset.field;
+      const mode = row.dataset.select || "single";
+      const input = document.getElementById(field); // hidden input
+      if (!field || !input) return;
 
-      row.querySelectorAll(".chip").forEach(chip => {
+      row.querySelectorAll(".chip").forEach((chip) => {
         chip.addEventListener("click", () => {
-          row.querySelectorAll(".chip").forEach(c =>
-            c.classList.remove("is-selected")
-          );
-          chip.classList.add("is-selected");
-          input.value = chip.textContent.trim();
+          const value = chip.innerText.trim();
+
+          if (mode === "single") {
+            row.querySelectorAll(".chip").forEach((c) => c.classList.remove("is-selected"));
+            chip.classList.add("is-selected");
+            input.value = value;
+          } else {
+            chip.classList.toggle("is-selected");
+            const values = Array.from(row.querySelectorAll(".chip.is-selected")).map((c) =>
+              c.innerText.trim()
+            );
+            input.value = values.join(", ");
+          }
         });
       });
     });
   }
 
-  /* =========================
-     LOAD WIZARD
-  ========================= */
+  function restoreChips(field, value) {
+    if (!value) return;
+    const row = document.querySelector(`.chip-row[data-field="${field}"]`);
+    const input = document.getElementById(field);
+    if (!row || !input) return;
+
+    input.value = value;
+
+    // single-select prefill only
+    row.querySelectorAll(".chip").forEach((chip) => {
+      if (chip.innerText.trim() === value) chip.classList.add("is-selected");
+    });
+  }
+
+  // ----------------- Buttons -----------------
+  const btnSave =
+    $("btn-save") || $("saveBtn") || document.querySelector('[data-action="save"]');
+  const btnFinish =
+    $("btn-finish") || $("btn-complete") || $("completeBtn") || document.querySelector('[data-action="finish"]');
+  const btnBack =
+    $("btn-back-dashboard") || $("btn-back") || $("btn-exit") || document.querySelector('[data-action="dashboard"]');
+
+  function setButtonsDisabled(disabled) {
+    [btnSave, btnFinish, btnBack].forEach((b) => {
+      if (b) b.disabled = !!disabled;
+    });
+  }
+
+  // ----------------- Load wizard -----------------
   async function loadWizard() {
     try {
-      setStatus("Loading…");
-      disableButtons(true);
+      setStatus("Loading…", true);
+      setButtonsDisabled(true);
 
       const { data, error } = await sb.rpc("tbp_customer_load", {
         p_customer_id: customer_id,
-        p_setup_token: setup_token
+        p_setup_token: setup_token,
       });
 
       if (error) throw error;
@@ -956,45 +968,47 @@ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
       const row = Array.isArray(data) ? data[0] : data;
       if (!row?.id) throw new Error("TOKEN_MISMATCH");
 
-      setField("business_name", row.business_name || "");
-      setField("contact_name", row.contact_name || "");
-      setField("trade_type", row.trade_type || "");
-      setField("base_postcode", row.base_postcode || "");
-      setField("tone", row.tone || "");
-      setField("callout_style", row.callout_style || "");
-      restoreChips("main_trade", row.main_trade);
-      restoreChips("business_stage", row.business_stage);
+      // ✅ Prefill text/select fields
+      setVal("business_name", row.business_name || "");
+      setVal("contact_name", row.contact_name || "");
+      setVal("trade_type", row.trade_type || "");
+      setVal("base_postcode", row.base_postcode || "");
+      setVal("tone", row.tone || "");
+      setVal("callout_style", row.callout_style || "");
 
+      // Optional: if you later add these columns + return them, this will prefill chips too:
+      // restoreChips("main_trade", row.main_trade);
+      // restoreChips("business_stage", row.business_stage);
 
-      if (row.wizard_locked || row.wizard_completed) {
-        document
-          .querySelectorAll("input, button.chip")
-          .forEach(el => el.disabled = true);
+      const locked = !!row.wizard_locked || !!row.wizard_completed;
+      if (locked) {
+        ["business_name", "contact_name", "trade_type", "base_postcode", "tone", "callout_style"].forEach((f) =>
+          setDisabled(f, true)
+        );
         if (btnSave) btnSave.style.display = "none";
-        setStatus("Wizard locked ✔");
+        setStatus("Wizard is locked ✔", true);
       } else {
-        setStatus("");
+        setStatus("", true);
       }
 
-     wireChips();
-      restoreChips("main_trade", row.main_trade);
-
-      disableButtons(false);
-
+      setButtonsDisabled(false);
     } catch (err) {
       console.error("[TBP] Wizard load error:", err);
-      alert("Wizard link invalid or expired. Please re-submit signup.");
-      setStatus("Wizard load failed", false);
+      const msg =
+        (err?.message || "").includes("TOKEN_MISMATCH")
+          ? "Wizard link invalid or expired. Please re-submit the signup form to generate a fresh setup link."
+          : (err?.message || "Failed to load wizard.");
+      alert(msg);
+      setStatus(msg, false);
+      setButtonsDisabled(false);
     }
   }
 
-  /* =========================
-     SAVE WIZARD
-  ========================= */
-  async function saveWizard(complete = false) {
+  // ----------------- Save wizard -----------------
+  async function saveWizard(markComplete) {
     try {
-      setStatus("Saving…");
-      disableButtons(true);
+      setStatus("Saving…", true);
+      setButtonsDisabled(true);
 
       const { error } = await sb.rpc("tbp_customer_save_wizard", {
         p_customer_id: customer_id,
@@ -1005,105 +1019,58 @@ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
         p_base_postcode: getVal("base_postcode"),
         p_tone: getVal("tone"),
         p_callout_style: getVal("callout_style"),
-        p_mark_complete: complete
+        p_mark_complete: !!markComplete,
       });
 
       if (error) throw error;
 
-      if (complete) {
+      if (markComplete) {
+        setStatus("Setup complete ✔ Redirecting…", true);
         location.assign(dashboardUrl());
         return;
       }
 
-      setStatus("Saved ✔");
-      disableButtons(false);
-
+      setStatus("Saved ✔", true);
+      setButtonsDisabled(false);
     } catch (err) {
       console.error("[TBP] Wizard save error:", err);
-      alert(err.message || "Save failed");
-      setStatus("Save failed", false);
-      disableButtons(false);
+      const msg =
+        (err?.message || "").includes("TOKEN_MISMATCH")
+          ? "Could not save. Your setup link is invalid or expired."
+          : (err?.message || "Save failed.");
+      alert(msg);
+      setStatus(msg, false);
+      setButtonsDisabled(false);
     }
   }
 
-  /* =========================
-     EVENTS
-  ========================= */
-  if (btnSave) btnSave.onclick = (e) => {
+  // ----------------- Events -----------------
+  if (btnSave) btnSave.addEventListener("click", (e) => {
     e.preventDefault();
     saveWizard(false);
-  };
+  });
 
-  if (btnFinish) btnFinish.onclick = (e) => {
+  if (btnFinish) btnFinish.addEventListener("click", (e) => {
     e.preventDefault();
     saveWizard(true);
-  };
+  });
 
-  if (btnBack) btnBack.onclick = (e) => {
+  if (btnBack) btnBack.addEventListener("click", (e) => {
     e.preventDefault();
     location.assign(dashboardUrl());
-  };
-
-  const form = document.querySelector("form");
-  if (form) {
-    form.addEventListener("submit", e => {
-      e.preventDefault();
-      saveWizard(false);
-    });
-  }
-<script>
-/* =========================
-   CHIP SELECTOR WIRING
-   ========================= */
-function wireChips() {
-  document.querySelectorAll(".chip-row").forEach(row => {
-    const field = row.dataset.field;
-    const mode = row.dataset.select || "single";
-    const input = document.getElementById(field);
-    if (!field || !input) return;
-
-    row.querySelectorAll(".chip").forEach(chip => {
-      chip.addEventListener("click", () => {
-        const value = chip.innerText.trim();
-
-        if (mode === "single") {
-          row.querySelectorAll(".chip").forEach(c => c.classList.remove("is-selected"));
-          chip.classList.add("is-selected");
-          input.value = value;
-        } else {
-          chip.classList.toggle("is-selected");
-          const values = Array.from(row.querySelectorAll(".chip.is-selected"))
-            .map(c => c.innerText.trim());
-          input.value = values.join(", ");
-        }
-      });
-    });
   });
-}
 
-/* =========================
-   PREFILL CHIP VALUES
-   ========================= */
-function restoreChips(field, value) {
-  if (!value) return;
-  const row = document.querySelector(`.chip-row[data-field="${field}"]`);
-  const input = document.getElementById(field);
-  if (!row || !input) return;
-
-  input.value = value;
-
-  row.querySelectorAll(".chip").forEach(chip => {
-    if (chip.innerText.trim() === value) {
-      chip.classList.add("is-selected");
-    }
+  const wizardForm = document.querySelector("form");
+  if (wizardForm) wizardForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    saveWizard(false);
   });
-}
 
-/* =========================
-   INIT (ORDER MATTERS)
-   ========================= */
-wireChips();
-loadWizard();
+  // ✅ IMPORTANT: run after DOM is ready so fields exist
+  window.addEventListener("DOMContentLoaded", () => {
+    wireChips();
+    loadWizard();
+  });
 </script>
 
 
