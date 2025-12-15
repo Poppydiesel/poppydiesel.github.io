@@ -1060,99 +1060,88 @@
     location.assign(dashboardUrl());
   });
 
-  const wizardForm = document.querySelector("form");
-  if (wizardForm) wizardForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    saveWizard(false);
-  });
+   // ----------------- WIZARD STEP NAV (btn-next / btn-back / btn-save-draft) -----------------
+  function wireWizardNav() {
+    const btnNext = document.getElementById("btn-next");
+    const btnBack = document.getElementById("btn-back");
+    const btnSaveDraft = document.getElementById("btn-save-draft");
 
-  // ✅ IMPORTANT: run after DOM is ready so fields exist
+    // Step wrappers: prefer .wizard-step, fallback to [data-step]
+    const stepsEls = Array.from(document.querySelectorAll(".wizard-step"));
+    const finalSteps = stepsEls.length ? stepsEls : Array.from(document.querySelectorAll("[data-step]"));
+
+    if (!finalSteps.length) {
+      console.warn("[TBP] No wizard steps found. Add .wizard-step wrappers or data-step attributes.");
+      return;
+    }
+
+    function isVisible(el) {
+      return window.getComputedStyle(el).display !== "none";
+    }
+
+    function getActiveIndex() {
+      let idx = finalSteps.findIndex(el => el.classList.contains("is-active"));
+      if (idx >= 0) return idx;
+
+      idx = finalSteps.findIndex(isVisible);
+      return idx >= 0 ? idx : 0;
+    }
+
+    function showStep(index) {
+      finalSteps.forEach((el, i) => {
+        el.classList.toggle("is-active", i === index);
+        el.style.display = i === index ? "" : "none";
+      });
+
+      if (btnBack) btnBack.disabled = index === 0;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Ensure only one visible on init
+    showStep(getActiveIndex());
+
+    if (btnNext) {
+      btnNext.addEventListener("click", () => {
+        const idx = getActiveIndex();
+        if (idx < finalSteps.length - 1) showStep(idx + 1);
+      });
+    }
+
+    if (btnBack) {
+      btnBack.addEventListener("click", () => {
+        const idx = getActiveIndex();
+        if (idx > 0) showStep(idx - 1);
+      });
+    }
+
+    if (btnSaveDraft) {
+      btnSaveDraft.addEventListener("click", () => {
+        // Your module already intercepts form submit to saveWizard(false)
+        const form = document.querySelector("form");
+        if (!form) return;
+        if (form.requestSubmit) form.requestSubmit();
+        else form.dispatchEvent(new Event("submit", { cancelable: true }));
+      });
+    }
+  }
+
+  // ----------------- Form submit = Save draft -----------------
+  const wizardForm = document.querySelector("form");
+  if (wizardForm) {
+    wizardForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      saveWizard(false);
+    });
+  }
+
+  // ✅ IMPORTANT: run after DOM is ready so fields exist (ONE init only)
   window.addEventListener("DOMContentLoaded", () => {
     wireChips();
+    wireWizardNav();
     loadWizard();
   });
- <script>
-/* =========================
-   WIZARD STEP NAV (IDs: btn-next / btn-back / btn-save-draft)
-   ========================= */
-function wireWizardNav() {
-  const btnNext = document.getElementById("btn-next");
-  const btnBack = document.getElementById("btn-back");
-  const btnSaveDraft = document.getElementById("btn-save-draft");
-
-  // Step wrappers: prefer .wizard-step, fallback to [data-step]
-  const stepsEls = Array.from(document.querySelectorAll(".wizard-step"));
-  const finalSteps = stepsEls.length ? stepsEls : Array.from(document.querySelectorAll("[data-step]"));
-
-  if (!finalSteps.length) {
-    console.warn("[TBP] No wizard steps found. Add .wizard-step wrappers or data-step attributes.");
-    return;
-  }
-
-  function isVisible(el) {
-    return window.getComputedStyle(el).display !== "none";
-  }
-
-  function getActiveIndex() {
-    // 1) class-based active
-    let idx = finalSteps.findIndex(el => el.classList.contains("is-active"));
-    if (idx >= 0) return idx;
-
-    // 2) otherwise first visible
-    idx = finalSteps.findIndex(isVisible);
-    return idx >= 0 ? idx : 0;
-  }
-
-  function showStep(index) {
-    finalSteps.forEach((el, i) => {
-      el.classList.toggle("is-active", i === index);
-      el.style.display = i === index ? "" : "none";
-    });
-
-    if (btnBack) btnBack.disabled = index === 0;
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  // Ensure only one visible on init
-  showStep(getActiveIndex());
-
-  if (btnNext) {
-    btnNext.addEventListener("click", () => {
-      const idx = getActiveIndex();
-      if (idx < finalSteps.length - 1) showStep(idx + 1);
-    });
-  }
-
-  if (btnBack) {
-    btnBack.addEventListener("click", () => {
-      const idx = getActiveIndex();
-      if (idx > 0) showStep(idx - 1);
-    });
-  }
-
-  if (btnSaveDraft) {
-    btnSaveDraft.addEventListener("click", () => {
-      const form = document.querySelector("form");
-      if (!form) return;
-      if (form.requestSubmit) form.requestSubmit();
-      else form.dispatchEvent(new Event("submit", { cancelable: true }));
-    });
-  }
-}
-
-/* =========================
-   INIT (ONE DOMContentLoaded)
-   ========================= */
-window.addEventListener("DOMContentLoaded", () => {
-  // These two must already exist in your module script:
-  // wireChips()
-  // loadWizard()
-
-  if (typeof wireChips === "function") wireChips();
-  if (typeof wireWizardNav === "function") wireWizardNav();
-  if (typeof loadWizard === "function") loadWizard();
-});
 </script>
+
 
 </body>
 </html>
