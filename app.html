@@ -1071,53 +1071,83 @@
     wireChips();
     loadWizard();
   });
-  <script>
+ <script>
 /* =========================
-   WIZARD STEP NAVIGATION
+   WIZARD STEP NAV (IDs: btn-next / btn-back)
    ========================= */
 
-function wireWizardSteps() {
-  const steps = Array.from(document.querySelectorAll(".wizard-step"));
-  if (!steps.length) return;
+function wireWizardNav() {
+  const btnNext = document.getElementById("btn-next");
+  const btnBack = document.getElementById("btn-back");
+  const btnSaveDraft = document.getElementById("btn-save-draft");
+
+  // Find steps (supports either .wizard-step OR anything with data-step)
+  const steps =
+    Array.from(document.querySelectorAll(".wizard-step")) ||
+    [];
+
+  const fallbackSteps = steps.length
+    ? steps
+    : Array.from(document.querySelectorAll("[data-step]"));
+
+  if (!fallbackSteps.length) {
+    console.warn("[TBP] No wizard steps found. Add .wizard-step wrappers or data-step attributes.");
+    return;
+  }
+
+  const stepsEls = fallbackSteps;
+
+  function isActive(el) {
+    return el.classList.contains("is-active") || el.style.display !== "none";
+  }
+
+  function getActiveIndex() {
+    const idx = stepsEls.findIndex(isActive);
+    return idx >= 0 ? idx : 0;
+  }
 
   function showStep(index) {
-    steps.forEach((step, i) => {
-      step.classList.toggle("is-active", i === index);
+    stepsEls.forEach((el, i) => {
+      // Prefer class-based visibility, but also enforce display for safety
+      el.classList.toggle("is-active", i === index);
+      el.style.display = i === index ? "" : "none";
     });
+
+    if (btnBack) btnBack.disabled = index === 0;
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  steps.forEach((step, index) => {
-    const nextBtn = step.querySelector(".btn-next");
-    if (!nextBtn) return;
+  // Ensure only one step visible on load
+  showStep(getActiveIndex());
 
-    nextBtn.addEventListener("click", () => {
-      // Optional: basic validation (extend later)
-      const requiredInputs = step.querySelectorAll("[required]");
-      for (const input of requiredInputs) {
-        if (!input.value.trim()) {
-          input.focus();
-          alert("Please complete this step before continuing.");
-          return;
-        }
-      }
-
-      if (index < steps.length - 1) {
-        showStep(index + 1);
-      }
+  if (btnNext) {
+    btnNext.addEventListener("click", () => {
+      const idx = getActiveIndex();
+      if (idx < stepsEls.length - 1) showStep(idx + 1);
     });
-  });
+  }
+
+  if (btnBack) {
+    btnBack.addEventListener("click", () => {
+      const idx = getActiveIndex();
+      if (idx > 0) showStep(idx - 1);
+    });
+  }
+
+  // Optional: keep your Save Draft button working even if it's not wired elsewhere
+  if (btnSaveDraft) {
+    btnSaveDraft.addEventListener("click", () => {
+      // If your module code already wires save, this does nothing extra.
+      // If not, it will submit the first form (your module intercepts submit to save).
+      const form = document.querySelector("form");
+      if (form) form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", { cancelable: true }));
+    });
+  }
 }
 
-/* =========================
-   INIT (SAFE)
-   ========================= */
-document.addEventListener("DOMContentLoaded", () => {
-  wireWizardSteps();
-});
+document.addEventListener("DOMContentLoaded", wireWizardNav);
 </script>
-
-
 
 </body>
 </html>
