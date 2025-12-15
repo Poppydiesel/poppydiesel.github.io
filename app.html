@@ -1286,39 +1286,117 @@ callout_style
       </div>
     </div>
   </div>
-          // ----------------- Back to dashboard button -----------------
-const btnDashboard = document.getElementById("btn-dashboard");
+          
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-if (btnDashboard) {
-  btnDashboard.addEventListener("click", () => {
-    const url = new URL("client-dashboard.html", window.location.origin);
-    url.searchParams.set("customer_id", customer_id);
-    url.searchParams.set("setup_token", setup_token);
-    window.location.assign(url.toString());
+  // ✅ Supabase credentials
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ✅ Get query params
+  const qs = new URLSearchParams(location.search);
+  const customer_id = (qs.get("customer_id") || qs.get("customerId") || "").trim();
+  const setup_token = (qs.get("setup_token") || qs.get("setupToken") || "").trim();
+
+  const $ = (id) => document.getElementById(id);
+
+  function setStatus(msg, ok = true) {
+    const el = $("status-msg") || $("saveStatus") || $("wizardStatus");
+    if (!el) return;
+    el.textContent = msg || "";
+    el.style.color = ok ? "#0f7b46" : "#b3261e";
+  }
+
+  function showFatal(msg) {
+    alert(msg);
+    setStatus(msg, false);
+  }
+
+  // ---------- Step navigation ----------
+  function wireWizardNav() {
+    const btnNext = $("btn-next");
+    const btnBack = $("btn-back");
+    const btnDashboard = $("btn-dashboard");
+
+    const steps = Array.from(document.querySelectorAll(".step-panel[data-step]"))
+      .sort((a, b) => (parseInt(a.dataset.step, 10) || 0) - (parseInt(b.dataset.step, 10) || 0));
+
+    if (!steps.length) return;
+
+    const maxStep = parseInt(steps[steps.length - 1].dataset.step, 10) || steps.length;
+
+    function getActiveStep() {
+      const active = steps.find(s => s.classList.contains("is-active"));
+      return active ? parseInt(active.dataset.step, 10) || 1 : 1;
+    }
+
+    function showStep(n) {
+      steps.forEach(s => s.classList.toggle("is-active", parseInt(s.dataset.step, 10) === n));
+      if (btnBack) btnBack.disabled = (n <= 1);
+      if (btnNext) btnNext.style.display = (n < maxStep) ? "" : "none";
+      if (btnDashboard) btnDashboard.style.display = (n === maxStep) ? "" : "none";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    showStep(getActiveStep());
+
+    if (btnNext) btnNext.addEventListener("click", () => {
+      const cur = getActiveStep();
+      if (cur < maxStep) showStep(cur + 1);
+    });
+
+    if (btnBack) btnBack.addEventListener("click", () => {
+      const cur = getActiveStep();
+      if (cur > 1) showStep(cur - 1);
+    });
+  }
+
+  // ---------- Load wizard ----------
+  async function loadWizard() {
+    try {
+      setStatus("Loading…", true);
+
+      if (!customer_id || !setup_token) {
+        showFatal("Missing customer_id or setup_token. Please restart from the signup form.");
+        location.assign("index.html#signup");
+        return;
+      }
+
+      const { data, error } = await sb.rpc("tbp_customer_load", {
+        p_customer_id: customer_id,
+        p_setup_token: setup_token
+      });
+
+      if (error) throw error;
+
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row?.id) {
+        showFatal("Wizard link invalid or expired. Please re-submit the signup form.");
+        return;
+      }
+
+      // ✅ Prefill fields
+      if ($("business_name")) $("business_name").value = row.business_name || "";
+      if ($("contact_name")) $("contact_name").value = row.contact_name || "";
+      if ($("contact_email")) $("contact_email").value = row.email || "";
+      if ($("contact_mobile")) $("contact_mobile").value = row.phone || "";
+
+      setStatus("", true);
+    } catch (err) {
+      console.error("[TBP] loadWizard error:", err);
+      showFatal(err?.message || "Failed to load wizard.");
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    wireWizardNav();
+    await loadWizard();
   });
-}
+</script>
 
-
-<style>
-  /* Phase 1: keep steps clean + footer aligned */
-  .step-panel { display:none; }
-  .step-panel.is-active { display:block; }
-
-  .wizard-footer-right{
-    display:flex;
-    justify-content:flex-end;
-    align-items:center;
-    gap:12px;
-    flex-wrap:wrap;
-  }
-
-  /* optional: make buttons consistent */
-  .wizard-footer-right .btn{
-    min-width:140px;
-  }
-</style>
-
-
+<!-- ✅ CHIP HANDLER -->
 <script>
 (() => {
   const norm = (s) => (s || "").replace(/\s+/g, " ").trim();
@@ -1334,7 +1412,6 @@ if (btnDashboard) {
     });
   }
 
-  // ONE delegated handler for all chips
   document.addEventListener("click", (e) => {
     const chip = e.target.closest("button.chip");
     if (!chip) return;
@@ -1355,32 +1432,3 @@ if (btnDashboard) {
     const label = norm(chip.innerText);
     if (mode === "multi") {
       const list = norm(input.value).split(",").map(norm).filter(Boolean);
-      const next = list.includes(label) ? list.filter(x => x !== label) : [...list, label];
-      input.value = next.join(", ");
-    } else {
-      input.value = label;
-    }
-
-    setSelected(row, input, mode);
-  });
-
-  // Restore highlights on load
-  window.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".chip-row[data-field]").forEach(row => {
-      const field = row.dataset.field;
-      const input = document.getElementById(field);
-      if (!input) return;
-      const mode = (row.dataset.select || "single").toLowerCase();
-      setSelected(row, input, mode);
-    });
-  });
-})();
-</script>
-
-<style>
-.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { cursor: pointer; }
-.chip.is-selected { background: #0f7b46; color: #fff; }
-</style>
-
-
