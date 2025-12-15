@@ -1077,11 +1077,20 @@ function wireWizardNav() {
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  // keep your chip wiring + loadWizard calls
-  if (typeof wireChips === "function") wireChips();
-  if (typeof loadWizard === "function") loadWizard();
-  wireWizardNav();
+document.addEventListener("DOMContentLoaded", () => {
+  const btnFinish = document.getElementById("btn-finish");
+
+  if (btnFinish) {
+    btnFinish.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      if (typeof saveWizard === "function") {
+        saveWizard(true); // ✅ FINAL STEP — SAVE + COMPLETE + REDIRECT
+      } else {
+        alert("Internal error: saveWizard() not found.");
+      }
+    });
+  }
 });
 </script>
 
