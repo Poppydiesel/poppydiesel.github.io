@@ -322,26 +322,41 @@
     }
 
     /* FOOTER ACTIONS */
-    .wizard-footer {
-      margin-top: 1.1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      border-top: 1px dashed rgba(148, 163, 184, 0.7);
-      padding-top: 0.8rem;
-    }
+   .wizard-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-top:18px;
+  padding-top:14px;
+  border-top:1px solid rgba(0,0,0,0.08);
+}
 
-    .wizard-footer-left { font-size: 0.78rem; color: var(--muted-text); }
-    .wizard-footer-left strong { color: var(--primary-blue); }
+.wizard-footer-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:140px;
+}
 
-    .wizard-footer-right {
-      display: flex;
-      gap: 0.6rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+.wizard-step-label{
+  font-size:13px;
+  opacity:0.8;
+  font-weight:600;
+}
+
+.wizard-footer-right{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.wizard-footer-right .btn{
+  white-space:nowrap;
+}
+
 
     .btn {
       border-radius: 999px;
@@ -729,18 +744,28 @@
             </span>
           </div>
 
-          <div class="wizard-footer-right">
-            <button type="button" class="btn btn-primary" id="btn-save-draft">Save draft</button>
+         <div class="wizard-footer">
+  <div class="wizard-footer-left">
+    <span id="wizard-step-label" class="wizard-step-label">Step 1 of 4</span>
+  </div>
 
-            <button type="button" class="btn btn-secondary" id="btn-back" disabled>← Back</button>
+  <div class="wizard-footer-right">
+    <button type="button" class="btn btn-secondary" id="btn-back" disabled>← Back</button>
+    <button type="button" class="btn btn-secondary" id="btn-save-draft">Save draft</button>
 
-            <button type="button" class="btn btn-primary" id="btn-next">Next step →</button>
-            <!-- shows only after Finish succeeds -->
-            <button type="button" class="btn btn-primary" id="btn-dashboard" style="display:none">
-              Back to dashboard →
-            </button>
-          </div>
-        </div>
+    <button type="button" class="btn btn-primary" id="btn-next">Next step →</button>
+
+    <!-- last step only -->
+    <button type="button" class="btn btn-primary" id="btn-finish" style="display:none">
+      Finish setup →
+    </button>
+
+    <!-- shows only after Finish succeeds (keep your existing logic if you already use it) -->
+    <button type="button" class="btn btn-primary" id="btn-dashboard" style="display:none">
+      Back to dashboard →
+    </button>
+  </div>
+</div>
 
         <div id="wizard-status-message" class="wizard-status-message"></div>
       </section>
@@ -970,88 +995,95 @@
     location.assign(dashboardUrl());
   });
 
-   // ----------------- WIZARD STEP NAV (btn-next / btn-back / btn-save-draft) -----------------
-  function wireWizardNav() {
-    const btnNext = document.getElementById("btn-next");
-    const btnBack = document.getElementById("btn-back");
-    const btnSaveDraft = document.getElementById("btn-save-draft");
+function wireWizardNav() {
+  const btnNext = document.getElementById("btn-next");
+  const btnBack = document.getElementById("btn-back");
+  const btnFinish = document.getElementById("btn-finish");
+  const btnSaveDraft = document.getElementById("btn-save-draft");
+  const stepLabel = document.getElementById("wizard-step-label");
 
-    // Step wrappers: prefer .wizard-step, fallback to [data-step]
-    const stepsEls = Array.from(document.querySelectorAll(".wizard-step"));
-    const finalSteps = stepsEls.length ? stepsEls : Array.from(document.querySelectorAll("[data-step]"));
-
-    if (!finalSteps.length) {
-      console.warn("[TBP] No wizard steps found. Add .wizard-step wrappers or data-step attributes.");
-      return;
-    }
-
-    function isVisible(el) {
-      return window.getComputedStyle(el).display !== "none";
-    }
-
-    function getActiveIndex() {
-      let idx = finalSteps.findIndex(el => el.classList.contains("is-active"));
-      if (idx >= 0) return idx;
-
-      idx = finalSteps.findIndex(isVisible);
-      return idx >= 0 ? idx : 0;
-    }
-
-    function showStep(index) {
-      finalSteps.forEach((el, i) => {
-        el.classList.toggle("is-active", i === index);
-        el.style.display = i === index ? "" : "none";
-      });
-
-      if (btnBack) btnBack.disabled = index === 0;
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    // Ensure only one visible on init
-    showStep(getActiveIndex());
-
-    if (btnNext) {
-      btnNext.addEventListener("click", () => {
-        const idx = getActiveIndex();
-        if (idx < finalSteps.length - 1) showStep(idx + 1);
-      });
-    }
-
-    if (btnBack) {
-      btnBack.addEventListener("click", () => {
-        const idx = getActiveIndex();
-        if (idx > 0) showStep(idx - 1);
-      });
-    }
-
-    if (btnSaveDraft) {
-      btnSaveDraft.addEventListener("click", () => {
-        // Your module already intercepts form submit to saveWizard(false)
-        const form = document.querySelector("form");
-        if (!form) return;
-        if (form.requestSubmit) form.requestSubmit();
-        else form.dispatchEvent(new Event("submit", { cancelable: true }));
-      });
-    }
+  const steps = Array.from(document.querySelectorAll(".step-panel[data-step]"));
+  if (!steps.length) {
+    console.warn("[TBP] No .step-panel[data-step] steps found.");
+    return;
   }
 
-  // ----------------- Form submit = Save draft -----------------
-  const wizardForm = document.querySelector("form");
-  if (wizardForm) {
-    wizardForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      saveWizard(false);
+  const maxStep = Math.max(...steps.map(s => parseInt(s.dataset.step, 10)).filter(n => !isNaN(n)));
+
+  function showStep(stepNum) {
+    steps.forEach(el => {
+      const n = parseInt(el.dataset.step, 10);
+      const active = n === stepNum;
+      el.classList.toggle("is-active", active);
+      el.style.display = active ? "" : "none";
+    });
+
+    if (btnBack) btnBack.disabled = stepNum <= 1;
+
+    // Toggle Next vs Finish on last step
+    if (btnNext) btnNext.style.display = (stepNum < maxStep) ? "" : "none";
+    if (btnFinish) btnFinish.style.display = (stepNum === maxStep) ? "" : "none";
+
+    if (stepLabel) stepLabel.textContent = `Step ${stepNum} of ${maxStep}`;
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function getActiveStep() {
+    const active = steps.find(el => el.classList.contains("is-active"));
+    if (active) return parseInt(active.dataset.step, 10);
+    // fallback: first visible
+    const vis = steps.find(el => getComputedStyle(el).display !== "none");
+    if (vis) return parseInt(vis.dataset.step, 10);
+    return 1;
+  }
+
+  // Init: force a clean state (only one visible)
+  showStep(getActiveStep());
+
+  if (btnNext) {
+    btnNext.addEventListener("click", () => {
+      const cur = getActiveStep();
+      if (cur < maxStep) showStep(cur + 1);
     });
   }
 
-  // ✅ IMPORTANT: run after DOM is ready so fields exist (ONE init only)
-  window.addEventListener("DOMContentLoaded", () => {
-    wireChips();
-    wireWizardNav();
-    loadWizard();
-  });
-</script>
+  if (btnBack) {
+    btnBack.addEventListener("click", () => {
+      const cur = getActiveStep();
+      if (cur > 1) showStep(cur - 1);
+    });
+  }
 
+  // Save draft: submit the form (your module intercepts submit and saves)
+  if (btnSaveDraft) {
+    btnSaveDraft.addEventListener("click", () => {
+      const form = document.querySelector("form");
+      if (!form) return;
+      if (form.requestSubmit) form.requestSubmit();
+      else form.dispatchEvent(new Event("submit", { cancelable: true }));
+    });
+  }
+
+  // Finish: call your existing finish handler if you already have one wired,
+  // otherwise just click your existing save/finish button logic.
+  if (btnFinish) {
+    btnFinish.addEventListener("click", () => {
+      // If your module script already wires a finish button (e.g. #btn-complete),
+      // keep using it. Otherwise this will do nothing and you can call saveWizard(true) here.
+      const existing = document.getElementById("btn-complete") || document.getElementById("btn-finish-existing");
+      if (existing) existing.click();
+    });
+  }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  // keep your chip wiring + loadWizard calls
+  if (typeof wireChips === "function") wireChips();
+  if (typeof loadWizard === "function") loadWizard();
+  wireWizardNav();
+});
+</script>
 
 </body>
 </html>
