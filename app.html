@@ -567,21 +567,25 @@
               <label>What trade are you?</label>
               <span class="field-hint">Pick the closest match – we’ll fine-tune later.</span>
             </div>
-            <div class="chip-row" data-field="main_trade" data-select="single">
-              <button type="button" class="chip"><span>Plumbing &amp; heating</span></button>
-              <button type="button" class="chip"><span>Heating only</span></button>
-              <button type="button" class="chip"><span>Gas engineer</span></button>
-              <button type="button" class="chip"><span>Electrician</span></button>
-              <button type="button" class="chip"><span>Roofing &amp; guttering</span></button>
-              <button type="button" class="chip"><span>Landscaping / gardening</span></button>
-              <button type="button" class="chip"><span>Window cleaning</span></button>
-              <button type="button" class="chip"><span>Cleaning / carpet cleaning</span></button>
-              <button type="button" class="chip"><span>Builder</span></button>
-              <button type="button" class="chip"><span>Handyman</span></button>
-              <button type="button" class="chip"><span>Pest control</span></button>
-              <button type="button" class="chip"><span>Home repairs &amp; maintenance</span></button>
-              <button type="button" class="chip"><span>Other</span></button>
-            </div>
+         <!-- Main trade (chip selector) -->
+<input type="hidden" id="main_trade" name="main_trade" />
+
+<div class="chip-row" data-field="main_trade" data-select="single">
+  <button type="button" class="chip"><span>Plumbing &amp; heating</span></button>
+  <button type="button" class="chip"><span>Heating only</span></button>
+  <button type="button" class="chip"><span>Gas engineer</span></button>
+  <button type="button" class="chip"><span>Electrician</span></button>
+  <button type="button" class="chip"><span>Roofing &amp; guttering</span></button>
+  <button type="button" class="chip"><span>Landscaping / gardening</span></button>
+  <button type="button" class="chip"><span>Window cleaning</span></button>
+  <button type="button" class="chip"><span>Cleaning / carpet cleaning</span></button>
+  <button type="button" class="chip"><span>Builder</span></button>
+  <button type="button" class="chip"><span>Handyman</span></button>
+  <button type="button" class="chip"><span>Pest control</span></button>
+  <button type="button" class="chip"><span>Home repairs &amp; maintenance</span></button>
+  <button type="button" class="chip"><span>Other</span></button>
+</div>
+
           </div>
 
           <div class="field-group">
@@ -952,12 +956,15 @@ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
       const row = Array.isArray(data) ? data[0] : data;
       if (!row?.id) throw new Error("TOKEN_MISMATCH");
 
-      setVal("business_name", row.business_name);
-      setVal("contact_name", row.contact_name);
-      setVal("trade_type", row.trade_type);
-      setVal("base_postcode", row.base_postcode);
-      setVal("tone", row.tone);
-      setVal("callout_style", row.callout_style);
+      setField("business_name", row.business_name || "");
+      setField("contact_name", row.contact_name || "");
+      setField("trade_type", row.trade_type || "");
+      setField("base_postcode", row.base_postcode || "");
+      setField("tone", row.tone || "");
+      setField("callout_style", row.callout_style || "");
+      restoreChips("main_trade", row.main_trade);
+      restoreChips("business_stage", row.business_stage);
+
 
       if (row.wizard_locked || row.wizard_completed) {
         document
@@ -969,7 +976,9 @@ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
         setStatus("");
       }
 
-      wireChips();
+     wireChips();
+      restoreChips("main_trade", row.main_trade);
+
       disableButtons(false);
 
     } catch (err) {
@@ -1042,13 +1051,60 @@ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
       saveWizard(false);
     });
   }
+<script>
+/* =========================
+   CHIP SELECTOR WIRING
+   ========================= */
+function wireChips() {
+  document.querySelectorAll(".chip-row").forEach(row => {
+    const field = row.dataset.field;
+    const mode = row.dataset.select || "single";
+    const input = document.getElementById(field);
+    if (!field || !input) return;
 
-  /* =========================
-     INIT
-  ========================= */
-  loadWizard();
+    row.querySelectorAll(".chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const value = chip.innerText.trim();
+
+        if (mode === "single") {
+          row.querySelectorAll(".chip").forEach(c => c.classList.remove("is-selected"));
+          chip.classList.add("is-selected");
+          input.value = value;
+        } else {
+          chip.classList.toggle("is-selected");
+          const values = Array.from(row.querySelectorAll(".chip.is-selected"))
+            .map(c => c.innerText.trim());
+          input.value = values.join(", ");
+        }
+      });
+    });
+  });
+}
+
+/* =========================
+   PREFILL CHIP VALUES
+   ========================= */
+function restoreChips(field, value) {
+  if (!value) return;
+  const row = document.querySelector(`.chip-row[data-field="${field}"]`);
+  const input = document.getElementById(field);
+  if (!row || !input) return;
+
+  input.value = value;
+
+  row.querySelectorAll(".chip").forEach(chip => {
+    if (chip.innerText.trim() === value) {
+      chip.classList.add("is-selected");
+    }
+  });
+}
+
+/* =========================
+   INIT (ORDER MATTERS)
+   ========================= */
+wireChips();
+loadWizard();
 </script>
-
 
 
 
