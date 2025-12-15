@@ -1497,6 +1497,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
+  <script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("btn-dashboard");
+    if (!btn) {
+      console.warn("[TBP] #btn-dashboard not found");
+      return;
+    }
+
+    btn.addEventListener("click", () => {
+      const qs = new URLSearchParams(window.location.search);
+      const customer_id = (qs.get("customer_id") || qs.get("customerId") || "").trim();
+      const setup_token = (qs.get("setup_token") || qs.get("setupToken") || "").trim();
+
+      if (!customer_id || !setup_token) {
+        alert("Missing customer_id or setup_token in the URL.");
+        return;
+      }
+
+      const url = new URL("client-dashboard.html", window.location.origin);
+      url.searchParams.set("customer_id", customer_id);
+      url.searchParams.set("setup_token", setup_token);
+      window.location.assign(url.toString());
+    });
+  });
+</script>
+
 </script>
 
 
