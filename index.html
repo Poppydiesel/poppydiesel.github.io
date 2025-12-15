@@ -1293,7 +1293,7 @@
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const form = document.getElementById("signupForm");
@@ -1301,29 +1301,31 @@
   const continueBtn = document.getElementById("continueWizardBtn");
   const statusBox = document.getElementById("signup-status");
 
-  function setStatus(msg, ok=false){
-    if(!statusBox) return;
+  function setStatus(msg, ok = false) {
+    if (!statusBox) return;
     statusBox.textContent = msg || "";
-    statusBox.className = "signup-status " + (ok ? "signup-status--success" : "signup-status--error");
+    statusBox.className =
+      "signup-status " + (ok ? "signup-status--success" : "signup-status--error");
   }
 
-  function setSaving(isSaving){
-    if(!submitBtn) return;
-    if(isSaving){
+  function setSaving(isSaving) {
+    if (!submitBtn) return;
+    if (isSaving) {
       submitBtn.disabled = true;
       submitBtn.dataset.originalText = submitBtn.textContent;
       submitBtn.textContent = "Saving…";
     } else {
       submitBtn.disabled = false;
-      submitBtn.textContent = submitBtn.dataset.originalText || "Join TradeBotPro (no payment yet)";
+      submitBtn.textContent =
+        submitBtn.dataset.originalText || "Join TradeBotPro (no payment yet)";
     }
   }
 
-  function val(fd, name){
+  function val(fd, name) {
     return (fd.get(name) ?? "").toString().trim();
   }
 
-  if(!form){
+  if (!form) {
     console.error("[TBP] Missing #signupForm");
   } else {
     form.addEventListener("submit", async (e) => {
@@ -1331,27 +1333,27 @@
       setStatus("");
       setSaving(true);
 
-      try{
+      try {
         const fd = new FormData(form);
 
-        const p_contact_name    = val(fd, "contact_name");
-        const p_business_name   = val(fd, "business_name");
-        const p_email           = val(fd, "email").toLowerCase();
+        const p_contact_name = val(fd, "contact_name");
+        const p_business_name = val(fd, "business_name");
+        const p_email = val(fd, "email").toLowerCase();
         const p_whatsapp_number = val(fd, "whatsapp_number");
-        const p_trade_type      = val(fd, "trade_type");
-        const p_service_area    = val(fd, "service_area").toUpperCase();
-        const p_referrer        = val(fd, "referrer") || null;
-        const agree             = !!fd.get("agree");
+        const p_trade_type = val(fd, "trade_type");
+        const p_service_area = val(fd, "service_area").toUpperCase();
+        const p_referrer = val(fd, "referrer") || null;
+        const agree = !!fd.get("agree");
 
-        if(!p_contact_name) throw new Error("Please enter Contact name.");
-        if(!p_business_name) throw new Error("Please enter Business name.");
-        if(!p_email || !p_email.includes("@")) throw new Error("Please enter a valid Email.");
-        if(!p_whatsapp_number) throw new Error("Please enter Mobile / WhatsApp number.");
-        if(!p_trade_type) throw new Error("Please select a Trade type.");
-        if(!p_service_area) throw new Error("Please enter Main service area.");
-        if(!agree) throw new Error("Please tick the Terms & Conditions checkbox.");
+        if (!p_contact_name) throw new Error("Please enter Contact name.");
+        if (!p_business_name) throw new Error("Please enter Business name.");
+        if (!p_email || !p_email.includes("@")) throw new Error("Please enter a valid Email.");
+        if (!p_whatsapp_number) throw new Error("Please enter Mobile / WhatsApp number.");
+        if (!p_trade_type) throw new Error("Please select a Trade type.");
+        if (!p_service_area) throw new Error("Please enter Main service area.");
+        if (!agree) throw new Error("Please tick the Terms & Conditions checkbox.");
 
-        // ✅ ALWAYS use RPC so RLS can block direct inserts safely
+        // ✅ RLS-safe: always use RPC
         const { data, error } = await sb.rpc("tbp_public_signup", {
           p_contact_name,
           p_business_name,
@@ -1362,19 +1364,31 @@
           p_referrer
         });
 
-        if(error) throw error;
+        if (error) {
+          const msg = (error.message || "").toUpperCase();
+          if (msg.includes("EMAIL_EXISTS")) {
+            setStatus("This email is already registered. Please use Customer Login.", false);
+            if (continueBtn) {
+              continueBtn.href = "customer-login.html";
+              continueBtn.textContent = "Go to Customer Login →";
+              continueBtn.classList.remove("tbp-hidden");
+            }
+            return;
+          }
+          throw error;
+        }
 
         const row = Array.isArray(data) ? data[0] : data;
-        if(!row?.id || !row?.setup_token){
+        if (!row?.id || !row?.setup_token) {
           throw new Error("Signup saved but missing id/setup_token.");
         }
 
-        // ✅ ALWAYS go to wizard first
+        // ✅ Always go to wizard first
         const wiz = new URL("app.html", window.location.origin);
         wiz.searchParams.set("customer_id", row.id);
         wiz.searchParams.set("setup_token", row.setup_token);
 
-        if(continueBtn){
+        if (continueBtn) {
           continueBtn.href = wiz.toString();
           continueBtn.textContent = "Continue set up with the Wizard →";
           continueBtn.classList.remove("tbp-hidden");
@@ -1382,18 +1396,19 @@
 
         setStatus("Saved ✔ Redirecting to your setup wizard…", true);
         window.location.assign(wiz.toString());
-
-      }catch(err){
+      } catch (err) {
         console.error("[TBP] Homepage signup failed:", err);
         const msg = err?.message || "Signup failed — check console.";
         setStatus(msg, false);
         alert(msg);
-      }finally{
+      } finally {
         setSaving(false);
       }
     });
   }
 </script>
 
+
 </body>
 </html>
+
