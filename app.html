@@ -459,6 +459,60 @@
     text-decoration: none;
     font-weight: 600;
   }
+  <style>
+  /* --- Chip layout + selection --- */
+  .chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+  }
+
+  .chip{
+    appearance:none;
+    border:1px solid rgba(15,23,42,0.14);
+    background:#fff;
+    border-radius:999px;
+    padding:10px 14px;
+    cursor:pointer;
+    user-select:none;
+    font:inherit;
+    line-height:1;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:transform .05s ease, border-color .15s ease, background-color .15s ease;
+  }
+
+  .chip:active{ transform:translateY(1px); }
+
+  .chip.is-selected{
+    border-color: rgba(31,78,121,0.55);
+    background: rgba(31,78,121,0.08);
+    box-shadow: 0 0 0 2px rgba(31,78,121,0.12) inset;
+  }
+
+  /* IMPORTANT: allow clicking the text span */
+  .chip span{ pointer-events:none; }
+
+  /* --- Step panels stay clean --- */
+  .step-panel{ display:none; }
+  .step-panel.is-active{ display:block; }
+
+  /* --- Footer alignment (buttons right, consistent spacing) --- */
+  .wizard-footer-right{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  .wizard-footer-right .btn{
+    min-width:140px;
+  }
+</style>
+
 </style>
 
 <div class="page">
@@ -604,19 +658,23 @@
     </div>
   </div>
 
-  <!-- Business stage -->
-  <input type="hidden" id="business_stage" name="business_stage" />
-  <div class="field-group">
-    <div class="field-label-row">
-      <label>Where are you as a business?</label>
-      <span class="field-hint">This just helps us set expectations on go-live.</span>
-    </div>
-    <div class="chip-row" data-field="business_stage" data-select="single">
-      <button type="button" class="chip"><span>Already trading</span></button>
-      <button type="button" class="chip"><span>Launching in next 3 months</span></button>
-      <button type="button" class="chip"><span>Just exploring options</span></button>
-    </div>
+<!-- Business stage -->
+<div class="field-group">
+  <div class="field-label-row">
+    <label>Where are you as a business?</label>
+    <span class="field-hint">This just helps us set expectations on go-live.</span>
   </div>
+
+  <!-- ONE hidden value target for the chips -->
+  <input type="hidden" id="business_stage" name="business_stage" />
+
+  <div class="chip-row" data-field="business_stage" data-select="single">
+    <button type="button" class="chip"><span>Already trading</span></button>
+    <button type="button" class="chip"><span>Launching in next 3 months</span></button>
+    <button type="button" class="chip"><span>Just exploring options</span></button>
+  </div>
+</div>
+
 
   <div class="field-group">
     <div class="field-label-row">
@@ -1402,6 +1460,31 @@
   });
 </script>
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".chip-row").forEach(row => {
+    const field = row.dataset.field;
+    const mode  = row.dataset.select || "single";
+    const input = document.getElementById(field);
+    if(!field || !input) return;
+
+    row.addEventListener("click", (e) => {
+      const chip = e.target.closest("button.chip");
+      if(!chip) return;
+
+      if(mode === "multi"){
+        chip.classList.toggle("is-selected");
+        input.value = Array.from(row.querySelectorAll(".chip.is-selected"))
+          .map(c => c.innerText.trim()).join(", ");
+      } else {
+        row.querySelectorAll(".chip").forEach(c => c.classList.remove("is-selected"));
+        chip.classList.add("is-selected");
+        input.value = chip.innerText.trim();
+      }
+    });
+  });
+});
+</script>
 
 
 </body>
