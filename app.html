@@ -1243,239 +1243,165 @@
     </div>
   </div>
 
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+<style>
+  /* Phase 1: keep steps clean + footer aligned */
+  .step-panel { display:none; }
+  .step-panel.is-active { display:block; }
 
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  .wizard-footer-right{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  /* optional: make buttons consistent */
+  .wizard-footer-right .btn{
+    min-width:140px;
+  }
+</style>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+ const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const qs = new URLSearchParams(location.search);
-    const customer_id = (qs.get("customer_id") || qs.get("customerId") || "").trim();
-    const setup_token = (qs.get("setup_token") || qs.get("setupToken") || "").trim();
+  const qs = new URLSearchParams(location.search);
+  const customer_id = (qs.get("customer_id") || qs.get("customerId") || "").trim();
+  const setup_token = (qs.get("setup_token") || qs.get("setupToken") || "").trim();
 
-    const $ = (id) => document.getElementById(id);
+  const $ = (id) => document.getElementById(id);
 
-    function setStatus(msg, ok = true) {
-      const el = $("wizardStatus");
-      if (!el) return;
-      el.textContent = msg || "";
-      el.style.color = ok ? "#0f7b46" : "#b3261e";
+  function setStatus(msg, ok=true){
+    const el = $("status-msg") || $("saveStatus") || $("wizardStatus");
+    if(!el) return;
+    el.textContent = msg || "";
+    el.style.color = ok ? "#0f7b46" : "#b3261e";
+  }
+
+  function showFatal(msg){
+    alert(msg);
+    setStatus(msg, false);
+  }
+
+  // ---------- Step navigation (Phase 1) ----------
+  function wireWizardNav(){
+    const btnNext = $("btn-next");
+    const btnBack = $("btn-back");
+    const btnSaveDraft = $("btn-save-draft"); // Phase 1: doesn’t save, just avoids breaking
+    const btnDashboard = $("btn-dashboard");  // Phase 1: hidden, no redirect
+
+    const steps = Array.from(document.querySelectorAll(".step-panel[data-step]"))
+      .sort((a,b)=> (parseInt(a.dataset.step,10)||0) - (parseInt(b.dataset.step,10)||0));
+
+    if(!steps.length){
+      console.warn("[TBP] No .step-panel[data-step] found");
+      return;
     }
 
-    function dashboardUrl() {
-      const u = new URL("client-dashboard.html", location.origin);
-      u.searchParams.set("customer_id", customer_id);
-      u.searchParams.set("setup_token", setup_token);
-      return u.toString();
+    const maxStep = parseInt(steps[steps.length-1].dataset.step, 10) || steps.length;
+
+    function getActiveStep(){
+      const active = steps.find(s => s.classList.contains("is-active"));
+      if(active) return parseInt(active.dataset.step,10) || 1;
+      return 1;
     }
 
-    function getVal(nameOrId) {
-      const byName = document.querySelector(`[name="${nameOrId}"]`);
-      const el = byName || $(nameOrId);
-      if (!el) return "";
-      if (el.type === "checkbox") return el.checked ? "true" : "false";
-      return (el.value ?? "").toString().trim();
-    }
-
-    function setVal(nameOrId, v) {
-      const byName = document.querySelector(`[name="${nameOrId}"]`);
-      const el = byName || $(nameOrId);
-      if (!el) return;
-      if (el.type === "checkbox") el.checked = (v === true || v === "true");
-      else el.value = v ?? "";
-    }
-
-    function restoreChips(field, value) {
-      if (!value) return;
-      const row = document.querySelector(`.chip-row[data-field="${field}"]`);
-      const input = document.getElementById(field);
-      if (!row || !input) return;
-
-      input.value = value;
-
-      const wanted = value.split(",").map(s => s.trim()).filter(Boolean);
-      row.querySelectorAll(".chip").forEach((chip) => {
-        const txt = chip.innerText.trim();
-        chip.classList.toggle("is-selected", wanted.includes(txt));
+    function showStep(n){
+      steps.forEach(s=>{
+        const sn = parseInt(s.dataset.step,10) || 0;
+        const on = sn === n;
+        s.classList.toggle("is-active", on);
       });
+
+      if(btnBack) btnBack.disabled = (n <= 1);
+
+      // Phase 1: Next works through all steps, no Finish behaviour
+      if(btnNext) btnNext.style.display = (n < maxStep) ? "" : "none";
+      if(btnDashboard) btnDashboard.style.display = (n === maxStep) ? "" : "none"; // optional “end” button
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function wireChips() {
-      document.querySelectorAll(".chip-row").forEach((row) => {
-        const field = row.dataset.field;
-        const mode = row.dataset.select || "single";
-        const input = document.getElementById(field);
-        if (!field || !input) return;
+    // init
+    showStep(getActiveStep());
 
-        row.querySelectorAll(".chip").forEach((chip) => {
-          chip.addEventListener("click", () => {
-            const value = chip.innerText.trim();
-
-            if (mode === "single") {
-              row.querySelectorAll(".chip").forEach((c) => c.classList.remove("is-selected"));
-              chip.classList.add("is-selected");
-              input.value = value;
-            } else {
-              chip.classList.toggle("is-selected");
-              const values = Array.from(row.querySelectorAll(".chip.is-selected"))
-                .map((c) => c.innerText.trim());
-              input.value = values.join(", ");
-            }
-          });
-        });
-      });
-    }
-
-    // Step nav
-    function wireWizardNav() {
-      const btnNext = $("btn-next");
-      const btnBack = $("btn-back");
-      const btnFinish = $("btn-finish");
-      const btnSaveDraft = $("btn-save-draft");
-      const btnDashboard = $("btn-dashboard");
-      const stepLabel = $("wizard-step-label");
-
-      const steps = Array.from(document.querySelectorAll(".step-panel[data-step]"));
-      const maxStep = Math.max(...steps.map(s => parseInt(s.dataset.step, 10)).filter(n => !isNaN(n)));
-
-      function getActiveStep() {
-        const active = steps.find(el => el.classList.contains("is-active"));
-        if (active) return parseInt(active.dataset.step, 10);
-        return 1;
-      }
-
-      function showStep(stepNum) {
-        steps.forEach(el => {
-          const n = parseInt(el.dataset.step, 10);
-          const active = n === stepNum;
-          el.classList.toggle("is-active", active);
-          el.style.display = active ? "" : "none";
-        });
-
-        if (btnBack) btnBack.disabled = stepNum <= 1;
-
-        if (btnNext) btnNext.style.display = (stepNum < maxStep) ? "" : "none";
-        if (btnFinish) btnFinish.style.display = (stepNum === maxStep) ? "" : "none";
-
-        if (stepLabel) stepLabel.textContent = `Step ${stepNum} of ${maxStep}`;
-
-        if (btnDashboard) btnDashboard.style.display = "none";
-
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-
-      showStep(getActiveStep());
-
-      if (btnNext) btnNext.addEventListener("click", () => {
+    if(btnNext){
+      btnNext.addEventListener("click", ()=>{
         const cur = getActiveStep();
-        if (cur < maxStep) showStep(cur + 1);
+        if(cur < maxStep) showStep(cur + 1);
       });
+    }
 
-      if (btnBack) btnBack.addEventListener("click", () => {
+    if(btnBack){
+      btnBack.addEventListener("click", ()=>{
         const cur = getActiveStep();
-        if (cur > 1) showStep(cur - 1);
+        if(cur > 1) showStep(cur - 1);
+      });
+    }
+
+    if(btnSaveDraft){
+      btnSaveDraft.addEventListener("click", ()=>{
+        // Phase 1: no saving yet — keep button harmless
+        setStatus("Draft saving is disabled in Phase 1 (navigation + load only).", false);
+      });
+    }
+
+    if(btnDashboard){
+      btnDashboard.addEventListener("click", ()=>{
+        // Phase 1: no dashboard yet
+        setStatus("Dashboard redirect is disabled in Phase 1.", false);
+      });
+    }
+  }
+
+  // ---------- Load wizard (Phase 1) ----------
+  async function loadWizard(){
+    try{
+      setStatus("Loading…", true);
+
+      if(!customer_id || !setup_token){
+        showFatal("Missing customer_id or setup_token. Please restart from the signup form.");
+        location.assign("index.html#signup");
+        return;
+      }
+
+      const { data, error } = await sb.rpc("tbp_customer_load", {
+        p_customer_id: customer_id,
+        p_setup_token: setup_token
       });
 
-      if (btnSaveDraft) btnSaveDraft.addEventListener("click", () => saveWizard(false));
+      if(error) throw error;
 
-      if (btnFinish) btnFinish.addEventListener("click", () => saveWizard(true));
-    }
-
-    async function loadWizard() {
-      try {
-        setStatus("Loading…", true);
-
-        const { data, error } = await sb.rpc("tbp_customer_load", {
-          p_customer_id: customer_id,
-          p_setup_token: setup_token
-        });
-        if (error) throw error;
-
-        const row = Array.isArray(data) ? data[0] : data;
-        if (!row?.id) throw new Error("TOKEN_MISMATCH");
-
-        // Prefill the fields you KNOW are returned (based on your working output)
-        setVal("business_name", row.business_name || "");
-        setVal("contact_name", row.contact_name || "");
-        setVal("trade_type", row.trade_type || "");
-        setVal("base_postcode", row.base_postcode || "");
-        setVal("tone", row.tone || "");
-        setVal("callout_style", row.callout_style || "");
-
-        // If these exist in DB later, they’ll restore too (no harm if null)
-        restoreChips("main_trade", row.main_trade);
-        restoreChips("business_stage", row.business_stage);
-
-        setStatus("", true);
-
-        // Lock if needed
-        if (row.wizard_locked || row.wizard_completed) {
-          document.querySelectorAll("input, select, textarea, button.chip, button.btn").forEach(el => el.disabled = true);
-          setStatus("Wizard is locked ✔", true);
-        }
-
-      } catch (err) {
-        console.error("[TBP] Wizard load error:", err);
-        const msg =
-          (err?.message || "").includes("TOKEN_MISMATCH")
-            ? "Wizard link invalid or expired. Please re-submit the signup form to generate a fresh setup link."
-            : (err?.message || "Failed to load wizard.");
-        alert(msg);
-        setStatus(msg, false);
+      const row = Array.isArray(data) ? data[0] : data;
+      if(!row?.id){
+        showFatal("Wizard link invalid or expired. Please re-submit the signup form to generate a fresh setup link.");
+        return;
       }
+
+      // Prefill only the basics for Phase 1
+      if ($("business_name")) $("business_name").value = row.business_name || "";
+      if ($("contact_name")) $("contact_name").value = row.contact_name || "";
+      if ($("contact_email")) $("contact_email").value = row.email || "";
+      if ($("contact_mobile")) $("contact_mobile").value = row.phone || "";
+
+      setStatus("", true);
+    }catch(err){
+      console.error("[TBP] loadWizard error:", err);
+      showFatal(err?.message || "Failed to load wizard.");
     }
+  }
 
-    async function saveWizard(markComplete) {
-      try {
-        setStatus("Saving…", true);
+  // ---------- Init (ONE place only) ----------
+  window.addEventListener("DOMContentLoaded", async () => {
+    wireWizardNav();
+    await loadWizard();
+  });
+</script>
 
-        // IMPORTANT:
-        // Keep payload matching your existing function signature (the safe set you already used)
-        const { error } = await sb.rpc("tbp_customer_save_wizard", {
-          p_customer_id: customer_id,
-          p_setup_token: setup_token,
-          p_business_name: getVal("business_name"),
-          p_contact_name: getVal("contact_name"),
-          p_trade_type: getVal("trade_type"),
-          p_base_postcode: getVal("base_postcode"),
-          p_tone: getVal("tone"),
-          p_callout_style: getVal("callout_style"),
-          p_mark_complete: !!markComplete
-        });
-
-        if (error) throw error;
-
-        if (markComplete) {
-          setStatus("Setup complete ✔ Redirecting…", true);
-          location.assign(dashboardUrl());
-          return;
-        }
-
-        setStatus("Saved ✔", true);
-      } catch (err) {
-        console.error("[TBP] Wizard save error:", err);
-        const msg = err?.message || "Save failed.";
-        alert(msg);
-        setStatus(msg, false);
-      }
-    }
-
-    // Boot
-    if (!customer_id || !setup_token) {
-      alert("Missing customer_id or setup_token. Please restart from the signup form.");
-      location.assign("index.html#signup");
-      throw new Error("Missing params");
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      wireChips();
-      wireWizardNav();
-      loadWizard();
-    });
-  </script>
-</body>
-</html>
 
 
 </body>
