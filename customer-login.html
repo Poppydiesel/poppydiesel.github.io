@@ -88,30 +88,50 @@
     </div>
   </main>
 
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+ <script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-    const emailEl = document.getElementById("email");
-    const btn = document.getElementById("btnSend");
-    const msg = document.getElementById("msg");
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    function setMsg(text, ok=false){
-      msg.textContent = text || "";
-      msg.className = "msg " + (ok ? "ok" : "err");
-    }
+  const emailEl = document.getElementById("email");
+  const btn = document.getElementById("btnSend");
+  const msg = document.getElementById("msg");
 
+  function setMsg(text, ok = false) {
+    if (!msg) return;
+    msg.textContent = text || "";
+    msg.className = "msg " + (ok ? "ok" : "err");
+    if (!text) msg.className = "msg";
+  }
+
+  function fmtAuthError(e) {
+    // Supabase errors often include: name, message, status
+    const name = e?.name ? String(e.name) : "Auth error";
+    const status = e?.status ? ` (status ${e.status})` : "";
+    const message = e?.message ? String(e.message) : "Unknown error";
+    return `${name}${status}: ${message}`;
+  }
+
+  if (!btn || !emailEl) {
+    console.error("[TBP] customer-login: Missing #btnSend or #email element");
+  } else {
     btn.addEventListener("click", async () => {
-      try{
+      if (btn.disabled) return;
+
+      try {
         const email = (emailEl.value || "").trim().toLowerCase();
-        if(!email || !email.includes("@")) throw new Error("Please enter a valid email address.");
+        if (!email || !email.includes("@")) {
+          throw new Error("Please enter a valid email address.");
+        }
 
         btn.disabled = true;
         setMsg("Sending secure link…", true);
 
+        // IMPORTANT: this MUST be allowed in Supabase Auth redirect URLs
         const emailRedirectTo = new URL("client-secure-dashboard.html", location.origin).toString();
 
         const { error } = await sb.auth.signInWithOtp({
@@ -119,16 +139,24 @@
           options: { emailRedirectTo }
         });
 
-        if(error) throw error;
+        if (error) throw error;
 
-        setMsg("Secure link sent ✔\nCheck your inbox/spam and click the link to sign in.", true);
-      } catch(e){
+        setMsg(
+          "Secure link sent ✔\nCheck your inbox/spam and click the link to sign in.",
+          true
+        );
+      } catch (e) {
         console.error("[TBP] customer-login error:", e);
-        setMsg(e?.message || "Failed to send link.");
+        setMsg(fmtAuthError(e), false);
+
+        // Optional: pop an alert so you see it even if CSS hides the message
+        // alert(fmtAuthError(e));
       } finally {
         btn.disabled = false;
       }
     });
-  </script>
+  }
+</script>
+
 </body>
 </html>
