@@ -790,9 +790,9 @@
             <button type="button" class="btn btn-primary" id="btn-next">Next step →</button>
 
             <!-- shows only after Finish succeeds -->
-            <button type="button" class="btn btn-primary" id="btn-dashboard" style="display:none">
-              Back to dashboard →
-            </button>
+           <button type="button" class="btn btn-primary" id="btn-dashboard" style="display:none">
+  Go to your dashboard →
+</button>
           </div>
         </div>
 
@@ -1130,14 +1130,18 @@
       });
     }
 
-    if (btnDashboard) {
-      btnDashboard.addEventListener("click", () => {
-        const u = new URL("/client-dashboard.html", location.origin);
-        u.searchParams.set("customer_id", customer_id);
-        u.searchParams.set("setup_token", setup_token);
-        location.assign(u.toString());
-      });
-    }
+   if (btnDashboard) {
+  // Rename button meaningfully for first-time users
+  btnDashboard.textContent = "Go to your dashboard →";
+
+  btnDashboard.addEventListener("click", () => {
+    const u = new URL("/client-secure-dashboard.html", location.origin);
+    u.searchParams.set("customer_id", customer_id);
+    u.searchParams.set("setup_token", setup_token);
+    location.assign(u.toString());
+  });
+}
+
 
     // ===== Init (runs even if DOMContentLoaded already happened) =====
     async function init() {
