@@ -571,14 +571,15 @@
         }
 
         if (!customer?.id) {
-          setStatus(
-            "We couldn’t find your customer profile. Please open the dashboard using the wizard link (customer_id + setup_token) or use Customer Login again.",
-            false
-          );
-          // If no session at all, push to login.
-          if (!session) goToCustomerLogin();
-          return;
-        }
+  setStatus(
+    "We couldn’t find your customer profile. If you came from the wizard, check the link has customer_id + setup_token.",
+    false
+  );
+
+  // ✅ Only redirect to login if they DIDN'T come via wizard link
+  if (!session && !(url_customer_id && url_setup_token)) goToCustomerLogin();
+  return;
+}
 
         renderCustomer(customer);
         setStatus("", true);
