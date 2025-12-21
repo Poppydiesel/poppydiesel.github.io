@@ -337,240 +337,164 @@
   </div>
 </main>
 
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+<!-- Supabase UMD (single include) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 
+<script>
+(function () {
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-  const $ = (id) => document.getElementById(id);
-
-  function pill(text, kind="neutral"){
-    const el = $("statusPill");
-    el.textContent = text;
-    el.className = "pill " + kind;
-  }
-  function setLoad(msg, ok=false){
-    $("loadMsg").textContent = msg || "";
-    $("loadMsg").className = "status " + (ok ? "ok" : (msg ? "err" : ""));
-  }
-  function setSave(msg, ok=false){
-    $("saveMsg").textContent = msg || "";
-    $("saveMsg").className = "status " + (ok ? "ok" : (msg ? "err" : ""));
+  function bootWhenSupabaseReady() {
+    if (!window.supabase) return setTimeout(bootWhenSupabaseReady, 50);
+    boot();
   }
 
-  $("btnLogout").onclick = async () => {
-    await sb.auth.signOut();
-    location.href = "customer-login.html";
-  };
+  function boot() {
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  function safe(v){ return (v === null || v === undefined || v === "") ? "—" : String(v); }
-
-  let currentCustomer = null;
-
-  async function ensureSessionFromUrl(){
-    const u = new URL(location.href);
-    const hasCode = u.searchParams.get("code");
-    const hasHashTokens = location.hash && location.hash.includes("access_token=");
-
-    if (hasCode) {
-      const { error } = await sb.auth.exchangeCodeForSession(location.href);
-      if (error) throw error;
-      u.searchParams.delete("code");
-      history.replaceState({}, "", u.toString());
-      return;
+    // --- helpers (safe: won't break if IDs don't exist) ---
+    const $ = (id) => document.getElementById(id);
+    function setStatus(text, ok = true) {
+      const el = $("tbp-status") || $("status") || $("status-msg") || $("dashboard-status") || $("wizard-status-message");
+      if (!el) return;
+      el.textContent = text || "";
+      el.style.color = ok ? "#0f7b46" : "#b3261e";
     }
-    if (hasHashTokens) {
-      const { error } = await sb.auth.getSessionFromUrl({ storeSession: true });
-      if (error) throw error;
-      history.replaceState({}, "", location.pathname + location.search);
-      return;
+    function setText(id, text) {
+      const el = $(id);
+      if (el) el.textContent = text ?? "";
     }
-  }
-
-  async function loadCustomerForUser(user){
-    // Always select("*") so schema changes don't break the page with 400 errors.
-    let res = await sb
-      .from("customers")
-      .select("*")
-      .eq("auth_user_id", user.id)
-      .maybeSingle();
-
-    if (res.error) throw res.error;
-    if (res.data) return res.data;
-
-    // First login fallback (by email)
-    const email = (user.email || "").toLowerCase();
-    if (!email) throw new Error("No email found on this login session.");
-
-    const byEmail = await sb
-      .from("customers")
-      .select("*")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (byEmail.error) throw byEmail.error;
-    if (!byEmail.data) throw new Error("No customer record found for this email.");
-
-    // Link auth_user_id once (policy must allow)
-    if (!byEmail.data.auth_user_id) {
-      const link = await sb
-        .from("customers")
-        .update({ auth_user_id: user.id })
-        .eq("id", byEmail.data.id);
-
-      if (link.error) throw link.error;
+    function show(id, on = true) {
+      const el = $(id);
+      if (el) el.style.display = on ? "" : "none";
     }
 
-    // Re-fetch by auth_user_id
-    res = await sb
-      .from("customers")
-      .select("*")
-      .eq("auth_user_id", user.id)
-      .single();
+    // --- FIX: Supabase v2 magic-link landing ---
+    async function ensureSessionFromUrl() {
+      // Only try exchange if the URL looks like a Supabase magic-link callback
+      const u = new URL(window.location.href);
+      const hasCode =
+        u.searchParams.has("code") ||
+        u.searchParams.has("access_token") ||
+        u.searchParams.has("refresh_token") ||
+        u.hash.includes("access_token=") ||
+        u.hash.includes("refresh_token=");
 
-    if (res.error) throw res.error;
-    return res.data;
-  }
+      if (hasCode && sb.auth.exchangeCodeForSession) {
+        try {
+          const { data, error } = await sb.auth.exchangeCodeForSession(window.location.href);
+          if (error) throw error;
 
-  function renderCustomer(c){
-    currentCustomer = c;
+          // Clean URL so refresh doesn't re-run exchange
+          const clean = new URL(window.location.href);
+          clean.searchParams.delete("code");
+          clean.searchParams.delete("type");
+          clean.searchParams.delete("token");
+          clean.searchParams.delete("access_token");
+          clean.searchParams.delete("refresh_token");
+          clean.hash = "";
+          window.history.replaceState({}, "", clean.toString());
 
-    $("bizName").textContent = c.business_name || "Your business";
-    $("contactLine").textContent = [c.contact_name, c.email].filter(Boolean).join(" • ");
-
-    $("vTrade").textContent = safe(c.trade_type);
-    $("vPostcode").textContent = safe(c.base_postcode);
-    $("vCoverage").textContent = safe(c.service_radius || c.coverage || c.callout_from);
-    $("vPlan").textContent = safe(c.plan_name || c.plan_status);
-
-    const wiz = (c.wizard_completed === true) ? "Complete" : (c.wizard_completed === false ? "Not complete" : "—");
-    $("vWizard").textContent = wiz;
-
-    const setup = (c.setup_complete === true) ? "Complete" : (c.setup_complete === false ? "In progress" : "—");
-    $("vSetup").textContent = setup;
-
-    const status = c.signup_status || c.onboarding_status || "—";
-    const kind = (String(status).toLowerCase().includes("live")) ? "ok"
-      : (String(status).toLowerCase().includes("trial") || String(status).toLowerCase().includes("demo")) ? "warn"
-      : "neutral";
-    pill("Status: " + status, kind);
-
-    // Wizard JSON viewer (if present)
-    const wizObj = c.wizard_answers || c.wizard_data || null;
-    $("wizardJson").textContent = wizObj ? JSON.stringify(wizObj, null, 2) : "—";
-
-    // Wizard edit button
-    if (c.id) {
-      const u = new URL("app.html", location.origin);
-      u.searchParams.set("customer_id", c.id);
-      if (c.setup_token) u.searchParams.set("setup_token", c.setup_token);
-      $("btnWizard").style.display = "";
-      $("btnWizard").onclick = () => window.open(u.toString(), "_blank");
-    }
-
-    // Populate editable fields (only if column exists — safe defaults)
-    $("f_business_name").value = c.business_name || "";
-    $("f_contact_name").value = c.contact_name || "";
-    $("f_phone").value = c.phone || "";
-    $("f_whatsapp").value = c.whatsapp_number || "";
-    $("f_trade_type").value = c.trade_type || "";
-    $("f_base_postcode").value = c.base_postcode || "";
-    $("f_service_radius").value = c.service_radius || "";
-    $("f_website_url").value = c.website_url || "";
-    $("f_callout_fee").value = c.callout_fee ?? "";
-    $("f_hourly_rate").value = c.hourly_rate ?? "";
-    $("f_callout_style").value = c.callout_style || "";
-    $("f_tone").value = c.tone || "";
-    $("f_services_summary").value = c.services_summary || "";
-    $("f_ai_style_notes").value = c.ai_style_notes || "";
-    $("f_pricing_notes").value = c.pricing_notes || "";
-    $("f_notes").value = c.notes || "";
-  }
-
-  $("btnSave").onclick = async () => {
-    try{
-      setSave("Saving…", true);
-      const { data:{ user } } = await sb.auth.getUser();
-      if (!user) throw new Error("Not logged in.");
-
-      if (!currentCustomer?.id) throw new Error("No customer record loaded.");
-
-      // Only update client-editable fields
-      const patch = {
-        business_name: $("f_business_name").value.trim() || null,
-        contact_name: $("f_contact_name").value.trim() || null,
-        phone: $("f_phone").value.trim() || null,
-        whatsapp_number: $("f_whatsapp").value.trim() || null,
-        trade_type: $("f_trade_type").value.trim() || null,
-        base_postcode: $("f_base_postcode").value.trim().toUpperCase() || null,
-        service_radius: $("f_service_radius").value.trim() || null,
-        website_url: $("f_website_url").value.trim() || null,
-
-        callout_fee: $("f_callout_fee").value.trim() || null,
-        hourly_rate: $("f_hourly_rate").value.trim() || null,
-        callout_style: $("f_callout_style").value.trim() || null,
-        tone: $("f_tone").value || null,
-
-        services_summary: $("f_services_summary").value.trim() || null,
-        ai_style_notes: $("f_ai_style_notes").value.trim() || null,
-        pricing_notes: $("f_pricing_notes").value.trim() || null,
-        notes: $("f_notes").value.trim() || null
-      };
-
-      // Save by auth_user_id (preferred)
-      const { error } = await sb
-        .from("customers")
-        .update(patch)
-        .eq("auth_user_id", user.id);
-
-      if (error) throw error;
-
-      setSave("Saved ✔", true);
-
-      // Reload to reflect anything server-side
-      const c2 = await loadCustomerForUser(user);
-      renderCustomer(c2);
-
-    } catch(e){
-      console.error("[TBP] Save error:", e);
-      setSave("ERROR:\n" + (e?.message || "Save failed"), false);
-    }
-  };
-
-  async function boot(){
-    try{
-      setLoad("Checking secure session…", true);
-      await ensureSessionFromUrl();
-
-      const { data:{ user } } = await sb.auth.getUser();
-      if (!user){
-        location.href = "customer-login.html";
-        return;
+          return data?.session || null;
+        } catch (e) {
+          console.warn("[TBP] exchangeCodeForSession failed (will fall back to getSession):", e);
+        }
       }
 
-      // Require verified email
-      const confirmed = user.email_confirmed_at || user.confirmed_at;
-      if (!confirmed){
-        location.href = "customer-login.html";
-        return;
-      }
-
-      setLoad("Loading your dashboard…", true);
-      const c = await loadCustomerForUser(user);
-      renderCustomer(c);
-      setLoad("", true);
-
-    } catch(e){
-      console.error("[TBP] Secure dashboard error:", e);
-      setLoad("ERROR:\n" + (e?.message || "Failed to load"), false);
-      alert("Failed to load dashboard");
+      const { data } = await sb.auth.getSession();
+      return data?.session || null;
     }
+
+    // --- Where to send users if not logged in ---
+    function goToCustomerLogin() {
+      // keep it simple / stable
+      window.location.assign("/customer-login.html");
+    }
+
+    // --- Load the current customer's row (no SQL changes) ---
+    async function loadCustomerRow(userId) {
+      // If your table is "customers" with user_id, this is the cleanest secure fetch.
+      const { data, error } = await sb
+        .from("customers")
+        .select("id, contact_name, business_name, email, phone, base_postcode, wizard_completed, wizard_answers, setup_token")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data || null;
+    }
+
+    // --- MAIN ---
+    (async function init() {
+      try {
+        setStatus("Loading…", true);
+
+        const session = await ensureSessionFromUrl();
+        if (!session) {
+          setStatus("Please sign in to view your dashboard.", false);
+          goToCustomerLogin();
+          return;
+        }
+
+        // Optional: wire logout button if it exists
+        const logoutBtn = $("btn-logout") || $("logoutBtn");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", async () => {
+            try {
+              await sb.auth.signOut();
+            } catch (_) {}
+            goToCustomerLogin();
+          });
+        }
+
+        const userId = session.user.id;
+
+        const customer = await loadCustomerRow(userId);
+        if (!customer?.id) {
+          setStatus("We couldn’t find your customer profile. If you just signed up, try the wizard link again.", false);
+          return;
+        }
+
+        // Expose for debug
+        window.TBP_SECURE = { sb, session, customer };
+
+        // Update any common fields if they exist in your HTML
+        setText("business-name", customer.business_name || "");
+        setText("contact-name", customer.contact_name || "");
+        setText("email", customer.email || "");
+        setText("phone", customer.phone || "");
+        setText("base-postcode", customer.base_postcode || "");
+
+        // Wizard status (if you show it)
+        if (typeof customer.wizard_completed !== "undefined") {
+          setText("wizard-complete", customer.wizard_completed ? "Yes" : "No");
+        }
+
+        // If you have an "Edit setup" button, wire it safely:
+        const editBtn = $("btn-edit-setup") || $("editSetupBtn");
+        if (editBtn) {
+          editBtn.addEventListener("click", () => {
+            // Uses setup_token already stored on customer row
+            const u = new URL("/app.html", location.origin);
+            u.searchParams.set("customer_id", customer.id);
+            if (customer.setup_token) u.searchParams.set("setup_token", customer.setup_token);
+            window.location.assign(u.toString());
+          });
+        }
+
+        setStatus("", true);
+      } catch (e) {
+        console.error("[TBP] Secure dashboard error:", e);
+        setStatus("Secure dashboard error. Check console for details.", false);
+      }
+    })();
   }
 
-  boot();
+  bootWhenSupabaseReady();
+})();
 </script>
+
 
 </body>
 </html>
