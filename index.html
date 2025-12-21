@@ -1383,7 +1383,7 @@
         if (!row?.id || !row?.setup_token) {
           throw new Error("Signup saved but missing id/setup_token.");
         }
-
+        
         // ✅ NEW: cache prefill so wizard can load instantly even if SELECT is blocked by RLS
         try {
           const key = "tbp_prefill_" + row.id;
@@ -1440,5 +1440,6 @@
   
 </body>
 </html>
+
 
 
