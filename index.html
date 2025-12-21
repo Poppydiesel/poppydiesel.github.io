@@ -1289,11 +1289,12 @@
     </div>
   </footer>
 </div>
-<script type="module">
+
+  <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const form = document.getElementById("signupForm");
@@ -1383,6 +1384,34 @@
           throw new Error("Signup saved but missing id/setup_token.");
         }
 
+        // ✅ NEW: cache prefill so wizard can load instantly even if SELECT is blocked by RLS
+        try {
+          const key = "tbp_prefill_" + row.id;
+          localStorage.setItem(key, JSON.stringify({
+            ts: Date.now(),
+            customer_id: row.id,
+            setup_token: row.setup_token,
+            contact_name: p_contact_name,
+            business_name: p_business_name,
+            email: p_email,
+            phone: p_whatsapp_number,
+            trade_type: p_trade_type,
+            service_area: p_service_area,
+            wizard_answers: {
+              contact_name: p_contact_name,
+              business_name: p_business_name,
+              email: p_email,
+              phone: p_whatsapp_number,
+              main_trade: p_trade_type,
+              // optional: if you want to pre-seed anything else later
+              // coverage_radius: null,
+              // business_stage: null
+            }
+          }));
+        } catch (e) {
+          console.warn("[TBP] prefill cache write failed:", e);
+        }
+
         // ✅ Always go to wizard first
         const wiz = new URL("app.html", window.location.origin);
         wiz.searchParams.set("customer_id", row.id);
@@ -1408,7 +1437,8 @@
   }
 </script>
 
-
+  
 </body>
 </html>
+
 
