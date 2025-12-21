@@ -1182,6 +1182,21 @@
         if (btnNext) btnNext.disabled = false;
       }
     }
+    localStorage.setItem("tbp_wizard_snapshot__" + customer_id, JSON.stringify({
+  ts: Date.now(),
+  customer: {
+    id: customer_id,
+    setup_token,
+    business_name: answers.business_name,
+    contact_name: answers.contact_name,
+    email: answers.email,
+    phone: answers.phone,
+    base_postcode: answers.base_postcode,
+    wizard_completed: true,
+    wizard_answers: answers
+  }
+}));
+
 
     // ===== Buttons =====
     if (btnBack) {
