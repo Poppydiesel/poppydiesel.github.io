@@ -378,18 +378,18 @@
     const btnLogout  = $("btnLogout");
 
     // right-side form fields
-    const f_business_name  = $("f_business_name");
-    const f_contact_name   = $("f_contact_name");
-    const f_phone          = $("f_phone");
-    const f_whatsapp       = $("f_whatsapp");
-    const f_trade_type     = $("f_trade_type");
-    const f_base_postcode  = $("f_base_postcode");
-    const f_service_radius = $("f_service_radius");
-    const f_website_url    = $("f_website_url");
-    const f_callout_fee    = $("f_callout_fee");
-    const f_hourly_rate    = $("f_hourly_rate");
-    const f_callout_style  = $("f_callout_style");
-    const f_tone           = $("f_tone");
+    const f_business_name    = $("f_business_name");
+    const f_contact_name     = $("f_contact_name");
+    const f_phone            = $("f_phone");
+    const f_whatsapp         = $("f_whatsapp");
+    const f_trade_type       = $("f_trade_type");
+    const f_base_postcode    = $("f_base_postcode");
+    const f_service_radius   = $("f_service_radius");
+    const f_website_url      = $("f_website_url");
+    const f_callout_fee      = $("f_callout_fee");
+    const f_hourly_rate      = $("f_hourly_rate");
+    const f_callout_style    = $("f_callout_style");
+    const f_tone             = $("f_tone");
     const f_services_summary = $("f_services_summary");
     const f_ai_style_notes   = $("f_ai_style_notes");
     const f_pricing_notes    = $("f_pricing_notes");
@@ -397,58 +397,60 @@
 
     const saveMsg = $("saveMsg"); // <div id="saveMsg"></div>
 
-    // ===== Status helpers =====
-    function setLoadMsg(msg, ok = true){
-      if (!loadMsg) return;
-      loadMsg.textContent = msg || "";
-      loadMsg.className = "status" + (msg ? (" " + (ok ? "ok" : "err")) : "");
-    }
-    function setSaveMsg(msg, ok = true){
-      if (!saveMsg) return;
-      saveMsg.textContent = msg || "";
-      saveMsg.className = "status" + (msg ? (" " + (ok ? "ok" : "err")) : "");
+    function setLoadMsg(text, ok=true){
+      if(!loadMsg) return;
+      loadMsg.textContent = text || "";
+      loadMsg.className = "status " + (text ? (ok ? "ok" : "err") : "");
     }
 
-    function pill(state, text){
-      if (!statusPill) return;
+    function setSaveMsg(text, ok=true){
+      if(!saveMsg) return;
+      saveMsg.textContent = text || "";
+      saveMsg.className = "status " + (text ? (ok ? "ok" : "err") : "");
+    }
+
+    function setPill(state){
+      if(!statusPill) return;
+      // state: ok | warn | neutral
       statusPill.className = "pill " + (state || "neutral");
-      statusPill.textContent = text || "Status: —";
     }
 
-    function saveLastLink(customer_id, setup_token) {
-      try { localStorage.setItem(LS_KEY, JSON.stringify({ customer_id, setup_token, ts: Date.now() })); } catch (_) {}
+    function saveLastLink(customer_id, setup_token){
+      try{
+        localStorage.setItem(LS_KEY, JSON.stringify({customer_id, setup_token, ts: Date.now()}));
+      }catch(_){}
     }
-    function loadLastLink() {
-      try {
+    function loadLastLink(){
+      try{
         const raw = localStorage.getItem(LS_KEY);
-        if (!raw) return null;
+        if(!raw) return null;
         const obj = JSON.parse(raw);
-        if (!obj?.customer_id || !obj?.setup_token) return null;
+        if(!obj?.customer_id || !obj?.setup_token) return null;
         return obj;
-      } catch (_) { return null; }
+      }catch(_){ return null; }
     }
 
-    // ===== Session landing (magic link) =====
-    async function ensureSessionFromUrl() {
+    // --- Magic link landing fix (Supabase v2) ---
+    async function ensureSessionFromUrl(){
       const u = new URL(location.href);
       const hasCode =
         u.searchParams.has("code") ||
         (u.hash || "").includes("access_token=") ||
         (u.hash || "").includes("refresh_token=");
 
-      if (hasCode && sb.auth.exchangeCodeForSession) {
-        try {
+      if(hasCode && sb.auth.exchangeCodeForSession){
+        try{
           const { data, error } = await sb.auth.exchangeCodeForSession(location.href);
-          if (error) throw error;
+          if(error) throw error;
 
-          // Clean URL
+          // clean URL so refresh doesn't re-run exchange
           const clean = new URL(location.href);
-          ["code", "type", "token", "access_token", "refresh_token"].forEach((k) => clean.searchParams.delete(k));
+          ["code","type","token","access_token","refresh_token"].forEach(k => clean.searchParams.delete(k));
           clean.hash = "";
           history.replaceState({}, "", clean.toString());
 
           return data?.session || null;
-        } catch (e) {
+        }catch(e){
           console.warn("[TBP] exchangeCodeForSession failed:", e);
         }
       }
@@ -457,220 +459,254 @@
       return data?.session || null;
     }
 
-    // ===== Loaders =====
-    async function loadByIdAndToken(customer_id, setup_token) {
-      // NOTE: If RLS blocks SELECT, you will get data:null (looks like "not found")
+    // --- DB load (direct select) ---
+    async function loadCustomerByIdAndToken(customer_id, setup_token){
       const res = await sb
         .from("customers")
-        .select("*")
+        .select([
+          "id",
+          "contact_name",
+          "business_name",
+          "email",
+          "phone",
+          "whatsapp_number",
+          "base_postcode",
+          "wizard_completed",
+          "wizard_answers",
+          "setup_token",
+          "user_id",
+          // optional columns if they exist - safe to request, Supabase returns error if column doesn't exist
+          "trade_type",
+          "service_radius",
+          "website_url",
+          "callout_fee",
+          "hourly_rate",
+          "callout_style",
+          "tone",
+          "services_summary",
+          "ai_style_notes",
+          "pricing_notes",
+          "notes",
+          "plan_status"
+        ].join(","))
         .eq("id", customer_id)
         .eq("setup_token", setup_token)
         .maybeSingle();
 
-      if (res.error) throw res.error;
-      return res.data || null;
+      return res;
     }
 
-    async function loadByUserId(user_id) {
-      const res = await sb
-        .from("customers")
-        .select("*")
-        .eq("user_id", user_id)
-        .maybeSingle();
+    function text(el, s){ if(el) el.textContent = s ?? ""; }
+    function val(el, s){ if(el) el.value = s ?? ""; }
 
-      if (res.error) throw res.error;
-      return res.data || null;
-    }
+    function renderCustomer(c){
+      // Top overview
+      text(bizNameEl, c.business_name || "—");
+      text(contactLine, [c.contact_name, c.email].filter(Boolean).join(" • "));
+      text(vPostcode, c.base_postcode || "—");
 
-    async function loadByEmail(email) {
-      const res = await sb
-        .from("customers")
-        .select("*")
-        .ilike("email", email)
-        .maybeSingle();
+      // Pull trade/coverage from either columns or wizard_answers
+      const wa = (c.wizard_answers && typeof c.wizard_answers === "object") ? c.wizard_answers : {};
+      const trade =
+        c.trade_type ||
+        wa.main_trade ||
+        wa.trade_type ||
+        "—";
 
-      if (res.error) throw res.error;
-      return res.data || null;
-    }
+      const coverage =
+        c.service_radius ||
+        wa.coverage_radius ||
+        wa.service_radius ||
+        "—";
 
-    // ===== Render (MATCH YOUR HTML) =====
-    function renderCustomer(c) {
-      if (bizNameEl) bizNameEl.textContent = c.business_name || "—";
-      if (contactLine) contactLine.textContent = [c.contact_name, c.email].filter(Boolean).join(" • ") || "";
+      text(vTrade, trade || "—");
+      text(vCoverage, coverage || "—");
 
-      // summary cards
-      if (vTrade) vTrade.textContent = (c.trade_type || c.wizard_answers?.main_trade || "—");
-      if (vPostcode) vPostcode.textContent = (c.base_postcode || c.wizard_answers?.base_postcode || "—");
-      if (vCoverage) vCoverage.textContent = (c.service_radius || c.wizard_answers?.coverage_radius || "—");
-      if (vPlan) vPlan.textContent = (c.plan_status || c.plan || "—");
+      text(vPlan, c.plan_status || "—");
+      text(vWizard, c.wizard_completed ? "Complete ✅" : "Not complete");
+      text(vSetup, c.wizard_completed ? "Ready for build" : "In progress");
 
-      const wizDone = !!c.wizard_completed;
-      if (vWizard) vWizard.textContent = wizDone ? "Complete ✅" : "Not complete";
-      if (vSetup) vSetup.textContent = (c.account_status || c.pending_setup || "—");
-
-      pill(wizDone ? "ok" : "warn", wizDone ? "Status: Wizard complete" : "Status: Setup in progress");
-
-      // wizard JSON viewer
-      if (wizardJsonEl) {
-        try {
-          wizardJsonEl.textContent = JSON.stringify(c.wizard_answers || {}, null, 2) || "—";
-        } catch (_) {
+      if (wizardJsonEl){
+        try{
+          wizardJsonEl.textContent = JSON.stringify(wa || {}, null, 2) || "—";
+        }catch(_){
           wizardJsonEl.textContent = "—";
         }
       }
 
-      // fill editable fields
-      if (f_business_name)  f_business_name.value = c.business_name || "";
-      if (f_contact_name)   f_contact_name.value  = c.contact_name || "";
-      if (f_phone)          f_phone.value         = c.phone || "";
-      if (f_whatsapp)       f_whatsapp.value      = c.whatsapp_number || "";
-      if (f_trade_type)     f_trade_type.value    = c.trade_type || (c.wizard_answers?.main_trade || "");
-      if (f_base_postcode)  f_base_postcode.value = c.base_postcode || "";
-      if (f_service_radius) f_service_radius.value = c.service_radius || (c.wizard_answers?.coverage_radius || "");
-      if (f_website_url)    f_website_url.value   = c.website_url || "";
-      if (f_callout_fee)    f_callout_fee.value   = (c.callout_fee ?? "") + "";
-      if (f_hourly_rate)    f_hourly_rate.value   = (c.hourly_rate ?? "") + "";
-      if (f_callout_style)  f_callout_style.value = c.callout_style || (c.wizard_answers?.callout_style || "");
-      if (f_tone)           f_tone.value          = (c.tone_of_voice || c.wizard_answers?.tone_of_voice || "");
-      if (f_services_summary) f_services_summary.value = c.services_summary || "";
-      if (f_ai_style_notes)   f_ai_style_notes.value   = c.ai_style_notes || "";
-      if (f_pricing_notes)    f_pricing_notes.value    = c.pricing_notes || "";
-      if (f_notes)            f_notes.value            = c.notes || "";
+      // Right-side form prefills (use columns first, fall back to wizard)
+      val(f_business_name, c.business_name || "");
+      val(f_contact_name, c.contact_name || "");
+      val(f_phone, c.phone || "");
+      val(f_whatsapp, c.whatsapp_number || c.phone || "");
+      val(f_trade_type, c.trade_type || wa.main_trade || "");
+      val(f_base_postcode, c.base_postcode || "");
+      val(f_service_radius, c.service_radius || wa.coverage_radius || "");
+      val(f_website_url, c.website_url || "");
+      val(f_callout_fee, c.callout_fee ?? "");
+      val(f_hourly_rate, c.hourly_rate ?? "");
+      val(f_callout_style, c.callout_style || wa.callout_style || "");
+      if(f_tone){
+        const tone = c.tone || wa.tone_of_voice || "";
+        // if it doesn't match options, leave blank
+        const opts = Array.from(f_tone.options).map(o => o.value || o.textContent);
+        f_tone.value = opts.includes(tone) ? tone : "";
+      }
+      val(f_services_summary, c.services_summary || "");
+      val(f_ai_style_notes, c.ai_style_notes || "");
+      val(f_pricing_notes, c.pricing_notes || "");
+      val(f_notes, c.notes || "");
 
-      // wire edit wizard
-      if (btnWizard) {
+      // Button: Edit wizard
+      if(btnWizard){
         btnWizard.style.display = "inline-flex";
         btnWizard.onclick = () => {
           const u = new URL("/app.html", location.origin);
           u.searchParams.set("customer_id", c.id);
-          if (c.setup_token) u.searchParams.set("setup_token", c.setup_token);
+          if(c.setup_token) u.searchParams.set("setup_token", c.setup_token);
           location.assign(u.toString());
         };
       }
     }
 
-    // ===== Save changes (uses URL token if present) =====
-    async function saveChanges(currentCustomer) {
-      try {
-        setSaveMsg("Saving…", true);
-        if (btnSave) btnSave.disabled = true;
-
-        const patch = {
-          business_name: f_business_name?.value?.trim() || null,
-          contact_name: f_contact_name?.value?.trim() || null,
-          phone: f_phone?.value?.trim() || null,
-          whatsapp_number: f_whatsapp?.value?.trim() || null,
-          trade_type: f_trade_type?.value?.trim() || null,
-          base_postcode: f_base_postcode?.value?.trim() || null,
-          service_radius: f_service_radius?.value?.trim() || null,
-          website_url: f_website_url?.value?.trim() || null,
-          callout_fee: (f_callout_fee?.value || "").trim() || null,
-          hourly_rate: (f_hourly_rate?.value || "").trim() || null,
-          callout_style: f_callout_style?.value?.trim() || null,
-          tone_of_voice: f_tone?.value?.trim() || null,
-          services_summary: f_services_summary?.value?.trim() || null,
-          ai_style_notes: f_ai_style_notes?.value?.trim() || null,
-          pricing_notes: f_pricing_notes?.value?.trim() || null,
-          notes: f_notes?.value?.trim() || null
-        };
-
-        // Use id+setup_token if we have it (best for client link flow)
-        let q = sb.from("customers").update(patch).eq("id", currentCustomer.id);
-
-        // Only add setup_token filter if we have it (prevents accidental updates)
-        if (currentCustomer.setup_token) q = q.eq("setup_token", currentCustomer.setup_token);
-
-        const { error } = await q;
-        if (error) throw error;
-
-        setSaveMsg("Saved ✅", true);
-      } catch (e) {
-        console.error("[TBP] Save error:", e);
-        setSaveMsg(e?.message || "Could not save.", false);
-      } finally {
-        if (btnSave) btnSave.disabled = false;
-      }
-    }
-
-    // ===== Init =====
-    (async function init() {
-      try {
+    async function init(){
+      try{
         setLoadMsg("Loading…", true);
-        pill("neutral", "Status: —");
+        setPill("neutral");
 
-        // establish session if arriving from magic link
+        // Keep session exchange so the magic link landing doesn't error
         const session = await ensureSessionFromUrl();
 
-        // pick best link
-        let customer = null;
+        // Decide which link to use: URL first, then last saved
+        let cid = url_customer_id;
+        let tok = url_setup_token;
 
-        // A) URL (best)
-        if (url_customer_id && url_setup_token) {
-          customer = await loadByIdAndToken(url_customer_id, url_setup_token);
-          if (customer?.id && customer?.setup_token) saveLastLink(customer.id, customer.setup_token);
-        }
-
-        // B) last link
-        if (!customer?.id) {
+        if(!cid || !tok){
           const last = loadLastLink();
-          if (last?.customer_id && last?.setup_token) {
-            customer = await loadByIdAndToken(last.customer_id, last.setup_token);
+          if(last?.customer_id && last?.setup_token){
+            cid = last.customer_id;
+            tok = last.setup_token;
           }
         }
 
-        // C) if logged in, try user_id
-        if (!customer?.id && session?.user?.id) {
-          customer = await loadByUserId(session.user.id);
-          if (customer?.id && customer?.setup_token) saveLastLink(customer.id, customer.setup_token);
-        }
-
-        // D) fallback email match
-        if (!customer?.id && session?.user?.email) {
-          customer = await loadByEmail((session.user.email || "").trim());
-          if (customer?.id && customer?.setup_token) saveLastLink(customer.id, customer.setup_token);
-        }
-
-        // still nothing
-        if (!customer?.id) {
-          // IMPORTANT: If id exists but we still got null, it's almost always RLS SELECT blocking OR setup_token mismatch
-          setLoadMsg(
-            "No customer record found for this dashboard.\n\nIf you came from the wizard, your link MUST include customer_id + setup_token.\nIf it does, then either setup_token doesn’t match that row, or RLS is blocking SELECT.",
-            false
-          );
-
-          console.warn("[TBP] No customer found. Debug:", {
-            url_customer_id,
-            url_setup_token,
-            has_session: !!session,
-            session_user_id: session?.user?.id || null,
-            session_email: session?.user?.email || null,
-            last_link: loadLastLink()
-          });
+        if(!cid || !tok){
+          setLoadMsg("Open this dashboard from the Wizard Finish button (it must include customer_id + setup_token).", false);
+          setPill("warn");
           return;
         }
 
-        // expose debug + render
-        window.TBP_SECURE = { sb, session, customer };
+        // Load row (this is where RLS commonly blocks SELECT)
+        const res = await loadCustomerByIdAndToken(cid, tok);
+
+        if(res.error){
+          console.error("[TBP] customers select error:", res.error);
+
+          // Show a crystal-clear message if it's RLS
+          const msg = (res.error.message || "").toLowerCase();
+          if(msg.includes("permission") || msg.includes("not allowed") || res.status === 401 || res.status === 403){
+            setLoadMsg(
+              "Blocked by RLS: the dashboard can’t read your customer row.\n\nYou have an UPDATE policy (so saving works) but no SELECT policy for this route.\nEither open dashboard via authenticated login (magic link) + user_id policy, or add a SELECT policy for (id + setup_token).",
+              false
+            );
+          }else{
+            setLoadMsg("Dashboard couldn’t load customer data. Check console for details.", false);
+          }
+          setPill("warn");
+          return;
+        }
+
+        const customer = res.data;
+
+        if(!customer?.id){
+          console.warn("[TBP] No customer found. Debug:", { cid, tok, session_user: session?.user?.id || null });
+          setLoadMsg("No customer record found for that customer_id + setup_token. Double-check the link came from Wizard Finish.", false);
+          setPill("warn");
+          return;
+        }
+
+        // Save for next time
+        if(customer.id && customer.setup_token) saveLastLink(customer.id, customer.setup_token);
+
+        // Render
         renderCustomer(customer);
 
-        // wire buttons
-        if (btnSave) btnSave.onclick = () => saveChanges(customer);
-        if (btnLogout) btnLogout.onclick = async () => {
-          try { await sb.auth.signOut(); } catch(_) {}
-          location.assign("/customer-login.html");
-        };
-
         setLoadMsg("", true);
-      } catch (e) {
-        console.error("[TBP] Secure dashboard load error:", e);
-        setLoadMsg("Dashboard error: could not load customer profile. Check console.", false);
+        setPill(customer.wizard_completed ? "ok" : "neutral");
+
+        // Save handler
+        if(btnSave){
+          btnSave.onclick = async () => {
+            try{
+              setSaveMsg("Saving…", true);
+              btnSave.disabled = true;
+
+              const patch = {
+                business_name: (f_business_name?.value || "").trim() || null,
+                contact_name: (f_contact_name?.value || "").trim() || null,
+                phone: (f_phone?.value || "").trim() || null,
+                whatsapp_number: (f_whatsapp?.value || "").trim() || null,
+                trade_type: (f_trade_type?.value || "").trim() || null,
+                base_postcode: (f_base_postcode?.value || "").trim() || null,
+                service_radius: (f_service_radius?.value || "").trim() || null,
+                website_url: (f_website_url?.value || "").trim() || null,
+                callout_fee: (f_callout_fee?.value || "").trim() || null,
+                hourly_rate: (f_hourly_rate?.value || "").trim() || null,
+                callout_style: (f_callout_style?.value || "").trim() || null,
+                tone: (f_tone?.value || "").trim() || null,
+                services_summary: (f_services_summary?.value || "").trim() || null,
+                ai_style_notes: (f_ai_style_notes?.value || "").trim() || null,
+                pricing_notes: (f_pricing_notes?.value || "").trim() || null,
+                notes: (f_notes?.value || "").trim() || null
+              };
+
+              const upd = await sb
+                .from("customers")
+                .update(patch)
+                .eq("id", customer.id)
+                .eq("setup_token", customer.setup_token);
+
+              if(upd.error) throw upd.error;
+
+              // Reload to reflect any server-side changes
+              const again = await loadCustomerByIdAndToken(customer.id, customer.setup_token);
+              if(again.error) throw again.error;
+
+              renderCustomer(again.data);
+              setSaveMsg("Saved ✅", true);
+            }catch(e){
+              console.error("[TBP] save error:", e);
+              setSaveMsg("Couldn’t save changes. Check console.", false);
+            }finally{
+              btnSave.disabled = false;
+            }
+          };
+        }
+
+        // Logout handler
+        if(btnLogout){
+          btnLogout.onclick = async () => {
+            try{
+              await sb.auth.signOut();
+            }catch(_){}
+            location.assign("/customer-login.html");
+          };
+        }
+
+      }catch(e){
+        console.error("[TBP] init error:", e);
+        setLoadMsg("Dashboard error. Check console.", false);
+        setPill("warn");
       }
-    })();
+    }
+
+    // Start
+    init();
   }
 
   bootWhenSupabaseReady();
 })();
 </script>
+
 
 </body>
 </html>
