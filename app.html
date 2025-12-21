@@ -1111,160 +1111,103 @@
         // Do not break the page if DB read fails; cache still provides prefill
         setStatus("", true);
       }
-    }
+    
+  async function saveWizard(markComplete) {
+    try {
+      // ✅ CRITICAL: pull latest typed values into `answers` right now
+      readInputs();
 
-    async function saveWizard(markComplete) {
+      // ✅ ALSO: ensure chips have been painted at least once (not required, but safe)
+      // paintChips(); // optional
+
+      setStatus("Saving…", true);
+      if (btnNext) btnNext.disabled = true;
+
+      // ✅ CRITICAL: Save snapshot *from the freshly-updated answers*
       try {
-        readInputs();
-        setStatus("Saving…", true);
-        if (btnNext) btnNext.disabled = true;
-
-        // cache immediately (so even if refresh happens, user sees their data)
-        cacheWrite({
-          contact_name: answers.contact_name,
-          business_name: answers.business_name,
-          email: answers.email,
-          phone: answers.phone,
-          base_postcode: answers.base_postcode,
-          trade_type: answers.main_trade || null,
-          wizard_answers: answers
-        });
-
-        // Prefer RPC if it exists
-        const rpcTry = await sb.rpc("tbp_customer_save_wizard", {
-          p_customer_id: customer_id,
-          p_setup_token: setup_token,
-          p_business_name: answers.business_name,
-          p_contact_name: answers.contact_name,
-          p_trade_type: answers.main_trade || null,
-          p_base_postcode: answers.base_postcode || null,
-          p_tone: answers.tone_of_voice || null,
-          p_callout_style: answers.callout_style || null,
-          p_mark_complete: !!markComplete,
-          p_wizard_answers: answers
-        });
-
-        if (rpcTry.error) {
-          // fallback direct update (RLS must allow update with setup_token)
-          const patch = {
-            business_name: answers.business_name || null,
-            contact_name: answers.contact_name || null,
-            email: answers.email || null,
-            phone: answers.phone || null,
-            base_postcode: answers.base_postcode || null,
-            wizard_answers: answers,
-            wizard_completed: !!markComplete,
-            wizard_completed_at: markComplete ? new Date().toISOString() : null
-          };
-
-          const direct = await sb
-            .from("customers")
-            .update(patch)
-            .eq("id", customer_id)
-            .eq("setup_token", setup_token);
-
-          if (direct.error) throw direct.error;
-        }
-
-        setStatus(markComplete ? "Saved. Wizard complete ✅" : "Saved ✅", true);
-
-        if (markComplete) {
-          if (summaryBoxEl) summaryBoxEl.hidden = false;
-          if (btnNext) btnNext.style.display = "none";
-          if (btnDashboard) btnDashboard.style.display = "inline-flex";
-        } else {
-          if (btnNext) btnNext.disabled = false;
-        }
-
-      } catch (err) {
-        console.error("[TBP] saveWizard error:", err);
-        setStatus("Couldn’t save. Please try again.", false);
-        if (btnNext) btnNext.disabled = false;
+        localStorage.setItem(
+          "tbp_wizard_snapshot__" + customer_id,
+          JSON.stringify({
+            ts: Date.now(),
+            customer: {
+              id: customer_id,
+              setup_token: setup_token,
+              business_name: answers.business_name || "",
+              contact_name: answers.contact_name || "",
+              email: answers.email || "",
+              phone: answers.phone || "",
+              base_postcode: answers.base_postcode || "",
+              wizard_completed: !!markComplete,
+              wizard_answers: answers
+            }
+          })
+        );
+      } catch (e) {
+        console.warn("[TBP] Snapshot save failed:", e);
       }
+
+      // ===== SAVE TO SUPABASE (keep your existing RPC/direct update logic here) =====
+      // IMPORTANT: do not change your SQL / RLS setup
+      const patch = {
+        business_name: answers.business_name || null,
+        contact_name: answers.contact_name || null,
+        email: answers.email || null,
+        phone: answers.phone || null,
+        base_postcode: answers.base_postcode || null,
+        wizard_answers: answers,
+        wizard_completed: !!markComplete,
+        wizard_completed_at: markComplete ? new Date().toISOString() : null
+      };
+
+      const direct = await sb
+        .from("customers")
+        .update(patch)
+        .eq("id", customer_id)
+        .eq("setup_token", setup_token);
+
+      if (direct.error) throw direct.error;
+
+      setStatus(markComplete ? "Saved. Wizard complete ✅" : "Saved ✅", true);
+
+      if (markComplete) {
+        if (summaryBoxEl) summaryBoxEl.hidden = false;
+
+        // ✅ Send them to secure dashboard (NOT “back” to something they’ve never seen)
+        const dash = new URL("client-secure-dashboard.html", location.origin);
+        dash.searchParams.set("customer_id", customer_id);
+        dash.searchParams.set("setup_token", setup_token);
+        location.assign(dash.toString());
+        return;
+      }
+
+      if (btnNext) btnNext.disabled = false;
+    } catch (err) {
+      console.error("[TBP] saveWizard error:", err);
+      setStatus("Couldn’t save. This is usually RLS blocking read/update or a mismatch.", false);
+      if (btnNext) btnNext.disabled = false;
     }
-    localStorage.setItem("tbp_wizard_snapshot__" + customer_id, JSON.stringify({
-  ts: Date.now(),
-  customer: {
-    id: customer_id,
-    setup_token,
-    business_name: answers.business_name,
-    contact_name: answers.contact_name,
-    email: answers.email,
-    phone: answers.phone,
-    base_postcode: answers.base_postcode,
-    wizard_completed: true,
-    wizard_answers: answers
   }
-}));
 
-
-    // ===== Buttons =====
-    if (btnBack) {
-      btnBack.addEventListener("click", () => {
-        setStatus("");
-        if (currentStep > 1) {
-          currentStep -= 1;
-          render();
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      });
-    }
-
-    if (btnSaveDraft) {
-      btnSaveDraft.addEventListener("click", () => saveWizard(false));
-    }
-
-    if (btnNext) {
-      btnNext.addEventListener("click", async () => {
-        setStatus("");
-
-        // Basic guard on step 1
-        if (currentStep === 1) {
-          readInputs();
-          if (!answers.contact_name || !answers.business_name) {
-            setStatus("Please enter contact name and business name.", false);
-            return;
-          }
-          if (!answers.email && !answers.phone) {
-            setStatus("Please enter an email or a mobile number.", false);
-            return;
-          }
-        }
-
-        if (currentStep < totalSteps) {
-          currentStep += 1;
-          render();
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          return;
-        }
-
-        await saveWizard(true);
-      });
-    }
-
-    if (btnDashboard) {
-      btnDashboard.addEventListener("click", () => {
-        // ✅ Send brand-new users to the secure dashboard (recommended)
-        const u = new URL("/client-secure-dashboard.html", location.origin);
-        u.searchParams.set("customer_id", customer_id);
-        u.searchParams.set("setup_token", setup_token);
-        location.assign(u.toString());
-      });
-    }
-
-    // ===== Init =====
-    window.addEventListener("DOMContentLoaded", async () => {
-      render();
-      await loadWizard();
-      // make sure chips reflect any restored answers
-      paintChips();
+  // Hook your buttons to this saveWizard (keep your existing render/step logic)
+  if (btnSaveDraft) btnSaveDraft.addEventListener("click", () => saveWizard(false));
+  if (btnNext) {
+    btnNext.addEventListener("click", async () => {
+      setStatus("");
+      if (currentStep < totalSteps) {
+        currentStep += 1;
+        render();
+        return;
+      }
+      await saveWizard(true);
     });
   }
 
-  bootWhenSupabaseReady();
+  // ... keep your init/loadWizard etc.
 })();
 </script>
 
+
+  
 
 </body>
 </html>
