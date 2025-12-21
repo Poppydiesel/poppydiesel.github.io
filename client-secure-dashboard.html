@@ -656,17 +656,12 @@
           }
         }
 
-        if(!customer?.id){
-          // IMPORTANT: only say "No session" when they did NOT supply token
-          if(!customer_id && !setup_token){
-            setLoadMsg("No session. Please use Customer Login to access your dashboard.", false);
-            pill("Status: Login required", "warn");
-          } else {
-            setLoadMsg("No customer record found for that customer_id + setup_token (or RLS blocked the read).", false);
-            pill("Status: Not found", "warn");
-          }
-          return;
-        }
+        if(!customer_id || !setup_token){
+  setLoadMsg("Missing customer_id/setup_token. Open this from the wizard Finish button.", false);
+  pill("Status: Missing link", "warn");
+  return;
+}
+
 
         // Render
         window.TBP_DASH = { sb, customer, mode: usedMode };
