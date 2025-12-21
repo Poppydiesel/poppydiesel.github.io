@@ -965,7 +965,6 @@
     }
 
     function writeCacheSnapshot() {
-      // Always keep cache hot so wizard/dashboard can prefill even if SELECT blocked
       readInputs();
       cacheWrite({
         ts: Date.now(),
@@ -984,14 +983,12 @@
       const c = cacheRead();
       if (!c) return false;
 
-      // fill basics
       if (typeof c.contact_name !== "undefined") setVal("contact_name", c.contact_name || "");
       if (typeof c.business_name !== "undefined") setVal("business_name", c.business_name || "");
       if (typeof c.email !== "undefined") setVal("contact_email", c.email || "");
       if (typeof c.phone !== "undefined") setVal("contact_mobile", c.phone || "");
       if (typeof c.base_postcode !== "undefined") setVal("base_postcode", c.base_postcode || "");
 
-      // restore wizard answers
       if (c.wizard_answers && typeof c.wizard_answers === "object") {
         Object.assign(answers, c.wizard_answers);
       }
@@ -1053,8 +1050,6 @@
     ["input", "change"].forEach(evt => {
       document.addEventListener(evt, (e) => {
         const id = e?.target?.id || "";
-        if (!id) return;
-        // Only react to wizard inputs
         if (
           id === "contact_name" || id === "business_name" || id === "contact_email" ||
           id === "contact_mobile" || id === "base_postcode" || id === "review_link" ||
@@ -1067,14 +1062,15 @@
 
     // ===== Load / Save =====
     async function loadWizard() {
-      // Always prefill immediately from cache first (RLS-safe)
+      // Prefill immediately from cache first (RLS-safe)
       prefillFromCache();
 
       try {
         setStatus("Loading…", true);
 
-        // Try RPC first (if it exists and is allowed)
         let row = null;
+
+        // Try RPC first
         const rpcRes = await sb.rpc("tbp_customer_load", {
           p_customer_id: customer_id,
           p_setup_token: setup_token
@@ -1083,7 +1079,7 @@
         if (!rpcRes.error && rpcRes.data) {
           row = Array.isArray(rpcRes.data) ? rpcRes.data[0] : rpcRes.data;
         } else {
-          // Fallback direct select (may be blocked by RLS; that’s OK because cache already prefilled)
+          // fallback direct select (may be blocked by RLS)
           const direct = await sb
             .from("customers")
             .select("id,business_name,contact_name,email,phone,base_postcode,wizard_answers")
@@ -1094,13 +1090,12 @@
           if (!direct.error) row = direct.data;
         }
 
-        // If DB read fails/blocked, DO NOT hard fail (cache already did the job)
+        // If DB read fails/blocked, don't hard-fail (cache already did the job)
         if (!row?.id) {
           setStatus("", true);
           return;
         }
 
-        // Prefill from DB (best source)
         setVal("business_name", row.business_name || "");
         setVal("contact_name", row.contact_name || "");
         setVal("contact_email", row.email || "");
@@ -1114,13 +1109,12 @@
         readInputs();
         paintChips();
 
-        // Refresh cache from DB so it stays correct
+        // refresh cache from DB
         writeCacheSnapshot();
 
         setStatus("", true);
       } catch (err) {
         console.error("[TBP] loadWizard error:", err);
-        // Don’t break UX; cache may already have prefilled
         setStatus("", true);
       }
     }
@@ -1133,7 +1127,6 @@
         setStatus("Saving…", true);
         if (btnNext) btnNext.disabled = true;
 
-        // Try RPC save first
         const rpcRes = await sb.rpc("tbp_customer_save_wizard", {
           p_customer_id: customer_id,
           p_setup_token: setup_token,
@@ -1147,7 +1140,6 @@
         });
 
         if (rpcRes.error) {
-          // Fallback direct update (ONLY works if your RLS allows token update)
           const patch = {
             business_name: answers.business_name || null,
             contact_name: answers.contact_name || null,
@@ -1195,27 +1187,22 @@
       });
     }
 
-    if (btnSaveDraft) {
-      btnSaveDraft.addEventListener("click", () => saveWizard(false));
-    }
+    if (btnSaveDraft) btnSaveDraft.addEventListener("click", () => saveWizard(false));
 
     if (btnNext) {
       btnNext.addEventListener("click", async () => {
         setStatus("");
-
         if (currentStep < totalSteps) {
           currentStep += 1;
           render();
           return;
         }
-
         await saveWizard(true);
       });
     }
 
     if (btnDashboard) {
       btnDashboard.addEventListener("click", () => {
-        // ✅ NEW: send to secure dashboard
         const u = new URL("/client-secure-dashboard.html", location.origin);
         u.searchParams.set("customer_id", customer_id);
         u.searchParams.set("setup_token", setup_token);
@@ -1223,13 +1210,10 @@
       });
     }
 
-    // ===== Init =====
     async function init() {
       render();
-      // Paint once so initial cache values (if any) reflect in UI
       paintChips();
       await loadWizard();
-      // Expose debug
       window.TBP_WIZ = { sb, customer_id, setup_token, answers };
     }
 
@@ -1243,6 +1227,10 @@
   bootWhenSupabaseReady();
 })();
 </script>
+
+</body>
+</html>
+
 
 
 
