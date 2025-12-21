@@ -58,9 +58,7 @@
       color:#fff;
       border-color:transparent;
     }
-    .btnGhost{
-      background:transparent;
-    }
+    .btnGhost{ background:transparent; }
     main{
       max-width:1200px;
       margin:0 auto;
@@ -233,7 +231,7 @@
     <!-- RIGHT: EDITABLE CLIENT SETTINGS -->
     <aside class="card">
       <h3>Your settings</h3>
-      <div class="muted">You can edit your business details and AI preferences here. Onboarding status is controlled by TradeBotPro.</div>
+      <div class="muted">You can edit your business details and AI preferences here.</div>
 
       <div class="two">
         <div class="field">
@@ -328,23 +326,23 @@
       <div id="saveMsg" class="status"></div>
 
       <div style="margin-top:14px" class="muted">
-        Need to change your onboarding status or plan? Email us at
-        <a class="link" href="mailto:hello@tradebotpro.co.uk">hello@tradebotpro.co.uk</a>
-        and we’ll update it.
+        Need help? Email us at
+        <a class="link" href="mailto:hello@tradebotpro.co.uk">hello@tradebotpro.co.uk</a>.
       </div>
     </aside>
 
   </div>
 </main>
+
 <!-- Supabase UMD (single include) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 
 <script>
 (function () {
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "YOUR_ANON_KEY_HERE"; // keep yours
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
-  const LS_LAST = "tbp_last_customer_link"; // optional convenience
+  const LS_LAST_LINK = "tbp_last_customer_link";
 
   function bootWhenSupabaseReady() {
     if (!window.supabase) return setTimeout(bootWhenSupabaseReady, 50);
@@ -355,12 +353,13 @@
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const qs = new URLSearchParams(location.search);
-    const customer_id = (qs.get("customer_id") || "").trim();
-    const setup_token = (qs.get("setup_token") || "").trim();
+    const url_customer_id = (qs.get("customer_id") || "").trim();
+    const url_setup_token = (qs.get("setup_token") || "").trim();
+    const return_to = (qs.get("return_to") || "").trim();
 
     const $ = (id) => document.getElementById(id);
 
-    // ===== Elements (MATCH YOUR HTML) =====
+    // Elements
     const bizNameEl    = $("bizName");
     const contactLine  = $("contactLine");
     const statusPill   = $("statusPill");
@@ -378,6 +377,7 @@
     const btnSave    = $("btnSave");
     const btnLogout  = $("btnLogout");
 
+    // Right fields
     const f_business_name  = $("f_business_name");
     const f_contact_name   = $("f_contact_name");
     const f_phone          = $("f_phone");
@@ -394,7 +394,6 @@
     const f_ai_style_notes   = $("f_ai_style_notes");
     const f_pricing_notes    = $("f_pricing_notes");
     const f_notes            = $("f_notes");
-
     const saveMsg = $("saveMsg");
 
     function pill(text, kind){
@@ -402,59 +401,97 @@
       statusPill.className = "pill " + (kind || "neutral");
       statusPill.textContent = text || "Status: —";
     }
-
     function setLoadMsg(msg, ok=true){
       if(!loadMsg) return;
       loadMsg.textContent = msg || "";
       loadMsg.className = "status " + (msg ? (ok ? "ok" : "err") : "");
     }
-
     function setSaveMsg(msg, ok=true){
       if(!saveMsg) return;
       saveMsg.textContent = msg || "";
       saveMsg.className = "status " + (msg ? (ok ? "ok" : "err") : "");
     }
 
-    function safeText(el, text){ if(el) el.textContent = (text ?? ""); }
-    function safeVal(el, val){ if(el) el.value = (val ?? ""); }
+    function safeText(el, text){ if(el) el.textContent = text ?? ""; }
+    function safeVal(el, val){ if(el) el.value = val ?? ""; }
 
     function pretty(obj){
       try { return JSON.stringify(obj || {}, null, 2); }
       catch(_) { return "{}"; }
     }
 
-    function chipLabelFromBtn(btn){
-      return (btn?.querySelector("span")?.textContent || btn?.textContent || "").trim();
+    function saveLastLink(customer_id, setup_token) {
+      try {
+        localStorage.setItem(LS_LAST_LINK, JSON.stringify({ customer_id, setup_token, ts: Date.now() }));
+      } catch(_) {}
+    }
+    function loadLastLink() {
+      try {
+        const raw = localStorage.getItem(LS_LAST_LINK);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        if (!obj?.customer_id) return null;
+        return obj;
+      } catch(_) {
+        return null;
+      }
+    }
+
+    // --- AUTH: exchange magic link, then get session
+    async function ensureSessionFromUrl() {
+      const u = new URL(location.href);
+      const hasCode =
+        u.searchParams.has("code") ||
+        (u.hash || "").includes("access_token=") ||
+        (u.hash || "").includes("refresh_token=");
+
+      if (hasCode && sb.auth.exchangeCodeForSession) {
+        try {
+          const { data, error } = await sb.auth.exchangeCodeForSession(location.href);
+          if (error) throw error;
+
+          // Clean URL (remove auth junk but keep your customer_id/setup_token/return_to)
+          const clean = new URL(location.href);
+          ["code","type","token","access_token","refresh_token"].forEach(k => clean.searchParams.delete(k));
+          clean.hash = "";
+          history.replaceState({}, "", clean.toString());
+
+          return data?.session || null;
+        } catch (e) {
+          console.warn("[TBP] exchangeCodeForSession failed:", e);
+        }
+      }
+
+      const { data } = await sb.auth.getSession();
+      return data?.session || null;
+    }
+
+    function redirectToLoginWithReturnTo() {
+      const login = new URL("/customer-login.html", location.origin);
+      // IMPORTANT: return_to is the URL you *actually* wanted (this page as-is)
+      login.searchParams.set("return_to", encodeURIComponent(location.href));
+      location.assign(login.toString());
+    }
+
+    // After we have a session, if we arrived here with return_to, go there.
+    function handleReturnToAfterAuth() {
+      if (!return_to) return false;
+      try {
+        const decoded = decodeURIComponent(return_to);
+        const u = new URL(decoded, location.origin);
+        if (u.origin !== location.origin) return false;
+        location.replace(u.toString());
+        return true;
+      } catch (_) {
+        return false;
+      }
     }
 
     function parseWizardAnswers(customer){
-      return (customer?.wizard_answers && typeof customer.wizard_answers === "object")
+      const wa = (customer && customer.wizard_answers && typeof customer.wizard_answers === "object")
         ? customer.wizard_answers
         : {};
-    }
-
-    function saveLastLink(id, token){
-      try { localStorage.setItem(LS_LAST, JSON.stringify({ customer_id:id, setup_token:token, ts:Date.now() })); } catch(_){}
-    }
-    function loadLastLink(){
-      try {
-        const raw = localStorage.getItem(LS_LAST);
-        if(!raw) return null;
-        const obj = JSON.parse(raw);
-        if(!obj?.customer_id || !obj?.setup_token) return null;
-        return obj;
-      } catch(_) { return null; }
-    }
-
-    // Cache fallback (same key style as wizard)
-    function cacheKey(id){ return "tbp_prefill__" + id; }
-    function cacheRead(id){
-      try {
-        const k = cacheKey(id);
-        const raw = sessionStorage.getItem(k) || localStorage.getItem(k);
-        if(!raw) return null;
-        return JSON.parse(raw);
-      } catch(_) { return null; }
+      return wa;
     }
 
     function render(customer){
@@ -463,24 +500,26 @@
       safeText(bizNameEl, customer.business_name || "(No business name)");
       safeText(contactLine, [customer.contact_name, customer.email].filter(Boolean).join(" • "));
 
-      pill(customer.wizard_completed ? "Status: Setup complete" : "Status: Setup in progress",
-           customer.wizard_completed ? "ok" : "warn");
+      pill(
+        customer.wizard_completed ? "Status: Setup complete" : "Status: Setup in progress",
+        customer.wizard_completed ? "ok" : "warn"
+      );
 
       safeText(vTrade, wa.main_trade || customer.trade_type || "—");
-      safeText(vPostcode, customer.base_postcode || wa.base_postcode || "—");
+      safeText(vPostcode, customer.base_postcode || "—");
       safeText(vCoverage, wa.coverage_radius || customer.service_radius || "—");
       safeText(vPlan, customer.plan_status || "—");
       safeText(vWizard, customer.wizard_completed ? "Complete" : "Not complete");
       safeText(vSetup, customer.pending_setup ? "Pending" : "—");
 
-      if(wizardJsonEl) wizardJsonEl.textContent = pretty(wa);
+      if (wizardJsonEl) wizardJsonEl.textContent = pretty(wa);
 
       safeVal(f_business_name, customer.business_name || "");
       safeVal(f_contact_name, customer.contact_name || "");
       safeVal(f_phone, customer.phone || "");
       safeVal(f_whatsapp, customer.whatsapp_number || "");
       safeVal(f_trade_type, wa.main_trade || customer.trade_type || "");
-      safeVal(f_base_postcode, customer.base_postcode || wa.base_postcode || "");
+      safeVal(f_base_postcode, customer.base_postcode || "");
 
       safeVal(f_service_radius, wa.coverage_radius || customer.service_radius || "");
       safeVal(f_website_url, customer.website_url || "");
@@ -495,56 +534,91 @@
       safeVal(f_pricing_notes, customer.pricing_notes || "");
       safeVal(f_notes, customer.notes || "");
 
-      if(btnWizard){
+      if (btnWizard){
         btnWizard.style.display = "inline-flex";
         btnWizard.onclick = () => {
           const u = new URL("/app.html", location.origin);
           u.searchParams.set("customer_id", customer.id);
-          if(customer.setup_token) u.searchParams.set("setup_token", customer.setup_token);
+          if (customer.setup_token) u.searchParams.set("setup_token", customer.setup_token);
           location.assign(u.toString());
         };
       }
     }
 
-    async function loadByIdToken(id, token){
-      // 1) Try RPC if you have it
-      try {
-        const rpc = await sb.rpc("tbp_customer_load", { p_customer_id: id, p_setup_token: token });
-        if(!rpc.error && rpc.data){
-          const row = Array.isArray(rpc.data) ? rpc.data[0] : rpc.data;
-          if(row?.id) return row;
+    async function loadCustomer(session){
+      // Strategy:
+      // 1) If URL has customer_id+setup_token, try that first (might work if you allow it).
+      // 2) Else try by auth user_id (preferred for RLS updates).
+      // 3) Else try by auth email.
+      // 4) Else try last stored link (as a final option).
+      let customer = null;
+
+      // 1) URL token (only if present)
+      if (url_customer_id && url_setup_token) {
+        const res = await sb
+          .from("customers")
+          .select("*")
+          .eq("id", url_customer_id)
+          .eq("setup_token", url_setup_token)
+          .maybeSingle();
+
+        if (!res.error && res.data?.id) {
+          customer = res.data;
+          saveLastLink(customer.id, customer.setup_token || url_setup_token);
+          return customer;
         }
-      } catch(_) {}
+      }
 
-      // 2) Fallback direct select (may be blocked by RLS)
-      const res = await sb
-        .from("customers")
-        .select("*")
-        .eq("id", id)
-        .eq("setup_token", token)
-        .maybeSingle();
+      // 2) by authenticated user_id
+      if (session?.user?.id) {
+        const res = await sb
+          .from("customers")
+          .select("*")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
 
-      if(res.error) throw res.error;
-      return res.data || null;
+        if (!res.error && res.data?.id) {
+          customer = res.data;
+          if (customer.setup_token) saveLastLink(customer.id, customer.setup_token);
+          return customer;
+        }
+      }
+
+      // 3) by authenticated email
+      if (session?.user?.email) {
+        const res = await sb
+          .from("customers")
+          .select("*")
+          .ilike("email", (session.user.email || "").trim())
+          .maybeSingle();
+
+        if (!res.error && res.data?.id) {
+          customer = res.data;
+          if (customer.setup_token) saveLastLink(customer.id, customer.setup_token);
+          return customer;
+        }
+      }
+
+      // 4) last stored link
+      const last = loadLastLink();
+      if (last?.customer_id && last?.setup_token) {
+        const res = await sb
+          .from("customers")
+          .select("*")
+          .eq("id", last.customer_id)
+          .eq("setup_token", last.setup_token)
+          .maybeSingle();
+
+        if (!res.error && res.data?.id) {
+          customer = res.data;
+          return customer;
+        }
+      }
+
+      return null;
     }
 
-    async function loadBySession(){
-      const { data } = await sb.auth.getSession();
-      const session = data?.session || null;
-      if(!session?.user?.id) return null;
-
-      // Try customers.user_id
-      const res = await sb
-        .from("customers")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-
-      if(res.error) throw res.error;
-      return res.data || null;
-    }
-
-    async function savePatch(id, token){
+    async function saveCustomerPatch(session, customer){
       setSaveMsg("");
       try{
         setSaveMsg("Saving…", true);
@@ -568,113 +642,88 @@
           notes: (f_notes?.value || "").trim() || null
         };
 
-        // token-based update
-        const upd = await sb
-          .from("customers")
-          .update(patch)
-          .eq("id", id)
-          .eq("setup_token", token);
+        // IMPORTANT: update using authenticated ownership when possible.
+        // If your policy uses user_id = auth.uid(), this is what makes it pass.
+        let q = sb.from("customers").update(patch).eq("id", customer.id);
 
+        if (session?.user?.id) {
+          // Helps if your RLS policy checks ownership via user_id
+          q = q.eq("user_id", session.user.id);
+        }
+
+        const upd = await q;
         if(upd.error) throw upd.error;
 
         setSaveMsg("Saved ✅", true);
 
-        // reload
-        const customer = await loadByIdToken(id, token);
-        if(customer) render(customer);
+        // Reload fresh
+        const fresh = await loadCustomer(session);
+        if (fresh?.id) {
+          window.TBP_DASH.customer = fresh;
+          render(fresh);
+        }
 
       }catch(e){
         console.error("[TBP] save error:", e);
-        setSaveMsg("Couldn’t save. RLS may be blocking update for this link.", false);
+        setSaveMsg("Couldn’t save. RLS is blocking UPDATE for this user/customer (check user_id linkage + policy).", false);
       }finally{
         if(btnSave) btnSave.disabled = false;
       }
     }
 
     async function logout(){
-      try { await sb.auth.signOut(); } catch(_){}
+      try{ await sb.auth.signOut(); }catch(_){}
       location.assign("/customer-login.html");
     }
 
     (async function init(){
       try{
+        setLoadMsg("Checking login…", true);
+        pill("Status: Checking login…", "neutral");
+
+        const session = await ensureSessionFromUrl();
+
+        // If no session, force login (this is what fixes your “can’t save” RLS issue)
+        if (!session?.user) {
+          pill("Status: Login required", "warn");
+          setLoadMsg("No session. Please use Customer Login to access your dashboard.", false);
+
+          // If they landed here on a deep link, push them to login and back
+          redirectToLoginWithReturnTo();
+          return;
+        }
+
+        // If we have a return_to param (from customer-login), bounce there now.
+        if (handleReturnToAfterAuth()) return;
+
+        setLoadMsg("Loading your profile…", true);
         pill("Status: Loading…", "neutral");
-        setLoadMsg("Loading…", true);
 
-        let customer = null;
-        let usedMode = "";
+        const customer = await loadCustomer(session);
 
-        // ✅ MODE A: token link (from wizard finish)
-        if(customer_id && setup_token){
-          try {
-            customer = await loadByIdToken(customer_id, setup_token);
-            if(customer?.id){
-              usedMode = "token";
-              saveLastLink(customer.id, setup_token);
-            }
-          } catch(e){
-            // If token read blocked by RLS, try cache so page still renders something
-            console.warn("[TBP] Token DB read blocked, trying cache…", e);
-            const c = cacheRead(customer_id);
-            if(c){
-              customer = {
-                id: customer_id,
-                setup_token,
-                business_name: c.business_name || "",
-                contact_name: c.contact_name || "",
-                email: c.email || "",
-                phone: c.phone || "",
-                base_postcode: c.base_postcode || "",
-                wizard_answers: c.wizard_answers || {},
-                wizard_completed: false
-              };
-              usedMode = "cache";
-              setLoadMsg("Loaded from recent wizard data (DB read blocked).", true);
-            }
-          }
-        }
-
-        // Optional: last link
         if(!customer?.id){
-          const last = loadLastLink();
-          if(last?.customer_id && last?.setup_token){
-            try {
-              customer = await loadByIdToken(last.customer_id, last.setup_token);
-              if(customer?.id){
-                usedMode = "last_link";
-              }
-            } catch(_) {}
-          }
+          setLoadMsg(
+            "No customer record found for this logged-in user. (Check that customers.user_id is linked OR email matches.)",
+            false
+          );
+          pill("Status: Not linked", "warn");
+          console.warn("[TBP] No customer found. Debug:", {
+            session_user_id: session.user.id,
+            session_email: session.user.email,
+            url_customer_id,
+            url_setup_token
+          });
+          return;
         }
 
-        // ✅ MODE B: session login (customer-login)
-        if(!customer?.id){
-          // Only show “No session” if no token link was provided
-          if(!customer_id && !setup_token){
-            customer = await loadBySession();
-            if(customer?.id) usedMode = "session";
-          }
-        }
+        // Expose debug
+        window.TBP_DASH = { sb, session, customer };
 
-        if(!customer_id || !setup_token){
-  setLoadMsg("Missing customer_id/setup_token. Open this from the wizard Finish button.", false);
-  pill("Status: Missing link", "warn");
-  return;
-}
-
-
-        // Render
-        window.TBP_DASH = { sb, customer, mode: usedMode };
         render(customer);
+        setLoadMsg("", true);
 
-        if(!loadMsg?.textContent) setLoadMsg("", true);
-
-        if(btnSave){
-          btnSave.addEventListener("click", () => savePatch(customer.id, customer.setup_token || setup_token));
-        }
-        if(btnLogout){
-          btnLogout.addEventListener("click", logout);
-        }
+        if(btnSave) btnSave.addEventListener("click", () => saveCustomerPatch(session, customer));
+        if(btnLogout) btnLogout.addEventListener("click", logout);
 
       }catch(e){
         console.error("[TBP] dashboard load error:", e);
@@ -687,9 +736,5 @@
   bootWhenSupabaseReady();
 })();
 </script>
-
-
-
-
 </body>
 </html>
