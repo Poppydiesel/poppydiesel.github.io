@@ -802,7 +802,6 @@
   </main>
 </div>
 
-
 <!-- Supabase UMD (single include) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 
@@ -853,17 +852,11 @@
         (msg ? (ok ? " wizard-status-message--success" : " wizard-status-message--error") : "");
     }
 
-    // ===== Hard requirement for your flow =====
+    // ===== Required link params =====
     if (!customer_id || !setup_token) {
       setStatus("Missing customer_id or setup_token. Please start from the homepage signup.", false);
       return;
     }
-
-    // Ensure chip buttons never submit anything
-    document.querySelectorAll(".chip-row .chip").forEach(b => {
-      if (b.tagName === "BUTTON") b.type = "button";
-      b.setAttribute("aria-pressed", "false");
-    });
 
     // ===== Wizard state =====
     let currentStep = 1;
@@ -894,6 +887,59 @@
       golive_timing: null
     };
 
+    // ===== Local cache (NO SQL needed; works even if SELECT is blocked by RLS) =====
+    const CACHE_KEY = "tbp_prefill_" + customer_id;
+
+    function cacheRead() {
+      try {
+        const raw = sessionStorage.getItem(CACHE_KEY) || localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function cacheWrite(obj) {
+      try {
+        // keep in localStorage so refresh still works
+        localStorage.setItem(CACHE_KEY, JSON.stringify(obj));
+      } catch (_) {}
+      try {
+        // sessionStorage too (fresh flow)
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(obj));
+      } catch (_) {}
+    }
+
+    function safeSetValue(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.value = val ?? "";
+    }
+
+    function prefillFromCacheFirst() {
+      const c = cacheRead();
+      if (!c) return false;
+
+      // fill inputs
+      if (c.contact_name) safeSetValue("contact_name", c.contact_name);
+      if (c.business_name) safeSetValue("business_name", c.business_name);
+      if (c.email) safeSetValue("contact_email", c.email);
+      if (c.phone) safeSetValue("contact_mobile", c.phone);
+      if (c.base_postcode) safeSetValue("base_postcode", c.base_postcode);
+
+      // restore answers (chips)
+      if (c.wizard_answers && typeof c.wizard_answers === "object") {
+        Object.assign(answers, c.wizard_answers);
+      } else {
+        // optional single fields
+        if (c.trade_type) answers.main_trade = c.trade_type;
+      }
+
+      readInputs(); // keep answers text fields in sync
+      paintChips();
+      return true;
+    }
+
     function meta(step) {
       if (step === 1) return { label: "Step 1", title: "Business basics", subtitle: "Who are you, what do you do and how do you like to run things?" };
       if (step === 2) return { label: "Step 2", title: "Area & pricing", subtitle: "Where you cover and how you like to charge." };
@@ -906,17 +952,17 @@
       const active = document.querySelector(`.step-panel[data-step="${currentStep}"]`);
       if (active) active.classList.add("is-active");
 
-      if (btnBack) btnBack.disabled = currentStep <= 1;
+      if (btnBack) btnBack.disabled = (currentStep <= 1);
 
       if (btnNext) {
-        btnNext.textContent = currentStep === totalSteps ? "Finish →" : "Next step →";
+        btnNext.textContent = (currentStep === totalSteps) ? "Finish →" : "Next step →";
         btnNext.style.display = "";
         btnNext.disabled = false;
       }
 
       if (btnDashboard) btnDashboard.style.display = "none";
 
-      const pct = Math.round(((currentStep - 1) / Math.max(totalSteps - 1, 1)) * 100);
+      const pct = Math.round(((currentStep - 1) / (Math.max(totalSteps - 1, 1))) * 100);
       if (progressInner) progressInner.style.width = pct + "%";
       if (progressText) progressText.textContent = `Step ${currentStep} of ${totalSteps}`;
 
@@ -930,10 +976,6 @@
     function v(id) {
       return (document.getElementById(id)?.value ?? "").toString().trim();
     }
-    function setVal(id, val) {
-      const el = document.getElementById(id);
-      if (el) el.value = val ?? "";
-    }
 
     function readInputs() {
       answers.contact_name = v("contact_name");
@@ -946,7 +988,7 @@
       answers.extra_notes = v("extra_notes");
     }
 
-    // ===== Chips (single delegated handler; no hidden inputs needed) =====
+    // ===== Chips (single delegated handler) =====
     function paintChips() {
       document.querySelectorAll(".chip-row[data-field]").forEach(row => {
         const field = row.dataset.field;
@@ -967,7 +1009,6 @@
     document.addEventListener("click", (e) => {
       const chip = e.target.closest("button.chip");
       if (!chip) return;
-
       const row = chip.closest(".chip-row[data-field]");
       if (!row) return;
 
@@ -986,47 +1027,63 @@
         answers[field] = label;
       }
 
+      // keep local cache hot as user clicks around
+      readInputs();
+      cacheWrite({
+        contact_name: answers.contact_name,
+        business_name: answers.business_name,
+        email: answers.email,
+        phone: answers.phone,
+        base_postcode: answers.base_postcode,
+        trade_type: answers.main_trade || null,
+        wizard_answers: answers
+      });
+
       paintChips();
     }, true);
 
     // ===== Load / Save via token =====
     async function loadWizard() {
       try {
+        // 1) Always prefill immediately from cache (works even if RLS blocks SELECT)
+        prefillFromCacheFirst();
+
         setStatus("Loading…", true);
 
-        // Try RPC first
+        // 2) Prefer RPC if it exists
         let row = null;
-        const rpcRes = await sb.rpc("tbp_customer_load", {
+
+        const rpcTry = await sb.rpc("tbp_customer_load", {
           p_customer_id: customer_id,
           p_setup_token: setup_token
         });
 
-        if (!rpcRes.error && rpcRes.data) {
-          row = Array.isArray(rpcRes.data) ? rpcRes.data[0] : rpcRes.data;
+        if (!rpcTry.error && rpcTry.data) {
+          row = Array.isArray(rpcTry.data) ? rpcTry.data[0] : rpcTry.data;
         } else {
-          // Fallback direct select (ONLY works if RLS allows token read)
+          // 3) Fallback direct select (may be blocked by RLS; that's OK now)
           const direct = await sb
             .from("customers")
-            .select("id,business_name,contact_name,email,phone,base_postcode,wizard_answers")
+            .select("id,business_name,contact_name,email,phone,whatsapp_number,base_postcode,wizard_answers")
             .eq("id", customer_id)
             .eq("setup_token", setup_token)
             .maybeSingle();
 
-          if (direct.error) throw direct.error;
-          row = direct.data;
+          if (!direct.error) row = direct.data;
         }
 
+        // If RLS blocks read, we still have cache prefill; don't hard-fail
         if (!row?.id) {
-          setStatus("Wizard link invalid or expired. Please start again from the homepage form.", false);
+          setStatus("", true);
           return;
         }
 
-        // Prefill basics
-        setVal("business_name", row.business_name || "");
-        setVal("contact_name", row.contact_name || "");
-        setVal("contact_email", row.email || "");
-        setVal("contact_mobile", row.phone || "");
-        setVal("base_postcode", row.base_postcode || "");
+        // Prefill basics from DB
+        safeSetValue("business_name", row.business_name || "");
+        safeSetValue("contact_name", row.contact_name || "");
+        safeSetValue("contact_email", row.email || "");
+        safeSetValue("contact_mobile", row.phone || row.whatsapp_number || "");
+        safeSetValue("base_postcode", row.base_postcode || "");
 
         // Restore wizard answers if present
         if (row.wizard_answers && typeof row.wizard_answers === "object") {
@@ -1035,10 +1092,24 @@
 
         readInputs();
         paintChips();
+
+        // Refresh cache from DB (best-of-both)
+        cacheWrite({
+          contact_name: answers.contact_name,
+          business_name: answers.business_name,
+          email: answers.email,
+          phone: answers.phone,
+          base_postcode: answers.base_postcode,
+          trade_type: answers.main_trade || null,
+          wizard_answers: answers
+        });
+
         setStatus("", true);
+
       } catch (err) {
         console.error("[TBP] loadWizard error:", err);
-        setStatus("Could not load your wizard. Check your link or RLS/RPC.", false);
+        // Do not break the page if DB read fails; cache still provides prefill
+        setStatus("", true);
       }
     }
 
@@ -1048,22 +1119,33 @@
         setStatus("Saving…", true);
         if (btnNext) btnNext.disabled = true;
 
-        // IMPORTANT: call RPC with ONLY the params that exist in the function signature.
-        // (If you include extra keys, Postgres can treat it as “function does not exist”.)
-        const rpcRes = await sb.rpc("tbp_customer_save_wizard", {
+        // cache immediately (so even if refresh happens, user sees their data)
+        cacheWrite({
+          contact_name: answers.contact_name,
+          business_name: answers.business_name,
+          email: answers.email,
+          phone: answers.phone,
+          base_postcode: answers.base_postcode,
+          trade_type: answers.main_trade || null,
+          wizard_answers: answers
+        });
+
+        // Prefer RPC if it exists
+        const rpcTry = await sb.rpc("tbp_customer_save_wizard", {
           p_customer_id: customer_id,
           p_setup_token: setup_token,
-          p_business_name: answers.business_name || null,
-          p_contact_name: answers.contact_name || null,
+          p_business_name: answers.business_name,
+          p_contact_name: answers.contact_name,
           p_trade_type: answers.main_trade || null,
           p_base_postcode: answers.base_postcode || null,
           p_tone: answers.tone_of_voice || null,
           p_callout_style: answers.callout_style || null,
-          p_mark_complete: !!markComplete
+          p_mark_complete: !!markComplete,
+          p_wizard_answers: answers
         });
 
-        if (rpcRes.error) {
-          // Fallback direct update (ONLY works if RLS allows token update)
+        if (rpcTry.error) {
+          // fallback direct update (RLS must allow update with setup_token)
           const patch = {
             business_name: answers.business_name || null,
             contact_name: answers.contact_name || null,
@@ -1093,10 +1175,10 @@
         } else {
           if (btnNext) btnNext.disabled = false;
         }
+
       } catch (err) {
         console.error("[TBP] saveWizard error:", err);
-        // This message is the truth: if both RPC + direct update fail, it’s almost always RLS or missing RPC.
-        setStatus("Couldn’t save. This is usually RLS blocking direct update OR the RPC function missing/mismatched.", false);
+        setStatus("Couldn’t save. Please try again.", false);
         if (btnNext) btnNext.disabled = false;
       }
     }
@@ -1108,6 +1190,7 @@
         if (currentStep > 1) {
           currentStep -= 1;
           render();
+          window.scrollTo({ top: 0, behavior: "smooth" });
         }
       });
     }
@@ -1120,9 +1203,23 @@
       btnNext.addEventListener("click", async () => {
         setStatus("");
 
+        // Basic guard on step 1
+        if (currentStep === 1) {
+          readInputs();
+          if (!answers.contact_name || !answers.business_name) {
+            setStatus("Please enter contact name and business name.", false);
+            return;
+          }
+          if (!answers.email && !answers.phone) {
+            setStatus("Please enter an email or a mobile number.", false);
+            return;
+          }
+        }
+
         if (currentStep < totalSteps) {
           currentStep += 1;
           render();
+          window.scrollTo({ top: 0, behavior: "smooth" });
           return;
         }
 
@@ -1130,30 +1227,23 @@
       });
     }
 
-   if (btnDashboard) {
-  // Rename button meaningfully for first-time users
-  btnDashboard.textContent = "Go to your dashboard →";
+    if (btnDashboard) {
+      btnDashboard.addEventListener("click", () => {
+        // ✅ Send brand-new users to the secure dashboard (recommended)
+        const u = new URL("/client-secure-dashboard.html", location.origin);
+        u.searchParams.set("customer_id", customer_id);
+        u.searchParams.set("setup_token", setup_token);
+        location.assign(u.toString());
+      });
+    }
 
-  btnDashboard.addEventListener("click", () => {
-    const u = new URL("/client-secure-dashboard.html", location.origin);
-    u.searchParams.set("customer_id", customer_id);
-    u.searchParams.set("setup_token", setup_token);
-    location.assign(u.toString());
-  });
-}
-
-
-    // ===== Init (runs even if DOMContentLoaded already happened) =====
-    async function init() {
+    // ===== Init =====
+    window.addEventListener("DOMContentLoaded", async () => {
       render();
       await loadWizard();
-    }
-
-    if (document.readyState === "loading") {
-      window.addEventListener("DOMContentLoaded", init);
-    } else {
-      init();
-    }
+      // make sure chips reflect any restored answers
+      paintChips();
+    });
   }
 
   bootWhenSupabaseReady();
