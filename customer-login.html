@@ -115,24 +115,21 @@
     return `${name}${status}: ${message}`;
   }
 
-  // ✅ Return-to handling:
-  // - If we were sent here with ?return_to=ENCODED_URL then we keep it.
-  // - Otherwise default to the secure dashboard home.
+  // Reads ?return_to=ENCODED_URL from THIS login page URL (if present)
   function getReturnTo() {
-  // If we arrived here from customer-login with a return_to, go there now that we're authed.
-const qs = new URLSearchParams(location.search);
-const rt = (qs.get("return_to") || "").trim();
-if (rt) {
-  try {
-    const decoded = decodeURIComponent(rt);
-    const u = new URL(decoded, location.origin);
-    if (u.origin === location.origin) {
-      location.replace(u.toString());
-      return;
-    }
-  } catch (_) {}
-}
+    const qs = new URLSearchParams(location.search);
+    const rt = (qs.get("return_to") || "").trim();
+    if (!rt) return null;
 
+    try {
+      const decoded = decodeURIComponent(rt);
+      const u = new URL(decoded, location.origin);
+      if (u.origin !== location.origin) return null; // safety
+      return u.toString();
+    } catch (_) {
+      return null;
+    }
+  }
 
   if (!btn || !emailEl) {
     console.error("[TBP] customer-login: Missing #btnSend or #email element");
@@ -149,30 +146,22 @@ if (rt) {
         btn.disabled = true;
         setMsg("Sending secure link…", true);
 
-        // ✅ Build the redirect URL that Supabase will send them to after they click the email link.
-        // If we have return_to, we send them to /client-secure-dashboard.html?return_to=...
-        // The dashboard page should then forward them to that return_to after session exchange.
         const returnTo = getReturnTo();
 
+        // Supabase will redirect to THIS after they click the email link
         const redirectUrl = new URL("client-secure-dashboard.html", location.origin);
         if (returnTo) {
           redirectUrl.searchParams.set("return_to", encodeURIComponent(returnTo));
         }
 
-        // IMPORTANT: redirectUrl MUST be in Supabase Auth Redirect URLs allowlist
-        const emailRedirectTo = redirectUrl.toString();
-
         const { error } = await sb.auth.signInWithOtp({
           email,
-          options: { emailRedirectTo }
+          options: { emailRedirectTo: redirectUrl.toString() }
         });
 
         if (error) throw error;
 
-        setMsg(
-          "Secure link sent ✔\nCheck your inbox/spam and click the link to sign in.",
-          true
-        );
+        setMsg("Secure link sent ✔\nCheck your inbox/spam and click the link to sign in.", true);
       } catch (e) {
         console.error("[TBP] customer-login error:", e);
         setMsg(fmtAuthError(e), false);
@@ -182,8 +171,6 @@ if (rt) {
     });
   }
 </script>
-</body>
-</html>
 
 
 </body>
