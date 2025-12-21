@@ -1384,33 +1384,38 @@
           throw new Error("Signup saved but missing id/setup_token.");
         }
         
-        // ✅ NEW: cache prefill so wizard can load instantly even if SELECT is blocked by RLS
-        try {
-          const key = "tbp_prefill_" + row.id;
-          localStorage.setItem(key, JSON.stringify({
-            ts: Date.now(),
-            customer_id: row.id,
-            setup_token: row.setup_token,
-            contact_name: p_contact_name,
-            business_name: p_business_name,
-            email: p_email,
-            phone: p_whatsapp_number,
-            trade_type: p_trade_type,
-            service_area: p_service_area,
-            wizard_answers: {
-              contact_name: p_contact_name,
-              business_name: p_business_name,
-              email: p_email,
-              phone: p_whatsapp_number,
-              main_trade: p_trade_type,
-              // optional: if you want to pre-seed anything else later
-              // coverage_radius: null,
-              // business_stage: null
-            }
-          }));
-        } catch (e) {
-          console.warn("[TBP] prefill cache write failed:", e);
-        }
+       // ✅ NEW: cache prefill so wizard can load instantly even if SELECT is blocked by RLS
+try {
+  // ⚠️ MUST MATCH app.html CACHE_KEY
+  const key = "tbp_prefill__" + row.id;
+
+  const payload = {
+    ts: Date.now(),
+    customer_id: row.id,
+    setup_token: row.setup_token,
+
+    contact_name: p_contact_name,
+    business_name: p_business_name,
+    email: p_email,
+    phone: p_whatsapp_number,
+    base_postcode: (p_service_area || "").toUpperCase(),
+
+    wizard_answers: {
+      contact_name: p_contact_name,
+      business_name: p_business_name,
+      email: p_email,
+      phone: p_whatsapp_number,
+      base_postcode: (p_service_area || "").toUpperCase(),
+      main_trade: p_trade_type
+    }
+  };
+
+  localStorage.setItem(key, JSON.stringify(payload));
+  sessionStorage.setItem(key, JSON.stringify(payload));
+} catch (e) {
+  console.warn("[TBP] prefill cache write failed:", e);
+}
+
 
         // ✅ Always go to wizard first
         const wiz = new URL("app.html", window.location.origin);
@@ -1440,6 +1445,7 @@
   
 </body>
 </html>
+
 
 
 
