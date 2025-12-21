@@ -343,7 +343,9 @@
 <script>
 (function () {
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+  const SUPABASE_ANON_KEY = "YOUR_ANON_KEY_HERE"; // keep your existing anon key
+
+  const LS_KEY = "tbp_last_customer_link";
 
   function bootWhenSupabaseReady() {
     if (!window.supabase) return setTimeout(bootWhenSupabaseReady, 50);
@@ -357,11 +359,11 @@
     const url_customer_id = (qs.get("customer_id") || "").trim();
     const url_setup_token = (qs.get("setup_token") || "").trim();
 
-    const LS_KEY = "tbp_last_customer_link";
     const $ = (id) => document.getElementById(id);
 
     function setStatus(msg, ok = true) {
-      const el = $("tbp-status") || $("dashboard-status") || $("status") || $("status-msg") || $("wizard-status-message");
+      // try common IDs; won’t break if missing
+      const el = $("tbp-status") || $("dashboard-status") || $("status") || $("status-msg");
       if (!el) return;
       el.textContent = msg || "";
       el.style.color = ok ? "#0f7b46" : "#b3261e";
@@ -397,20 +399,21 @@
 
     // --- Magic link landing fix (Supabase v2) ---
     async function ensureSessionFromUrl() {
+      // If user lands here from a magic link, Supabase may need to exchange the code
       const u = new URL(location.href);
       const hasCode =
         u.searchParams.has("code") ||
         u.searchParams.has("access_token") ||
         u.searchParams.has("refresh_token") ||
-        u.hash.includes("access_token=") ||
-        u.hash.includes("refresh_token=");
+        (u.hash || "").includes("access_token=") ||
+        (u.hash || "").includes("refresh_token=");
 
       if (hasCode && sb.auth.exchangeCodeForSession) {
         try {
           const { data, error } = await sb.auth.exchangeCodeForSession(location.href);
           if (error) throw error;
 
-          // Clean URL so refresh doesn't re-run exchange
+          // Clean URL so refresh doesn’t re-run
           const clean = new URL(location.href);
           clean.searchParams.delete("code");
           clean.searchParams.delete("type");
@@ -434,15 +437,21 @@
       location.assign("/customer-login.html");
     }
 
-    // --- Customer loaders (no SQL changes) ---
+    // --- Customer loaders (NO SQL changes) ---
     async function loadByIdAndToken(customer_id, setup_token) {
-      // Prefer RPC if present; fallback to direct select
-      const rpc = await sb.rpc("tbp_customer_load", { p_customer_id: customer_id, p_setup_token: setup_token });
+      // Prefer RPC if present, otherwise direct select.
+      // If you DO NOT have tbp_customer_load, direct select must be allowed by RLS.
+      const rpc = await sb.rpc("tbp_customer_load", {
+        p_customer_id: customer_id,
+        p_setup_token: setup_token
+      });
+
       if (!rpc.error && rpc.data) {
         const row = Array.isArray(rpc.data) ? rpc.data[0] : rpc.data;
         return row || null;
       }
 
+      // fallback
       const direct = await sb
         .from("customers")
         .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_completed, wizard_answers, setup_token, user_id")
@@ -460,7 +469,6 @@
         .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_completed, wizard_answers, setup_token, user_id")
         .eq("user_id", user_id)
         .maybeSingle();
-
       if (res.error) throw res.error;
       return res.data || null;
     }
@@ -471,79 +479,76 @@
         .select("id, contact_name, business_name, email, phone, whatsapp_number, base_postcode, wizard_completed, wizard_answers, setup_token, user_id")
         .ilike("email", email)
         .maybeSingle();
-
       if (res.error) throw res.error;
       return res.data || null;
     }
 
     function renderCustomer(customer) {
-      // Prefer top-level, fallback to wizard_answers
-      const wa = (customer && typeof customer.wizard_answers === "object" && customer.wizard_answers) ? customer.wizard_answers : {};
+      // Text blocks (if your HTML has them)
+      safeSetText("business-name", customer.business_name || "");
+      safeSetText("contact-name", customer.contact_name || "");
+      safeSetText("email", customer.email || "");
+      safeSetText("phone", customer.phone || customer.whatsapp_number || "");
+      safeSetText("base-postcode", customer.base_postcode || "");
+      safeSetText("wizard-complete", customer.wizard_completed ? "Yes" : "No");
 
-      const business_name = customer.business_name || wa.business_name || "";
-      const contact_name  = customer.contact_name  || wa.contact_name  || "";
-      const email         = customer.email         || wa.email         || "";
-      const phone         = (customer.phone || customer.whatsapp_number || wa.phone || wa.whatsapp_number || "");
-      const base_postcode = customer.base_postcode || wa.base_postcode || "";
+      // Form inputs (if your HTML has them)
+      safeSetValue("business_name", customer.business_name || "");
+      safeSetValue("contact_name", customer.contact_name || "");
+      safeSetValue("contact_email", customer.email || "");
+      safeSetValue("contact_mobile", customer.phone || customer.whatsapp_number || "");
+      safeSetValue("base_postcode", customer.base_postcode || "");
 
-      safeSetText("business-name", business_name);
-      safeSetText("contact-name", contact_name);
-      safeSetText("email", email);
-      safeSetText("phone", phone);
-      safeSetText("base-postcode", base_postcode);
-
-      safeSetValue("business_name", business_name);
-      safeSetValue("contact_name", contact_name);
-      safeSetValue("contact_email", email);
-      safeSetValue("contact_mobile", phone);
-      safeSetValue("base_postcode", base_postcode);
-
-      if (typeof customer.wizard_completed !== "undefined") {
-        safeSetText("wizard-complete", customer.wizard_completed ? "Yes" : "No");
-      }
-
+      // Optional debug JSON block (if exists)
       const answersEl = $("wizard-answers-json");
       if (answersEl) {
         try { answersEl.textContent = JSON.stringify(customer.wizard_answers || {}, null, 2); } catch (_) {}
       }
 
+      // Wire “Edit setup” button if present
       const editBtn = $("btn-edit-setup") || $("editSetupBtn");
       if (editBtn) {
-        editBtn.onclick = () => {
+        editBtn.addEventListener("click", () => {
           const u = new URL("/app.html", location.origin);
           u.searchParams.set("customer_id", customer.id);
           if (customer.setup_token) u.searchParams.set("setup_token", customer.setup_token);
           location.assign(u.toString());
-        };
+        });
       }
     }
 
+    // --- MAIN ---
     (async function init() {
       try {
         setStatus("Loading…", true);
 
+        // 1) establish session if coming from a magic link
         const session = await ensureSessionFromUrl();
+
+        // 2) determine best customer target
         let customer = null;
 
-        // A) URL link wins
+        // A) URL wins (best match to wizard)
         if (url_customer_id && url_setup_token) {
           customer = await loadByIdAndToken(url_customer_id, url_setup_token);
           if (customer?.id && customer?.setup_token) saveLastLink(customer.id, customer.setup_token);
         }
 
-        // B) Last link
+        // B) last known link
         if (!customer?.id) {
           const last = loadLastLink();
-          if (last?.customer_id && last?.setup_token) customer = await loadByIdAndToken(last.customer_id, last.setup_token);
+          if (last?.customer_id && last?.setup_token) {
+            customer = await loadByIdAndToken(last.customer_id, last.setup_token);
+          }
         }
 
-        // C) User id
+        // C) session user_id
         if (!customer?.id && session?.user?.id) {
           customer = await loadByUserId(session.user.id);
           if (customer?.id && customer?.setup_token) saveLastLink(customer.id, customer.setup_token);
         }
 
-        // D) Email
+        // D) session email
         if (!customer?.id && session?.user?.email) {
           customer = await loadByEmail((session.user.email || "").trim());
           if (customer?.id && customer?.setup_token) saveLastLink(customer.id, customer.setup_token);
@@ -555,11 +560,13 @@
           return;
         }
 
+        // Expose for debug
         window.TBP_SECURE = { sb, session, customer };
+
         renderCustomer(customer);
         setStatus("", true);
       } catch (e) {
-        console.error("[TBP] Secure dashboard load error:", e);
+        console.error("[TBP] client-secure-dashboard load error:", e);
         setStatus("Dashboard error: could not load customer profile. Check console.", false);
       }
     })();
@@ -568,6 +575,7 @@
   bootWhenSupabaseReady();
 })();
 </script>
+
 
 
 </body>
