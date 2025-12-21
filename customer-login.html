@@ -4,173 +4,242 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>TradeBotPro — Customer Login</title>
-
   <style>
     :root{
       --primary:#1f4e79;
+      --accent:#00a3ff;
       --bg:#f3f4f9;
       --text:#151820;
       --muted:#6b7280;
       --border:rgba(15,23,42,.12);
-      --err:#b3261e;
       --ok:#0f7b46;
+      --err:#b3261e;
       --white:#ffffff;
     }
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    header{background:var(--white);border-bottom:1px solid var(--border)}
-    .inner{max-width:1100px;margin:0 auto;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-    .brand{font-weight:900}
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top left,#e0ebff 0,#f3f4f9 45%,#ffffff 100%);
+      color:var(--text);
+    }
+    header{
+      background:rgba(255,255,255,.96);
+      backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--border);
+      position:sticky; top:0; z-index:10;
+    }
+    .inner{
+      max-width:900px;
+      margin:0 auto;
+      padding:14px 18px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .brand{font-weight:900;color:var(--primary)}
     .muted{color:var(--muted)}
-    main{max-width:1100px;margin:0 auto;padding:18px}
-    .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 20px 50px rgba(15,23,42,.10)}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
-    label{display:block;font-weight:900;margin:12px 0 6px}
+    main{max-width:900px;margin:0 auto;padding:18px}
+    .card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 20px 50px rgba(15,23,42,.10);
+    }
+    label{display:block;font-size:.8rem;font-weight:900;margin:10px 0 4px;color:#111827}
     input{
       width:100%;
-      max-width:520px;
-      padding:12px 12px;
+      padding:10px 12px;
       border-radius:12px;
       border:1px solid var(--border);
-      font-size:16px;
-      outline:none;
+      font:inherit;
+      background:#fff;
     }
-    input:focus{border-color:rgba(31,78,121,.45); box-shadow:0 0 0 4px rgba(31,78,121,.10)}
+    input:focus{outline:2px solid rgba(31,78,121,.35);border-color:transparent}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
     .btn{
       border-radius:999px;
-      padding:12px 16px;
+      padding:10px 14px;
       border:1px solid var(--border);
       background:#fff;
-      font-weight:900;
+      font-weight:800;
       cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
     }
     .btnPrimary{background:var(--primary);color:#fff;border-color:transparent}
     .msg{margin-top:12px;font-weight:900;white-space:pre-wrap}
     .msg.ok{color:var(--ok)}
     .msg.err{color:var(--err)}
-    a{color:var(--primary);font-weight:900;text-decoration:none}
+    .tiny{font-size:.8rem;color:var(--muted);margin-top:10px}
+    code{background:#f1f5f9;border:1px solid var(--border);padding:2px 6px;border-radius:8px}
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="inner">
-      <div>
-        <div class="brand">TradeBotPro</div>
-        <div class="muted">Customer secure login</div>
-      </div>
-      <div class="row">
-        <a href="index.html">Home</a>
-      </div>
+<header>
+  <div class="inner">
+    <div>
+      <div class="brand">TradeBotPro</div>
+      <div class="muted">Customer Login</div>
     </div>
-  </header>
+    <div class="muted">Secure magic link access</div>
+  </div>
+</header>
 
-  <main>
-    <div class="card">
-      <h2 style="margin:0 0 6px">Get a secure login link</h2>
-      <div class="muted">
-        Enter the email you used to sign up. We’ll send you a secure link to access your dashboard.
-        This also verifies your email for security.
-      </div>
+<main>
+  <section class="card">
+    <h2 style="margin:0 0 6px;color:var(--primary)">Send me a secure login link</h2>
+    <div class="muted">Enter the email you signed up with. We’ll email a link to sign in.</div>
 
-      <label for="email">Email address</label>
-      <input id="email" type="email" placeholder="you@company.co.uk" autocomplete="email"/>
+    <label for="email">Email</label>
+    <input id="email" type="email" placeholder="name@company.co.uk" autocomplete="email"/>
 
-      <div style="margin-top:14px" class="row">
-        <button id="btnSend" class="btn btnPrimary" type="button">Send secure link</button>
-        <a href="client-secure-dashboard.html">Already logged in?</a>
-      </div>
-
-      <div id="msg" class="msg"></div>
-
-      <div class="muted" style="margin-top:14px;font-size:14px;line-height:1.5">
-        If you don’t receive the email within a minute, check spam/junk and try again.
-      </div>
+    <div class="row">
+      <button id="btnSend" class="btn btnPrimary" type="button">Send secure link →</button>
     </div>
-  </main>
 
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    <div id="msg" class="msg"></div>
 
-   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
+    <div class="tiny">
+      If you were redirected here automatically, we’ll send you back after login.
+    </div>
+  </section>
+</main>
+
+<!-- ✅ Supabase UMD ONLY -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
+
+<script>
+(function(){
+  // ⚠️ MUST be from Supabase Project Settings → API → "anon public"
+     const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
-
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const emailEl = document.getElementById("email");
   const btn = document.getElementById("btnSend");
   const msg = document.getElementById("msg");
 
-  function setMsg(text, ok = false) {
-    if (!msg) return;
+  function setMsg(text, ok=false){
+    if(!msg) return;
     msg.textContent = text || "";
-    msg.className = "msg " + (ok ? "ok" : "err");
-    if (!text) msg.className = "msg";
+    msg.className = "msg" + (text ? (ok ? " ok" : " err") : "");
   }
 
-  function fmtAuthError(e) {
+  function fmtAuthError(e){
     const name = e?.name ? String(e.name) : "Auth error";
     const status = e?.status ? ` (status ${e.status})` : "";
     const message = e?.message ? String(e.message) : "Unknown error";
     return `${name}${status}: ${message}`;
   }
 
-  // Reads ?return_to=ENCODED_URL from THIS login page URL (if present)
-  function getReturnTo() {
+  // Preserve return_to (optional)
+  function getReturnTo(){
     const qs = new URLSearchParams(location.search);
     const rt = (qs.get("return_to") || "").trim();
-    if (!rt) return null;
-
-    try {
+    if(!rt) return "";
+    try{
       const decoded = decodeURIComponent(rt);
       const u = new URL(decoded, location.origin);
-      if (u.origin !== location.origin) return null; // safety
+      if(u.origin !== location.origin) return "";
       return u.toString();
-    } catch (_) {
-      return null;
+    }catch(_){
+      return "";
     }
   }
 
-  if (!btn || !emailEl) {
-    console.error("[TBP] customer-login: Missing #btnSend or #email element");
-  } else {
-    btn.addEventListener("click", async () => {
-      if (btn.disabled) return;
-
-      try {
-        const email = (emailEl.value || "").trim().toLowerCase();
-        if (!email || !email.includes("@")) {
-          throw new Error("Please enter a valid email address.");
-        }
-
-        btn.disabled = true;
-        setMsg("Sending secure link…", true);
-
-        const returnTo = getReturnTo();
-
-        // Supabase will redirect to THIS after they click the email link
-        const redirectUrl = new URL("client-secure-dashboard.html", location.origin);
-        if (returnTo) {
-          redirectUrl.searchParams.set("return_to", encodeURIComponent(returnTo));
-        }
-
-        const { error } = await sb.auth.signInWithOtp({
-          email,
-          options: { emailRedirectTo: redirectUrl.toString() }
-        });
-
-        if (error) throw error;
-
-        setMsg("Secure link sent ✔\nCheck your inbox/spam and click the link to sign in.", true);
-      } catch (e) {
-        console.error("[TBP] customer-login error:", e);
-        setMsg(fmtAuthError(e), false);
-      } finally {
-        btn.disabled = false;
-      }
-    });
+  function must(){
+    if(!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("PASTE_YOUR_ANON_PUBLIC_KEY")){
+      setMsg("Missing SUPABASE_ANON_KEY.\nPaste your anon public key into customer-login.html.", false);
+      return false;
+    }
+    // Quick sanity: keys are long JWT-like strings
+    if(SUPABASE_ANON_KEY.length < 100){
+      setMsg("SUPABASE_ANON_KEY looks too short.\nRe-copy the anon public key from Supabase → Settings → API.", false);
+      return false;
+    }
+    return true;
   }
-</script>
 
+  function createSb(){
+    if(!window.supabase){
+      setMsg("Supabase library failed to load.", false);
+      return null;
+    }
+    return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+
+  async function authHealthCheck(){
+    try{
+      const r = await fetch(`${SUPABASE_URL}/auth/v1/health`, { headers: { apikey: SUPABASE_ANON_KEY }});
+      if(r.status === 401){
+        // This is *definitive*: URL/key mismatch or bad key text
+        setMsg(
+          "AuthApiError (401): Invalid API key.\n\nFix:\n1) Supabase → Project Settings → API\n2) Copy 'anon public' key for THIS project\n3) Replace SUPABASE_ANON_KEY in customer-login.html\n4) Hard refresh (Ctrl+F5)",
+          false
+        );
+        return false;
+      }
+      return true;
+    }catch(e){
+      console.warn("[TBP] authHealthCheck error:", e);
+      // Don’t block; just continue
+      return true;
+    }
+  }
+
+  (async function init(){
+    setMsg("");
+    if(!must()) return;
+
+    // Make sure the key is valid *before* trying signInWithOtp
+    await authHealthCheck();
+  })();
+
+  btn?.addEventListener("click", async () => {
+    try{
+      setMsg("");
+      if(!must()) return;
+
+      const sb = createSb();
+      if(!sb) return;
+
+      const email = (emailEl?.value || "").trim().toLowerCase();
+      if(!email || !email.includes("@")) throw new Error("Please enter a valid email address.");
+
+      btn.disabled = true;
+      setMsg("Sending secure link…", true);
+
+      const returnTo = getReturnTo();
+
+      // Send them to secure dashboard after they click the magic link.
+      // Dashboard will exchange the code for a session.
+      const redirectUrl = new URL("client-secure-dashboard.html", location.origin);
+      if(returnTo) redirectUrl.searchParams.set("return_to", encodeURIComponent(returnTo));
+      const emailRedirectTo = redirectUrl.toString();
+
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo }
+      });
+
+      if(error) throw error;
+
+      setMsg("Secure link sent ✔\nCheck inbox/spam and click the link to sign in.", true);
+    }catch(e){
+      console.error("[TBP] customer-login error:", e);
+      setMsg(fmtAuthError(e), false);
+    }finally{
+      if(btn) btn.disabled = false;
+    }
+  });
+
+})();
+</script>
 
 </body>
 </html>
