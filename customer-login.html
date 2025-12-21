@@ -88,12 +88,12 @@
     </div>
   </main>
 
- <script type="module">
+<script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   const SUPABASE_URL = "https://yaiutswdcbfwkxfqxkzy.supabase.co";
   const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInlhaXV0c3dkY2Jmd2t4ZnF4a3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE2MDgsImV4cCI6MjA4MDA3NzYwOH0.HOLFxzjsZ5Ieqg0b-aTdP0hAdLsPVXL6Zjs-HgOHgc8";
 
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -109,11 +109,31 @@
   }
 
   function fmtAuthError(e) {
-    // Supabase errors often include: name, message, status
     const name = e?.name ? String(e.name) : "Auth error";
     const status = e?.status ? ` (status ${e.status})` : "";
     const message = e?.message ? String(e.message) : "Unknown error";
     return `${name}${status}: ${message}`;
+  }
+
+  // ✅ Return-to handling:
+  // - If we were sent here with ?return_to=ENCODED_URL then we keep it.
+  // - Otherwise default to the secure dashboard home.
+  function getReturnTo() {
+    const qs = new URLSearchParams(location.search);
+    const rt = (qs.get("return_to") || "").trim();
+    if (!rt) return null;
+    try {
+      // decode once (we encoded it earlier)
+      const decoded = decodeURIComponent(rt);
+
+      // safety: only allow returning to this site
+      const u = new URL(decoded, location.origin);
+      if (u.origin !== location.origin) return null;
+
+      return u.toString();
+    } catch (_) {
+      return null;
+    }
   }
 
   if (!btn || !emailEl) {
@@ -131,8 +151,18 @@
         btn.disabled = true;
         setMsg("Sending secure link…", true);
 
-        // IMPORTANT: this MUST be allowed in Supabase Auth redirect URLs
-        const emailRedirectTo = new URL("client-secure-dashboard.html", location.origin).toString();
+        // ✅ Build the redirect URL that Supabase will send them to after they click the email link.
+        // If we have return_to, we send them to /client-secure-dashboard.html?return_to=...
+        // The dashboard page should then forward them to that return_to after session exchange.
+        const returnTo = getReturnTo();
+
+        const redirectUrl = new URL("client-secure-dashboard.html", location.origin);
+        if (returnTo) {
+          redirectUrl.searchParams.set("return_to", encodeURIComponent(returnTo));
+        }
+
+        // IMPORTANT: redirectUrl MUST be in Supabase Auth Redirect URLs allowlist
+        const emailRedirectTo = redirectUrl.toString();
 
         const { error } = await sb.auth.signInWithOtp({
           email,
@@ -148,15 +178,15 @@
       } catch (e) {
         console.error("[TBP] customer-login error:", e);
         setMsg(fmtAuthError(e), false);
-
-        // Optional: pop an alert so you see it even if CSS hides the message
-        // alert(fmtAuthError(e));
       } finally {
         btn.disabled = false;
       }
     });
   }
 </script>
+</body>
+</html>
+
 
 </body>
 </html>
