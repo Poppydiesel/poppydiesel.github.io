@@ -119,22 +119,20 @@
   // - If we were sent here with ?return_to=ENCODED_URL then we keep it.
   // - Otherwise default to the secure dashboard home.
   function getReturnTo() {
-    const qs = new URLSearchParams(location.search);
-    const rt = (qs.get("return_to") || "").trim();
-    if (!rt) return null;
-    try {
-      // decode once (we encoded it earlier)
-      const decoded = decodeURIComponent(rt);
-
-      // safety: only allow returning to this site
-      const u = new URL(decoded, location.origin);
-      if (u.origin !== location.origin) return null;
-
-      return u.toString();
-    } catch (_) {
-      return null;
+  // If we arrived here from customer-login with a return_to, go there now that we're authed.
+const qs = new URLSearchParams(location.search);
+const rt = (qs.get("return_to") || "").trim();
+if (rt) {
+  try {
+    const decoded = decodeURIComponent(rt);
+    const u = new URL(decoded, location.origin);
+    if (u.origin === location.origin) {
+      location.replace(u.toString());
+      return;
     }
-  }
+  } catch (_) {}
+}
+
 
   if (!btn || !emailEl) {
     console.error("[TBP] customer-login: Missing #btnSend or #email element");
